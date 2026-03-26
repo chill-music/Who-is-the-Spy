@@ -1,10 +1,11 @@
+(function() {
 var EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
-    const t = TRANSLATIONS[lang];
-    const [activeCategory, setActiveCategory] = useState('smiles');
+    var t = TRANSLATIONS[lang];
+    var [activeCategory, setActiveCategory] = useState('smiles');
 
     if (!show) return null;
 
-    const categories = [
+    var categories = [
         { id: 'smiles',   icon: '😀', label_ar: 'وجوه',   label_en: 'Faces' },
         { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
         { id: 'hearts',   icon: '❤️', label_ar: 'قلوب',   label_en: 'Hearts' },
@@ -12,7 +13,7 @@ var EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
         { id: 'nature',   icon: '🌸', label_ar: 'طبيعة',  label_en: 'Nature' },
     ];
 
-    const wrapperStyle = inline ? {} : undefined;
+    var wrapperStyle = inline ? {} : undefined;
 
     return (
         <div className={inline ? '' : 'emoji-picker-modal animate-slide-up'} style={wrapperStyle}>
@@ -64,14 +65,14 @@ var EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
 // 🎁 GIFT PREVIEW MODAL - IMPROVED
 // Shows details for both sender and receiver
 var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => {
-    const t = TRANSLATIONS[lang];
-    const [showFriendSelect, setShowFriendSelect] = useState(false);
-    const [selectedFriend, setSelectedFriend] = useState(null);
-    const [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
-    const [previewBonus, setPreviewBonus] = useState(0);
+    var t = TRANSLATIONS[lang];
+    var [showFriendSelect, setShowFriendSelect] = useState(false);
+    var [selectedFriend, setSelectedFriend] = useState(null);
+    var [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
+    var [previewBonus, setPreviewBonus] = useState(0);
     // ✅ Quantity system
-    const [selectedQty, setSelectedQty] = useState(1);
-    const isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
+    var [selectedQty, setSelectedQty] = useState(1);
+    var isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
 
     useEffect(() => {
         if (show && gift) {
@@ -88,9 +89,9 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
     if (!show || !gift) return null;
 
     // ── Quantity buy handler ──
-    const handleBuyWithQty = (qty) => {
+    var handleBuyWithQty = (qty) => {
         if (!onBuy) return;
-        const target = directTarget
+        var target = directTarget
             ? directTarget
             : sendMode === 'self'
             ? { uid: 'self', displayName: currentUserData?.displayName || 'Me' }
@@ -99,13 +100,13 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
         onBuy(gift, target, qty || selectedQty);
     };
 
-    const handleBuy = () => handleBuyWithQty(selectedQty);
+    var handleBuy = () => handleBuyWithQty(selectedQty);
 
     // ── Profile Effect special view ──
     if (gift.type === 'profileEffects') {
-        const rKey = gift.rarity || 'Common';
-        const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
-        const owned = currency >= gift.cost;
+        var rKey = gift.rarity || 'Common';
+        var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+        var owned = currency >= gift.cost;
         return (
             <div className="modal-overlay" onClick={onClose}>
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{maxWidth:'340px'}}>
@@ -117,7 +118,7 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
                         {/* Effect Preview Box */}
                         {(() => {
                             // ✅ Support: particles as URL, imageUrl, or emoji preview
-                            const effectSrc = (typeof gift.particles === 'string' && gift.particles.startsWith('http'))
+                            var effectSrc = (typeof gift.particles === 'string' && gift.particles.startsWith('http'))
                                 ? gift.particles
                                 : (gift.imageUrl && gift.imageUrl.trim() !== '' ? gift.imageUrl : null);
                             return (
@@ -188,16 +189,16 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
         );
     }
 
-    const renderGiftIcon = () => {
+    var renderGiftIcon = () => {
         if (gift.type === 'frames') { return gift.preview.startsWith('http') ? <img src={gift.preview} alt={gift.name_en} className="w-14 h-14 rounded-full object-cover mx-auto" /> : <div className="w-14 h-14 rounded-full mx-auto" style={{ background: gift.preview }}></div>; }
         if (gift.type === 'badges') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.preview}</div>; }
         if (gift.type === 'titles') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="h-8 object-contain mx-auto" /> : <div className="text-3xl mb-2">{gift.preview}</div>; }
         return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.emoji}</div>;
     };
 
-    const handleSendFromInventory = () => {
+    var handleSendFromInventory = () => {
         if (!onSendFromInventory) return;
-        const target = directTarget
+        var target = directTarget
             ? directTarget
             : sendMode === 'self'
             ? { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL }
@@ -404,24 +405,24 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
 
 // 🎁 SEND GIFT MODAL — New Design v3 (All fixes applied)
 var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
-    const t = TRANSLATIONS[lang];
+    var t = TRANSLATIONS[lang];
 
     // ── ALL HOOKS FIRST — no early returns before hooks ──
-    const [activeTab, setActiveTab]           = useState('gifts');
-    const [selectedGift, setSelectedGift]     = useState(null);
-    const [comboOverlay, setComboOverlay]     = useState(null);
-    const [qty, setQty]                       = useState(1);
-    const [isPublic, setIsPublic]             = useState(true);
-    const [showGiftDetail, setShowGiftDetail] = useState(false);
-    const tabsRef            = useRef(null);
-    const scrollIntervalRef  = useRef(null);
+    var [activeTab, setActiveTab]           = useState('gifts');
+    var [selectedGift, setSelectedGift]     = useState(null);
+    var [comboOverlay, setComboOverlay]     = useState(null);
+    var [qty, setQty]                       = useState(1);
+    var [isPublic, setIsPublic]             = useState(true);
+    var [showGiftDetail, setShowGiftDetail] = useState(false);
+    var tabsRef            = useRef(null);
+    var scrollIntervalRef  = useRef(null);
 
-    const scrollTabs = (dir) => {
+    var scrollTabs = (dir) => {
         if (!tabsRef.current) return;
         tabsRef.current.scrollBy({ left: dir * 120, behavior: 'smooth' });
     };
-    const startScroll = (dir) => { scrollTabs(dir); scrollIntervalRef.current = setInterval(() => scrollTabs(dir), 220); };
-    const stopScroll  = () => clearInterval(scrollIntervalRef.current);
+    var startScroll = (dir) => { scrollTabs(dir); scrollIntervalRef.current = setInterval(() => scrollTabs(dir), 220); };
+    var stopScroll  = () => clearInterval(scrollIntervalRef.current);
 
     // fix #1/#6: combo check BEFORE show guard so state is never lost on unmount
     if (comboOverlay) {
@@ -441,13 +442,13 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
 
     if (!show) return null;
 
-    const hasDirectTarget = targetUser && targetUser.uid !== 'self';
-    const vipLevel  = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
-    const inventory = currentUser?.inventory || {};
+    var hasDirectTarget = targetUser && targetUser.uid !== 'self';
+    var vipLevel  = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
+    var inventory = currentUser?.inventory || {};
     // fix #9: only require familyId — ignore level requirement
-    const hasFamilyId = !!(currentUser?.familyId);
+    var hasFamilyId = !!(currentUser?.familyId);
 
-    const TABS = [
+    var TABS = [
         { id: 'inventory', icon: '🎒', label_ar: 'انفنتري',      label_en: 'Inventory' },
         { id: 'gifts',     icon: '🎁', label_ar: 'هدايا',         label_en: 'Gifts'    },
         { id: 'family',    icon: '🏰', label_ar: 'هدايا القبيلة', label_en: 'Family'   },
@@ -456,19 +457,19 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
         { id: 'vip',       icon: '👑', label_ar: 'VIP',            label_en: 'VIP'      },
     ];
 
-    const getGiftsForTab = () => {
+    var getGiftsForTab = () => {
         switch (activeTab) {
             case 'inventory': {
-                const invGiftIds = inventory.gifts || [];
-                const pool = [
+                var invGiftIds = inventory.gifts || [];
+                var pool = [
                     ...(SHOP_ITEMS.gifts||[]), ...(SHOP_ITEMS.gifts_vip||[]),
                     ...(SHOP_ITEMS.gifts_family||[]), ...(SHOP_ITEMS.gifts_special||[]),
                 ];
                 return invGiftIds.map(gid => {
-                    const g = pool.find(x => x.id === gid);
+                    var g = pool.find(x => x.id === gid);
                     if (!g) return null;
-                    const expiryTs = inventory.expiry?.[gid];
-                    const daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
+                    var expiryTs = inventory.expiry?.[gid];
+                    var daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
                     return { ...g, fromInventory: true, daysLeft, qty: inventory.giftCounts?.[gid] || 1 };
                 }).filter(Boolean);
             }
@@ -480,9 +481,9 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
             default:        return [];
         }
     };
-    const gifts = getGiftsForTab();
+    var gifts = getGiftsForTab();
 
-    const getGiftTag = (gift) => {
+    var getGiftTag = (gift) => {
         if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'يانصيب':'Lottery',           bg:'#8b5cf6' };
         if (gift.limitedTime)                                       return { label: lang==='ar'?'محدود':'Limited',             bg:'#f97316' };
         if (gift.type === 'gifts_vip' || gift.vipExclusive)        return { label: 'VIP',                                      bg:'#f59e0b' };
@@ -491,11 +492,11 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
         return null;
     };
 
-    const handleSend = (gift, sendQty) => {
-        const target = hasDirectTarget ? targetUser : null;
+    var handleSend = (gift, sendQty) => {
+        var target = hasDirectTarget ? targetUser : null;
         if (!gift) return;
         onSendGift(gift, target, sendQty || qty, { isPublic });
-        const allowsMulti = gift?.maxSendOptions != null && (sendQty || qty) === 1;
+        var allowsMulti = gift?.maxSendOptions != null && (sendQty || qty) === 1;
         if (allowsMulti && target && target.uid !== 'self') {
             setComboOverlay({ gift, target });
         } else {
@@ -503,16 +504,16 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
         }
     };
 
-    const charismaForBar = selectedGift ? (selectedGift.charisma||0) * qty : 0;
-    const maxGoldForBar  = selectedGift ? (selectedGift.maxBonus||0) * qty : 0;
-    const showInfoBar    = !!(selectedGift && (charismaForBar > 0 || maxGoldForBar > 0));
+    var charismaForBar = selectedGift ? (selectedGift.charisma||0) * qty : 0;
+    var maxGoldForBar  = selectedGift ? (selectedGift.maxBonus||0) * qty : 0;
+    var showInfoBar    = !!(selectedGift && (charismaForBar > 0 || maxGoldForBar > 0));
 
     // fix #7: gift detail popup component
-    const GiftDetailPopup = () => {
+    var GiftDetailPopup = () => {
         if (!showGiftDetail || !selectedGift) return null;
-        const g = selectedGift;
-        const rKey = getGiftRarity(g.cost || 0);
-        const rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+        var g = selectedGift;
+        var rKey = getGiftRarity(g.cost || 0);
+        var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
         return (
             <div style={{ position:'fixed', inset:0, zIndex: Z.TOOLTIP, background:'rgba(0,0,0,0.88)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
                 onClick={() => setShowGiftDetail(false)}>
@@ -615,14 +616,14 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
                                 {activeTab==='inventory'?(lang==='ar'?'لا توجد هدايا في الإنفنتري':'No gifts in inventory'):(lang==='ar'?'لا توجد هدايا':'No gifts available')}
                             </div>
                         ) : gifts.map(gift => {
-                            const tag        = getGiftTag(gift);
-                            const rKey       = getGiftRarity(gift.cost || 0);
-                            const rarity     = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
-                            const vipRequired = gift.vipMinLevel || 0;
-                            const isVIPLocked = gift.type==='gifts_vip' && vipLevel < vipRequired;
-                            const isFamLocked = gift.type==='gifts_family' && !hasFamilyId; // fix #9
-                            const isSelected  = selectedGift?.id === gift.id;
-                            const canAfford   = gift.fromInventory ? true : (currency >= (gift.cost||0));
+                            var tag        = getGiftTag(gift);
+                            var rKey       = getGiftRarity(gift.cost || 0);
+                            var rarity     = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+                            var vipRequired = gift.vipMinLevel || 0;
+                            var isVIPLocked = gift.type==='gifts_vip' && vipLevel < vipRequired;
+                            var isFamLocked = gift.type==='gifts_family' && !hasFamilyId; // fix #9
+                            var isSelected  = selectedGift?.id === gift.id;
+                            var canAfford   = gift.fromInventory ? true : (currency >= (gift.cost||0));
                             return (
                                 <button key={gift.id}
                                     onClick={() => { if (isVIPLocked||isFamLocked) return; setSelectedGift(isSelected?null:gift); setQty(1); setShowGiftDetail(false); }}
@@ -700,7 +701,7 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
                             onClick={() => {
                                 if (!selectedGift) return;
                                 if (selectedGift.fromInventory) { onSendGift(selectedGift, hasDirectTarget?targetUser:null, qty, { isPublic }); onClose(); }
-                                else { const cost=(selectedGift.cost||0)*qty; if(currency<cost)return; handleSend(selectedGift,qty); }
+                                else { var cost=(selectedGift.cost||0)*qty; if(currency<cost)return; handleSend(selectedGift,qty); }
                             }}
                             disabled={!selectedGift}
                             style={{ padding:'9px 22px', borderRadius:'50px', flexShrink:0, background:selectedGift?'linear-gradient(135deg,#ec4899,#db2777)':'rgba(255,255,255,0.07)', border:'none', color:selectedGift?'white':'#4b5563', fontSize:'13px', fontWeight:900, cursor:selectedGift?'pointer':'default', boxShadow:selectedGift?'0 4px 14px rgba(236,72,153,0.45)':'none', transition:'all 0.2s' }}>
@@ -719,30 +720,30 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
 // 🔥 COMBO SEND OVERLAY — bottom-right floating card, no backdrop
 // ══════════════════════════════════════════════════
 var ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
-    const COMBO_DURATION = 3000; // ✅ 3 seconds
+    var COMBO_DURATION = 3000; // ✅ 3 seconds
 
     // ─── ALL STATE ───
-    const [comboCount,    setComboCount]    = useState(0);
-    const [ringProgress,  setRingProgress]  = useState(1);
-    const [comboActive,   setComboActive]   = useState(true);
-    const [totalBonus,    setTotalBonus]    = useState(0);
-    const [totalCharisma, setTotalCharisma] = useState(0);
-    const [closing,       setClosing]       = useState(false);
-    const [showFinalLog,  setShowFinalLog]  = useState(false);
+    var [comboCount,    setComboCount]    = useState(0);
+    var [ringProgress,  setRingProgress]  = useState(1);
+    var [comboActive,   setComboActive]   = useState(true);
+    var [totalBonus,    setTotalBonus]    = useState(0);
+    var [totalCharisma, setTotalCharisma] = useState(0);
+    var [closing,       setClosing]       = useState(false);
+    var [showFinalLog,  setShowFinalLog]  = useState(false);
 
     // ─── ALL REFS — never go stale ───
-    const ringIntervalRef  = React.useRef(null);
-    const timerRef         = React.useRef(null);
-    const ringStartRef     = React.useRef(null);
-    const comboCountRef    = React.useRef(0);
-    const isClosedRef      = React.useRef(false);   // ✅ guard: prevent double-close
-    const onCloseRef       = React.useRef(onClose);
-    const currencyRef      = React.useRef(currency);
+    var ringIntervalRef  = React.useRef(null);
+    var timerRef         = React.useRef(null);
+    var ringStartRef     = React.useRef(null);
+    var comboCountRef    = React.useRef(0);
+    var isClosedRef      = React.useRef(false);   // ✅ guard: prevent double-close
+    var onCloseRef       = React.useRef(onClose);
+    var currencyRef      = React.useRef(currency);
     useEffect(() => { onCloseRef.current = onClose; },  [onClose]);
     useEffect(() => { currencyRef.current = currency; }, [currency]);
 
     // ─── CLOSE — called only once ───
-    const close = React.useCallback(() => {
+    var close = React.useCallback(() => {
         if (isClosedRef.current) return;      // ✅ prevent double-fire
         isClosedRef.current = true;
         clearInterval(ringIntervalRef.current);
@@ -757,15 +758,15 @@ var ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
     }, []); // ✅ empty deps — never recreated, never stale
 
     // ─── COUNTDOWN ───
-    const startCountdown = React.useCallback(() => {
+    var startCountdown = React.useCallback(() => {
         clearInterval(ringIntervalRef.current);
         clearTimeout(timerRef.current);
         ringStartRef.current = Date.now();
         setRingProgress(1);
         setComboActive(true);
         ringIntervalRef.current = setInterval(() => {
-            const elapsed  = Date.now() - ringStartRef.current;
-            const progress = 1 - elapsed / COMBO_DURATION;
+            var elapsed  = Date.now() - ringStartRef.current;
+            var progress = 1 - elapsed / COMBO_DURATION;
             if (progress <= 0) {
                 clearInterval(ringIntervalRef.current);
                 setRingProgress(0);
@@ -791,14 +792,14 @@ var ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
     }, []); // ✅ run only once on mount
 
     // ─── TAP HANDLER — uses refs, never stale ───
-    const handleTap = React.useCallback((e) => {
+    var handleTap = React.useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
         if (isClosedRef.current) return;
         if (currencyRef.current < gift.cost) return;
         onSend(gift, target, 1);
-        const bonus    = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
-        const charisma = gift.charisma || 0;
+        var bonus    = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
+        var charisma = gift.charisma || 0;
         setTotalBonus   (prev => prev + bonus);
         setTotalCharisma(prev => prev + charisma);
         comboCountRef.current += 1;
@@ -806,9 +807,9 @@ var ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
         startCountdown(); // ✅ reset timer on every tap
     }, [gift, target, onSend, startCountdown]);
 
-    const RING_R    = 42;
-    const RING_C    = 2 * Math.PI * RING_R;
-    const ringColor = comboCountRef.current >= 10 ? '#f59e0b'
+    var RING_R    = 42;
+    var RING_C    = 2 * Math.PI * RING_R;
+    var ringColor = comboCountRef.current >= 10 ? '#f59e0b'
                     : comboCountRef.current >= 5  ? '#a78bfa'
                     : '#00d4ff';
 
@@ -942,5 +943,9 @@ var ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
     );
 };
 
+window.EmojiPicker = EmojiPicker;
+window.GiftPreviewModal = GiftPreviewModal;
+window.SendGiftModal = SendGiftModal;
+window.ComboSendOverlay = ComboSendOverlay;
 
-// 🛒 SHOP MODAL
+})();

@@ -1,3 +1,6 @@
+(function() {
+    var { useState, useEffect, useRef, useMemo } = React;
+
 // ════════════════════════════════════════════════════════════════════
 // 🤝 BFF SYSTEM — Friendship Relationship System  (21-bff.js)
 // ════════════════════════════════════════════════════════════════════
@@ -31,11 +34,11 @@ var BFF_LEVELS = [
 ];
 
 var getBFFLevel = (giftPoints = 0) => {
-    let lv = BFF_LEVELS[0];
-    for (const l of BFF_LEVELS) { if (giftPoints >= l.minPts) lv = l; else break; }
-    const nextIdx = BFF_LEVELS.findIndex(l => l.level === lv.level) + 1;
-    const next = BFF_LEVELS[nextIdx] || null;
-    const pct = next
+    var lv = BFF_LEVELS[0];
+    for (var l of BFF_LEVELS) { if (giftPoints >= l.minPts) lv = l; else break; }
+    var nextIdx = BFF_LEVELS.findIndex(l => l.level === lv.level) + 1;
+    var next = BFF_LEVELS[nextIdx] || null;
+    var pct = next
         ? Math.min(100, Math.round(((giftPoints - lv.minPts) / (next.minPts - lv.minPts)) * 100))
         : 100;
     return { ...lv, pct, nextMinPts: next?.minPts || null, giftPoints };
@@ -46,15 +49,15 @@ var getBFFLevel = (giftPoints = 0) => {
 // ─────────────────────────────────────────────
 var updateBFFGiftPoints = async (senderUID, receiverUID, charismaPoints) => {
     try {
-        const [snap1, snap2] = await Promise.all([
+        var [snap1, snap2] = await Promise.all([
             bffCollection.where('uid1', '==', senderUID).where('uid2', '==', receiverUID).where('status', '==', 'active').limit(1).get(),
             bffCollection.where('uid1', '==', receiverUID).where('uid2', '==', senderUID).where('status', '==', 'active').limit(1).get(),
         ]);
-        const doc = snap1.docs[0] || snap2.docs[0];
+        var doc = snap1.docs[0] || snap2.docs[0];
         if (!doc) return;
-        const current = doc.data();
-        const newPts = (current.giftPoints || 0) + (charismaPoints || 1);
-        const newLevel = getBFFLevel(newPts).level;
+        var current = doc.data();
+        var newPts = (current.giftPoints || 0) + (charismaPoints || 1);
+        var newLevel = getBFFLevel(newPts).level;
         await bffCollection.doc(doc.id).update({
             giftPoints: newPts,
             level: newLevel,
@@ -68,11 +71,11 @@ var updateBFFGiftPoints = async (senderUID, receiverUID, charismaPoints) => {
 // 🔧 FIRESTORE HELPERS
 // ─────────────────────────────────────────────
 var sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification, lang }) => {
-    const token = BFF_TOKEN_ITEMS.find(t => t.id === tokenId);
+    var token = BFF_TOKEN_ITEMS.find(t => t.id === tokenId);
     if (!token) return { ok: false, err: 'No token selected' };
 
     // Check token in inventory
-    const myBffTokens = fromData?.inventory?.bff_tokens || [];
+    var myBffTokens = fromData?.inventory?.bff_tokens || [];
     if (!myBffTokens.includes(tokenId)) {
         onNotification && onNotification(lang === 'ar' ? '❌ ليس لديك هذا التوكن' : '❌ You do not have this token');
         return { ok: false };
@@ -80,17 +83,17 @@ var sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification,
 
     try {
         // ── Simple single-field queries only (no composite index needed) ──
-        const [myAsUid1, myAsUid2] = await Promise.all([
+        var [myAsUid1, myAsUid2] = await Promise.all([
             bffCollection.where('uid1', '==', fromUID).get(),
             bffCollection.where('uid2', '==', fromUID).get(),
         ]);
-        const allMyDocs = [
+        var allMyDocs = [
             ...myAsUid1.docs.map(d => ({ id: d.id, ...d.data() })),
             ...myAsUid2.docs.map(d => ({ id: d.id, ...d.data() })),
         ];
 
         // Check existing relationship with toUID
-        const alreadyExists = allMyDocs.some(r =>
+        var alreadyExists = allMyDocs.some(r =>
             (r.uid1 === toUID || r.uid2 === toUID) &&
             (r.status === 'pending' || r.status === 'active')
         );
@@ -100,9 +103,9 @@ var sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification,
         }
 
         // Check slot limit (count active only)
-        const totalActive = allMyDocs.filter(r => r.status === 'active').length;
-        const extraSlots = fromData?.bffExtraSlots || 0;
-        const maxSlots = BFF_CONFIG.freeSlots + extraSlots;
+        var totalActive = allMyDocs.filter(r => r.status === 'active').length;
+        var extraSlots = fromData?.bffExtraSlots || 0;
+        var maxSlots = BFF_CONFIG.freeSlots + extraSlots;
         if (totalActive >= maxSlots) {
             onNotification && onNotification(lang === 'ar'
                 ? `❌ وصلت للحد الأقصى (${maxSlots} علاقات). اشترِ خانة جديدة بـ ${BFF_CONFIG.extraSlotCost} 🧠`
@@ -112,13 +115,13 @@ var sendBFFRequest = async ({ fromUID, toUID, fromData, tokenId, onNotification,
 
         // ── Write: update inventory + create BFF doc separately (no batch to avoid permission complexity) ──
         // Remove token from inventory
-        const newTokens = [...myBffTokens];
-        const idx = newTokens.indexOf(tokenId);
+        var newTokens = [...myBffTokens];
+        var idx = newTokens.indexOf(tokenId);
         if (idx > -1) newTokens.splice(idx, 1);
         await usersCollection.doc(fromUID).update({ 'inventory.bff_tokens': newTokens });
 
         // Create BFF doc
-        const bffRef = await bffCollection.add({
+        var bffRef = await bffCollection.add({
             uid1: fromUID,
             uid2: toUID,
             status: 'pending',
@@ -182,7 +185,7 @@ var acceptBFFRequest = async ({ bffDocId, uid1, uid2, onNotification, lang }) =>
 var declineBFFRequest = async ({ bffDocId, fromUID, tokenId, onNotification, lang }) => {
     try {
         // Refund token
-        const token = BFF_TOKEN_ITEMS.find(t => t.id === tokenId);
+        var token = BFF_TOKEN_ITEMS.find(t => t.id === tokenId);
         if (token && fromUID) {
             await usersCollection.doc(fromUID).update({
                 'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(tokenId),
@@ -207,7 +210,7 @@ var endBFFRelationship = async ({ bffDocId, onNotification, lang }) => {
 };
 
 var buyBFFExtraSlot = async ({ uid, userData, onNotification, lang }) => {
-    const cost = BFF_CONFIG.extraSlotCost;
+    var cost = BFF_CONFIG.extraSlotCost;
     if ((userData?.currency || 0) < cost) {
         onNotification && onNotification(lang === 'ar' ? `❌ تحتاج ${cost} 🧠` : `❌ Need ${cost} 🧠`);
         return { ok: false };
@@ -257,21 +260,21 @@ var sendLoveBotMessage = async (toUID, data) => {
 // 👁️ BFF CARD MODAL — shows when clicking BFF strip
 // ─────────────────────────────────────────────
 var BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, lang, onNotification, viewOnly = false }) => {
-    const [ending, setEnding] = useState(false);
-    const [confirmEnd, setConfirmEnd] = useState(false);
+    var [ending, setEnding] = useState(false);
+    var [confirmEnd, setConfirmEnd] = useState(false);
 
     if (!show || !bffDoc) return null;
-    const token = BFF_TOKEN_ITEMS.find(t => t.id === bffDoc.tokenId) || BFF_TOKEN_ITEMS[0];
-    const isMyRelationship = bffDoc.uid1 === currentUID || bffDoc.uid2 === currentUID;
-    const other = bffDoc.uid1 === currentUID ? partnerData : selfData;
-    const me = bffDoc.uid1 === currentUID ? selfData : partnerData;
+    var token = BFF_TOKEN_ITEMS.find(t => t.id === bffDoc.tokenId) || BFF_TOKEN_ITEMS[0];
+    var isMyRelationship = bffDoc.uid1 === currentUID || bffDoc.uid2 === currentUID;
+    var other = bffDoc.uid1 === currentUID ? partnerData : selfData;
+    var me = bffDoc.uid1 === currentUID ? selfData : partnerData;
 
     // Level info
-    const lvInfo = getBFFLevel(bffDoc.giftPoints || 0);
-    const levelColors = ['#60a5fa','#4ade80','#f59e0b','#a78bfa','#ffd700','#f0abfc'];
-    const levelColor = levelColors[(lvInfo.level - 1)] || '#60a5fa';
+    var lvInfo = getBFFLevel(bffDoc.giftPoints || 0);
+    var levelColors = ['#60a5fa','#4ade80','#f59e0b','#a78bfa','#ffd700','#f0abfc'];
+    var levelColor = levelColors[(lvInfo.level - 1)] || '#60a5fa';
 
-    const handleEnd = async () => {
+    var handleEnd = async () => {
         setEnding(true);
         await endBFFRelationship({ bffDocId: bffDoc.id, onNotification, lang });
         setEnding(false);
@@ -280,7 +283,7 @@ var BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, 
     };
 
     // Stars row
-    const StarsRow = ({ count, color }) => (
+    var StarsRow = ({ count, color }) => (
         <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
             {Array.from({ length: 6 }).map((_, i) => (
                 <span key={i} style={{
@@ -468,8 +471,8 @@ var BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, 
                             {/* All level milestones */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 {BFF_LEVELS.map(l => {
-                                    const reached = (bffDoc.giftPoints || 0) >= l.minPts;
-                                    const isCurrent = l.level === lvInfo.level;
+                                    var reached = (bffDoc.giftPoints || 0) >= l.minPts;
+                                    var isCurrent = l.level === lvInfo.level;
                                     return (
                                         <div key={l.level} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                                             <div style={{
@@ -539,10 +542,10 @@ var BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, 
 // 📋 INCOMING BFF REQUEST ITEM — standalone component
 // ─────────────────────────────────────────────
 var BFFRequestItem = ({ bffDoc, fromData, lang, onNotification, onDone }) => {
-    const [handling, setHandling] = useState(false);
-    const token = BFF_TOKEN_ITEMS.find(t => t.id === bffDoc.tokenId) || BFF_TOKEN_ITEMS[0];
+    var [handling, setHandling] = useState(false);
+    var token = BFF_TOKEN_ITEMS.find(t => t.id === bffDoc.tokenId) || BFF_TOKEN_ITEMS[0];
 
-    const handle = async (accept) => {
+    var handle = async (accept) => {
         setHandling(true);
         if (accept) {
             await acceptBFFRequest({ bffDocId: bffDoc.id, uid1: bffDoc.uid1, uid2: bffDoc.uid2, onNotification, lang });
@@ -606,62 +609,62 @@ var BFFModal = ({
     coupleData,
     couplePartnerData,
 }) => {
-    const [tab, setTab] = useState('relationships'); // 'relationships' | 'requests' | 'send'
-    const [myRelationships, setMyRelationships] = useState([]);
-    const [pendingRequests, setPendingRequests] = useState([]);
-    const [partnerProfiles, setPartnerProfiles] = useState({});
-    const [requesterProfiles, setRequesterProfiles] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [selectedToken, setSelectedToken] = useState(null);
-    const [targetId, setTargetId] = useState('');
-    const [targetData, setTargetData] = useState(null);
-    const [searching, setSearching] = useState(false);
-    const [searchErr, setSearchErr] = useState('');
-    const [sending, setSending] = useState(false);
-    const [buyingSlot, setBuyingSlot] = useState(false);
-    const [viewCard, setViewCard] = useState(null);
-    const [viewSelf, setViewSelf] = useState(null);
-    const [viewPartner, setViewPartner] = useState(null);
+    var [tab, setTab] = useState('relationships'); // 'relationships' | 'requests' | 'send'
+    var [myRelationships, setMyRelationships] = useState([]);
+    var [pendingRequests, setPendingRequests] = useState([]);
+    var [partnerProfiles, setPartnerProfiles] = useState({});
+    var [requesterProfiles, setRequesterProfiles] = useState({});
+    var [loading, setLoading] = useState(true);
+    var [selectedToken, setSelectedToken] = useState(null);
+    var [targetId, setTargetId] = useState('');
+    var [targetData, setTargetData] = useState(null);
+    var [searching, setSearching] = useState(false);
+    var [searchErr, setSearchErr] = useState('');
+    var [sending, setSending] = useState(false);
+    var [buyingSlot, setBuyingSlot] = useState(false);
+    var [viewCard, setViewCard] = useState(null);
+    var [viewSelf, setViewSelf] = useState(null);
+    var [viewPartner, setViewPartner] = useState(null);
 
     useEffect(() => {
         if (!show || !currentUID) return;
         setLoading(true);
 
         // ── Single-field queries only (no composite indexes needed) ──
-        const unsub1 = bffCollection
+        var unsub1 = bffCollection
             .where('uid1', '==', currentUID)
             .onSnapshot(snap => {
-                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 // Filter active client-side
-                const active = docs.filter(r => r.status === 'active');
+                var active = docs.filter(r => r.status === 'active');
                 setMyRelationships(prev => {
-                    const other = prev.filter(r => r.uid2 === currentUID);
-                    const merged = [...active, ...other];
+                    var other = prev.filter(r => r.uid2 === currentUID);
+                    var merged = [...active, ...other];
                     merged.sort((a, b) => (b.acceptedAt?.seconds || 0) - (a.acceptedAt?.seconds || 0));
                     return merged;
                 });
                 setLoading(false);
             }, () => setLoading(false));
 
-        const unsub2 = bffCollection
+        var unsub2 = bffCollection
             .where('uid2', '==', currentUID)
             .onSnapshot(snap => {
-                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                const active = docs.filter(r => r.status === 'active');
-                const pending = docs.filter(r => r.status === 'pending');
+                var docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var active = docs.filter(r => r.status === 'active');
+                var pending = docs.filter(r => r.status === 'pending');
                 setMyRelationships(prev => {
-                    const other = prev.filter(r => r.uid1 === currentUID);
-                    const merged = [...other, ...active];
+                    var other = prev.filter(r => r.uid1 === currentUID);
+                    var merged = [...other, ...active];
                     merged.sort((a, b) => (b.acceptedAt?.seconds || 0) - (a.acceptedAt?.seconds || 0));
                     return merged;
                 });
                 setPendingRequests(pending);
-                const toLoad = pending.map(d => d.uid1).filter(uid => !requesterProfiles[uid]);
+                var toLoad = pending.map(d => d.uid1).filter(uid => !requesterProfiles[uid]);
                 if (toLoad.length > 0) {
                     Promise.all(toLoad.map(uid =>
                         usersCollection.doc(uid).get().then(d => d.exists ? { id: d.id, ...d.data() } : null).catch(() => null)
                     )).then(results => {
-                        const map = {};
+                        var map = {};
                         results.forEach(u => { if (u) map[u.id] = u; });
                         setRequesterProfiles(p => ({ ...p, ...map }));
                     });
@@ -674,12 +677,12 @@ var BFFModal = ({
     // Load partner profiles
     useEffect(() => {
         if (!myRelationships.length) return;
-        const toLoad = myRelationships.map(r => r.uid1 === currentUID ? r.uid2 : r.uid1).filter(uid => !partnerProfiles[uid]);
+        var toLoad = myRelationships.map(r => r.uid1 === currentUID ? r.uid2 : r.uid1).filter(uid => !partnerProfiles[uid]);
         if (!toLoad.length) return;
         Promise.all(toLoad.map(uid =>
             usersCollection.doc(uid).get().then(d => d.exists ? { id: d.id, ...d.data() } : null).catch(() => null)
         )).then(results => {
-            const map = {};
+            var map = {};
             results.forEach(u => { if (u) map[u.id] = u; });
             setPartnerProfiles(p => ({ ...p, ...map }));
         });
@@ -687,20 +690,20 @@ var BFFModal = ({
 
     if (!show) return null;
 
-    const extraSlots = currentUserData?.bffExtraSlots || 0;
-    const maxSlots = BFF_CONFIG.freeSlots + extraSlots;
-    const myTokens = currentUserData?.inventory?.bff_tokens || [];
-    const currency = currentUserData?.currency || 0;
+    var extraSlots = currentUserData?.bffExtraSlots || 0;
+    var maxSlots = BFF_CONFIG.freeSlots + extraSlots;
+    var myTokens = currentUserData?.inventory?.bff_tokens || [];
+    var currency = currentUserData?.currency || 0;
 
-    const searchUser = async () => {
+    var searchUser = async () => {
         if (!targetId.trim()) return;
         setSearching(true); setSearchErr(''); setTargetData(null);
         try {
-            const snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
+            var snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
             if (snap.empty) {
                 setSearchErr(lang === 'ar' ? 'لم يُعثر على المستخدم' : 'User not found');
             } else {
-                const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                var d = { id: snap.docs[0].id, ...snap.docs[0].data() };
                 if (d.id === currentUID) {
                     setSearchErr(lang === 'ar' ? 'لا يمكنك إضافة نفسك' : 'Cannot add yourself');
                 } else { setTargetData(d); }
@@ -709,7 +712,7 @@ var BFFModal = ({
         setSearching(false);
     };
 
-    const handleSend = async () => {
+    var handleSend = async () => {
         if (!targetData || !selectedToken || sending) return;
         setSending(true);
         await sendBFFRequest({
@@ -722,9 +725,9 @@ var BFFModal = ({
         setTargetData(null); setTargetId(''); setSelectedToken(null);
     };
 
-    const openCard = (rel) => {
-        const partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
-        const partner = partnerProfiles[partnerUID];
+    var openCard = (rel) => {
+        var partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
+        var partner = partnerProfiles[partnerUID];
         if (!partner) return;
         setViewCard(rel);
         setViewSelf(currentUserData);
@@ -804,17 +807,17 @@ var BFFModal = ({
 
                                     {/* ── CP Banner ── */}
                                     {coupleData && couplePartnerData && (() => {
-                                        const ring = typeof RINGS_DATA !== 'undefined'
+                                        var ring = typeof RINGS_DATA !== 'undefined'
                                             ? RINGS_DATA.find(r => r.id === coupleData.ringId)
                                             : null;
-                                        const diff = coupleData?.marriageDate
-                                            ? (() => { const s = coupleData.marriageDate.toDate ? coupleData.marriageDate.toDate() : new Date(coupleData.marriageDate.seconds * 1000); return Math.floor((Date.now() - s.getTime()) / 86400000); })()
+                                        var diff = coupleData?.marriageDate
+                                            ? (() => { var s = coupleData.marriageDate.toDate ? coupleData.marriageDate.toDate() : new Date(coupleData.marriageDate.seconds * 1000); return Math.floor((Date.now() - s.getTime()) / 86400000); })()
                                             : 0;
                                         // CP level from LOVE_LEVELS if available
-                                        let cpLevel = 1;
+                                        var cpLevel = 1;
                                         if (typeof LOVE_LEVELS !== 'undefined') {
-                                            let lv = 1;
-                                            for (const l of LOVE_LEVELS) { if (diff >= l.days) lv++; else break; }
+                                            var lv = 1;
+                                            for (var l of LOVE_LEVELS) { if (diff >= l.days) lv++; else break; }
                                             cpLevel = lv;
                                         }
                                         return (
@@ -906,10 +909,10 @@ var BFFModal = ({
                                             gap: '12px 10px',
                                         }}>
                                             {myRelationships.map(rel => {
-                                                const partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
-                                                const partner = partnerProfiles[partnerUID];
-                                                const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
-                                                const lvInfo = getBFFLevel(rel.giftPoints || 0);
+                                                var partnerUID = rel.uid1 === currentUID ? rel.uid2 : rel.uid1;
+                                                var partner = partnerProfiles[partnerUID];
+                                                var token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
+                                                var lvInfo = getBFFLevel(rel.giftPoints || 0);
                                                 return (
                                                     <div key={rel.id} onClick={() => openCard(rel)} style={{
                                                         display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -1070,8 +1073,8 @@ var BFFModal = ({
                                         </div>
                                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                             {friendsData.slice(0, 8).map(f => {
-                                                const fid = f.id || f.uid;
-                                                const isSelected = targetData?.id === fid;
+                                                var fid = f.id || f.uid;
+                                                var isSelected = targetData?.id === fid;
                                                 return (
                                                     <button key={fid} onClick={() => { setTargetId(f.customId || ''); setTargetData({ id: fid, ...f }); setSearchErr(''); }} style={{
                                                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
@@ -1210,10 +1213,10 @@ var BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, targ
                             gap: '14px 10px',
                         }}>
                             {relationships.map(rel => {
-                                const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
-                                const partner = partnerProfiles[partnerUID];
-                                const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
-                                const level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
+                                var partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
+                                var partner = partnerProfiles[partnerUID];
+                                var token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
+                                var level = BFF_RARITY_TO_LEVEL[token.rarity] || 1;
 
                                 return (
                                     <div key={rel.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -1300,31 +1303,31 @@ var BFFStripProfile = ({
     onNotification, friendsData,
     onOpenBFFModal,  // opens BFF modal from outside (for own profile)
 }) => {
-    const [myRelationships, setMyRelationships] = useState([]);
-    const [partnerProfiles, setPartnerProfiles] = useState({});
-    const [targetData, setTargetData] = useState(null);
-    const [showListModal, setShowListModal] = useState(false);
+    var [myRelationships, setMyRelationships] = useState([]);
+    var [partnerProfiles, setPartnerProfiles] = useState({});
+    var [targetData, setTargetData] = useState(null);
+    var [showListModal, setShowListModal] = useState(false);
     // ✅ FIX 1: state to open card modal when ring image clicked
-    const [cardModal, setCardModal] = useState(null); // { rel, self, partner }
+    var [cardModal, setCardModal] = useState(null); // { rel, self, partner }
 
-    const isOwnProfile = targetUID === currentUID;
+    var isOwnProfile = targetUID === currentUID;
 
     useEffect(() => {
         if (!targetUID) return;
         // Single-field queries only — filter active client-side
-        const unsub1 = bffCollection.where('uid1', '==', targetUID)
+        var unsub1 = bffCollection.where('uid1', '==', targetUID)
             .onSnapshot(snap => {
-                const active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
+                var active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
                 setMyRelationships(prev => {
-                    const other = prev.filter(r => r.uid2 === targetUID);
+                    var other = prev.filter(r => r.uid2 === targetUID);
                     return [...active, ...other];
                 });
             }, () => {});
-        const unsub2 = bffCollection.where('uid2', '==', targetUID)
+        var unsub2 = bffCollection.where('uid2', '==', targetUID)
             .onSnapshot(snap => {
-                const active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
+                var active = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'active');
                 setMyRelationships(prev => {
-                    const other = prev.filter(r => r.uid1 === targetUID);
+                    var other = prev.filter(r => r.uid1 === targetUID);
                     return [...other, ...active];
                 });
             }, () => {});
@@ -1340,12 +1343,13 @@ var BFFStripProfile = ({
     // Load partner profiles
     useEffect(() => {
         if (!myRelationships.length) return;
-        const toLoad = myRelationships.map(r => r.uid1 === targetUID ? r.uid2 : r.uid1).filter(uid => !partnerProfiles[uid]);
+        var partnerUIDs = myRelationships.map(r => r.uid1 === targetUID ? r.uid2 : r.uid1);
+        var toLoad = partnerUIDs.filter(uid => !partnerProfiles[uid]);
         if (!toLoad.length) return;
         Promise.all(toLoad.map(uid =>
             usersCollection.doc(uid).get().then(d => d.exists ? { id: d.id, ...d.data() } : null).catch(() => null)
         )).then(results => {
-            const map = {};
+            var map = {};
             results.forEach(u => { if (u) map[u.id] = u; });
             setPartnerProfiles(p => ({ ...p, ...map }));
         });
@@ -1353,7 +1357,7 @@ var BFFStripProfile = ({
 
     if (!myRelationships.length && !isOwnProfile) return null;
 
-    const handleClick = () => {
+    var handleClick = () => {
         if (isOwnProfile) {
             onOpenBFFModal && onOpenBFFModal();
         } else {
@@ -1362,11 +1366,11 @@ var BFFStripProfile = ({
     };
 
     // ✅ FIX 1: open card modal when token image clicked
-    const handleTokenClick = (e, rel) => {
+    var handleTokenClick = (e, rel) => {
         e.stopPropagation();
-        const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
-        const partner = partnerProfiles[partnerUID];
-        const self = targetData;
+        var partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
+        var partner = partnerProfiles[partnerUID];
+        var self = targetData;
         if (partner) setCardModal({ rel, self, partner });
     };
 
@@ -1413,10 +1417,10 @@ var BFFStripProfile = ({
                         padding: '2px 10px 18px',
                     }}>
                         {myRelationships.slice(0, 3).map(rel => {
-                            const partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
-                            const partner = partnerProfiles[partnerUID];
-                            const token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
-                            const lvInfo = getBFFLevel(rel.giftPoints || 0);
+                            var partnerUID = rel.uid1 === targetUID ? rel.uid2 : rel.uid1;
+                            var partner = partnerProfiles[partnerUID];
+                            var token = BFF_TOKEN_ITEMS.find(t => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
+                            var lvInfo = getBFFLevel(rel.giftPoints || 0);
 
                             return (
                                 <div key={rel.id}
@@ -1555,26 +1559,26 @@ var BotChatModal = ({
     show, onClose, botId, currentUID, currentUserData, lang,
     onOpenWeddingHall, onOpenBFFModal,
 }) => {
-    const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const chatEndRef = useRef(null);
+    var [messages, setMessages] = useState([]);
+    var [loading, setLoading] = useState(true);
+    var chatEndRef = useRef(null);
 
-    const botCfg = BOT_CHATS_CONFIG.find(b => b.id === botId) || BOT_CHATS_CONFIG[0];
+    var botCfg = BOT_CHATS_CONFIG.find(b => b.id === botId) || BOT_CHATS_CONFIG[0];
 
     useEffect(() => {
         if (!show || !currentUID || !botId) return;
         setLoading(true);
         // Single-field query — filter by botId client-side
-        const unsub = botChatsCollection
+        var unsub = botChatsCollection
             .where('toUserId', '==', currentUID)
             .onSnapshot(snap => {
-                const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 // Filter by botId and sort by timestamp
-                const filtered = allMsgs
+                var filtered = allMsgs
                     .filter(m => m.botId === botId)
                     .sort((a, b) => {
-                        const tA = a.timestamp?.toMillis?.() || (a.timestamp?.seconds * 1000) || 0;
-                        const tB = b.timestamp?.toMillis?.() || (b.timestamp?.seconds * 1000) || 0;
+                        var tA = a.timestamp?.toMillis?.() || (a.timestamp?.seconds * 1000) || 0;
+                        var tB = b.timestamp?.toMillis?.() || (b.timestamp?.seconds * 1000) || 0;
                         return tA - tB;
                     })
                     .slice(-50); // last 50
@@ -1596,10 +1600,10 @@ var BotChatModal = ({
 
     if (!show) return null;
 
-    const fmtTime = (ts) => {
+    var fmtTime = (ts) => {
         if (!ts) return '';
-        const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
-        const diff = Date.now() - d.getTime();
+        var d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        var diff = Date.now() - d.getTime();
         if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
         if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'د' : 'm'}`;
         if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'س' : 'h'}`;
@@ -1760,3 +1764,24 @@ var BotChatModal = ({
         </PortalModal>
     );
 };
+
+    // ─────────────────────────────────────────────
+    // 🌍 GLOBAL EXPORTS
+    // ─────────────────────────────────────────────
+    window.BFF_RARITY_COLORS = BFF_RARITY_COLORS;
+    window.BFF_RARITY_TO_LEVEL = BFF_RARITY_TO_LEVEL;
+    window.BFF_LEVELS = BFF_LEVELS;
+    window.getBFFLevel = getBFFLevel;
+    window.updateBFFGiftPoints = updateBFFGiftPoints;
+    window.sendBFFRequest = sendBFFRequest;
+    window.acceptBFFRequest = acceptBFFRequest;
+    window.declineBFFRequest = declineBFFRequest;
+    window.endBFFRelationship = endBFFRelationship;
+    window.sendLoveBotMessage = sendLoveBotMessage;
+
+    window.BFFStripProfile = BFFStripProfile;
+    window.BFFModal = BFFModal;
+    window.BFFCardModal = BFFCardModal;
+    window.BotChatModal = BotChatModal;
+
+})();

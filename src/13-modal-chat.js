@@ -1,3 +1,4 @@
+(function() {
 // ════════════════════════════════════════════════════════
 // 💬 PRIVATE CHAT MODAL — V3
 //    ✅ ALL users → Firestore (for real-time delivery)
@@ -11,17 +12,17 @@
 
 // ── Compress image to base64 ──
 var compressImageToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = (e) => {
-        const img = new Image();
+        var img = new Image();
         img.onload = () => {
-            const MAX = 400;
-            let w = img.width, h = img.height;
+            var MAX = 400;
+            var w = img.width, h = img.height;
             if (w > MAX || h > MAX) {
                 if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
                 else { w = Math.round(w * MAX / h); h = MAX; }
             }
-            const canvas = document.createElement('canvas');
+            var canvas = document.createElement('canvas');
             canvas.width = w; canvas.height = h;
             canvas.getContext('2d').drawImage(img, 0, 0, w, h);
             resolve(canvas.toDataURL('image/jpeg', 0.65));
@@ -39,21 +40,21 @@ var _saveChatCache = (chatId, msgs) => {
     try { localStorage.setItem(_chatCacheKey(chatId), JSON.stringify(msgs.slice(-80))); } catch {}
 };
 var _loadChatCache = (chatId) => {
-    try { const r = localStorage.getItem(_chatCacheKey(chatId)); return r ? JSON.parse(r) : []; }
+    try { var r = localStorage.getItem(_chatCacheKey(chatId)); return r ? JSON.parse(r) : []; }
     catch { return []; }
 };
 
 // ── Format timestamp ──
 var _fmtChatTs = (ts) => {
     if (!ts) return '';
-    let d;
+    var d;
     if (ts?.toDate) d = ts.toDate();
     else if (ts?.seconds) d = new Date(ts.seconds * 1000);
     else if (typeof ts === 'number') d = new Date(ts);
     else d = new Date(ts);
     if (!d || isNaN(d.getTime())) return '';
-    const now = new Date();
-    const diff = now - d;
+    var now = new Date();
+    var diff = now - d;
     if (diff < 60000)   return 'now';
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
     if (d.toDateString() === now.toDateString())
@@ -66,60 +67,60 @@ var PrivateChatModal = ({
     onSendNotification, onSendGift, currency,
     friendsData, onOpenProfile
 }) => {
-    const t = TRANSLATIONS[lang];
-    const [messages, setMessages]           = useState([]);
-    const [newMsg, setNewMsg]               = useState('');
-    const [sending, setSending]             = useState(false);
-    const [showGiftModal, setShowGiftModal] = useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [isBlocked, setIsBlocked]         = useState(false);
-    const [blockedByTarget, setBlockedByTarget] = useState(false);
-    const [friendTyping, setFriendTyping]   = useState(false);
-    const [uploadingImg, setUploadingImg]   = useState(false);
+    var t = TRANSLATIONS[lang];
+    var [messages, setMessages]           = useState([]);
+    var [newMsg, setNewMsg]               = useState('');
+    var [sending, setSending]             = useState(false);
+    var [showGiftModal, setShowGiftModal] = useState(false);
+    var [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    var [isBlocked, setIsBlocked]         = useState(false);
+    var [blockedByTarget, setBlockedByTarget] = useState(false);
+    var [friendTyping, setFriendTyping]   = useState(false);
+    var [uploadingImg, setUploadingImg]   = useState(false);
     // ── 3-dot menu ──
-    const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+    var [showHeaderMenu, setShowHeaderMenu] = useState(false);
     // ── Delete chat confirm ──
-    const [showDeleteChatConfirm, setShowDeleteChatConfirm] = useState(false);
-    const [deletingChat, setDeletingChat]   = useState(false);
+    var [showDeleteChatConfirm, setShowDeleteChatConfirm] = useState(false);
+    var [deletingChat, setDeletingChat]   = useState(false);
     // ── Report modal ──
-    const [showReportModal, setShowReportModal] = useState(false);
-    const [reportStep, setReportStep]       = useState('reason');
-    const [reportReason, setReportReason]   = useState('');
-    const [reportDMMsg, setReportDMMsg]     = useState(null);
-    const [submittingReport, setSubmittingReport] = useState(false);
+    var [showReportModal, setShowReportModal] = useState(false);
+    var [reportStep, setReportStep]       = useState('reason');
+    var [reportReason, setReportReason]   = useState('');
+    var [reportDMMsg, setReportDMMsg]     = useState(null);
+    var [submittingReport, setSubmittingReport] = useState(false);
     // ── Message edit/delete ──
-    const [editingMsgId, setEditingMsgId]   = useState(null);
-    const [editMsgText, setEditMsgText]     = useState('');
-    const [msgMenuId, setMsgMenuId]         = useState(null); // قائمة القلم للرسالة
+    var [editingMsgId, setEditingMsgId]   = useState(null);
+    var [editMsgText, setEditMsgText]     = useState('');
+    var [msgMenuId, setMsgMenuId]         = useState(null); // قائمة القلم للرسالة
     // ── @ Mention ──
-    const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
+    var [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
     // ── Mini Profile ──
-    const [miniProfile, setMiniProfile]     = useState(null);
-    const [loadingMiniProfile, setLoadingMiniProfile] = useState(false);
-    const [showMiniMenu, setShowMiniMenu]   = useState(false);
+    var [miniProfile, setMiniProfile]     = useState(null);
+    var [loadingMiniProfile, setLoadingMiniProfile] = useState(false);
+    var [showMiniMenu, setShowMiniMenu]   = useState(false);
     // ── Pen menu position (fixed) ──
-    const [msgMenuPos, setMsgMenuPos]       = useState({ top: 0, right: 0 });
+    var [msgMenuPos, setMsgMenuPos]       = useState({ top: 0, right: 0 });
     // ── 3-dot header button rect ──
-    const [menuBtnRect, setMenuBtnRect]     = useState(null);
+    var [menuBtnRect, setMenuBtnRect]     = useState(null);
     // ── 🧧 DM Red Packet ──
-    const [showDMRedPacket, setShowDMRedPacket] = useState(false);
-    const [sendingDMRedPacket, setSendingDMRedPacket] = useState(false);
+    var [showDMRedPacket, setShowDMRedPacket] = useState(false);
+    var [sendingDMRedPacket, setSendingDMRedPacket] = useState(false);
 
-    const messagesEndRef    = useRef(null);
-    const inputRef          = useRef(null);
-    const fileInputRef      = useRef(null);
-    const typingTimerRef    = useRef(null);
-    const headerMenuBtnRef  = useRef(null);
+    var messagesEndRef    = useRef(null);
+    var inputRef          = useRef(null);
+    var fileInputRef      = useRef(null);
+    var typingTimerRef    = useRef(null);
+    var headerMenuBtnRef  = useRef(null);
 
     // VIP level helpers
-    const myVipLevel     = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(currentUser) || 0) : 0; } catch { return 0; } }, [currentUser]);
-    const friendVipLevel = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(friend) || 0) : 0; } catch { return 0; } }, [friend]);
-    const isMyVIP10      = myVipLevel >= 10;
-    const isFriendVIP10  = friendVipLevel >= 10;
+    var myVipLevel     = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(currentUser) || 0) : 0; } catch { return 0; } }, [currentUser]);
+    var friendVipLevel = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(friend) || 0) : 0; } catch { return 0; } }, [friend]);
+    var isMyVIP10      = myVipLevel >= 10;
+    var isFriendVIP10  = friendVipLevel >= 10;
     // Typing indicator available when EITHER party is VIP10
-    const typingEnabled  = isMyVIP10 || isFriendVIP10;
+    var typingEnabled  = isMyVIP10 || isFriendVIP10;
 
-    const chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
+    var chatId = friend && user ? [user.uid, friend.uid].sort().join('_') : null;
 
     // ── Blocked check ──
     useEffect(() => {
@@ -135,16 +136,16 @@ var PrivateChatModal = ({
         if (!show || !chatId) return;
 
         // Show cache immediately while Firestore loads
-        const cached = _loadChatCache(chatId);
+        var cached = _loadChatCache(chatId);
         if (cached.length > 0) setMessages(cached);
 
-        const unsub = chatsCollection.doc(chatId).collection('messages')
+        var unsub = chatsCollection.doc(chatId).collection('messages')
             .limit(100)
             .onSnapshot(snap => {
-                let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 msgs.sort((a, b) => {
-                    const tA = a.timestamp?.toMillis?.() || (a.timestamp?.seconds || 0) * 1000 || (typeof a.timestamp === 'number' ? a.timestamp : 0);
-                    const tB = b.timestamp?.toMillis?.() || (b.timestamp?.seconds || 0) * 1000 || (typeof b.timestamp === 'number' ? b.timestamp : 0);
+                    var tA = a.timestamp?.toMillis?.() || (a.timestamp?.seconds || 0) * 1000 || (typeof a.timestamp === 'number' ? a.timestamp : 0);
+                    var tB = b.timestamp?.toMillis?.() || (b.timestamp?.seconds || 0) * 1000 || (typeof b.timestamp === 'number' ? b.timestamp : 0);
                     return tA - tB;
                 });
                 setMessages(msgs);
@@ -162,7 +163,7 @@ var PrivateChatModal = ({
     // ── Typing listener (when typingEnabled) ──
     useEffect(() => {
         if (!show || !chatId || !typingEnabled || !friend) return;
-        const unsub = chatsCollection.doc(chatId).onSnapshot(snap => {
+        var unsub = chatsCollection.doc(chatId).onSnapshot(snap => {
             if (snap.exists) {
                 setFriendTyping(!!(snap.data()?.typing?.[friend.uid]));
             }
@@ -176,29 +177,29 @@ var PrivateChatModal = ({
     }, [messages, friendTyping]);
 
     // ── Typing indicator write (when typingEnabled) ──
-    const _setTyping = (val) => {
+    var _setTyping = (val) => {
         if (!typingEnabled || !chatId || !user) return;
         chatsCollection.doc(chatId).set({ typing: { [user.uid]: val } }, { merge: true }).catch(() => {});
     };
-    const handleTypingChange = () => {
+    var handleTypingChange = () => {
         _setTyping(true);
         clearTimeout(typingTimerRef.current);
         typingTimerRef.current = setTimeout(() => _setTyping(false), 2500);
     };
-    const clearTypingStatus = () => {
+    var clearTypingStatus = () => {
         clearTimeout(typingTimerRef.current);
         _setTyping(false);
     };
 
     // ── Send text message ──
-    const handleSend = async () => {
+    var handleSend = async () => {
         if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
         clearTypingStatus();
         setSending(true);
-        const text = newMsg.trim();
+        var text = newMsg.trim();
         setNewMsg('');
         try {
-            const msgData = {
+            var msgData = {
                 senderId:      user.uid,
                 senderName:    currentUser?.displayName || 'User',
                 senderPhoto:   currentUser?.photoURL || null,
@@ -230,13 +231,13 @@ var PrivateChatModal = ({
     };
 
     // ── Send image ──
-    const handleImageSelect = async (e) => {
-        const file = e.target.files?.[0];
+    var handleImageSelect = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || isBlocked || blockedByTarget || !file.type.startsWith('image/')) return;
         setUploadingImg(true);
         try {
-            const base64 = await compressImageToBase64(file);
-            const msgData = {
+            var base64 = await compressImageToBase64(file);
+            var msgData = {
                 senderId:      user.uid,
                 senderName:    currentUser?.displayName || 'User',
                 senderPhoto:   currentUser?.photoURL || null,
@@ -259,26 +260,26 @@ var PrivateChatModal = ({
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const handleEmojiSelect = (emoji) => {
+    var handleEmojiSelect = (emoji) => {
         setNewMsg(p => p + emoji);
         setShowEmojiPicker(false);
         inputRef.current?.focus();
     };
 
-    const handleSendGiftToChat = async (gift, targetUser, qty = 1) => {
+    var handleSendGiftToChat = async (gift, targetUser, qty = 1) => {
         if (!onSendGift || isBlocked || blockedByTarget) return;
         await onSendGift(gift, targetUser, qty);
         setShowGiftModal(false);
     };
 
     // ── حذف الشات ──
-    const handleDeleteChat = async () => {
+    var handleDeleteChat = async () => {
         if (!chatId || deletingChat) return;
         setDeletingChat(true);
         try {
             // حذف كل الرسائل
-            const msgsSnap = await chatsCollection.doc(chatId).collection('messages').limit(500).get();
-            const batch = db.batch();
+            var msgsSnap = await chatsCollection.doc(chatId).collection('messages').limit(500).get();
+            var batch = db.batch();
             msgsSnap.docs.forEach(d => batch.delete(d.ref));
             await batch.commit().catch(() => {});
             // حذف الـ chat doc
@@ -290,7 +291,7 @@ var PrivateChatModal = ({
     };
 
     // ── حظر المستخدم ──
-    const handleBlock = async () => {
+    var handleBlock = async () => {
         if (!user || !friend) return;
         try {
             await usersCollection.doc(user.uid).update({
@@ -302,7 +303,7 @@ var PrivateChatModal = ({
     };
 
     // ── إلغاء الحظر ──
-    const handleUnblock = async () => {
+    var handleUnblock = async () => {
         if (!user || !friend) return;
         try {
             await usersCollection.doc(user.uid).update({
@@ -314,18 +315,18 @@ var PrivateChatModal = ({
     };
 
     // ── فتح ميني بروفايل لأي شخص ──
-    const openMiniProfile = async (uid) => {
+    var openMiniProfile = async (uid) => {
         if (!uid) return;
         setLoadingMiniProfile(true);
         setShowMiniMenu(false);
         setMiniProfile({ uid, name: '...', photo: null, loading: true });
-        const data = await fetchMiniProfileData(uid, currentUser?.friends || []);
+        var data = await fetchMiniProfileData(uid, currentUser?.friends || []);
         if (data) setMiniProfile(data);
         setLoadingMiniProfile(false);
     };
 
     // ── تعديل رسالة ──
-    const handleEditMessage = async (msgId, newText) => {
+    var handleEditMessage = async (msgId, newText) => {
         if (!newText.trim() || !chatId) return;
         try {
             await chatsCollection.doc(chatId).collection('messages').doc(msgId).update({
@@ -339,7 +340,7 @@ var PrivateChatModal = ({
     };
 
     // ── حذف رسالة ──
-    const handleDeleteMessage = async (msgId) => {
+    var handleDeleteMessage = async (msgId) => {
         if (!chatId) return;
         try {
             // استبدال الرسالة بـ "تم حذف هذه الرسالة"
@@ -354,7 +355,7 @@ var PrivateChatModal = ({
     };
 
     // ── إرسال بلاغ مع DM كدليل ──
-    const handleSubmitReport = async () => {
+    var handleSubmitReport = async () => {
         if (!reportReason.trim() || !user || !friend) return;
         setSubmittingReport(true);
         try {
@@ -393,16 +394,16 @@ var PrivateChatModal = ({
     if (!show || !friend) return null;
 
     // ── Online status ──
-    const friendInfo   = friendsData?.find(f => f.id === friend.uid) || friend;
-    const isOnline     = friendInfo?.isOnline || friendInfo?.onlineStatus === 'online';
-    const isAway       = friendInfo?.onlineStatus === 'away';
-    const statusColor  = isOnline ? '#22c55e' : isAway ? '#f59e0b' : '#6b7280';
-    const statusLabel  = isOnline
+    var friendInfo   = friendsData?.find(f => f.id === friend.uid) || friend;
+    var isOnline     = friendInfo?.isOnline || friendInfo?.onlineStatus === 'online';
+    var isAway       = friendInfo?.onlineStatus === 'away';
+    var statusColor  = isOnline ? '#22c55e' : isAway ? '#f59e0b' : '#6b7280';
+    var statusLabel  = isOnline
         ? (lang === 'ar' ? 'متصل الآن' : 'Online')
         : isAway ? (lang === 'ar' ? 'بعيد' : 'Away')
         : (lang === 'ar' ? 'غير متصل' : 'Offline');
 
-    const canSend = !sending && newMsg.trim().length > 0 && !isBlocked && !blockedByTarget;
+    var canSend = !sending && newMsg.trim().length > 0 && !isBlocked && !blockedByTarget;
 
     return (
         <>
@@ -561,23 +562,23 @@ var PrivateChatModal = ({
                   </span>
                 </div>
               ) : messages.map((msg, idx) => {
-                const isMine      = msg.senderId === user?.uid;
-                const isGift      = msg.type === 'gift';
-                const isImage     = msg.type === 'image';
-                const isRedPacket = msg.type === 'red_packet';
-                const prevSender  = idx > 0 ? messages[idx - 1]?.senderId : null;
-                const nextSender  = idx < messages.length - 1 ? messages[idx + 1]?.senderId : null;
+                var isMine      = msg.senderId === user?.uid;
+                var isGift      = msg.type === 'gift';
+                var isImage     = msg.type === 'image';
+                var isRedPacket = msg.type === 'red_packet';
+                var prevSender  = idx > 0 ? messages[idx - 1]?.senderId : null;
+                var nextSender  = idx < messages.length - 1 ? messages[idx + 1]?.senderId : null;
                 // show avatar for BOTH mine and others — on first message of each group
-                const showAvatar  = prevSender !== msg.senderId;
-                const showName    = prevSender !== msg.senderId;
-                const isLastGroup = nextSender !== msg.senderId;
+                var showAvatar  = prevSender !== msg.senderId;
+                var showName    = prevSender !== msg.senderId;
+                var isLastGroup = nextSender !== msg.senderId;
                 // Get VIP config for this message sender
-                const msgVipLevel = msg.senderVipLevel || 0;
-                const msgVipCfg = getVIPConfig(msgVipLevel);
+                var msgVipLevel = msg.senderVipLevel || 0;
+                var msgVipCfg = getVIPConfig(msgVipLevel);
 
                 // 🧧 Red Packet bubble
                 if(isRedPacket) {
-                  const isClaimed = msg.claimedBy?.includes(user?.uid) || msg.rpStatus === 'exhausted';
+                  var isClaimed = msg.claimedBy?.includes(user?.uid) || msg.rpStatus === 'exhausted';
                   return (
                   <div key={msg.id||idx} style={{display:'flex',flexDirection:isMine?'row-reverse':'row',alignItems:'flex-end',gap:'6px',marginBottom:isLastGroup?'4px':'1px'}}>
                     {/* Avatar for both sides */}
@@ -605,16 +606,16 @@ var PrivateChatModal = ({
                         if(isClaimed) return;
                         if(!msg.rpId||!user) return;
                         try {
-                          const rpDoc = await redPacketsCollection.doc(msg.rpId).get();
+                          var rpDoc = await redPacketsCollection.doc(msg.rpId).get();
                           if(!rpDoc.exists){return;}
-                          const rp=rpDoc.data();
+                          var rp=rpDoc.data();
                           // ❌ المرسل لا يستطيع استلام مغلفه في البرايفت
                           if(rp.senderId===user.uid){alert(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');return;}
                           if(rp.claimedBy?.includes(user.uid)){alert(lang==='ar'?'استلمته من قبل':'Already claimed');return;}
                           if((rp.claimedBy?.length||0)>=rp.maxClaims){alert(lang==='ar'?'المغلف نفد':'Packet exhausted');return;}
                           if(rp.status!=='active'){alert(lang==='ar'?'المغلف منتهي':'Packet expired');return;}
                           // DM packet: recipient gets full amount
-                          const claimAmt = rp.remaining || rp.amount;
+                          var claimAmt = rp.remaining || rp.amount;
                           await redPacketsCollection.doc(msg.rpId).update({
                             claimedBy:firebase.firestore.FieldValue.arrayUnion(user.uid),
                             remaining:firebase.firestore.FieldValue.increment(-claimAmt),
@@ -742,7 +743,7 @@ var PrivateChatModal = ({
                       ) : isImage ? (
                         <div
                           onClick={() => {
-                            const w = window.open();
+                            var w = window.open();
                             w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${msg.imageData}" style="max-width:100vw;max-height:100vh;object-fit:contain"></body>`);
                           }}
                           style={{
@@ -798,8 +799,8 @@ var PrivateChatModal = ({
                               <span key={pi}
                                 style={{ color:'#00f2ff', fontWeight:700, cursor:'pointer', textDecoration:'underline dotted rgba(0,242,255,0.4)' }}
                                 onClick={() => {
-                                  const mentionName = part.slice(1).trim();
-                                  let uid = null;
+                                  var mentionName = part.slice(1).trim();
+                                  var uid = null;
                                   if (friend?.displayName === mentionName) uid = friend.uid;
                                   else if (currentUser?.displayName === mentionName) uid = user?.uid;
                                   if (uid) openMiniProfile(uid);
@@ -829,7 +830,7 @@ var PrivateChatModal = ({
                             <button
                               onClick={e => {
                                 e.stopPropagation();
-                                const rect = e.currentTarget.getBoundingClientRect();
+                                var rect = e.currentTarget.getBoundingClientRect();
                                 setMsgMenuPos({
                                   bottom: window.innerHeight - rect.top + 4,
                                   right: Math.max(8, window.innerWidth - rect.right),
@@ -993,12 +994,12 @@ var PrivateChatModal = ({
                     placeholder={t.typeMessage || (lang === 'ar' ? 'اكتب رسالة...' : 'Type a message...')}
                     value={newMsg}
                     onChange={e => {
-                        const val = e.target.value;
+                        var val = e.target.value;
                         setNewMsg(val);
                         handleTypingChange();
-                        const lastAt = val.lastIndexOf('@');
+                        var lastAt = val.lastIndexOf('@');
                         if (lastAt !== -1) {
-                            const after = val.slice(lastAt + 1);
+                            var after = val.slice(lastAt + 1);
                             if (!after.includes(' ') && (
                                 (friend?.displayName || '').toLowerCase().includes(after.toLowerCase()) ||
                                 (currentUser?.displayName || '').toLowerCase().includes(after.toLowerCase())
@@ -1033,12 +1034,12 @@ var PrivateChatModal = ({
                         { uid: friend?.uid, name: friend?.displayName, photo: friend?.photoURL },
                         { uid: user?.uid, name: currentUser?.displayName, photo: currentUser?.photoURL },
                       ].filter(p => {
-                        const after = newMsg.slice(newMsg.lastIndexOf('@') + 1).toLowerCase();
+                        var after = newMsg.slice(newMsg.lastIndexOf('@') + 1).toLowerCase();
                         return p.uid && p.name && p.name.toLowerCase().includes(after);
                       }).map(p => (
                         <div key={p.uid}
                           onClick={() => {
-                            const lastAt = newMsg.lastIndexOf('@');
+                            var lastAt = newMsg.lastIndexOf('@');
                             setNewMsg(newMsg.slice(0, lastAt) + '@' + p.name + ' ');
                             setShowMentionSuggestion(false);
                             inputRef.current?.focus();
@@ -1107,7 +1108,7 @@ var PrivateChatModal = ({
                       if(sendingDMRedPacket||(currency||0)<rp.amount) return;
                       setSendingDMRedPacket(true);
                       try {
-                        const rpRef = await redPacketsCollection.add({
+                        var rpRef = await redPacketsCollection.add({
                           configId:rp.id, amount:rp.amount,
                           senderId:user.uid, senderName:currentUser?.displayName||'User', senderPhoto:currentUser?.photoURL||null,
                           targetType:'dm', targetId:friend.uid, targetName:friend.displayName,
@@ -1162,9 +1163,9 @@ var PrivateChatModal = ({
 
         {/* ── Header 3-dot dropdown — rendered as fixed overlay ── */}
         {showHeaderMenu && (() => {
-          const rect = headerMenuBtnRef.current?.getBoundingClientRect();
-          const dropTop = rect ? rect.bottom + 4 : 60;
-          const dropRight = rect ? Math.max(8, window.innerWidth - rect.right) : 8;
+          var rect = headerMenuBtnRef.current?.getBoundingClientRect();
+          var dropTop = rect ? rect.bottom + 4 : 60;
+          var dropRight = rect ? Math.max(8, window.innerWidth - rect.right) : 8;
           return (
             <div style={{ position:'fixed', inset:0, zIndex: Z.TOOLTIP - 1 }}
               onClick={() => setShowHeaderMenu(false)}>
@@ -1199,7 +1200,7 @@ var PrivateChatModal = ({
 
         {/* ── Pen message menu — fixed overlay ── */}
         {msgMenuId && (() => {
-          const activeMsg = messages.find(m => m.id === msgMenuId);
+          var activeMsg = messages.find(m => m.id === msgMenuId);
           if (!activeMsg) return null;
           return (
             <div style={{ position:'fixed', inset:0, zIndex: Z.MODAL_HIGH }} onClick={() => setMsgMenuId(null)}>
@@ -1418,4 +1419,5 @@ var PrivateChatModal = ({
     );
 };
 
-// 📅 LOGIN REWARDS COMPONENT
+window.PrivateChatModal = PrivateChatModal;
+})();

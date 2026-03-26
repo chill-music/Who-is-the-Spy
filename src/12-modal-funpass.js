@@ -1,32 +1,33 @@
+(function() {
 var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpenInventory }) => {
-    const [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
-    const [buying, setBuying] = useState(false);
-    const [claiming, setClaiming] = useState(null);
+    var [activeTab, setActiveTab] = useState('pass'); // 'pass' | 'missions'
+    var [buying, setBuying] = useState(false);
+    var [claiming, setClaiming] = useState(null);
 
     // All hooks before early return
     // Season-aware: data is stored under funPass.seasons[SEASON_ID]
-    const fpAll = userData?.funPass || {};
-    const fp = fpAll.seasons?.[FUN_PASS_SEASON_ID] || {};
-    const hasPremium = fp.premium === true;
-    const currentXP = fp.xp || 0;
-    const claimedFree = fp.claimedFree || [];
-    const claimedPremium = fp.claimedPremium || [];
-    const currency = userData?.currency || 0;
-    const missions = fp.missions || {};
+    var fpAll = userData?.funPass || {};
+    var fp = fpAll.seasons?.[FUN_PASS_SEASON_ID] || {};
+    var hasPremium = fp.premium === true;
+    var currentXP = fp.xp || 0;
+    var claimedFree = fp.claimedFree || [];
+    var claimedPremium = fp.claimedPremium || [];
+    var currency = userData?.currency || 0;
+    var missions = fp.missions || {};
 
     // Helper: today string
-    const todayStr = new Date().toDateString();
+    var todayStr = new Date().toDateString();
     // Helper: current week string (year-week)
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-    const weekStr = `${now.getFullYear()}-W${weekNum}`;
+    var now = new Date();
+    var startOfYear = new Date(now.getFullYear(), 0, 1);
+    var weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+    var weekStr = `${now.getFullYear()}-W${weekNum}`;
 
     // Find current level (last level where xp >= xpRequired)
-    const currentLevel = FUN_PASS_LEVELS.reduce((acc, lv) => (currentXP >= lv.xp ? lv.level : acc), 0);
-    const nextLevel = FUN_PASS_LEVELS.find(lv => lv.level === currentLevel + 1);
-    const xpForNext = nextLevel ? nextLevel.xp : null;
-    const progressPct = xpForNext ? Math.min(100, Math.round(((currentXP - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0)) / (xpForNext - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0))) * 100)) : 100;
+    var currentLevel = FUN_PASS_LEVELS.reduce((acc, lv) => (currentXP >= lv.xp ? lv.level : acc), 0);
+    var nextLevel = FUN_PASS_LEVELS.find(lv => lv.level === currentLevel + 1);
+    var xpForNext = nextLevel ? nextLevel.xp : null;
+    var progressPct = xpForNext ? Math.min(100, Math.round(((currentXP - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0)) / (xpForNext - (FUN_PASS_LEVELS[currentLevel - 1]?.xp || 0))) * 100)) : 100;
 
     if (!show) return null;
 
@@ -34,45 +35,45 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
     // MISSIONS SYSTEM - CLEAN REBUILD
     // ══════════════════════════════════════════
     // Required values per mission
-    const MISSION_REQUIRED = {
+    var MISSION_REQUIRED = {
         d1:1, d2:1, d3:1, d4:1, d5:1, d6:1, d7:1,
         w1:10, w2:5, w3:5, w4:3, w5:3,
     };
 
     // Get live progress value for a mission key
-    const getMissionCurrentVal = (mKey, type) => {
-        const prog = userData?.missionProgress || {};
+    var getMissionCurrentVal = (mKey, type) => {
+        var prog = userData?.missionProgress || {};
         if (type === 'daily') {
-            const dp = prog.daily || {};
-            const today = new Date().toDateString();
+            var dp = prog.daily || {};
+            var today = new Date().toDateString();
             if (dp.resetDate !== today) return 0; // day changed → reset
-            const map = { d1: dp.gamesPlayed||0, d2: dp.gamesWon||0, d3: dp.spyGames||0,
+            var map = { d1: dp.gamesPlayed||0, d2: dp.gamesWon||0, d3: dp.spyGames||0,
                           d4: dp.giftsSent||0, d5: dp.friendsAdded||0,
                           d6: dp.momentsPosted||0, d7: dp.commentsPosted||0 };
             return map[mKey] || 0;
         } else {
-            const now = new Date();
-            const startOfYear = new Date(now.getFullYear(), 0, 1);
-            const weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-            const currentWeek = `${now.getFullYear()}-W${weekNum}`;
-            const wp = prog.weekly || {};
+            var now = new Date();
+            var startOfYear = new Date(now.getFullYear(), 0, 1);
+            var weekNum = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+            var currentWeek = `${now.getFullYear()}-W${weekNum}`;
+            var wp = prog.weekly || {};
             if (wp.resetWeek !== currentWeek) return 0; // week changed → reset
-            const map = { w1: wp.gamesPlayed||0, w2: wp.gamesWon||0, w3: wp.giftsSent||0,
+            var map = { w1: wp.gamesPlayed||0, w2: wp.gamesWon||0, w3: wp.giftsSent||0,
                           w4: wp.momentsPosted||0, w5: wp.friendsAdded||0 };
             return map[mKey] || 0;
         }
     };
 
     // Check if mission already claimed today/this week
-    const isMissionAlreadyClaimed = (mKey, type) => {
-        const mData = missions[mKey] || {};
+    var isMissionAlreadyClaimed = (mKey, type) => {
+        var mData = missions[mKey] || {};
         if (type === 'daily') return mData.lastCompleted === todayStr;
         return mData.lastWeekCompleted === weekStr;
     };
 
-    const handleClaimMission = async (mission, type) => {
+    var handleClaimMission = async (mission, type) => {
         if (!user || claiming) return;
-        const mKey = mission.id;
+        var mKey = mission.id;
 
         // Double check - already claimed?
         if (isMissionAlreadyClaimed(mKey, type)) {
@@ -81,8 +82,8 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
         }
 
         // Check completion
-        const currentVal = getMissionCurrentVal(mKey, type);
-        const requiredVal = MISSION_REQUIRED[mKey] || 1;
+        var currentVal = getMissionCurrentVal(mKey, type);
+        var requiredVal = MISSION_REQUIRED[mKey] || 1;
         if (currentVal < requiredVal) {
             onNotification(lang==='ar'?'❌ لم تكمل المهمة بعد':'❌ Mission not completed yet');
             return;
@@ -90,10 +91,10 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
 
         setClaiming(mKey);
         try {
-            const updates = {};
+            var updates = {};
             // Add XP with VIP multiplier
-            const vipMult = getVIPXPMultiplier(userData);
-            const finalXP = Math.round(mission.xp * vipMult);
+            var vipMult = getVIPXPMultiplier(userData);
+            var finalXP = Math.round(mission.xp * vipMult);
             updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`] = firebase.firestore.FieldValue.increment(finalXP);
             // Mark claimed with date
             if (type === 'daily') {
@@ -110,7 +111,7 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
         setClaiming(null);
     };
 
-    const handleBuyPremium = async () => {
+    var handleBuyPremium = async () => {
         if (!user || hasPremium || buying) return;
         if (currency < FUN_PASS_PRICE) { onNotification(lang==='ar'?'إنتل غير كافٍ!':'Not enough Intel!'); return; }
         setBuying(true);
@@ -125,18 +126,18 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
         setBuying(false);
     };
 
-    const handleClaim = async (level, type) => {
+    var handleClaim = async (level, type) => {
         if (!user || claiming) return;
-        const key = `${type}_${level}`;
-        const alreadyClaimed = type === 'free' ? claimedFree.includes(level) : claimedPremium.includes(level);
+        var key = `${type}_${level}`;
+        var alreadyClaimed = type === 'free' ? claimedFree.includes(level) : claimedPremium.includes(level);
         if (alreadyClaimed) return;
         if (type === 'premium' && !hasPremium) { onNotification(lang==='ar'?'اشترِ Fun Pass أولاً':'Buy Fun Pass first'); return; }
         if (currentLevel < level) { onNotification(lang==='ar'?'لم تصل لهذا المستوى بعد':'Level not reached yet'); return; }
-        const lvData = FUN_PASS_LEVELS.find(l => l.level === level);
-        const reward = type === 'free' ? lvData.free : lvData.premium;
+        var lvData = FUN_PASS_LEVELS.find(l => l.level === level);
+        var reward = type === 'free' ? lvData.free : lvData.premium;
         setClaiming(key);
         try {
-            const updates = {};
+            var updates = {};
             if (reward.type === 'currency') {
                 updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
             } else if (reward.type === 'frame') {
@@ -147,8 +148,8 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                 updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
             } else if (reward.type === 'gift') {
                 // ✅ إضافة الهدية لـ inventory.gifts مع عداد الكمية
-                const giftCounts = userData?.inventory?.giftCounts || {};
-                const currentCount = giftCounts[reward.itemId] || 0;
+                var giftCounts = userData?.inventory?.giftCounts || {};
+                var currentCount = giftCounts[reward.itemId] || 0;
                 updates['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
                 updates[`inventory.giftCounts.${reward.itemId}`] = currentCount + (reward.amount || 1);
             }
@@ -167,11 +168,11 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
         setClaiming(null);
     };
 
-    const getRarityStyle = (rarity) => {
-        const r = RARITY_CONFIG[rarity] || RARITY_CONFIG['Common'];
+    var getRarityStyle = (rarity) => {
+        var r = RARITY_CONFIG[rarity] || RARITY_CONFIG['Common'];
         return { border: `1px solid ${r.border}`, background: r.bg, color: r.color };
     };
-    const isMythic = (rarity) => rarity === 'Mythic';
+    var isMythic = (rarity) => rarity === 'Mythic';
 
     return (
         <div className="modal-overlay" onClick={onClose} style={{zIndex:Z.MODAL_HIGH}}>
@@ -261,20 +262,18 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                         <>
                             {/* Legend */}
                             <div style={{display:'flex', gap:'10px', padding:'6px 0', fontSize:'9px', color:'#6b7280'}}>
-                                <span>⬆️ {lang==='ar'?'مجاني':'Free'}</span>
-                                <span style={{color:'#ffd700'}}>🎫 {lang==='ar'?'بريميوم':'Premium'}</span>
-                                <span style={{color:'#4ade80'}}>✓ {lang==='ar'?'مستلم':'Claimed'}</span>
-                                <span style={{color:'#3b82f6'}}>🔵 {lang==='ar'?'حالي':'Current'}</span>
+                                <div style={{display:'flex', alignItems:'center', gap:'4px'}}><div style={{width:'8px',height:'8px',borderRadius:'2px',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)'}}/><span>{lang==='ar'?'مجاني':'Free'}</span></div>
+                                <div style={{display:'flex', alignItems:'center', gap:'4px'}}><div style={{width:'8px',height:'8px',borderRadius:'2px',background:GR.GOLD_SOFT,border:'1px solid rgba(255,215,0,0.4)'}}/><span>{lang==='ar'?'مميز':'Premium'}</span></div>
                             </div>
-                            {FUN_PASS_LEVELS.map(lv => {
-                                const isReached = currentLevel >= lv.level;
-                                const isCurrent = currentLevel === lv.level - 1 && lv.level <= 50;
-                                const freeClaimable = isReached && !claimedFree.includes(lv.level);
-                                const premClaimable = isReached && hasPremium && !claimedPremium.includes(lv.level);
-                                const freeKey = `free_${lv.level}`;
-                                const premKey = `premium_${lv.level}`;
-                                const freeRarity = lv.free.rarity || 'Common';
-                                const premRarity = lv.premium.rarity || 'Common';
+                                                       {FUN_PASS_LEVELS.map(lv => {
+                                var isReached = currentLevel >= lv.level;
+                                var isCurrent = currentLevel === lv.level - 1 && lv.level <= 50;
+                                var freeClaimable = isReached && !claimedFree.includes(lv.level);
+                                var premClaimable = isReached && hasPremium && !claimedPremium.includes(lv.level);
+                                var freeKey = `free_${lv.level}`;
+                                var premKey = `premium_${lv.level}`;
+                                var freeRarity = lv.free.rarity || 'Common';
+                                var premRarity = lv.premium.rarity || 'Common';
 
                                 return (
                                     <div key={lv.level} style={{
@@ -317,8 +316,8 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                         }}>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0}}>
                                                 {lv.free.imageUrl
-                                    ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
-                                    : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
+                                     ? <img src={lv.free.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                                     : <span style={{fontSize:'16px', flexShrink:0}}>{lv.free.icon}</span>}
                                                 <div style={{minWidth:0}}>
                                                     <div className="marquee-container" style={{height:'14px'}}>
                                                         <div className="marquee-content" style={{fontSize:'10px', fontWeight:700, color: freeRarity==='Mythic'?'#ff4488':freeRarity==='Legendary'?'#fbbf24':freeRarity==='Epic'?'#c084fc':'#e2e8f0'}}>
@@ -361,8 +360,8 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                         }}>
                                             <div style={{display:'flex', alignItems:'center', gap:'6px', minWidth:0, opacity: hasPremium ? 1 : 0.4}}>
                                                 {hasPremium && lv.premium.imageUrl
-                                    ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
-                                    : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>}
+                                     ? <img src={lv.premium.imageUrl} alt="" style={{width:'24px',height:'24px',borderRadius:'6px',objectFit:'cover',flexShrink:0}} />
+                                     : <span style={{fontSize:'16px', flexShrink:0}}>{hasPremium ? lv.premium.icon : '🔒'}</span>}
                                                 <div style={{minWidth:0}}>
                                                     <div className="marquee-container" style={{height:'14px'}}>
                                                         <div className="marquee-content" style={{fontSize:'10px', fontWeight:700, color: premRarity==='Mythic'?'#ff4488':premRarity==='Legendary'?'#fbbf24':premRarity==='Epic'?'#c084fc':'#9ca3af'}}>
@@ -405,22 +404,22 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                 </span>
                             </div>
                             {FUN_PASS_DAILY_MISSIONS.map(m => {
-                                const done   = isMissionAlreadyClaimed(m.id, 'daily');
-                                const isLoading = claiming === m.id;
-                                const cur    = getMissionCurrentVal(m.id, 'daily');
-                                const req    = MISSION_REQUIRED[m.id] || 1;
-                                const pct    = Math.min(100, Math.round((cur / req) * 100));
-                                const ready  = !done && cur >= req;
+                                var done   = isMissionAlreadyClaimed(m.id, 'daily');
+                                var isLoading = claiming === m.id;
+                                var cur    = getMissionCurrentVal(m.id, 'daily');
+                                var req    = MISSION_REQUIRED[m.id] || 1;
+                                var pct    = Math.min(100, Math.round((cur / req) * 100));
+                                var ready  = !done && cur >= req;
                                 return (
                                     <div key={m.id} style={{
                                         display:'flex', alignItems:'center', gap:'10px',
                                         padding:'10px 12px', borderRadius:'12px', marginBottom:'4px',
                                         background: done  ? 'rgba(74,222,128,0.06)' :
                                                    ready ? 'rgba(251,191,36,0.08)'  :
-                                                           'rgba(255,255,255,0.03)',
+                                                            'rgba(255,255,255,0.03)',
                                         border:    done  ? '1px solid rgba(74,222,128,0.3)' :
                                                    ready ? '1px solid rgba(251,191,36,0.35)':
-                                                           '1px solid rgba(255,255,255,0.07)',
+                                                            '1px solid rgba(255,255,255,0.07)',
                                         transition:'all 0.2s'
                                     }}>
                                         {/* Icon */}
@@ -498,22 +497,22 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
                                 </span>
                             </div>
                             {FUN_PASS_WEEKLY_MISSIONS.map(m => {
-                                const done   = isMissionAlreadyClaimed(m.id, 'weekly');
-                                const isLoading = claiming === m.id;
-                                const cur    = getMissionCurrentVal(m.id, 'weekly');
-                                const req    = MISSION_REQUIRED[m.id] || 1;
-                                const pct    = Math.min(100, Math.round((cur / req) * 100));
-                                const ready  = !done && cur >= req;
+                                var done   = isMissionAlreadyClaimed(m.id, 'weekly');
+                                var isLoading = claiming === m.id;
+                                var cur    = getMissionCurrentVal(m.id, 'weekly');
+                                var req    = MISSION_REQUIRED[m.id] || 1;
+                                var pct    = Math.min(100, Math.round((cur / req) * 100));
+                                var ready  = !done && cur >= req;
                                 return (
                                     <div key={m.id} style={{
                                         display:'flex', alignItems:'center', gap:'10px',
                                         padding:'10px 12px', borderRadius:'12px', marginBottom:'4px',
                                         background: done  ? 'rgba(192,132,252,0.06)' :
                                                    ready ? 'rgba(192,132,252,0.12)' :
-                                                           'rgba(168,85,247,0.04)',
+                                                            'rgba(168,85,247,0.04)',
                                         border:    done  ? '1px solid rgba(192,132,252,0.28)' :
                                                    ready ? '1px solid rgba(192,132,252,0.4)' :
-                                                           '1px solid rgba(168,85,247,0.12)',
+                                                            '1px solid rgba(168,85,247,0.12)',
                                         transition:'all 0.2s'
                                     }}>
                                         <span style={{fontSize:'20px', flexShrink:0, filter: done ? 'grayscale(70%)' : 'none'}}>{m.icon}</span>
@@ -582,3 +581,7 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
         </div>
     );
 };
+
+window.FunPassModal = FunPassModal;
+
+})();

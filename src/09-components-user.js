@@ -1,3 +1,6 @@
+(function() {
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
 var BlockedUserItem = ({ uid, onUnblock, lang }) => {
     const [userData, setUserData] = useState(null);
 
@@ -1617,3 +1620,14 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         </div>
     );
 };
+
+    // ── Exports ──
+    window.BlockedUserItem = BlockedUserItem;
+    window.COUNTRIES = COUNTRIES;
+    window.CountryPicker = CountryPicker;
+    window.OnboardingModal = OnboardingModal;
+    window.DailyTasksComponent = DailyTasksComponent;
+    window.GROUP_LEVEL_CONFIG = GROUP_LEVEL_CONFIG;
+    window.getGroupLevel = getGroupLevel;
+    window.GroupsSection = GroupsSection;
+})();

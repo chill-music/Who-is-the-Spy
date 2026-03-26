@@ -1,21 +1,22 @@
+(function() {
 var SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) => {
-    const [messages, setMessages] = useState([]);
-    const [inputText, setInputText] = useState('');
-    const [sending, setSending] = useState(false);
+    var [messages, setMessages] = useState([]);
+    var [inputText, setInputText] = useState('');
+    var [sending, setSending] = useState(false);
 
-    const uid         = currentUser?.uid || null;
-    const displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أنا':'Me');
-    const photoURL    = currentUser?.photoURL || userData?.photoURL || null;
+    var uid         = currentUser?.uid || null;
+    var displayName = currentUser?.displayName || userData?.displayName || (lang==='ar'?'أنا':'Me');
+    var photoURL    = currentUser?.photoURL || userData?.photoURL || null;
 
     // ── localStorage key per user ──
-    const _storageKey = uid ? `prospy_selfchat_${uid}` : null;
+    var _storageKey = uid ? `prospy_selfchat_${uid}` : null;
 
-    const _load = () => {
+    var _load = () => {
         if (!_storageKey) return [];
-        try { const r = localStorage.getItem(_storageKey); return r ? JSON.parse(r) : []; }
+        try { var r = localStorage.getItem(_storageKey); return r ? JSON.parse(r) : []; }
         catch { return []; }
     };
-    const _save = (msgs) => {
+    var _save = (msgs) => {
         if (!_storageKey) return;
         try { localStorage.setItem(_storageKey, JSON.stringify(msgs.slice(-300))); }
         catch {}
@@ -27,10 +28,10 @@ var SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) =
         setMessages(_load());
     }, [show, uid]);
 
-    const sendNote = () => {
+    var sendNote = () => {
         if (!inputText.trim() || sending || !uid) return;
         setSending(true);
-        const msg = {
+        var msg = {
             id:          `sc_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
             text:        inputText.trim(),
             senderId:    uid,
@@ -39,18 +40,18 @@ var SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) =
             timestamp:   Date.now(),
             type:        'note',
         };
-        const updated = [...messages, msg];
+        var updated = [...messages, msg];
         setMessages(updated);
         _save(updated);
         setInputText('');
         setSending(false);
     };
 
-    const formatMsgTime = (ts) => {
+    var formatMsgTime = (ts) => {
         if (!ts) return '';
-        const d = new Date(ts);
+        var d = new Date(ts);
         if (isNaN(d)) return '';
-        const now = new Date();
+        var now = new Date();
         if (d.toDateString() === now.toDateString())
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -183,4 +184,6 @@ var SelfChatModal = ({ show, onClose, currentUser, userData, lang, currency }) =
     );
 };
 
-// 🎫 FUN PASS MODAL COMPONENT
+window.SelfChatModal = SelfChatModal;
+
+})();

@@ -1,211 +1,215 @@
-function App() {
-    // Global States
-    const [lang, setLang] = useState(localStorage.getItem('pro_spy_lang') || 'ar');
-    const { user, userData, authLoading, setUser, setUserData, setAuthLoading } = useAuthState({
-        setLang,
-        setNickname: (n) => setNickname(n),
-        setOnboardingGoogleUser: (u) => setOnboardingGoogleUser(u),
-        setPendingNewUserRef: (r) => setPendingNewUserRef(r),
-        setShowOnboarding: (s) => setShowOnboarding(s)
-    });
-    usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
-    useNotifications({ 
-        user, 
-        isLoggedIn, 
-        userData, 
-        notificationBellRef, 
-        setNotifications, 
-        setUnreadNotifications 
-    });
-    useRoom({
-        roomId,
-        user,
-        isLoggedIn,
-        userData,
-        coupleData,
-        historyWrittenRooms,
-        setRoom,
-        setRoomId,
-        setShowSummary,
-        incrementMissionProgress,
-        checkAndUnlockAchievements
-    });
-    useLeaderboards({ 
-        activeView, 
-        leaderboardTab, 
-        setLeaderboardData, 
-        setCharismaLeaderboard, 
-        setFamilyLeaderboard 
-    });
-    useSocial({ 
-        user, 
-        isLoggedIn, 
-        userData, 
-        setFriendsData, 
-        setFriendRequests, 
-        setChatsMeta, 
-        setTotalUnread 
-    });
-    useGameAutomation({
-        room,
-        roomId,
-        currentUID,
-        setTurnTimer,
-        setVotingTimer,
-        setWordSelTimer,
-        handleSkipTurn,
-        triggerVoting
-    });
-    useBots({
-        room,
-        roomId,
-        currentUID,
-        OWNER_UID,
-        lang,
-        nextTurn
-    });
-    const [room, setRoom] = useState(null);
-    const [roomId, setRoomId] = useState('');
-    const [inputCode, setInputCode] = useState('');
-    const [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
-    const [loading, setLoading] = useState(false);
-    const [turnTimer, setTurnTimer] = useState(30);
-    const [votingTimer, setVotingTimer] = useState(30);
-    const [wordSelTimer, setWordSelTimer] = useState(30);
-    const [showSetupModal, setShowSetupModal] = useState(false);
-    const [setupMode, setSetupMode] = useState('normal');
-    const [isPrivate, setIsPrivate] = useState(false);
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [activeView, setActiveView] = useState('lobby');
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [joinError, setJoinError] = useState('');
-    const [alertMessage, setAlertMessage] = useState(null);
-    const [leaderboardData, setLeaderboardData] = useState([]);
-    const [charismaLeaderboard, setCharismaLeaderboard] = useState([]);
-    const [familyLeaderboard, setFamilyLeaderboard] = useState([]);
-    const [leaderboardTab, setLeaderboardTab] = useState('wins');
-    const [friendsData, setFriendsData] = useState([]);
-    const [addFriendId, setAddFriendId] = useState('');
-    const [friendSearchMsg, setFriendSearchMsg] = useState('');
-    const [friendRequests, setFriendRequests] = useState([]);
-    const [showMyAccount, setShowMyAccount] = useState(false);
-    const [showUserProfile, setShowUserProfile] = useState(false);
-    const [targetProfileUID, setTargetProfileUID] = useState(null);
-    const [chatsMeta, setChatsMeta] = useState({});
-    const [totalUnread, setTotalUnread] = useState(0);
-    const [openChatId, setOpenChatId] = useState(null);
-    const [showBrowseRooms, setShowBrowseRooms] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const [notification, setNotification] = useState(null);
-    const [showTutorial, setShowTutorial] = useState(false);
-    const [showSummary, setShowSummary] = useState(false);
-    const [showShop, setShowShop] = useState(false);
-    const [showInventory, setShowInventory] = useState(false);
-    const [showPrivateChat, setShowPrivateChat] = useState(false);
-    const [showSelfChat, setShowSelfChat] = useState(false);
-    const [showFunPass, setShowFunPass] = useState(false);
-    const [chatFriend, setChatFriend] = useState(null);
-    const [showLoginAlert, setShowLoginAlert] = useState(false);
-    const [guestData, setGuestData] = useState(null);
-    const [showLoginRewards, setShowLoginRewards] = useState(false);
-    const [sessionClaimedToday, setSessionClaimedToday] = useState(false); // Track if claimed in this session
-    const [showOnboarding, setShowOnboarding] = useState(false);
-    const [onboardingGoogleUser, setOnboardingGoogleUser] = useState(null);
-    const [pendingNewUserRef, setPendingNewUserRef] = useState(null);
-    const [showLobbyPassword, setShowLobbyPassword] = useState(false);
-    const [showNotifications, setShowNotifications] = useState(false);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadNotifications, setUnreadNotifications] = useState(0);
-    const notificationBellRef = useRef(null);
-    // 🛡️ Prevents double-write to game_history when onSnapshot fires multiple times
-    const historyWrittenRooms = useRef(new Set());
-    const lastAchievementCheck = useRef(0);
-    const [showSettings, setShowSettings] = useState(false);
-    const [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
-    const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [showFriendsMoments, setShowFriendsMoments] = useState(false);
-    const [showFamilyModal, setShowFamilyModal] = useState(false);
-    const [viewFamilyId, setViewFamilyId] = useState(null); // for viewing external families
-    const [userFamily, setUserFamily] = useState(null);
-    const [showFamilyChat, setShowFamilyChat] = useState(false);
-    const [hasNewMoments, setHasNewMoments] = useState(false);
+(function() {
+    var { useState, useEffect, useRef, useMemo, useCallback } = React;
+    var { 
+        useAuthState, usePresence, useNotifications, useRoom, 
+        useLeaderboards, useSocial, useGameAutomation, useBots,
+        OWNER_UID
+    } = window;
 
-    // ── 💍 COUPLES SYSTEM STATE ──
-    const [coupleData, setCoupleData]                   = useState(null); // my active couple doc
-    const [partnerData, setPartnerData]                 = useState(null); // partner's user doc
-    const [showCoupleCard, setShowCoupleCard]           = useState(false);
-    const [showProposalModal, setShowProposalModal]     = useState(false);
-    const [proposalRing, setProposalRing]               = useState(null);
-    const [incomingProposal, setIncomingProposal]       = useState(null); // pending couple doc for me
-    const [incomingProposalFrom, setIncomingProposalFrom] = useState(null); // proposer data
-    const [showIncomingProposal, setShowIncomingProposal] = useState(false);
-    const [showWeddingHall, setShowWeddingHall]         = useState(false);
+    function App() {
+        // ── Global States ──
+        var [lang, setLang] = useState(localStorage.getItem('pro_spy_lang') || 'ar');
+        var [room, setRoom] = useState(null);
+        var [roomId, setRoomId] = useState('');
+        var [inputCode, setInputCode] = useState('');
+        var [nickname, setNickname] = useState(() => localStorage.getItem('pro_spy_nick') || '');
+        var [loading, setLoading] = useState(false);
+        var [turnTimer, setTurnTimer] = useState(30);
+        var [votingTimer, setVotingTimer] = useState(30);
+        var [wordSelTimer, setWordSelTimer] = useState(30);
+        var [showSetupModal, setShowSetupModal] = useState(false);
+        var [setupMode, setSetupMode] = useState('normal');
+        var [isPrivate, setIsPrivate] = useState(false);
+        var [password, setPassword] = useState('');
+        var [showPassword, setShowPassword] = useState(false);
+        var [activeView, setActiveView] = useState('lobby');
+        var [showDropdown, setShowDropdown] = useState(false);
+        var [joinError, setJoinError] = useState('');
+        var [alertMessage, setAlertMessage] = useState(null);
+        var [leaderboardData, setLeaderboardData] = useState([]);
+        var [charismaLeaderboard, setCharismaLeaderboard] = useState([]);
+        var [familyLeaderboard, setFamilyLeaderboard] = useState([]);
+        var [leaderboardTab, setLeaderboardTab] = useState('wins');
+        var [friendsData, setFriendsData] = useState([]);
+        var [addFriendId, setAddFriendId] = useState('');
+        var [friendSearchMsg, setFriendSearchMsg] = useState('');
+        var [friendRequests, setFriendRequests] = useState([]);
+        var [showMyAccount, setShowMyAccount] = useState(false);
+        var [showUserProfile, setShowUserProfile] = useState(false);
+        var [targetProfileUID, setTargetProfileUID] = useState(null);
+        var [chatsMeta, setChatsMeta] = useState({});
+        var [totalUnread, setTotalUnread] = useState(0);
+        var [openChatId, setOpenChatId] = useState(null);
+        var [showBrowseRooms, setShowBrowseRooms] = useState(false);
+        var [copied, setCopied] = useState(false);
+        var [notification, setNotification] = useState(null);
+        var [showTutorial, setShowTutorial] = useState(false);
+        var [showSummary, setShowSummary] = useState(false);
+        var [showShop, setShowShop] = useState(false);
+        var [showInventory, setShowInventory] = useState(false);
+        var [showPrivateChat, setShowPrivateChat] = useState(false);
+        var [showSelfChat, setShowSelfChat] = useState(false);
+        var [showFunPass, setShowFunPass] = useState(false);
+        var [chatFriend, setChatFriend] = useState(null);
+        var [showLoginAlert, setShowLoginAlert] = useState(false);
+        var [guestData, setGuestData] = useState(null);
+        var [showLoginRewards, setShowLoginRewards] = useState(false);
+        var [sessionClaimedToday, setSessionClaimedToday] = useState(false);
+        var [showOnboarding, setShowOnboarding] = useState(false);
+        var [onboardingGoogleUser, setOnboardingGoogleUser] = useState(null);
+        var [pendingNewUserRef, setPendingNewUserRef] = useState(null);
+        var [showLobbyPassword, setShowLobbyPassword] = useState(false);
+        var [showNotifications, setShowNotifications] = useState(false);
+        var [notifications, setNotifications] = useState([]);
+        var [unreadNotifications, setUnreadNotifications] = useState(0);
+        var notificationBellRef = useRef(null);
+        var historyWrittenRooms = useRef(new Set());
+        var lastAchievementCheck = useRef(0);
+        var [showSettings, setShowSettings] = useState(false);
+        var [soundMuted, setSoundMuted] = useState(() => localStorage.getItem('pro_spy_sound_muted') === 'true');
+        var [showAdminPanel, setShowAdminPanel] = useState(false);
+        var [showFriendsMoments, setShowFriendsMoments] = useState(false);
+        var [showFamilyModal, setShowFamilyModal] = useState(false);
+        var [viewFamilyId, setViewFamilyId] = useState(null);
+        var [userFamily, setUserFamily] = useState(null);
+        var [showFamilyChat, setShowFamilyChat] = useState(false);
+        var [hasNewMoments, setHasNewMoments] = useState(false);
 
-    // ── 🤝 BFF SYSTEM STATE ──
-    const [showBFFModal, setShowBFFModal]               = useState(false);
-    const [bffInitialTab, setBffInitialTab]             = useState('relationships');
-    const [bffUnreadCount, setBffUnreadCount]           = useState(0);
+        var [coupleData, setCoupleData] = useState(null);
+        var [partnerData, setPartnerData] = useState(null);
+        var [showCoupleCard, setShowCoupleCard] = useState(false);
+        var [showProposalModal, setShowProposalModal] = useState(false);
+        var [proposalRing, setProposalRing] = useState(null);
+        var [incomingProposal, setIncomingProposal] = useState(null);
+        var [incomingProposalFrom, setIncomingProposalFrom] = useState(null);
+        var [showIncomingProposal, setShowIncomingProposal] = useState(false);
+        var [showWeddingHall, setShowWeddingHall] = useState(false);
 
-    // ── 🤖 BOT CHATS STATE ──
-    const [showDetectiveBot, setShowDetectiveBot]       = useState(false);
-    const [showLoveBot, setShowLoveBot]                 = useState(false);
-    const [detectiveBotUnread, setDetectiveBotUnread]   = useState(0);
-    const [loveBotUnread, setLoveBotUnread]             = useState(0);
+        var [showBFFModal, setShowBFFModal] = useState(false);
+        var [bffInitialTab, setBffInitialTab] = useState('relationships');
+        var [bffUnreadCount, setBffUnreadCount] = useState(0);
 
-    // ── 🆕 NEW: VIP Center, Help Center, Public Chat ──
-    const [showVIPCenter, setShowVIPCenter]             = useState(false);
-    const [showHelpCenter, setShowHelpCenter]           = useState(false);
-    const [showPublicChat, setShowPublicChat]           = useState(false);
-    const [showPWAInstall, setShowPWAInstall]           = useState(false);
+        var [showDetectiveBot, setShowDetectiveBot] = useState(false);
+        var [showLoveBot, setShowLoveBot] = useState(false);
+        var [detectiveBotUnread, setDetectiveBotUnread] = useState(0);
+        var [loveBotUnread, setLoveBotUnread] = useState(0);
 
-    // ── 👤 GUEST AVATAR MENU ──
-    const [showGuestMenu, setShowGuestMenu]             = useState(false);
+        var [showVIPCenter, setShowVIPCenter] = useState(false);
+        var [showHelpCenter, setShowHelpCenter] = useState(false);
+        var [showPublicChat, setShowPublicChat] = useState(false);
+        var [showPWAInstall, setShowPWAInstall] = useState(false);
 
-    // ── 💬 GAME ROOM CHAT STATE ──
-    const [gameChatInput, setGameChatInput]             = useState('');
-    const [showGameChat, setShowGameChat]               = useState(true);
-    const gameChatRef                                   = useRef(null);
+        const [showGuestMenu, setShowGuestMenu] = useState(false);
+        const [gameChatInput, setGameChatInput] = useState('');
+        const [showGameChat, setShowGameChat] = useState(true);
+        const gameChatRef = useRef(null);
 
-    // ── PWA Install Listener ──
-    useEffect(() => {
-        const handler = () => setShowPWAInstall(true);
-        window.addEventListener('pwa-available', handler);
-        return () => window.removeEventListener('pwa-available', handler);
-    }, []);
+        // ── Logic Variables & Helpers ──
+        const t = TRANSLATIONS[lang];
+        const isGuest = useMemo(() => guestData !== null, [guestData]);
+        const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
 
-    // Close guest menu when clicking outside
-    useEffect(() => {
-        if (!showGuestMenu) return;
-        const handler = (e) => setShowGuestMenu(false);
-        document.addEventListener('click', handler);
-        return () => document.removeEventListener('click', handler);
-    }, [showGuestMenu]);
+        // ── Auth & Logic Hooks ──
+        const { user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading } = useAuthState({
+            setLang,
+            setNickname,
+            setOnboardingGoogleUser,
+            setPendingNewUserRef,
+            setShowOnboarding
+        });
 
-    // Click outside handler for notification dropdown
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (showNotifications && notificationBellRef.current && !notificationBellRef.current.contains(e.target)) {
-                const dropdown = document.querySelector('.notification-dropdown');
-                if (dropdown && !dropdown.contains(e.target)) {
-                    setShowNotifications(false);
+        const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
+        const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
+
+        usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
+        useNotifications({ 
+            user, 
+            isLoggedIn, 
+            userData, 
+            notificationBellRef, 
+            setNotifications, 
+            setUnreadNotifications 
+        });
+        useRoom({
+            roomId,
+            user,
+            isLoggedIn,
+            userData,
+            coupleData,
+            historyWrittenRooms,
+            setRoom,
+            setRoomId,
+            setShowSummary,
+            incrementMissionProgress,
+            checkAndUnlockAchievements
+        });
+        useLeaderboards({ 
+            activeView, 
+            leaderboardTab, 
+            setLeaderboardData, 
+            setCharismaLeaderboard, 
+            setFamilyLeaderboard 
+        });
+        useSocial({ 
+            user, 
+            isLoggedIn, 
+            userData, 
+            setFriendsData, 
+            setFriendRequests, 
+            setChatsMeta, 
+            setTotalUnread 
+        });
+        useGameAutomation({
+            room,
+            roomId,
+            currentUID,
+            setTurnTimer,
+            setVotingTimer,
+            setWordSelTimer,
+            handleSkipTurn,
+            triggerVoting
+        });
+        useBots({
+            room,
+            roomId,
+            currentUID,
+            OWNER_UID,
+            lang,
+            nextTurn
+        });
+
+        // ── PWA Install Listener ──
+        useEffect(() => {
+            const handler = () => setShowPWAInstall(true);
+            window.addEventListener('pwa-available', handler);
+            return () => window.removeEventListener('pwa-available', handler);
+        }, []);
+
+        // Close guest menu when clicking outside
+        useEffect(() => {
+            if (!showGuestMenu) return;
+            const handler = (e) => setShowGuestMenu(false);
+            document.addEventListener('click', handler);
+            return () => document.removeEventListener('click', handler);
+        }, [showGuestMenu]);
+
+        // Click outside handler for notification dropdown
+        useEffect(() => {
+            const handleClickOutside = (e) => {
+                if (showNotifications && notificationBellRef.current && !notificationBellRef.current.contains(e.target)) {
+                    const dropdown = document.querySelector('.notification-dropdown');
+                    if (dropdown && !dropdown.contains(e.target)) {
+                        setShowNotifications(false);
+                    }
                 }
+            };
+            if (showNotifications) {
+                document.addEventListener('mousedown', handleClickOutside);
             }
-        };
-        if (showNotifications) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showNotifications]);
-
-    const t = TRANSLATIONS[lang];
-    const isLoggedIn = useMemo(() => user && !user.isAnonymous, [user]);
-    const isGuest = useMemo(() => guestData !== null, [guestData]);
-    const isNotLoggedIn = useMemo(() => user === null && guestData === null, [user, guestData]);
-    const currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
-    const currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [showNotifications]);
 
     // ── Listen to current user's family ──
     useEffect(() => {
@@ -3261,4 +3265,7 @@ function App() {
             )}
         </div>
     );
-}
+    }
+
+    window.App = App;
+})();

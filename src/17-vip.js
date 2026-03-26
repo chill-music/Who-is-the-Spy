@@ -1,3 +1,4 @@
+(function() {
 // ════════════════════════════════════════════════════════
 // 👑 VIP SYSTEM — 10 Levels
 //    كل بادجات VIP قابلة للتخصيص من هنا
@@ -67,14 +68,14 @@ var VIP_XP_PER_CHARISMA_RATE = 0.05; // 5% من الـ charisma → VIP XP
 // ✅ لو الهدية عندها vipXP محدد يدوياً يُستخدم، غير كده يُحسب 5% من الكاريزما
 var getGiftVIPXP = (gift) => {
     if (gift.vipXP !== undefined && gift.vipXP !== null) return Math.max(1, gift.vipXP);
-    const xp = Math.round((gift.charisma || 0) * VIP_XP_PER_CHARISMA_RATE);
+    var xp = Math.round((gift.charisma || 0) * VIP_XP_PER_CHARISMA_RATE);
     return Math.max(1, xp); // minimum 1 XP per gift
 };
 
 // حساب مستوى VIP من الـ XP الكلي
 var getVIPLevelFromXP = (totalXP) => {
-    let level = 0;
-    for (let lvl = 10; lvl >= 1; lvl--) {
+    var level = 0;
+    for (var lvl = 10; lvl >= 1; lvl--) {
         if (totalXP >= VIP_XP_THRESHOLDS[lvl]) {
             level = lvl;
             break;
@@ -85,13 +86,13 @@ var getVIPLevelFromXP = (totalXP) => {
 
 // Progress للمستوى القادم
 var getVIPXPProgress = (totalXP) => {
-    const currentLevel = getVIPLevelFromXP(totalXP);
+    var currentLevel = getVIPLevelFromXP(totalXP);
     if (currentLevel >= 10) return { currentLevel: 10, progress: 100, xpInLevel: 0, xpNeeded: 0, totalXP };
-    const currentThreshold = VIP_XP_THRESHOLDS[currentLevel];
-    const nextThreshold    = VIP_XP_THRESHOLDS[currentLevel + 1];
-    const xpInLevel = totalXP - currentThreshold;
-    const xpNeeded  = nextThreshold - currentThreshold;
-    const progress  = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
+    var currentThreshold = VIP_XP_THRESHOLDS[currentLevel];
+    var nextThreshold    = VIP_XP_THRESHOLDS[currentLevel + 1];
+    var xpInLevel = totalXP - currentThreshold;
+    var xpNeeded  = nextThreshold - currentThreshold;
+    var progress  = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
     return { currentLevel, progress, xpInLevel, xpNeeded, totalXP };
 };
 
@@ -294,15 +295,15 @@ var VIP_CONFIG = [
 
 // getVIPData — يرجع config الـ VIP بناءً على الـ XP
 var getVIPData = (userData) => {
-    const totalXP = userData?.vip?.xp || 0;
-    const level = getVIPLevelFromXP(totalXP);
+    var totalXP = userData?.vip?.xp || 0;
+    var level = getVIPLevelFromXP(totalXP);
     if (!level) return null;
     return VIP_CONFIG.find(v => v.level === level) || null;
 };
 
 // getVIPLevel — يحسب الليفل من الـ XP (أو fallback للـ manual level)
 var getVIPLevel = (userData) => {
-    const totalXP = userData?.vip?.xp || 0;
+    var totalXP = userData?.vip?.xp || 0;
     if (totalXP > 0) return getVIPLevelFromXP(totalXP);
     return userData?.vip?.level || 0; // fallback للـ manual admin assign
 };
@@ -311,30 +312,30 @@ var hasVIP = (userData) => getVIPLevel(userData) >= 1;
 // hasVIPExclusiveGifts removed — dead code, never called anywhere in project
 
 var hasVIPDailyTasks = (userData) => {
-    const cfg = getVIPData(userData);
+    var cfg = getVIPData(userData);
     return cfg?.vipDailyTasks === true;
 };
 
 var getVIPXPMultiplier = (userData) => {
-    const cfg = getVIPData(userData);
+    var cfg = getVIPData(userData);
     return cfg?.xpMultiplier || 1;
 };
 
 var getVIPCustomIdLength = (userData) => {
-    const cfg = getVIPData(userData);
+    var cfg = getVIPData(userData);
     return cfg?.customIdLength || null;
 };
 
 // ════ VIP BADGE COMPONENT ════
 var VIPBadge = ({ userData, onClick, size = 'sm' }) => {
-    const level = getVIPLevel(userData);
+    var level = getVIPLevel(userData);
     if (!level) return null;
 
-    const cfg = VIP_CONFIG[level - 1];
-    const badgeUrl = VIP_BADGE_URLS[level];
-    const sz = size === 'lg' ? 32 : size === 'md' ? 26 : 22;
+    var cfg = VIP_CONFIG[level - 1];
+    var badgeUrl = VIP_BADGE_URLS[level];
+    var sz = size === 'lg' ? 32 : size === 'md' ? 26 : 22;
 
-    const handleClick = (e) => {
+    var handleClick = (e) => {
         e.stopPropagation();
         if (onClick) onClick(level);
     };
@@ -374,11 +375,11 @@ var VIPBadge = ({ userData, onClick, size = 'sm' }) => {
 
 // ════ VIP NAME COMPONENT — اسم الـ VIP بالتأثيرات الصح ════
 var VIPName = ({ displayName, userData, className = '', style = {} }) => {
-    const level = getVIPLevel(userData);
+    var level = getVIPLevel(userData);
     if (!level) {
         return <span className={className} style={style}>{displayName}</span>;
     }
-    const cfg = VIP_CONFIG[level - 1];
+    var cfg = VIP_CONFIG[level - 1];
 
     if (cfg.gradientAnim) {
         // VIP 9-10: animated gradient
@@ -424,10 +425,10 @@ var VIPName = ({ displayName, userData, className = '', style = {} }) => {
 // 👑 STAFF ROLE BADGE — يظهر في كل مكان
 // ════════════════════════════════════════════════════════════
 var StaffRoleBadge = ({ userData, uid, lang, size = 'sm', onClick }) => {
-    const role = getUserRole(userData, uid);
+    var role = getUserRole(userData, uid);
     if (!role) return null;
-    const cfg = ROLE_CONFIG[role];
-    const isMd = size === 'md';
+    var cfg = ROLE_CONFIG[role];
+    var isMd = size === 'md';
 
     return (
         <span
@@ -470,10 +471,10 @@ var StaffRoleBadge = ({ userData, uid, lang, size = 'sm', onClick }) => {
 // Windows Chrome does NOT render flag emoji. We use flagcdn.com image as primary
 // and fall back to emoji if the image fails.
 var FlagDisplay = ({ countryCode, flagEmoji, size = 20, style = {} }) => {
-    const [imgFailed, setImgFailed] = React.useState(false);
+    var [imgFailed, setImgFailed] = React.useState(false);
     if (!countryCode && !flagEmoji) return null;
-    const code = (countryCode || '').toLowerCase();
-    const imgUrl = code ? `https://flagcdn.com/w${size}/${code}.png` : null;
+    var code = (countryCode || '').toLowerCase();
+    var imgUrl = code ? `https://flagcdn.com/w${size}/${code}.png` : null;
     if (imgUrl && !imgFailed) {
         return (
             <img
@@ -500,23 +501,23 @@ var FlagDisplay = ({ countryCode, flagEmoji, size = 20, style = {} }) => {
 var PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
     if (!player) return null;
 
-    const photoURL  = player.photoURL || player.photo || null;
-    const name      = player.displayName || player.name || '—';
-    const equipped  = player.equipped || {};
-    const vipActive = getVIPLevel(player) > 0;
-    const banData   = player.ban || null;
-    const playerUID = player.uid || player.id || null;
-    const playerRole = getUserRole(player, playerUID);
+    var photoURL  = player.photoURL || player.photo || null;
+    var name      = player.displayName || player.name || '—';
+    var equipped  = player.equipped || {};
+    var vipActive = getVIPLevel(player) > 0;
+    var banData   = player.ban || null;
+    var playerUID = player.uid || player.id || null;
+    var playerRole = getUserRole(player, playerUID);
 
     // Title
-    const titleId   = equipped.titles;
-    const titleItem = titleId ? SHOP_ITEMS.titles.find(t => t.id === titleId) : null;
+    var titleId   = equipped.titles;
+    var titleItem = titleId ? SHOP_ITEMS.titles.find(t => t.id === titleId) : null;
 
     // Badges — max 3
-    const badgeIds  = equipped.badges || [];
+    var badgeIds  = equipped.badges || [];
 
-    const avatarSz  = size === 'md' ? 'md' : 'sm';
-    const nameSz    = size === 'md' ? '13px' : '12px';
+    var avatarSz  = size === 'md' ? 'md' : 'sm';
+    var nameSz    = size === 'md' ? '13px' : '12px';
 
     return (
         <div style={{ display:'flex', alignItems:'center', gap: size==='md'?'10px':'8px', minWidth:0 }}>
@@ -572,7 +573,7 @@ var PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
                 {badgeIds.length > 0 && (
                     <div style={{ display:'flex', alignItems:'center', gap:'2px' }}>
                         {badgeIds.slice(0, 3).map((bid, idx) => {
-                            const b = SHOP_ITEMS.badges.find(b => b.id === bid);
+                            var b = SHOP_ITEMS.badges.find(b => b.id === bid);
                             if (!b) return null;
                             return b.imageUrl && b.imageUrl.trim() !== '' ? (
                                 <img key={idx} src={b.imageUrl} alt=""
@@ -606,7 +607,7 @@ var PlayerNameTag = ({ player, lang, size = 'sm', showStatus = null }) => {
 // ════ VIP BADGE POPUP ════
 var VIPBadgePopup = ({ level, onClose }) => {
     if (!level) return null;
-    const cfg = VIP_CONFIG[level - 1];
+    var cfg = VIP_CONFIG[level - 1];
     return (
         <div
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: Z.TOOLTIP }}
@@ -639,7 +640,7 @@ var VIPBadgePopup = ({ level, onClose }) => {
 
 // ════ VIP INFO TABLE MODAL ════
 var VIPInfoModal = ({ onClose, lang }) => {
-    const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
+    var t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px' }}>
@@ -697,28 +698,28 @@ var VIPInfoModal = ({ onClose, lang }) => {
 
 // ════ VIP 10 EXCLUSIVE REQUEST FORM — with full approval system ════
 var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
-    const [giftName,    setGiftName]    = useState('');
-    const [giftImage,   setGiftImage]   = useState('');
-    const [giftEmail,   setGiftEmail]   = useState('');
-    const [luckyNumber, setLuckyNumber] = useState('');
-    const [sending,     setSending]     = useState(false);
-    const [showForm,    setShowForm]    = useState(false); // for modification mode
+    var [giftName,    setGiftName]    = useState('');
+    var [giftImage,   setGiftImage]   = useState('');
+    var [giftEmail,   setGiftEmail]   = useState('');
+    var [luckyNumber, setLuckyNumber] = useState('');
+    var [sending,     setSending]     = useState(false);
+    var [showForm,    setShowForm]    = useState(false); // for modification mode
 
     // STATUS: 0=pending, 1=approved, 2=rejected
-    const [latestRequest, setLatestRequest] = useState(null);
-    const [loadingReq,    setLoadingReq]    = useState(true);
+    var [latestRequest, setLatestRequest] = useState(null);
+    var [loadingReq,    setLoadingReq]    = useState(true);
 
     useEffect(() => {
         if (!user?.uid) { setLoadingReq(false); return; }
-        const unsub = vip10RequestsCollection
+        var unsub = vip10RequestsCollection
             .where('uid', '==', user.uid)
             .limit(10)
             .onSnapshot(snap => {
                 if (!snap.empty) {
-                    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    var docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     docs.sort((a, b) => {
-                        const aT = a.createdAt?.toMillis?.() || 0;
-                        const bT = b.createdAt?.toMillis?.() || 0;
+                        var aT = a.createdAt?.toMillis?.() || 0;
+                        var bT = b.createdAt?.toMillis?.() || 0;
                         return bT - aT;
                     });
                     setLatestRequest(docs[0]);
@@ -731,14 +732,14 @@ var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
     }, [user?.uid]);
 
     // ✅ Can the user submit THIS month?
-    const getMonthKey = (d) => {
-        const date = d?.toDate ? d.toDate() : (d ? new Date(d) : null);
+    var getMonthKey = (d) => {
+        var date = d?.toDate ? d.toDate() : (d ? new Date(d) : null);
         if (!date) return null;
         return `${date.getFullYear()}-${date.getMonth()}`;
     };
-    const thisMonthKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
-    const lastRequestMonthKey = getMonthKey(latestRequest?.createdAt);
-    const alreadyRequestedThisMonth = lastRequestMonthKey === thisMonthKey;
+    var thisMonthKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
+    var lastRequestMonthKey = getMonthKey(latestRequest?.createdAt);
+    var alreadyRequestedThisMonth = lastRequestMonthKey === thisMonthKey;
 
     // ✅ Logic:
     // - No request ever → show form
@@ -747,22 +748,22 @@ var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
     // - Approved (1) + new month → show approved + "modify gift" button → opens form with "Modification" label
     // - Rejected (2) + same month → show rejected + can resubmit
     // - Rejected (2) + new month → show form (fresh start)
-    const isApproved  = latestRequest?.status === 1;
-    const isRejected  = latestRequest?.status === 2;
-    const isPending   = latestRequest?.status === 0;
-    const canModify   = isApproved && !alreadyRequestedThisMonth; // approved but new month
-    const canResubmit = isRejected; // always can resubmit after rejection
-    const isModification = isApproved; // any new request after approval = modification
+    var isApproved  = latestRequest?.status === 1;
+    var isRejected  = latestRequest?.status === 2;
+    var isPending   = latestRequest?.status === 0;
+    var canModify   = isApproved && !alreadyRequestedThisMonth; // approved but new month
+    var canResubmit = isRejected; // always can resubmit after rejection
+    var isModification = isApproved; // any new request after approval = modification
 
-    const handleImageChange = (e) => {
-        const file = e.target.files?.[0];
+    var handleImageChange = (e) => {
+        var file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = (ev) => setGiftImage(ev.target.result);
         reader.readAsDataURL(file);
     };
 
-    const handleSubmit = async () => {
+    var handleSubmit = async () => {
         if (!giftName.trim() || !user) return;
         setSending(true);
         try {
@@ -795,7 +796,7 @@ var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
     if (loadingReq) return null;
 
     // ── Gift request form ──
-    const RequestForm = ({ label }) => (
+    var RequestForm = ({ label }) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {label && (
                 <div style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 800, textAlign: 'center',
@@ -838,7 +839,7 @@ var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
     );
 
     // ── Status card shared ──
-    const StatusCard = ({ statusColor, statusEmoji, statusText, giftText, note, children }) => (
+    var StatusCard = ({ statusColor, statusEmoji, statusText, giftText, note, children }) => (
         <div style={{
             borderRadius: '10px', padding: '12px',
             background: `rgba(${statusColor},0.06)`,
@@ -977,23 +978,23 @@ var VIP10RequestForm = ({ user, lang, onNotification, userData }) => {
 
 // ════ VIP BUY / RENEW SECTION (embedded in VIP Center) ════
 var VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [buying, setBuying] = useState(false);
-    const currency = userData?.currency || 0;
-    const hasVIP = typeof getVIPLevel === 'function' && getVIPLevel(userData) > 0;
-    const vipDaysLeft = (() => {
+    var [showConfirm, setShowConfirm] = useState(false);
+    var [buying, setBuying] = useState(false);
+    var currency = userData?.currency || 0;
+    var hasVIP = typeof getVIPLevel === 'function' && getVIPLevel(userData) > 0;
+    var vipDaysLeft = (() => {
         if (!userData?.vip?.expiresAt) return null;
-        const exp = userData.vip.expiresAt?.toDate ? userData.vip.expiresAt.toDate() : new Date(userData.vip.expiresAt.seconds * 1000);
-        const diff = Math.ceil((exp - Date.now()) / 86400000);
+        var exp = userData.vip.expiresAt?.toDate ? userData.vip.expiresAt.toDate() : new Date(userData.vip.expiresAt.seconds * 1000);
+        var diff = Math.ceil((exp - Date.now()) / 86400000);
         return Math.max(0, diff);
     })();
 
-    const handleBuyVIP = async () => {
+    var handleBuyVIP = async () => {
         if (!user || currency < 50000 || buying) return;
         setBuying(true);
         try {
-            const now = new Date();
-            const expiresAt = hasVIP && vipDaysLeft > 0
+            var now = new Date();
+            var expiresAt = hasVIP && vipDaysLeft > 0
                 ? new Date(now.getTime() + (vipDaysLeft + 30) * 86400000)
                 : new Date(now.getTime() + 30 * 86400000);
             await usersCollection.doc(user.uid).update({
@@ -1136,36 +1137,36 @@ var VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
 
 // ════ VIP CENTER SECTION (for Settings) ════
 var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
-    const [showInfoModal, setShowInfoModal]       = useState(false);
-    const [showBadgePopup, setShowBadgePopup]     = useState(false);
-    const [customIdEnabled, setCustomIdEnabled]   = useState(userData?.vip?.customIdEnabled || false);
+    var [showInfoModal, setShowInfoModal]       = useState(false);
+    var [showBadgePopup, setShowBadgePopup]     = useState(false);
+    var [customIdEnabled, setCustomIdEnabled]   = useState(userData?.vip?.customIdEnabled || false);
     // VIP custom ID request states
-    const [desiredId, setDesiredId]               = useState('');
-    const [idCheckStatus, setIdCheckStatus]       = useState(null); // null | 'checking' | 'taken' | 'available'
-    const [idRequestSending, setIdRequestSending] = useState(false);
+    var [desiredId, setDesiredId]               = useState('');
+    var [idCheckStatus, setIdCheckStatus]       = useState(null); // null | 'checking' | 'taken' | 'available'
+    var [idRequestSending, setIdRequestSending] = useState(false);
     // ✅ Pending request listener — يتابع حالة الطلب في real-time
-    const [pendingRequest, setPendingRequest]     = useState(null); // null | { status, adminNote, desiredId }
-    const [seenRequestId, setSeenRequestId]       = useState(null); // last request we've shown result for
+    var [pendingRequest, setPendingRequest]     = useState(null); // null | { status, adminNote, desiredId }
+    var [seenRequestId, setSeenRequestId]       = useState(null); // last request we've shown result for
 
-    const totalVIPXP  = userData?.vip?.xp || 0;
-    const level       = getVIPLevel(userData);
-    const cfg         = level ? VIP_CONFIG[level - 1] : null;
-    const customIdLen = getVIPCustomIdLength(userData);
-    const xpInfo      = getVIPXPProgress(totalVIPXP);
+    var totalVIPXP  = userData?.vip?.xp || 0;
+    var level       = getVIPLevel(userData);
+    var cfg         = level ? VIP_CONFIG[level - 1] : null;
+    var customIdLen = getVIPCustomIdLength(userData);
+    var xpInfo      = getVIPXPProgress(totalVIPXP);
 
     // ✅ Real-time listener على آخر طلب ID للمستخدم (بدون orderBy لتجنب index)
     useEffect(() => {
         if (!user || !level || !customIdLen) return;
-        const unsub = vip10IdRequestsCollection
+        var unsub = vip10IdRequestsCollection
             .where('uid', '==', user.uid)
             .limit(10)
             .onSnapshot(snap => {
                 if (!snap.empty) {
                     // Sort on client by createdAt descending
-                    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    var docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     docs.sort((a, b) => {
-                        const aTime = a.createdAt?.toMillis?.() || a.createdAt || 0;
-                        const bTime = b.createdAt?.toMillis?.() || b.createdAt || 0;
+                        var aTime = a.createdAt?.toMillis?.() || a.createdAt || 0;
+                        var bTime = b.createdAt?.toMillis?.() || b.createdAt || 0;
                         return bTime - aTime;
                     });
                     setPendingRequest(docs[0]);
@@ -1180,7 +1181,7 @@ var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     useEffect(() => {
         if (!pendingRequest || pendingRequest.status !== 1 || !user) return;
         // Only apply if the desired ID isn't already set
-        const desiredIdToApply = pendingRequest.desiredId;
+        var desiredIdToApply = pendingRequest.desiredId;
         if (!desiredIdToApply || userData?.customId === desiredIdToApply) return;
         // Apply the approved ID
         usersCollection.doc(user.uid).update({ customId: desiredIdToApply, 'vip.customIdEnabled': true })
@@ -1188,36 +1189,36 @@ var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
     }, [pendingRequest?.status, pendingRequest?.desiredId, user?.uid]);
 
     // For VIP 6-9: random toggle (keep as before)
-    const toggleCustomId = async () => {
+    var toggleCustomId = async () => {
         if (!user || !customIdLen || level === 10) return;
-        const newVal = !customIdEnabled;
+        var newVal = !customIdEnabled;
         setCustomIdEnabled(newVal);
         if (newVal) {
-            const max = Math.pow(10, customIdLen) - 1;
-            const min = Math.pow(10, customIdLen - 1);
-            const newId = Math.floor(min + Math.random() * (max - min + 1)).toString();
+            var max = Math.pow(10, customIdLen) - 1;
+            var min = Math.pow(10, customIdLen - 1);
+            var newId = Math.floor(min + Math.random() * (max - min + 1)).toString();
             await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': true, customId: newId });
         } else {
-            const normalId = Math.floor(100000 + Math.random() * 900000).toString();
+            var normalId = Math.floor(100000 + Math.random() * 900000).toString();
             await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': false, customId: normalId });
         }
         onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
     };
 
     // Check if user already made a request this month
-    const canRequestIdThisMonth = () => {
-        const lastReq = userData?.vip?.lastIdRequest;
+    var canRequestIdThisMonth = () => {
+        var lastReq = userData?.vip?.lastIdRequest;
         if (!lastReq) return true;
-        const lastDate = lastReq?.toDate ? lastReq.toDate() : new Date(lastReq);
-        const now = new Date();
+        var lastDate = lastReq?.toDate ? lastReq.toDate() : new Date(lastReq);
+        var now = new Date();
         return !(lastDate.getMonth() === now.getMonth() && lastDate.getFullYear() === now.getFullYear());
     };
 
     // Validate exact digit count based on VIP level
     // VIP6=6, VIP7=5, VIP8=4, VIP9=3, VIP10=2
-    const validateIdInput = (id) => {
+    var validateIdInput = (id) => {
         if (!customIdLen || !id) return null;
-        const onlyDigits = /^\d+$/.test(id);
+        var onlyDigits = /^\d+$/.test(id);
         if (!onlyDigits) return lang === 'ar' ? `❌ أرقام فقط` : `❌ Digits only`;
         if (id.length !== customIdLen) return lang === 'ar'
             ? `❌ يجب أن يكون ${customIdLen} أرقام بالضبط (VIP ${level})`
@@ -1225,27 +1226,27 @@ var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         return null; // valid
     };
 
-    const idValidationError = validateIdInput(desiredId);
+    var idValidationError = validateIdInput(desiredId);
 
     // Check uniqueness in Firestore
-    const checkIdAvailability = async (id) => {
-        const err = validateIdInput(id);
+    var checkIdAvailability = async (id) => {
+        var err = validateIdInput(id);
         if (err) { setIdCheckStatus('invalid'); return; }
         setIdCheckStatus('checking');
         try {
-            const snap = await usersCollection.where('customId', '==', id).limit(1).get();
+            var snap = await usersCollection.where('customId', '==', id).limit(1).get();
             setIdCheckStatus(snap.empty ? 'available' : 'taken');
         } catch { setIdCheckStatus(null); }
     };
 
     // Submit custom ID request — ALL VIP 6-10 go through request system
-    const handleIdRequest = async () => {
-        const err = validateIdInput(desiredId.trim());
+    var handleIdRequest = async () => {
+        var err = validateIdInput(desiredId.trim());
         if (err || idCheckStatus !== 'available' || idRequestSending || !user) return;
         setIdRequestSending(true);
         try {
             // ✅ Check for existing PENDING requests with same desiredId
-            const pendingSnap = await vip10IdRequestsCollection
+            var pendingSnap = await vip10IdRequestsCollection
                 .where('desiredId', '==', desiredId.trim())
                 .where('status', '==', 0)
                 .limit(1)
@@ -1459,7 +1460,7 @@ var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
                                                 inputMode="numeric"
                                                 pattern="[0-9]*"
                                                 onChange={e => {
-                                                    const v = e.target.value.replace(/\D/g,'');
+                                                    var v = e.target.value.replace(/\D/g,'');
                                                     setDesiredId(v);
                                                     setIdCheckStatus(null);
                                                 }}
@@ -1616,3 +1617,15 @@ var VIPCenterSection = ({ userData, user, lang, onNotification }) => {
         </div>
     );
 };
+
+// Export to window
+window.VIPBadge = VIPBadge;
+window.VIPName = VIPName;
+window.StaffRoleBadge = StaffRoleBadge;
+window.PlayerNameTag = PlayerNameTag;
+window.VIPCenterSection = VIPCenterSection;
+window.getVIPLevel = getVIPLevel;
+window.getVIPData = getVIPData;
+window.hasVIP = hasVIP;
+
+})();

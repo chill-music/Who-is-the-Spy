@@ -1,3 +1,6 @@
+(function() {
+    var { useState, useEffect, useRef, useCallback, useMemo } = React;
+
 // ════════════════════════════════════════════════════════════════════
 // 💍 PRO SPY — COUPLES / MARRIAGE SYSTEM  (20-couples.js)
 // ════════════════════════════════════════════════════════════════════
@@ -39,11 +42,11 @@ var RARITY_COLORS_C = {
 
 var coupleTimeDiff = (marriageDate) => {
     if (!marriageDate) return null;
-    const start = marriageDate.toDate ? marriageDate.toDate() : new Date(marriageDate.seconds * 1000);
-    const diff = Date.now() - start.getTime();
-    const days  = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins  = Math.floor((diff % 3600000)  / 60000);
+    var start = marriageDate.toDate ? marriageDate.toDate() : new Date(marriageDate.seconds * 1000);
+    var diff = Date.now() - start.getTime();
+    var days  = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins  = Math.floor((diff % 3600000)  / 60000);
     return { days, hours, mins };
 };
 
@@ -53,28 +56,28 @@ var coupleTimeDiff = (marriageDate) => {
 // Hidden DOM img keeps GIF frames advancing for animation.
 // Only used where mix-blend-mode fails (inside position:absolute+zIndex stacking contexts).
 // ─────────────────────────────────────────────
-var RingImageCanvas = ({ src, size = 40, glow }) => {
-    const canvasRef = React.useRef(null);
-    const imgRef    = React.useRef(null);
-    const rafRef    = React.useRef(null);
+var RingImageCanvas = ({ size = 40, src, glow }) => {
+    var canvasRef = React.useRef(null);
+    var imgRef    = React.useRef(null);
+    var rafRef    = React.useRef(null);
 
     React.useEffect(() => {
         if (!src) return;
-        const canvas = canvasRef.current;
-        const img    = imgRef.current;
+        var canvas = canvasRef.current;
+        var img    = imgRef.current;
         if (!canvas || !img) return;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let running = true;
+        var ctx = canvas.getContext('2d', { willReadFrequently: true });
+        var running = true;
 
-        const draw = () => {
+        var draw = () => {
             if (!running) return;
             if (img.naturalWidth > 0) {
                 ctx.clearRect(0, 0, size, size);
                 ctx.drawImage(img, 0, 0, size, size);
                 try {
-                    const id = ctx.getImageData(0, 0, size, size);
-                    const d  = id.data;
-                    for (let i = 0; i < d.length; i += 4) {
+                    var id = ctx.getImageData(0, 0, size, size);
+                    var d  = id.data;
+                    for (var i = 0; i < d.length; i += 4) {
                         if (d[i] < 45 && d[i+1] < 45 && d[i+2] < 45) d[i+3] = 0;
                     }
                     ctx.putImageData(id, 0, 0);
@@ -114,12 +117,12 @@ var RingImageCanvas = ({ src, size = 40, glow }) => {
 
 // Send a proposal: creates a couple doc with status='pending', deducts cost, sends notification
 var sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, onNotification, lang }) => {
-    const ring = RINGS_DATA.find(r => r.id === ringId);
-    const gift = PROPOSAL_GIFTS.find(g => g.id === giftId);
+    var ring = RINGS_DATA.find(r => r.id === ringId);
+    var gift = PROPOSAL_GIFTS.find(g => g.id === giftId);
     if (!ring) return { ok: false, err: 'No ring selected' };
 
-    const totalCost = ring.cost + (gift?.cost || 0);
-    const currency  = fromData?.currency || 0;
+    var totalCost = ring.cost + (gift?.cost || 0);
+    var currency  = fromData?.currency || 0;
     if (currency < totalCost) {
         onNotification && onNotification(lang==='ar' ? `❌ تحتاج ${totalCost} 🧠` : `❌ Need ${totalCost} 🧠`);
         return { ok: false, err: 'Not enough currency' };
@@ -127,11 +130,11 @@ var sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, o
 
     try {
         // Check for existing active couple or pending request
-        const existingCouple = await couplesCollection
+        var existingCouple = await couplesCollection
             .where('uid1', 'in', [fromUID, toUID])
             .where('status', 'in', ['pending','accepted'])
             .get();
-        const existingCouple2 = await couplesCollection
+        var existingCouple2 = await couplesCollection
             .where('uid2', 'in', [fromUID, toUID])
             .where('status', 'in', ['pending','accepted'])
             .get();
@@ -140,13 +143,13 @@ var sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, o
             return { ok: false, err: 'Already exists' };
         }
 
-        const batch = db.batch();
+        var batch = db.batch();
         // Deduct currency
         batch.update(usersCollection.doc(fromUID), {
             currency: firebase.firestore.FieldValue.increment(-totalCost),
         });
         // Create couple doc
-        const coupleRef = couplesCollection.doc();
+        var coupleRef = couplesCollection.doc();
         batch.set(coupleRef, {
             uid1: fromUID,
             uid2: toUID,
@@ -204,7 +207,7 @@ var sendProposal = async ({ fromUID, toUID, fromData, ringId, giftId, message, o
 
 var acceptProposal = async ({ coupleDocId, uid1, uid2, onNotification, lang }) => {
     try {
-        const batch = db.batch();
+        var batch = db.batch();
         batch.update(couplesCollection.doc(coupleDocId), {
             status: 'accepted',
             marriageDate: TS(),
@@ -232,7 +235,7 @@ var acceptProposal = async ({ coupleDocId, uid1, uid2, onNotification, lang }) =
 
 var declineProposal = async ({ coupleDocId, fromUID, toUID, ringCost, giftCost, onNotification, lang }) => {
     try {
-        const batch = db.batch();
+        var batch = db.batch();
         batch.delete(couplesCollection.doc(coupleDocId));
         // Refund ring cost to proposer
         batch.update(usersCollection.doc(fromUID), {
@@ -248,7 +251,7 @@ var declineProposal = async ({ coupleDocId, fromUID, toUID, ringCost, giftCost, 
 
 var divorceCouple = async ({ coupleDocId, uid1, uid2, onNotification, lang }) => {
     try {
-        const batch = db.batch();
+        var batch = db.batch();
         batch.delete(couplesCollection.doc(coupleDocId));
         batch.update(usersCollection.doc(uid1), { partnerId: null, isMarried: false });
         batch.update(usersCollection.doc(uid2), { partnerId: null, isMarried: false });
@@ -264,8 +267,8 @@ var divorceCouple = async ({ coupleDocId, uid1, uid2, onNotification, lang }) =>
 // 💫 FLOATING HEARTS ANIMATION (pure JS canvas-free)
 // ─────────────────────────────────────────────
 var FloatingHearts = () => {
-    const HEARTS = ['❤️','💕','💗','💖','💘','💓'];
-    const items = Array.from({length:10}, (_,i) => ({
+    var HEARTS = ['❤️','💕','💗','💖','💘','💓'];
+    var items = Array.from({length:10}, (_,i) => ({
         id:i,
         emoji: HEARTS[i % HEARTS.length],
         left: `${5 + (i * 9) % 90}%`,
@@ -303,13 +306,13 @@ var FloatingHearts = () => {
 // 💍 INCOMING PROPOSAL MODAL
 // ─────────────────────────────────────────────
 var IncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAccept, onDecline }) => {
-    const [loading, setLoading] = useState(false);
+    var [loading, setLoading] = useState(false);
     if (!show || !coupleDoc) return null;
 
-    const ring  = RINGS_DATA.find(r => r.id === coupleDoc.ringId);
-    const gift  = PROPOSAL_GIFTS.find(g => g.id === coupleDoc.giftId);
+    var ring  = RINGS_DATA.find(r => r.id === coupleDoc.ringId);
+    var gift  = PROPOSAL_GIFTS.find(g => g.id === coupleDoc.giftId);
 
-    const handle = async (accept) => {
+    var handle = async (accept) => {
         setLoading(true);
         if (accept) {
             await onAccept(coupleDoc);
@@ -433,39 +436,39 @@ var IncomingProposalModal = ({ show, coupleDoc, fromData, currentUID, lang, onAc
 // 📨 PROPOSAL MODAL (proposer sends from shop)
 // ─────────────────────────────────────────────
 var ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, onSend, friendsData }) => {
-    const [selectedGift, setSelectedGift] = useState(null);
-    const [message, setMessage]           = useState('');
-    const [targetId, setTargetId]         = useState('');
-    const [targetData, setTargetData]     = useState(null);
-    const [searching, setSearching]       = useState(false);
-    const [sending, setSending]           = useState(false);
-    const [searchErr, setSearchErr]       = useState('');
+    var [selectedGift, setSelectedGift] = useState(null);
+    var [message, setMessage]           = useState('');
+    var [targetId, setTargetId]         = useState('');
+    var [targetData, setTargetData]     = useState(null);
+    var [searching, setSearching]       = useState(false);
+    var [sending, setSending]           = useState(false);
+    var [searchErr, setSearchErr]       = useState('');
 
     if (!show || !ring) return null;
 
-    const currency  = currentUserData?.currency || 0;
-    const giftCost  = selectedGift?.cost || 0;
-    const totalCost = ring.cost + giftCost;
-    const canAfford = currency >= totalCost;
+    var currency  = currentUserData?.currency || 0;
+    var giftCost  = selectedGift?.cost || 0;
+    var totalCost = ring.cost + giftCost;
+    var canAfford = currency >= totalCost;
 
     // Friends list filtered — not already married
-    const friends = (friendsData || []).filter(f => f && !f.isMarried && (f.id || f.uid) !== currentUID);
+    var friends = (friendsData || []).filter(f => f && !f.isMarried && (f.id || f.uid) !== currentUID);
 
-    const selectFriend = (friend) => {
+    var selectFriend = (friend) => {
         setTargetId(friend.customId || '');
         setTargetData({ id: friend.id || friend.uid, ...friend });
         setSearchErr('');
     };
 
-    const searchUser = async () => {
+    var searchUser = async () => {
         if (!targetId.trim()) return;
         setSearching(true); setSearchErr(''); setTargetData(null);
         try {
-            const snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
+            var snap = await usersCollection.where('customId', '==', targetId.trim()).limit(1).get();
             if (snap.empty) {
                 setSearchErr(lang==='ar' ? 'لم يُعثر على المستخدم' : 'User not found');
             } else {
-                const d = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                var d = { id: snap.docs[0].id, ...snap.docs[0].data() };
                 if (d.id === currentUID) {
                     setSearchErr(lang==='ar' ? 'لا يمكنك إرسال طلب لنفسك' : 'Cannot propose to yourself');
                 } else if (d.isMarried) {
@@ -478,7 +481,7 @@ var ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, o
         setSearching(false);
     };
 
-    const handleSend = async () => {
+    var handleSend = async () => {
         if (!targetData || !canAfford || sending) return;
         setSending(true);
         await onSend({ toUID: targetData.id, toData: targetData, giftId: selectedGift?.id || null, message });
@@ -568,8 +571,8 @@ var ProposalModal = ({ show, onClose, ring, currentUserData, currentUID, lang, o
                         lang==='ar' ? '👥 أصدقاؤك:' : '👥 Your Friends:'),
                     React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
                         friends.slice(0, 8).map(friend => {
-                            const fid = friend.id || friend.uid;
-                            const isSelected = targetData?.id === fid;
+                            var fid = friend.id || friend.uid;
+                            var isSelected = targetData?.id === fid;
                             return React.createElement('button', {
                                 key: fid,
                                 onClick: () => selectFriend(friend),
@@ -727,10 +730,10 @@ var LOVE_LEVELS = [
 ];
 
 var getLoveLevel = (days) => {
-    let lv = LOVE_LEVELS[0];
-    for (const l of LOVE_LEVELS) { if (days >= l.days) lv = l; else break; }
-    const next = LOVE_LEVELS[LOVE_LEVELS.indexOf(lv) + 1];
-    const pct  = next ? Math.min(100, Math.round(((days - lv.days) / (next.days - lv.days)) * 100)) : 100;
+    var lv = LOVE_LEVELS[0];
+    for (var l of LOVE_LEVELS) { if (days >= l.days) lv = l; else break; }
+    var next = LOVE_LEVELS[LOVE_LEVELS.indexOf(lv) + 1];
+    var pct  = next ? Math.min(100, Math.round(((days - lv.days) / (next.days - lv.days)) * 100)) : 100;
     return { ...lv, pct, nextDays: next?.days || null };
 };
 
@@ -740,34 +743,34 @@ var CoupleCardModal = ({
     onOpenProfile,    // (uid) => void — open someone's profile
     currentUserData,  // logged-in user's data (for gift sending)
 }) => {
-    const [liveDoc, setLiveDoc]         = useState(null);   // real-time couple doc
-    const [timer, setTimer]             = useState({ days:0, hours:0, mins:0 });
-    const [editingBio, setEditingBio]   = useState(false);
-    const [bioText, setBioText]         = useState('');
-    const [savingBio, setSavingBio]     = useState(false);
-    const [uploading, setUploading]     = useState(false);
-    const [uploadErr, setUploadErr]     = useState('');
-    const [photoExpanded, setPhotoExpanded] = useState(false);
-    const [ringTooltipId, setRingTooltipId] = useState(null); // ring click → name tooltip
-    const [showGiftRingPanel, setShowGiftRingPanel] = useState(false); // ring gifting panel
-    const [giftingRing, setGiftingRing] = useState(false);
-    const [giftRingOk, setGiftRingOk]   = useState('');
-    const [giftRingErr, setGiftRingErr] = useState('');
-    const photoRef                      = useRef(null);
-    const timerRef                      = useRef(null);
-    const [divorceStep, setDivorceStep] = useState(0);
-    const [divorcing, setDivorcing]     = useState(false);
-    const [sending, setSending]         = useState(false);
-    const [giftErr, setGiftErr]         = useState('');
-    const [giftOk, setGiftOk]           = useState('');
-    const [showGiftPanel, setShowGiftPanel] = useState(false);
-    const [switchingRing, setSwitchingRing] = useState(false);
+    var [liveDoc, setLiveDoc]         = useState(null);   // real-time couple doc
+    var [timer, setTimer]             = useState({ days:0, hours:0, mins:0 });
+    var [editingBio, setEditingBio]   = useState(false);
+    var [bioText, setBioText]         = useState('');
+    var [savingBio, setSavingBio]     = useState(false);
+    var [uploading, setUploading]     = useState(false);
+    var [uploadErr, setUploadErr]     = useState('');
+    var [photoExpanded, setPhotoExpanded] = useState(false);
+    var [ringTooltipId, setRingTooltipId] = useState(null); // ring click → name tooltip
+    var [showGiftRingPanel, setShowGiftRingPanel] = useState(false); // ring gifting panel
+    var [giftingRing, setGiftingRing] = useState(false);
+    var [giftRingOk, setGiftRingOk]   = useState('');
+    var [giftRingErr, setGiftRingErr] = useState('');
+    var photoRef                      = useRef(null);
+    var timerRef                      = useRef(null);
+    var [divorceStep, setDivorceStep] = useState(0);
+    var [divorcing, setDivorcing]     = useState(false);
+    var [sending, setSending]         = useState(false);
+    var [giftErr, setGiftErr]         = useState('');
+    var [giftOk, setGiftOk]           = useState('');
+    var [showGiftPanel, setShowGiftPanel] = useState(false);
+    var [switchingRing, setSwitchingRing] = useState(false);
 
     // ── Real-time listener for coupleDoc itself ──
     useEffect(() => {
         if (!show || !coupleDoc?.id) { setLiveDoc(null); return; }
-        let firstSnapshot = true;
-        const unsub = couplesCollection.doc(coupleDoc.id).onSnapshot(
+        var firstSnapshot = true;
+        var unsub = couplesCollection.doc(coupleDoc.id).onSnapshot(
             snap => {
                 if (snap.exists) {
                     setLiveDoc({ id: snap.id, ...snap.data() });
@@ -783,11 +786,11 @@ var CoupleCardModal = ({
         return () => unsub();
     }, [show, coupleDoc?.id]);
 
-    const doc = liveDoc || coupleDoc; // prefer live
+    var doc = liveDoc || coupleDoc; // prefer live
 
     useEffect(() => {
         if (!show || !doc?.marriageDate) return;
-        const tick = () => { const d = coupleTimeDiff(doc.marriageDate); if(d) setTimer(d); };
+        var tick = () => { var d = coupleTimeDiff(doc.marriageDate); if(d) setTimer(d); };
         tick();
         timerRef.current = setInterval(tick, 60000);
         return () => clearInterval(timerRef.current);
@@ -800,18 +803,18 @@ var CoupleCardModal = ({
     if (!show) return null;
     if (!doc) return null; // doc deleted (divorce) — onClose() will be called by listener
 
-    const ring     = RINGS_DATA.find(r => r.id === doc.ringId) || RINGS_DATA[0];
-    const uid1     = doc.uid1;
-    const uid2     = doc.uid2;
-    const isMember = !viewOnly && (currentUID === uid1 || currentUID === uid2);
-    const loveInfo = getLoveLevel(timer.days);
+    var ring     = RINGS_DATA.find(r => r.id === doc.ringId) || RINGS_DATA[0];
+    var uid1     = doc.uid1;
+    var uid2     = doc.uid2;
+    var isMember = !viewOnly && (currentUID === uid1 || currentUID === uid2);
+    var loveInfo = getLoveLevel(timer.days);
 
     // Gift items (love-themed subset, sorted by cost)
-    const COUPLE_GIFTS = (typeof SHOP_ITEMS !== 'undefined' && SHOP_ITEMS.gifts)
+    var COUPLE_GIFTS = (typeof SHOP_ITEMS !== 'undefined' && SHOP_ITEMS.gifts)
         ? SHOP_ITEMS.gifts.filter(g => !g.hidden).slice(0, 12)
         : [];
 
-    const saveBio = async () => {
+    var saveBio = async () => {
         if (!doc?.id) return;
         setSavingBio(true);
         try {
@@ -823,8 +826,8 @@ var CoupleCardModal = ({
     };
 
     /* Photo upload: compress to max 800px & ~300KB */
-    const handlePhotoUpload = async (e) => {
-        const file = e.target.files?.[0];
+    var handlePhotoUpload = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !doc?.id) return;
         setUploadErr('');
         if (!file.type.startsWith('image/')) {
@@ -833,17 +836,17 @@ var CoupleCardModal = ({
         }
         setUploading(true);
         try {
-            const bmp = await createImageBitmap(file);
-            const maxSide = 800;
-            let w = bmp.width, h = bmp.height;
+            var bmp = await createImageBitmap(file);
+            var maxSide = 800;
+            var w = bmp.width, h = bmp.height;
             if (w > maxSide || h > maxSide) {
-                const ratio = Math.min(maxSide / w, maxSide / h);
+                var ratio = Math.min(maxSide / w, maxSide / h);
                 w = Math.round(w * ratio); h = Math.round(h * ratio);
             }
-            const canvas = document.createElement('canvas');
+            var canvas = document.createElement('canvas');
             canvas.width = w; canvas.height = h;
             canvas.getContext('2d').drawImage(bmp, 0, 0, w, h);
-            let base64 = canvas.toDataURL('image/jpeg', 0.82);
+            var base64 = canvas.toDataURL('image/jpeg', 0.82);
             if (base64.length > 400000) base64 = canvas.toDataURL('image/jpeg', 0.65);
             if (base64.length > 400000) {
                 setUploadErr(lang==='ar' ? 'الصورة كبيرة جداً، اختر أخرى' : 'Image too large, pick another');
@@ -858,7 +861,7 @@ var CoupleCardModal = ({
         e.target.value = '';
     };
 
-    const handleDivorce = async () => {
+    var handleDivorce = async () => {
         setDivorcing(true);
         await divorceCouple({ coupleDocId: doc.id, uid1, uid2, onNotification, lang });
         setDivorcing(false);
@@ -867,19 +870,19 @@ var CoupleCardModal = ({
     };
 
     /* Gift a ring from inventory to partner */
-    const giftRingToPartner = async (ringId) => {
+    var giftRingToPartner = async (ringId) => {
         if (giftingRing || !currentUID || !doc?.id) return;
-        const ring = RINGS_DATA.find(r => r.id === ringId);
+        var ring = RINGS_DATA.find(r => r.id === ringId);
         if (!ring) return;
-        const myRings = currentUserData?.inventory?.rings || [];
+        var myRings = currentUserData?.inventory?.rings || [];
         if (!myRings.includes(ringId)) {
             setGiftRingErr(lang==='ar' ? '❌ هذا الخاتم غير موجود في مخزونك' : '❌ Ring not in your inventory');
             return;
         }
         setGiftingRing(true); setGiftRingErr(''); setGiftRingOk('');
         try {
-            const partnerUID = uid1 === currentUID ? uid2 : uid1;
-            const newEntry = {
+            var partnerUID = uid1 === currentUID ? uid2 : uid1;
+            var newEntry = {
                 ringId, fromUID: currentUID, toUID: partnerUID,
                 fromName: currentUserData?.displayName || '?',
                 giftedAt: Date.now(),
@@ -900,7 +903,7 @@ var CoupleCardModal = ({
     };
 
     /* Switch the active ring displayed between the two avatars */
-    const switchActiveRing = async (newRingId) => {
+    var switchActiveRing = async (newRingId) => {
         if (switchingRing || !doc?.id || newRingId === doc.ringId) return;
         setSwitchingRing(true);
         try {
@@ -912,11 +915,11 @@ var CoupleCardModal = ({
     };
 
     /* Buy ring from shop and add to inventory */
-    const buyRingFromShop = async (ring) => {
+    var buyRingFromShop = async (ring) => {
         if (!currentUID || !ring) return;
         try {
-            const snap = await usersCollection.doc(currentUID).get();
-            const balance = snap.exists ? (snap.data().currency || 0) : 0;
+            var snap = await usersCollection.doc(currentUID).get();
+            var balance = snap.exists ? (snap.data().currency || 0) : 0;
             if (balance < ring.cost) {
                 onNotification(lang==='ar' ? `❌ رصيدك غير كافٍ (${balance}🧠)` : `❌ Insufficient balance (${balance}🧠)`);
                 return;
@@ -930,13 +933,13 @@ var CoupleCardModal = ({
             onNotification(lang==='ar' ? '❌ خطأ في الشراء' : '❌ Purchase error');
         }
     };
-    const sendBlessingGift = async (gift) => {
+    var sendBlessingGift = async (gift) => {
         if (sending || !currentUID || !doc?.id) return;
         setSending(true); setGiftErr(''); setGiftOk('');
         try {
             // ✅ Validate balance from Firestore (prevents stale state bugs)
-            const senderSnap = await usersCollection.doc(currentUID).get();
-            const liveBal = senderSnap.exists ? (senderSnap.data().currency || 0) : 0;
+            var senderSnap = await usersCollection.doc(currentUID).get();
+            var liveBal = senderSnap.exists ? (senderSnap.data().currency || 0) : 0;
             if (liveBal < gift.cost) {
                 setGiftErr(lang==='ar' ? `❌ رصيدك غير كافٍ (${liveBal} 🧠)` : `❌ Insufficient balance (${liveBal} 🧠)`);
                 setSending(false);
@@ -945,7 +948,7 @@ var CoupleCardModal = ({
             await usersCollection.doc(currentUID).update({
                 currency: firebase.firestore.FieldValue.increment(-gift.cost)
             });
-            const entry = {
+            var entry = {
                 sn: currentUserData?.displayName || currentUserData?.name || '?',
                 sp: currentUserData?.photoURL || null,
                 su: currentUID,
@@ -955,14 +958,14 @@ var CoupleCardModal = ({
                 ts: Date.now(),
                 bp: gift.charisma,
             };
-            const currentLog = doc.giftLog || [];
-            const newLog = [...currentLog.slice(-19), entry];
+            var currentLog = doc.giftLog || [];
+            var newLog = [...currentLog.slice(-19), entry];
             await couplesCollection.doc(doc.id).update({
                 blessingPoints: firebase.firestore.FieldValue.increment(gift.charisma),
                 giftLog: newLog,
             });
             // Split charisma between partners
-            const half = Math.floor(gift.charisma / 2);
+            var half = Math.floor(gift.charisma / 2);
             await Promise.all([
                 usersCollection.doc(uid1).update({ charisma: firebase.firestore.FieldValue.increment(half) }),
                 usersCollection.doc(uid2).update({ charisma: firebase.firestore.FieldValue.increment(half) }),
@@ -976,7 +979,7 @@ var CoupleCardModal = ({
     };
 
     /* Small circular avatar — clickable if onOpenProfile provided */
-    const Av = ({ user, uid, size=50 }) => React.createElement('div', {
+    var Av = ({ user, uid, size=50 }) => React.createElement('div', {
         onClick: () => uid && onOpenProfile && onOpenProfile(uid),
         style:{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
             border:`2px solid ${ring.color}80`,
@@ -1189,7 +1192,7 @@ var CoupleCardModal = ({
                             value: bioText,
                             onChange: e => {
                                 // Allow wrapping every 20 chars
-                                const raw = e.target.value;
+                                var raw = e.target.value;
                                 // Only enforce max 120 total chars
                                 if (raw.length <= 120) setBioText(raw);
                             },
@@ -1227,18 +1230,18 @@ var CoupleCardModal = ({
                 React.createElement('div', { style:{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,0.05)' }},
                     (() => {
                         // Merge sharedRings + inventory rings + proposal ring into unique display set
-                        const shared = doc.sharedRings || [];
-                        const myInventoryRings = currentUserData?.inventory?.rings || [];
-                        const seen = {};
+                        var shared = doc.sharedRings || [];
+                        var myInventoryRings = currentUserData?.inventory?.rings || [];
+                        var seen = {};
                         // Start with proposal ring
                         if (doc.ringId) seen[doc.ringId] = { ringId: doc.ringId };
                         // Add gifted rings
                         [...shared].reverse().forEach(s => { if (!seen[s.ringId]) seen[s.ringId] = s; });
                         // Add inventory rings (so purchased rings show immediately)
                         myInventoryRings.forEach(rid => { if (!seen[rid]) seen[rid] = { ringId: rid }; });
-                        const unique = Object.values(seen);
+                        var unique = Object.values(seen);
                         unique.sort((a,b) => (b.ringId === doc.ringId ? 1 : 0) - (a.ringId === doc.ringId ? 1 : 0));
-                        const totalCount = unique.filter(s => RINGS_DATA.find(r => r.id === s.ringId)).length;
+                        var totalCount = unique.filter(s => RINGS_DATA.find(r => r.id === s.ringId)).length;
                         return React.createElement(React.Fragment, null,
                             React.createElement('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }},
                                 React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px' }},
@@ -1265,13 +1268,13 @@ var CoupleCardModal = ({
                                 React.createElement('div', { style:{ fontSize:'10px', color:'#9ca3af', marginBottom:'8px' }},
                                     lang==='ar' ? '💍 خواتمك في المخزون — اضغط لإهداء شريكك:' : '💍 Rings in your inventory — tap to gift partner:'),
                                 (() => {
-                                    const uniqueMyRings = [...new Set(myInventoryRings)];
+                                    var uniqueMyRings = [...new Set(myInventoryRings)];
                                     if (uniqueMyRings.length === 0) return React.createElement('div', {
                                         style:{ fontSize:'10px', color:'#4b5563', textAlign:'center', padding:'8px 0' }
                                     }, lang==='ar' ? '🛒 لا خواتم في مخزونك — اشتر من متجر الزوجين' : '🛒 No rings in inventory — buy from couples shop');
                                     return React.createElement('div', { style:{ display:'flex', gap:'8px', flexWrap:'wrap' }},
                                         uniqueMyRings.map(rid => {
-                                            const rd = RINGS_DATA.find(r => r.id === rid);
+                                            var rd = RINGS_DATA.find(r => r.id === rid);
                                             if (!rd) return null;
                                             return React.createElement('button', { key:rid, onClick: () => giftRingToPartner(rid),
                                                 disabled: giftingRing,
@@ -1294,10 +1297,10 @@ var CoupleCardModal = ({
                             /* Shared rings display */
                             React.createElement('div', { style:{ display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'flex-end' }},
                                 unique.map((s, i) => {
-                                    const rd = RINGS_DATA.find(r => r.id === s.ringId);
+                                    var rd = RINGS_DATA.find(r => r.id === s.ringId);
                                     if (!rd) return null;
-                                    const isActive = doc.ringId === s.ringId;
-                                    const canSwitch = isMember && !isActive && !switchingRing;
+                                    var isActive = doc.ringId === s.ringId;
+                                    var canSwitch = isMember && !isActive && !switchingRing;
                                     return React.createElement('div', {
                                         key: i,
                                         onClick: canSwitch ? () => switchActiveRing(rd.id) : undefined,
@@ -1458,18 +1461,18 @@ var CoupleCardModal = ({
 // ─────────────────────────────────────────────
 // RingsShopSection — allows buying multiple rings, adds to inventory, supports event/hidden rings
 var RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification }) => {
-    const currency    = userData?.currency || 0;
-    const charismaLvl = getCharismaLevel(userData?.charisma || 0).currentLevel.level;
-    const myRings     = userData?.inventory?.rings || []; // array may have duplicates (multi-buy)
-    const [buying, setBuying] = useState(null); // ringId being bought
-    const [buyMsg, setBuyMsg] = useState('');
+    var currency    = userData?.currency || 0;
+    var charismaLvl = getCharismaLevel(userData?.charisma || 0).currentLevel.level;
+    var myRings     = userData?.inventory?.rings || []; // array may have duplicates (multi-buy)
+    var [buying, setBuying] = useState(null); // ringId being bought
+    var [buyMsg, setBuyMsg] = useState('');
 
-    const handleBuy = async (ring) => {
+    var handleBuy = async (ring) => {
         if (buying) return;
         setBuying(ring.id); setBuyMsg('');
         try {
-            const snap = await usersCollection.doc(currentUID).get();
-            const bal = snap.exists ? (snap.data().currency || 0) : 0;
+            var snap = await usersCollection.doc(currentUID).get();
+            var bal = snap.exists ? (snap.data().currency || 0) : 0;
             if (bal < ring.cost) {
                 setBuyMsg(lang==='ar' ? `❌ رصيد غير كافٍ (${bal.toLocaleString()}🧠)` : `❌ Insufficient balance (${bal.toLocaleString()}🧠)`);
                 setBuying(null); return;
@@ -1485,7 +1488,7 @@ var RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification 
     };
 
     // Filter: show only non-hidden rings (or rings already in inventory even if hidden)
-    const visibleRings = RINGS_DATA.filter(r => !r.hidden || myRings.includes(r.id));
+    var visibleRings = RINGS_DATA.filter(r => !r.hidden || myRings.includes(r.id));
 
     return React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'12px', padding:'4px 0' }},
         /* Inventory count badge */
@@ -1496,19 +1499,19 @@ var RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification 
         },
             React.createElement('span', null, '💍'),
             lang==='ar'
-                ? `مخزونك: ${[...new Set(myRings)].map(id => { const r = RINGS_DATA.find(r2=>r2.id===id); return r ? (lang==='ar'?r.name_ar:r.name_en) : id; }).join(' · ')}`
-                : `Inventory: ${[...new Set(myRings)].map(id => { const r = RINGS_DATA.find(r2=>r2.id===id); return r ? r.name_en : id; }).join(' · ')}`
+                ? `مخزونك: ${[...new Set(myRings)].map(id => { var r = RINGS_DATA.find(r2=>r2.id===id); return r ? (lang==='ar'?r.name_ar:r.name_en) : id; }).join(' · ')}`
+                : `Inventory: ${[...new Set(myRings)].map(id => { var r = RINGS_DATA.find(r2=>r2.id===id); return r ? r.name_en : id; }).join(' · ')}`
         ),
 
         /* Rings list */
         visibleRings.map(ring => {
-            const meetsLevel  = charismaLvl >= ring.levelReq;
-            const canAfford   = currency >= ring.cost;
-            const isMine      = myRings.includes(ring.id);
-            const isBuying    = buying === ring.id;
-            const disabled    = !meetsLevel;
+            var meetsLevel  = charismaLvl >= ring.levelReq;
+            var canAfford   = currency >= ring.cost;
+            var isMine      = myRings.includes(ring.id);
+            var isBuying    = buying === ring.id;
+            var disabled    = !meetsLevel;
             // limited time countdown
-            const limitExpired = ring.limitedUntil && new Date(ring.limitedUntil) < new Date();
+            var limitExpired = ring.limitedUntil && new Date(ring.limitedUntil) < new Date();
 
             return React.createElement('div', {
                 key: ring.id,
@@ -1583,11 +1586,11 @@ var RingsShopSection = ({ userData, lang, currentUID, onPropose, onNotification 
 // 📩 PROPOSAL ITEM — standalone so useState works correctly (no hooks-in-map)
 // ─────────────────────────────────────────────
 var ProposalItem = ({ proposal, fromData, lang, onNotification }) => {
-    const [handling, setHandling] = useState(false);
-    const ring = RINGS_DATA.find(r => r.id === proposal.ringId) || RINGS_DATA[0];
-    const gift = PROPOSAL_GIFTS.find(g => g.id === proposal.giftId);
+    var [handling, setHandling] = useState(false);
+    var ring = RINGS_DATA.find(r => r.id === proposal.ringId) || RINGS_DATA[0];
+    var gift = PROPOSAL_GIFTS.find(g => g.id === proposal.giftId);
 
-    const handle = async (accept) => {
+    var handle = async (accept) => {
         setHandling(true);
         if (accept) {
             await acceptProposal({ coupleDocId: proposal.id, uid1: proposal.uid1, uid2: proposal.uid2, onNotification, lang });
@@ -1658,35 +1661,35 @@ var WeddingHallModal = ({
     onDivorce,          // calls divorceCouple
     onNotification,
 }) => {
-    const [tab, setTab]             = useState('feed');   // 'feed' | 'divorce' | 'proposals'
-    const [couples, setCouples]     = useState([]);
-    const [loadingFeed, setLoadingFeed] = useState(true);
-    const [coupleProfiles, setCoupleProfiles] = useState({}); // uid → userData
-    const [viewCouple, setViewCouple]   = useState(null);
-    const [viewSelf, setViewSelf]       = useState(null);
-    const [viewPartner, setViewPartner] = useState(null);
-    const [showViewCard, setShowViewCard] = useState(false);
-    const [divorcing, setDivorcing]     = useState(false);
-    const [divorceConfirm, setDivorceConfirm] = useState(false);
+    var [tab, setTab]             = useState('feed');   // 'feed' | 'divorce' | 'proposals'
+    var [couples, setCouples]     = useState([]);
+    var [loadingFeed, setLoadingFeed] = useState(true);
+    var [coupleProfiles, setCoupleProfiles] = useState({}); // uid → userData
+    var [viewCouple, setViewCouple]   = useState(null);
+    var [viewSelf, setViewSelf]       = useState(null);
+    var [viewPartner, setViewPartner] = useState(null);
+    var [showViewCard, setShowViewCard] = useState(false);
+    var [divorcing, setDivorcing]     = useState(false);
+    var [divorceConfirm, setDivorceConfirm] = useState(false);
     // Incoming proposals
-    const [pendingProposals, setPendingProposals] = useState([]);
-    const [proposerProfiles, setProposerProfiles] = useState({});
+    var [pendingProposals, setPendingProposals] = useState([]);
+    var [proposerProfiles, setProposerProfiles] = useState({});
 
     // Listen for pending proposals sent TO this user
     useEffect(() => {
         if (!show || !currentUID) return;
-        const unsub1 = couplesCollection
+        var unsub1 = couplesCollection
             .where('uid2', '==', currentUID)
             .where('status', '==', 'pending')
             .onSnapshot(snap => {
-                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 setPendingProposals(docs);
                 // load proposer profiles
-                const toLoad = docs.map(d => d.uid1).filter(uid => !proposerProfiles[uid]);
+                var toLoad = docs.map(d => d.uid1).filter(uid => !proposerProfiles[uid]);
                 if (toLoad.length > 0) {
                     Promise.all(toLoad.map(uid => usersCollection.doc(uid).get().then(d => d.exists ? { id: d.id, ...d.data() } : null).catch(() => null)))
                         .then(results => {
-                            const map = { ...proposerProfiles };
+                            var map = { ...proposerProfiles };
                             results.forEach(u => { if (u) map[u.id] = u; });
                             setProposerProfiles(map);
                         });
@@ -1698,23 +1701,23 @@ var WeddingHallModal = ({
     useEffect(() => {
         if (!show) return;
         setLoadingFeed(true);
-        const unsub = couplesCollection
+        var unsub = couplesCollection
             .where('status', '==', 'accepted')
             .orderBy('marriageDate', 'desc')
             .limit(30)
             .onSnapshot(async snap => {
-                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                var docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 setCouples(docs);
                 // Batch-load all user profiles not yet cached
-                const uids = new Set();
+                var uids = new Set();
                 docs.forEach(c => { uids.add(c.uid1); uids.add(c.uid2); });
-                const toLoad = [...uids].filter(uid => !coupleProfiles[uid]);
+                var toLoad = [...uids].filter(uid => !coupleProfiles[uid]);
                 if (toLoad.length > 0) {
-                    const chunks = [];
-                    for (let i = 0; i < toLoad.length; i += 10) chunks.push(toLoad.slice(i, i+10));
-                    const profiles = { ...coupleProfiles };
+                    var chunks = [];
+                    for (var i = 0; i < toLoad.length; i += 10) chunks.push(toLoad.slice(i, i+10));
+                    var profiles = { ...coupleProfiles };
                     await Promise.all(chunks.map(async chunk => {
-                        const snap = await usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get();
+                        var snap = await usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get();
                         snap.docs.forEach(d => { profiles[d.id] = { id: d.id, ...d.data() }; });
                     }));
                     setCoupleProfiles(profiles);
@@ -1726,17 +1729,17 @@ var WeddingHallModal = ({
 
     if (!show) return null;
 
-    const ring = RINGS_DATA.find(r => r.id === coupleData?.ringId) || RINGS_DATA[0];
+    var ring = RINGS_DATA.find(r => r.id === coupleData?.ringId) || RINGS_DATA[0];
 
-    const fmtTime = (ts) => {
+    var fmtTime = (ts) => {
         if (!ts) return '';
-        const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+        var d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
         return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
     };
 
-    const handleOpenCouple = (coupleDoc) => {
-        const u1 = coupleProfiles[coupleDoc.uid1];
-        const u2 = coupleProfiles[coupleDoc.uid2];
+    var handleOpenCouple = (coupleDoc) => {
+        var u1 = coupleProfiles[coupleDoc.uid1];
+        var u2 = coupleProfiles[coupleDoc.uid2];
         if (!u1 || !u2) return;
         if (coupleDoc.uid1 === currentUID || coupleDoc.uid2 === currentUID) {
             // It's the viewer's own couple — open the actual interactive card
@@ -1749,7 +1752,7 @@ var WeddingHallModal = ({
         setShowViewCard(true);
     };
 
-    const handleDivorce = async () => {
+    var handleDivorce = async () => {
         if (!coupleData) return;
         setDivorcing(true);
         await divorceCouple({
@@ -1765,7 +1768,7 @@ var WeddingHallModal = ({
     };
 
     // Small avatar helper
-    const Av = ({ user, size = 44 }) => React.createElement('div', {
+    var Av = ({ user, size = 44 }) => React.createElement('div', {
         style:{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
             border:'2px solid rgba(236,72,153,0.4)', background:'rgba(255,255,255,0.08)',
             display:'flex', alignItems:'center', justifyContent:'center', fontSize: Math.floor(size*0.45) }
@@ -1940,10 +1943,10 @@ var WeddingHallModal = ({
                                     lang==='ar' ? 'لا يوجد أفراح اليوم' : 'No weddings today'))
                             : React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:'12px' }},
                                 couples.map(c => {
-                                    const u1 = coupleProfiles[c.uid1];
-                                    const u2 = coupleProfiles[c.uid2];
-                                    const cRing = RINGS_DATA.find(r => r.id === c.ringId) || RINGS_DATA[0];
-                                    const isMyCouple = c.uid1 === currentUID || c.uid2 === currentUID;
+                                    var u1 = coupleProfiles[c.uid1];
+                                    var u2 = coupleProfiles[c.uid2];
+                                    var cRing = RINGS_DATA.find(r => r.id === c.ringId) || RINGS_DATA[0];
+                                    var isMyCouple = c.uid1 === currentUID || c.uid2 === currentUID;
                                     return React.createElement('div', {
                                         key: c.id,
                                         onClick: () => handleOpenCouple(c),
@@ -1999,7 +2002,7 @@ var WeddingHallModal = ({
                                     React.createElement('div', { style:{ fontSize:'13px', fontWeight:700, color:'white' }},
                                         partnerData?.displayName || '—'),
                                     React.createElement('div', { style:{ fontSize:'10px', color:'#f9a8d4' }},
-                                        (() => { const d = coupleTimeDiff(coupleData?.marriageDate); return d ? (lang==='ar' ? `معاً ${d.days} يوم` : `Together ${d.days} days`) : ''; })())
+                                        (() => { var d = coupleTimeDiff(coupleData?.marriageDate); return d ? (lang==='ar' ? `معاً ${d.days} يوم` : `Together ${d.days} days`) : ''; })())
                                 )
                             ),
                             !divorceConfirm
@@ -2039,3 +2042,20 @@ var WeddingHallModal = ({
         })
     );
 };
+
+// ── Exports ──
+window.CoupleCardModal = CoupleCardModal;
+window.ProposalModal = ProposalModal;
+window.IncomingProposalModal = IncomingProposalModal;
+window.RingsShopSection = RingsShopSection;
+window.RINGS_DATA = RINGS_DATA;
+window.PROPOSAL_GIFTS = PROPOSAL_GIFTS;
+window.RARITY_COLORS_C = RARITY_COLORS_C;
+window.coupleTimeDiff = coupleTimeDiff;
+window.sendProposal = sendProposal;
+window.acceptProposal = acceptProposal;
+window.declineProposal = declineProposal;
+window.divorceCouple = divorceCouple;
+window.RingImageCanvas = RingImageCanvas;
+
+})();

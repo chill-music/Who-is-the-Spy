@@ -1,3 +1,7 @@
+(function() {
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+    const { RingsShopSection } = window;
+
 // ═══════════════════════════════════════════════════════════════
 // 🛒  SHOP MODAL — Premium Dark Gaming Store
 // ═══════════════════════════════════════════════════════════════
@@ -1454,3 +1458,9 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
 
 // 👤 USER PROFILE MODAL - WITH GIFT LOG
 // Blocked User Item Component
+
+    // ── Exports ──
+    window.ShopModal = ShopModal;
+    window.InventoryModal = InventoryModal;
+    window.ReclaimSentPackets = ReclaimSentPackets;
+})();

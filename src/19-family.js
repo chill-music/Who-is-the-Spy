@@ -1,3 +1,6 @@
+(function() {
+    var { useState, useEffect, useRef, useCallback, useMemo } = React;
+
 // ════════════════════════════════════════════════════════
 // 📸 FRIENDS MOMENTS MODAL
 // 🏠 FAMILY SYSTEM — Complete Clan/Family System V2
@@ -34,26 +37,26 @@ var { FAMILY_SIGN_LEVELS, getFamilySignLevelData, getFamilySignImage } = window.
     getFamilySignImage: () => null
 };
 var getFamilySignProgress = (weeklyActiveness = 0) => {
-    const cur = getFamilySignLevelData(weeklyActiveness);
+    var cur = getFamilySignLevelData(weeklyActiveness);
     if (!cur) {
-        const first = FAMILY_SIGN_LEVELS[0];
+        var first = FAMILY_SIGN_LEVELS[0];
         return Math.min(99, Math.round((weeklyActiveness / first.threshold) * 100));
     }
-    const next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
+    var next = FAMILY_SIGN_LEVELS.find(s => s.level === cur.level + 1);
     if (!next) return 100;
     return Math.min(100, Math.round(((weeklyActiveness - cur.threshold) / (next.threshold - cur.threshold)) * 100));
 };
 
 var getFamilyLevel = (activeness = 0) => {
-    let cfg = FAMILY_LEVEL_CONFIG[0];
-    for (let i = FAMILY_LEVEL_CONFIG.length - 1; i >= 0; i--) {
+    var cfg = FAMILY_LEVEL_CONFIG[0];
+    for (var i = FAMILY_LEVEL_CONFIG.length - 1; i >= 0; i--) {
         if (activeness >= FAMILY_LEVEL_CONFIG[i].activeness) { cfg = FAMILY_LEVEL_CONFIG[i]; break; }
     }
     return cfg;
 };
 var getFamilyLevelProgress = (activeness = 0) => {
-    const cur = getFamilyLevel(activeness);
-    const next = FAMILY_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
+    var cur = getFamilyLevel(activeness);
+    var next = FAMILY_LEVEL_CONFIG.find(c => c.level === cur.level + 1);
     if (!next) return 100;
     return Math.min(100, Math.round(((activeness - cur.activeness) / (next.activeness - cur.activeness)) * 100));
 };
@@ -165,11 +168,11 @@ var FAMILY_ROLE_CONFIG = {
 var getFamilyRole = (family, uid) => {
     if (!family || !uid) return 'member';
     if (family.createdBy === uid) return 'owner';
-    const roles = family.memberRoles || {};
+    var roles = family.memberRoles || {};
     return roles[uid] || 'member';
 };
 var canManageFamily = (family, uid) => {
-    const role = getFamilyRole(family, uid);
+    var role = getFamilyRole(family, uid);
     return role === 'owner' || role === 'admin';
 };
 
@@ -184,8 +187,8 @@ var fmtFamilyNum = (n = 0) => {
 };
 var fmtFamilyTime = (ts, lang) => {
     if (!ts) return '';
-    const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
-    const diff = Date.now() - d.getTime();
+    var d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+    var diff = Date.now() - d.getTime();
     if (diff < 60000) return lang === 'ar' ? 'الآن' : 'now';
     if (diff < 3600000) return `${Math.floor(diff / 60000)}${lang === 'ar' ? 'د' : 'm'}`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}${lang === 'ar' ? 'س' : 'h'}`;
@@ -229,108 +232,107 @@ var FamilyMemberQuickCard = window.FamilyMemberQuickCard || (function() { return
 // 🏠 FAMILY MODAL — Main Component V2
 // ════════════════════════════════════════════════════════
 var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, lang, isLoggedIn, onNotification, viewFamilyId, onSendGift, userData, onOpenChat }) => {
-    const [activeTab, setActiveTab] = useState('profile');
-    const [family, setFamily] = useState(null);
-    const [loadingFamily, setLoadingFamily] = useState(true);
-    const [familyMembers, setFamilyMembers] = useState([]);
-    const [newsLog, setNewsLog] = useState([]);
-    const [donationSort, setDonationSort] = useState('intel');
-    const [memberSearch, setMemberSearch] = useState('');
+    var [activeTab, setActiveTab] = useState('profile');
+    var [family, setFamily] = useState(null);
+    var [loadingFamily, setLoadingFamily] = useState(true);
+    var [familyMembers, setFamilyMembers] = useState([]);
+    var [newsLog, setNewsLog] = useState([]);
+    var [donationSort, setDonationSort] = useState('intel');
+    var [memberSearch, setMemberSearch] = useState('');
     // Gear menu state for member management
-    const [gearMenuUid, setGearMenuUid] = useState(null); // uid of member whose gear is open
+    var [gearMenuUid, setGearMenuUid] = useState(null); // uid of member whose gear is open
     // Tag editing state
-    const [editTag, setEditTag] = useState('');
-    const [savingTag, setSavingTag] = useState(false);
-    const [joinRequesterProfiles, setJoinRequesterProfiles] = useState([]);
+    var [editTag, setEditTag] = useState('');
+    var [savingTag, setSavingTag] = useState(false);
+    var [joinRequesterProfiles, setJoinRequesterProfiles] = useState([]);
     // ── Delete family confirm ──
-    const [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = useState(false);
-    const [deletingFamily, setDeletingFamily] = useState(false);
+    var [showDeleteFamilyConfirm, setShowDeleteFamilyConfirm] = useState(false);
+    var [deletingFamily, setDeletingFamily] = useState(false);
     // ── Gift modal in chat ──
-    const [showFamilyChatGift, setShowFamilyChatGift] = useState(false);
+    var [showFamilyChatGift, setShowFamilyChatGift] = useState(false);
     // ── Mini profile popup in chat ──
-    const [miniProfileMember, setMiniProfileMember] = useState(null); // { uid, name, photo, customId }
+    var [miniProfileMember, setMiniProfileMember] = useState(null); // { uid, name, photo, customId }
     // ── Mention @ in chat ──
-    const [mentionSearch, setMentionSearch] = useState(''); // query بعد @
-    const [showMentionList, setShowMentionList] = useState(false);
-    const chatInputRef = useRef(null);
+    var [mentionSearch, setMentionSearch] = useState(''); // query بعد @
+    var [showMentionList, setShowMentionList] = useState(false);
+    var chatInputRef = useRef(null);
 
     // Chat state
-    const [chatMessages, setChatMessages] = useState([]);
-    const [chatInput, setChatInput] = useState('');
-    const [sendingMsg, setSendingMsg] = useState(false);
-    const chatEndRef = useRef(null);
+    var [chatMessages, setChatMessages] = useState([]);
+    var [chatInput, setChatInput] = useState('');
+    var [sendingMsg, setSendingMsg] = useState(false);
+    var chatEndRef = useRef(null);
 
     // Donate state
-    const [donateAmount, setDonateAmount] = useState('');
-    const [donating, setDonating] = useState(false);
-    const [showDonatePanel, setShowDonatePanel] = useState(false);
+    var [donateAmount, setDonateAmount] = useState('');
+    var [donating, setDonating] = useState(false);
+    var [showDonatePanel, setShowDonatePanel] = useState(false);
 
     // Header dots menu
     // header menu state removed (three-dot removed; ranking is now a tab)
 
     // ── Chest / Treasury ──
-    const [showChestModal, setShowChestModal] = useState(false);
-    const [selectedChest, setSelectedChest] = useState(null);
-    const [claimingChest, setClaimingChest] = useState(false);
-    const [chestResult, setChestResult] = useState(null);
+    var [showChestModal, setShowChestModal] = useState(false);
+    var [selectedChest, setSelectedChest] = useState(null);
+    var [claimingChest, setClaimingChest] = useState(false);
+    var [chestResult, setChestResult] = useState(null);
     // ── Chest Assign (owner assigns chest to members) ──
-    const [showAssignModal, setShowAssignModal] = useState(false);
-    const [assigningChest, setAssigningChest] = useState(null); // { inventoryIdx, cfg }
-    const [assignCount, setAssignCount] = useState(1);
-    const [selectedAssignees, setSelectedAssignees] = useState([]);
-    const [assigningLoading, setAssigningLoading] = useState(false);
+    var [showAssignModal, setShowAssignModal] = useState(false);
+    var [assigningChest, setAssigningChest] = useState(null); // { inventoryIdx, cfg }
+    var [assignCount, setAssignCount] = useState(1);
+    var [selectedAssignees, setSelectedAssignees] = useState([]);
+    var [assigningLoading, setAssigningLoading] = useState(false);
     // ── Gacha free/paid tracking ──
-    const [gachaPaidSpinsToday, setGachaPaidSpinsToday] = useState(0);
-    const [showGachaTable, setShowGachaTable] = useState(false);
-    const [gachaSpinMode, setGachaSpinMode] = useState('free'); // 'free' | 'paid'
+    var [gachaPaidSpinsToday, setGachaPaidSpinsToday] = useState(0);
+    var [showGachaTable, setShowGachaTable] = useState(false);
+    var [gachaSpinMode, setGachaSpinMode] = useState('free'); // 'free' | 'paid'
 
     // ── Gacha ──
-    const [showGachaModal, setShowGachaModal] = useState(false);
-    const [spinningGacha, setSpinningGacha] = useState(false);
-    const [gachaResult, setGachaResult] = useState(null);
+    var [showGachaModal, setShowGachaModal] = useState(false);
+    var [spinningGacha, setSpinningGacha] = useState(false);
+    var [gachaResult, setGachaResult] = useState(null);
 
     // ── Find Family (auto-load all families) ──
-    const [allFamilies, setAllFamilies] = useState([]);
-    const [loadingAllFamilies, setLoadingAllFamilies] = useState(false);
-    const [showRankingModal, setShowRankingModal] = useState(false);
+    var [allFamilies, setAllFamilies] = useState([]);
+    var [loadingAllFamilies, setLoadingAllFamilies] = useState(false);
+    var [showRankingModal, setShowRankingModal] = useState(false);
     
     // ── Family Chat Modal State ──
-    const [showChatModal, setShowChatModal] = useState(false);
+    var [showChatModal, setShowChatModal] = useState(false);
 
     // Create/Join state
-    const [view, setView] = useState('home');
-    const [tribeName, setFamilyName] = useState('');
-    const [tribeTag, setFamilyTag] = useState('');
-    const [tribeDesc, setFamilyDesc] = useState('');
-    const [tribeEmblem, setFamilyEmblem] = useState('🏠');
-    const [creating, setCreating] = useState(false);
-    const [joinSearch, setJoinSearch] = useState('');
-    const [joinResults, setJoinResults] = useState([]);
-    const [searching, setSearching] = useState(false);
-    const [joining, setJoining] = useState(false);
+    var [view, setView] = useState('home');
+    var [tribeName, setFamilyName] = useState('');
+    var [tribeTag, setFamilyTag] = useState('');
+    var [tribeDesc, setFamilyDesc] = useState('');
+    var [tribeEmblem, setFamilyEmblem] = useState('🏠');
+    var [creating, setCreating] = useState(false);
+    var [joinSearch, setJoinSearch] = useState('');
+    var [joinResults, setJoinResults] = useState([]);
+    var [searching, setSearching] = useState(false);
+    var [joining, setJoining] = useState(false);
 
     // Manage tab state
-    const [editAnnouncement, setEditAnnouncement] = useState('');
-    const [editName, setEditName] = useState('');
-    const [editDesc, setEditDesc] = useState('');
-    const [savingAnn, setSavingAnn] = useState(false);
-    const [savingInfo, setSavingInfo] = useState(false);
-    const [joinMode, setJoinMode] = useState('open'); // 'open' | 'approval'
-    const photoFileRef = useRef(null);
-    const signImageFileRef = useRef(null);
-    const [uploadingPhoto, setUploadingPhoto] = useState(false);
-    const [uploadingSign, setUploadingSign] = useState(false);
+    var [editAnnouncement, setEditAnnouncement] = useState('');
+    var [editName, setEditName] = useState('');
+    var [editDesc, setEditDesc] = useState('');
+    var [savingAnn, setSavingAnn] = useState(false);
+    var [savingInfo, setSavingInfo] = useState(false);
+    var [joinMode, setJoinMode] = useState('open'); // 'open' | 'approval'
+    var photoFileRef = useRef(null);
+    var signImageFileRef = useRef(null);
+    var [uploadingPhoto, setUploadingPhoto] = useState(false);
+    var [uploadingSign, setUploadingSign] = useState(false);
 
-    // ── Load family (real-time) ── supports viewFamilyId for viewing external families
     useEffect(() => {
         if (!show) { setLoadingFamily(false); return; }
         setLoadingFamily(true);
         // If viewFamilyId passed (from profile badge click), load that family in read-only mode
-        const fid = viewFamilyId || currentUserData?.familyId;
+        var fid = viewFamilyId || currentUserData?.familyId;
         if (!fid) { setFamily(null); setLoadingFamily(false); return; }
-        const unsub = familiesCollection.doc(fid).onSnapshot(snap => {
+        var unsub = familiesCollection.doc(fid).onSnapshot(snap => {
             if (snap.exists) {
-                const d = { id: snap.id, ...snap.data() };
+                var d = { id: snap.id, ...snap.data() };
                 setFamily(d);
                 setEditAnnouncement(d.announcement || '');
                 setEditName(d.name || '');
@@ -341,15 +343,15 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                 // ── Weekly sign reset logic (client-side) ──
                 // Every Sunday: save weeklyActiveness as lastWeekActiveness, reset weekly
                 if (!viewFamilyId && canManageFamily(d, currentUID)) {
-                    const now = new Date();
-                    const lastReset = d.lastWeeklyReset;
-                    const lastResetDate = lastReset ? (lastReset.toDate ? lastReset.toDate() : new Date(lastReset.seconds * 1000)) : null;
-                    const isSunday = now.getDay() === 0;
-                    const needsReset = isSunday && (!lastResetDate || lastResetDate.toDateString() !== now.toDateString());
+                    var now = new Date();
+                    var lastReset = d.lastWeeklyReset;
+                    var lastResetDate = lastReset ? (lastReset.toDate ? lastReset.toDate() : new Date(lastReset.seconds * 1000)) : null;
+                    var isSunday = now.getDay() === 0;
+                    var needsReset = isSunday && (!lastResetDate || lastResetDate.toDateString() !== now.toDateString());
                     if (needsReset) {
                         // Save last week's activeness and reset weekly counter
-                        const newSignData = getFamilySignLevelData(d.weeklyActiveness || 0);
-                        const updates = {
+                        var newSignData = getFamilySignLevelData(d.weeklyActiveness || 0);
+                        var updates = {
                             lastWeekActiveness: d.weeklyActiveness || 0,
                             weeklyActiveness: 0,
                             lastWeeklyReset: firebase.firestore.FieldValue.serverTimestamp(),
@@ -357,7 +359,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                         // Update all members' sign level based on last week
                         familiesCollection.doc(fid).update(updates).catch(() => {});
                         if (newSignData) {
-                            for (const uid of (d.members || [])) {
+                            for (var uid of (d.members || [])) {
                                 usersCollection.doc(uid).update({
                                     familySignLevel: newSignData.level,
                                     familySignColor: newSignData.color,
@@ -366,7 +368,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                             }
                         } else {
                             // No sign earned — clear members' signs
-                            for (const uid of (d.members || [])) {
+                            for (var uid of (d.members || [])) {
                                 usersCollection.doc(uid).update({
                                     familySignLevel: null,
                                     familySignColor: null,
@@ -390,10 +392,10 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ── Load chat messages (real-time) ──
     useEffect(() => {
         if (!family?.id || activeTab !== 'chat') return;
-        const unsub = familiesCollection.doc(family.id).collection('messages')
+        var unsub = familiesCollection.doc(family.id).collection('messages')
             .orderBy('timestamp', 'desc').limit(60)
             .onSnapshot(snap => {
-                const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+                var msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
                 setChatMessages(msgs);
             }, () => {});
         return () => unsub();
@@ -404,7 +406,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         if (!family?.id) return;
         var nlColl = window.newsLogCollection;
         if (!nlColl) return;
-        const unsub = nlColl
+        var unsub = nlColl
             .orderBy('timestamp', 'desc')
             .limit(80)
             .onSnapshot(snap => {
@@ -430,13 +432,13 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ── Load member profiles ──
     useEffect(() => {
         if (!family?.members?.length) { setFamilyMembers([]); return; }
-        const uids = family.members.slice(0, 30);
-        const chunks = [];
-        for (let i = 0; i < uids.length; i += 10) chunks.push(uids.slice(i, i + 10));
+        var uids = family.members.slice(0, 30);
+        var chunks = [];
+        for (var i = 0; i < uids.length; i += 10) chunks.push(uids.slice(i, i + 10));
         Promise.all(chunks.map(chunk =>
             usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get().catch(() => ({ docs: [] }))
         )).then(results => {
-            const members = [];
+            var members = [];
             results.forEach(snap => snap.docs.forEach(d => members.push({ id: d.id, ...d.data() })));
             setFamilyMembers(members);
         }).catch(() => {});
@@ -446,14 +448,14 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
 
     // ── Load join requester profiles ──
     useEffect(() => {
-        const reqs = family?.joinRequests || [];
+        var reqs = family?.joinRequests || [];
         if (!reqs.length || activeTab !== 'manage') { setJoinRequesterProfiles([]); return; }
-        const chunks = [];
-        for (let i = 0; i < reqs.length; i += 10) chunks.push(reqs.slice(i, i + 10));
+        var chunks = [];
+        for (var i = 0; i < reqs.length; i += 10) chunks.push(reqs.slice(i, i + 10));
         Promise.all(chunks.map(chunk =>
             usersCollection.where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get().catch(() => ({ docs: [] }))
         )).then(results => {
-            const ps = [];
+            var ps = [];
             results.forEach(snap => snap.docs.forEach(d => ps.push({ id: d.id, ...d.data() })));
             setJoinRequesterProfiles(ps);
         }).catch(() => {});
@@ -464,7 +466,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // HELPERS & ACTIONS
     // ─────────────────────────────────────────────
-    const postNews = async (familyId, type, text, amount = 0) => {
+    var postNews = async (familyId, type, text, amount = 0) => {
         try {
             await familiesCollection.doc(familyId).collection('news').add({
                 type, text, amount,
@@ -476,7 +478,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         } catch (e) {}
     };
 
-    const postChatMessage = async (familyId, text, type = 'text', extra = {}) => {
+    var postChatMessage = async (familyId, text, type = 'text', extra = {}) => {
         try {
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: currentUID,
@@ -489,7 +491,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         } catch (e) {}
     };
 
-    const postSystemMessage = async (familyId, text) => {
+    var postSystemMessage = async (familyId, text) => {
         try {
             await familiesCollection.doc(familyId).collection('messages').add({
                 senderId: 'system',
@@ -501,13 +503,13 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     };
 
     // Update user's sign fields — uses lastWeekActiveness to determine sign level
-    const syncUserFamilySign = async (familyId, familyData) => {
+    var syncUserFamilySign = async (familyId, familyData) => {
         try {
             // Use last week's activeness if available, otherwise current weekly
-            const actToCheck = familyData.lastWeekActiveness !== undefined
+            var actToCheck = familyData.lastWeekActiveness !== undefined
                 ? familyData.lastWeekActiveness
                 : (familyData.weeklyActiveness || 0);
-            const signD = getFamilySignLevelData(actToCheck);
+            var signD = getFamilySignLevelData(actToCheck);
             await usersCollection.doc(currentUID).update({
                 familySignLevel: signD?.level || null,
                 familySignColor: signD?.color || null,
@@ -528,10 +530,10 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
 
 
     // ── Load all families for Find Family ──
-    const loadAllFamilies = async () => {
+    var loadAllFamilies = async () => {
         setLoadingAllFamilies(true);
         try {
-            const snap = await familiesCollection.orderBy('activeness', 'desc').limit(30).get();
+            var snap = await familiesCollection.orderBy('activeness', 'desc').limit(30).get();
             setAllFamilies(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         } catch(e) {}
         setLoadingAllFamilies(false);
@@ -547,7 +549,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
 
 
 
-    const saveAnnouncement = async () => {
+    var saveAnnouncement = async () => {
         if (!family?.id || !canManageFamily(family, currentUID)) return;
         setSavingAnn(true);
         try {
@@ -559,26 +561,26 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
 
 
 
-    const handleSignImageUpload = async (e) => {
-        const file = e.target.files?.[0];
+    var handleSignImageUpload = async (e) => {
+        var file = e.target.files?.[0];
         if (!file || !family?.id || !canManageFamily(family, currentUID)) return;
         setUploadingSign(true);
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = async (ev) => {
-            const img = new Image();
+            var img = new Image();
             img.onload = async () => {
-                const canvas = document.createElement('canvas');
+                var canvas = document.createElement('canvas');
                 canvas.width = 120; canvas.height = 40;
-                const ctx = canvas.getContext('2d');
+                var ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, 120, 40);
-                const scale = Math.min(120 / img.width, 40 / img.height);
-                const dw = img.width * scale, dh = img.height * scale;
+                var scale = Math.min(120 / img.width, 40 / img.height);
+                var dw = img.width * scale, dh = img.height * scale;
                 ctx.drawImage(img, (120 - dw) / 2, (40 - dh) / 2, dw, dh);
-                const base64 = canvas.toDataURL('image/png', 0.8);
+                var base64 = canvas.toDataURL('image/png', 0.8);
                 try {
                     await familiesCollection.doc(family.id).update({ signImageURL: base64 });
                     // Update all member user docs
-                    for (const uid of (family.members || [])) {
+                    for (var uid of (family.members || [])) {
                         await usersCollection.doc(uid).update({ familySignImageURL: base64 }).catch(() => {});
                     }
                     onNotification(lang === 'ar' ? '✅ تم تحديث صورة الشارة' : '✅ Sign image updated');
@@ -594,7 +596,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // STYLES
     // ─────────────────────────────────────────────
-    const S = {
+    var S = {
         modal: { background:'linear-gradient(180deg,#0d0d1f,#08080f)', border:'1px solid rgba(0,242,255,0.15)', borderRadius:'20px', width:'100%', maxWidth:'460px', height:'92vh', maxHeight:'800px', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 24px 80px rgba(0,0,0,0.95)' },
         header: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderBottom:'1px solid rgba(255,255,255,0.08)', flexShrink:0, background:'rgba(0,0,0,0.3)', position:'relative' },
         tabBar: { display:'flex', borderBottom:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.35)', flexShrink:0, overflowX:'auto', scrollbarWidth:'none' },
@@ -606,11 +608,11 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     };
 
     // هل المستخدم بيشوف قبيلة من الخارج (مش عضو فيها)؟
-    const isMemberOfThisFamily = family ? (family.members || []).includes(currentUID) : false;
-    const isExternalView = !!(viewFamilyId && (!currentUserData?.familyId || currentUserData?.familyId !== viewFamilyId) && !isMemberOfThisFamily);
-    const isReadOnly = !isMemberOfThisFamily;
+    var isMemberOfThisFamily = family ? (family.members || []).includes(currentUID) : false;
+    var isExternalView = !!(viewFamilyId && (!currentUserData?.familyId || currentUserData?.familyId !== viewFamilyId) && !isMemberOfThisFamily);
+    var isReadOnly = !isMemberOfThisFamily;
 
-    const TABS = isReadOnly ? [
+    var TABS = isReadOnly ? [
         { id:'profile',  label_en:'Home',    label_ar:'الرئيسية', icon:'🏠' },
         { id:'members',  label_en:'Members', label_ar:'أعضاء',    icon:'👥' },
     ] : [
@@ -622,23 +624,23 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         { id:'manage',   label_en:'Manage',  label_ar:'إدارة',    icon:'⚙️' },
     ];
 
-    const fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
-    const fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
-    const myRole = family ? getFamilyRole(family, currentUID) : null;
-    const canManage = family ? canManageFamily(family, currentUID) : false;
-    const weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
+    var fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
+    var fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
+    var myRole = family ? getFamilyRole(family, currentUID) : null;
+    var canManage = family ? canManageFamily(family, currentUID) : false;
+    var weeklyAct = family ? (family.weeklyActiveness || 0) : 0;
     // signData: based on lastWeekActiveness (last week's activity → this week's sign)
     // If lastWeekActiveness not set, use weeklyActiveness as fallback
-    const SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
-    const lastWeekAct = family ? (family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : weeklyAct) : 0;
-    const signData = (family ? getFamilySignLevelData(lastWeekAct) : null) || SIGN_FALLBACK;
-    const signProg = family ? getFamilySignProgress(lastWeekAct) : 0;
+    var SIGN_FALLBACK = { level: 0, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'بدون ساين', name_en: 'No Sign', threshold: 0 };
+    var lastWeekAct = family ? (family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : weeklyAct) : 0;
+    var signData = (family ? getFamilySignLevelData(lastWeekAct) : null) || SIGN_FALLBACK;
+    var signProg = family ? getFamilySignProgress(lastWeekAct) : 0;
 
     // ─────────────────────────────────────────────
     // TAB: PROFILE (redesigned to match reference image)
     // ─────────────────────────────────────────────
-    const renderProfile = () => {
-        const isReadOnly = !!viewFamilyId && viewFamilyId !== currentUserData?.familyId;
+    var renderProfile = () => {
+        var isReadOnly = !!viewFamilyId && viewFamilyId !== currentUserData?.familyId;
         if (window.FamilyProfile) return <window.FamilyProfile family={family} familyMembers={familyMembers} currentUID={currentUID} currentUserData={currentUserData} userData={userData} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} isReadOnly={isReadOnly} showDonatePanel={showDonatePanel} setShowDonatePanel={setShowDonatePanel} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
@@ -647,7 +649,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // TAB: MEMBERS
     // ─────────────────────────────────────────────
-    const renderMembers = () => {
+    var renderMembers = () => {
         if (window.FamilyMembers) return <window.FamilyMembers family={family} members={familyMembers} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
@@ -655,7 +657,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // TAB: TASKS
     // ─────────────────────────────────────────────
-    const renderTasks = () => {
+    var renderTasks = () => {
         if (window.FamilyTasks) return <window.FamilyTasks family={family} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} setActiveTab={setActiveTab} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
@@ -663,7 +665,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // TAB: FAMILY SHOP (Family Coins only)
     // ─────────────────────────────────────────────
-    const renderShop = () => {
+    var renderShop = () => {
         if (window.FamilyShop) {
             return <window.FamilyShop family={family} currentUID={currentUID} currentUserData={currentUserData} lang={lang} onNotification={onNotification} S={S} />;
         }
@@ -673,7 +675,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // TAB: RANKING (dedicated tab)
     // ─────────────────────────────────────────────
-    const renderRankingTab = () => {
+    var renderRankingTab = () => {
         if (window.FamilyRanking) return <window.FamilyRanking family={family} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
@@ -681,7 +683,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // TAB: NEWS
     // ─────────────────────────────────────────────
-    const renderNews = () => {
+    var renderNews = () => {
         if (window.FamilyNews) return <window.FamilyNews family={family} newsLog={newsLog} currentUserData={currentUserData} currentUID={currentUID} lang={lang} onNotification={onNotification} S={S} myRole={myRole} activeTab={activeTab} setActiveTab={setActiveTab} setFamily={setFamily} view={view} setView={setView} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
@@ -689,7 +691,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
     // ─────────────────────────────────────────────
     // TAB: MANAGE
     // ─────────────────────────────────────────────
-    const renderManage = () => {
+    var renderManage = () => {
         if (window.FamilyManagement) return <window.FamilyManagement family={family} currentUID={currentUID} lang={lang} canManage={myRole === 'owner' || myRole === 'admin'} myRole={myRole} familyMembers={familyMembers} joinRequesterProfiles={joinRequesterProfiles} S={S} Z={Z} onNotification={onNotification} onUpdateFamily={() => {}} onLeaveFamily={() => {}} onDeleteFamily={() => {}} />;
         return <div style={{padding:'20px',color:'white',textAlign:'center'}}>{lang==='ar'?'جاري التحميل...':'Loading...'}</div>;
     };
@@ -829,3 +831,22 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         </>
     );
 };
+
+// ── Exports ──
+window.FAMILY_CREATE_COST = FAMILY_CREATE_COST;
+window.FAMILY_LEVEL_CONFIG = FAMILY_LEVEL_CONFIG;
+window.getFamilySignProgress = getFamilySignProgress;
+window.getFamilyLevel = getFamilyLevel;
+window.getFamilyLevelProgress = getFamilyLevelProgress;
+window.FAMILY_TASKS_CONFIG = FAMILY_TASKS_CONFIG;
+window.GACHA_CONFIG = GACHA_CONFIG;
+window.GACHA_RARITY_COLORS = GACHA_RARITY_COLORS;
+window.FAMILY_ROLE_CONFIG = FAMILY_ROLE_CONFIG;
+window.getFamilyRole = getFamilyRole;
+window.canManageFamily = canManageFamily;
+window.FAMILY_EMBLEMS = FAMILY_EMBLEMS;
+window.fmtFamilyNum = fmtFamilyNum;
+window.fmtFamilyTime = fmtFamilyTime;
+window.FamilyModal = FamilyModal;
+
+})();
