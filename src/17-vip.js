@@ -1627,5 +1627,8 @@ window.VIPCenterSection = VIPCenterSection;
 window.getVIPLevel = getVIPLevel;
 window.getVIPData = getVIPData;
 window.hasVIP = hasVIP;
+window.hasVIPDailyTasks = hasVIPDailyTasks;
+window.getVIPXPMultiplier = getVIPXPMultiplier;
+window.getVIPCustomIdLength = getVIPCustomIdLength;
 
 })();
