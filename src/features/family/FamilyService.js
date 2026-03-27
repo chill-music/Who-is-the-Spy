@@ -1,5 +1,7 @@
-(() => {
-    var { CHEST_CONFIG, ACTIVENESS_MILESTONES, FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS } = window;
+
+(() => {
+    var { CHEST_CONFIG, ACTIVENESS_MILESTONES } = window;
+    var { FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS } = window.FamilyConstants || {};
 var useFamilyData = () => {
     var [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
     var [currentUserData, setCurrentUserData] = React.useState(null);
