@@ -1,3 +1,4 @@
+(() => {
 var FUN_PASS_SEASON_ID = '2';             // 🔧 غيّر هنا لتجديد السيزون
 var FUN_PASS_SEASON_NAME_EN = 'Season 2'; // اسم السيزون بالإنجليزي
 var FUN_PASS_SEASON_NAME_AR = 'الموسم الثاني'; // اسم السيزون بالعربي
@@ -133,3 +134,18 @@ var checkLoginRewardsCycle = (userData) => {
 };
 
 // 📦 DAILY TASKS CONFIG - 8 Boxes (by online time)
+
+window.FUN_PASS_SEASON_ID = FUN_PASS_SEASON_ID;
+window.FUN_PASS_SEASON_NAME_EN = FUN_PASS_SEASON_NAME_EN;
+window.FUN_PASS_SEASON_NAME_AR = FUN_PASS_SEASON_NAME_AR;
+window.FUN_PASS_SEASON_END = FUN_PASS_SEASON_END;
+window.FUN_PASS_PRICE = FUN_PASS_PRICE;
+window.FUN_PASS_LEVELS = FUN_PASS_LEVELS;
+window.FUN_PASS_DAILY_MISSIONS = FUN_PASS_DAILY_MISSIONS;
+window.FUN_PASS_WEEKLY_MISSIONS = FUN_PASS_WEEKLY_MISSIONS;
+window.LOGIN_REWARDS = LOGIN_REWARDS;
+window.LOGIN_REWARDS_CONFIG = LOGIN_REWARDS_CONFIG;
+window.getCurrentCycleMonth = getCurrentCycleMonth;
+window.checkLoginRewardsCycle = checkLoginRewardsCycle;
+
+})();

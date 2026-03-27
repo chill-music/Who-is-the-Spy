@@ -1,3 +1,4 @@
+(() => {
 // ═══════════════════════════════════════════════════════════════════════
 // ⏳ ITEM EXPIRY SYSTEM — دالة الوقت لكل آيتم في الإنفنتري
 // ═══════════════════════════════════════════════════════════════════════
@@ -591,5 +592,22 @@ var generateRandomBonus = (min, max, giftCost = 0) => {
 };
 
 // --- Translations ---
-window.getCharismaLevel = getCharismaLevel;
-window.getCharismaProgress = getCharismaProgress;
+window.getCharismaLevel     = getCharismaLevel;
+window.getCharismaProgress  = getCharismaProgress;
+window.isItemExpired        = isItemExpired;
+window.buildItemExpiresAt   = buildItemExpiresAt;
+window.DAILY_TASKS_CONFIG   = DAILY_TASKS_CONFIG;
+window.CHARISMA_LEVELS      = CHARISMA_LEVELS;
+window.SHOP_ITEMS           = SHOP_ITEMS;
+window.RARITY_CONFIG        = RARITY_CONFIG;
+window.getItemRarity        = getItemRarity;
+window.ACHIEVEMENTS         = ACHIEVEMENTS;
+window.SCENARIOS            = SCENARIOS;
+window.EMOJI_CATEGORIES     = EMOJI_CATEGORIES;
+window.formatTime           = formatTime;
+window.formatCharisma       = formatCharisma;
+window.maskEmail            = maskEmail;
+window.BONUS_CONFIG         = BONUS_CONFIG;
+window.generateRandomBonus  = generateRandomBonus;
+
+})();
