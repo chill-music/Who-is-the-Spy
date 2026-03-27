@@ -1,3 +1,4 @@
+(() => {
 /**
  * ProfileHelpers.js
  * Centralized logic for profile-related components.
@@ -124,3 +125,4 @@ window.getUserRole = getUserRole;
 window.getAssignableRoles = getAssignableRoles;
 window.getBanExpiry = getBanExpiry;
 window.formatBanExpiry = formatBanExpiry;
+})();

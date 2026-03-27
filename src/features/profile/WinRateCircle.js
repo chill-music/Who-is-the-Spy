@@ -1,3 +1,4 @@
+(() => {
 /**
  * WinRateCircle.js
  * Renders a circular win rate indicator.
@@ -26,3 +27,4 @@ var WinRateCircleV11 = ({ wins, losses, lang }) => {
 };
 
 window.WinRateCircleV11 = WinRateCircleV11;
+})();

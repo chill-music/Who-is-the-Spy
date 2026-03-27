@@ -1,4 +1,5 @@
-var { CHEST_CONFIG, ACTIVENESS_MILESTONES, FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS } = window;
+(() => {
+    var { CHEST_CONFIG, ACTIVENESS_MILESTONES, FAMILY_LEVEL_CONFIG, FAMILY_SIGN_LEVELS } = window;
 var useFamilyData = () => {
     var [currentUID, setCurrentUID] = React.useState(auth.currentUser?.uid || null);
     var [currentUserData, setCurrentUserData] = React.useState(null);
@@ -1168,3 +1169,4 @@ window.FamilyService = {
     buyShopItem,
     useFamilyData
 };
+})();
