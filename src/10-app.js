@@ -20,7 +20,8 @@
             handleDeclineProposal, openProfile, handleSendGiftToUser, handleLogout, 
             closePrivateChat, createNotification, markNotificationRead, 
             clearAllNotifications, handleNotificationClick, handleAddFriendById, 
-            handleAcceptRequest, handleRejectRequest, formatBanExpiry
+            handleAcceptRequest, handleRejectRequest, formatBanExpiry,
+            activeRooms, submitVote, submitWordVote
         } = state;
 
     
@@ -55,6 +56,9 @@
                 handleAcceptRequest={handleAcceptRequest}
                 handleRejectRequest={handleRejectRequest}
                 formatBanExpiry={formatBanExpiry}
+                activeRooms={activeRooms}
+                submitVote={submitVote}
+                submitWordVote={submitWordVote}
             />
         );
     }
