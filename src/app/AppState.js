@@ -102,6 +102,7 @@
         var [showPWAInstall, setShowPWAInstall] = useState(false);
 
         var [showGuestMenu, setShowGuestMenu] = useState(false);
+        var [activeRooms, setActiveRooms] = useState([]);
         var [gameChatInput, setGameChatInput] = useState('');
         var [showGameChat, setShowGameChat] = useState(true);
         var gameChatRef = useRef(null);
@@ -202,62 +203,131 @@
             }
         }, [isLoggedIn, user, userData]);
 
-        usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
-        useNotifications({
-            user,
-            isLoggedIn,
-            userData,
-            notificationBellRef,
-            setNotifications,
-            setUnreadNotifications
-        });
-        useRoom({
-            roomId,
-            user,
-            isLoggedIn,
-            userData,
-            coupleData,
-            historyWrittenRooms,
-            setRoom,
-            setRoomId,
-            setShowSummary,
-            incrementMissionProgress,
-            checkAndUnlockAchievements
-        });
-        useLeaderboards({
-            activeView,
-            leaderboardTab,
-            setLeaderboardData,
-            setCharismaLeaderboard,
-            setFamilyLeaderboard
-        });
-        useSocial({
-            user,
-            isLoggedIn,
-            userData,
-            setFriendsData,
-            setFriendRequests,
-            setChatsMeta,
-            setTotalUnread
-        });
-        useGameAutomation({
-            room,
-            roomId,
-            currentUID,
-            setTurnTimer,
-            setVotingTimer,
-            setWordSelTimer,
-            handleSkipTurn: window.handleSkipTurn,
-            triggerVoting: window.triggerVoting
-        });
-        useBots({
-            room,
-            roomId,
-            currentUID,
-            OWNER_UID,
-            lang,
-            nextTurn: window.nextTurn
-        });
+        // ── Active Rooms Listener ──
+        useEffect(() => {
+            if (!isLoggedIn && !isGuest) return;
+            var unsub = roomsCollection.where('status', '==', 'waiting').limit(20).onSnapshot(snap => {
+                var list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setActiveRooms(list);
+            });
+            return () => unsub();
+        }, [isLoggedIn, isGuest]);
+
+        // ── Room Functions ──
+        var handleCreateGame = useCallback(async () => {
+            if (!nickname.trim()) return;
+            if (isPrivate && !password.trim()) { setAlertMessage(t.privateRoomError); return; }
+            setLoading(true);
+            var uid = currentUID;
+            var tempUserData = currentUserData;
+            if (!uid) { setLoading(false); setNotification(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
+            var id = Math.random().toString(36).substring(2, 7).toUpperCase();
+            await roomsCollection.doc(id).set({
+                id, admin: uid, status: 'waiting',
+                players: [{
+                    uid: uid, name: nickname, status: 'active',
+                    photo: tempUserData?.photoURL || tempUserData?.photo || `https://ui-avatars.com/api/?name=${nickname}&background=random`,
+                    role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {}
+                }],
+                scenario: null, spyId: null, currentTurnUID: null, turnEndTime: null, votingEndTime: null,
+                currentRound: 0, messages: [], votes: {}, usedLocations: [], wordVotes: {},
+                chosenWord: null, wordSelEndTime: null, votingRequest: null, mode: setupMode,
+                isPrivate: isPrivate, password: isPrivate ? password : null, startedAt: null,
+                summaryShown: false
+            });
+            setRoomId(id); setLoading(false); setShowSetupModal(false); setActiveView('lobby');
+            if (navigator.clipboard) { navigator.clipboard.writeText(id); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+        }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang]);
+
+        var handleJoinGame = useCallback(async (id, pwd) => {
+            if (!id || id.trim() === "") { setJoinError(t.enterCodeError); return; }
+            if (!nickname.trim()) return;
+            setLoading(true); setJoinError('');
+            var uid = currentUID;
+            var tempUserData = currentUserData;
+            if (!uid) { setLoading(false); setNotification(lang === 'ar' ? 'حدث خطأ' : 'Error'); return; }
+            var ref = roomsCollection.doc(id.toUpperCase());
+            var snap = await ref.get();
+            if (snap.exists) {
+                var data = snap.data();
+                if (data.isPrivate && data.password !== pwd) { setJoinError(lang === 'ar' ? 'كلمة السر غير صحيحة' : "Incorrect Password"); setLoading(false); return; }
+                var exists = data.players.find(p => p.uid === uid);
+                if (!exists) {
+                    await ref.update({
+                        players: [...data.players, {
+                            uid: uid, name: nickname, status: 'active',
+                            photo: tempUserData?.photoURL || tempUserData?.photo || `https://ui-avatars.com/api/?name=${nickname}&background=random`,
+                            role: null, equipped: tempUserData?.equipped || {}, vip: tempUserData?.vip || {}
+                        }]
+                    });
+                }
+                setRoomId(id.toUpperCase()); setActiveView('lobby'); setShowBrowseRooms(false);
+            } else { setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); }
+            setLoading(false);
+        }, [nickname, currentUID, currentUserData, t, lang]);
+
+        var handleLeaveRoom = useCallback(async () => {
+            if (!room || !currentUID) return;
+            var isAdmin = room.admin === currentUID;
+            if (isAdmin) { await roomsCollection.doc(roomId).delete(); }
+            else { await roomsCollection.doc(roomId).update({ players: room.players.filter(p => p.uid !== currentUID) }); }
+            setRoom(null); setRoomId(''); setShowSummary(false);
+        }, [room, currentUID, roomId]);
+
+        // ── Game Logic Functions ──
+        var startGame = useCallback(async () => {
+            if (!room || room.admin !== currentUID) return;
+            var activePlayers = room.players.filter(p => p.status === 'active');
+            var playerCount = activePlayers.length;
+            if (playerCount < 3) { setNotification(t.needPlayers); return; }
+            var SCENARIOS = window.SCENARIOS || [];
+            var used = room.usedLocations || [];
+            var avail = SCENARIOS.filter(s => !used.includes(s.loc_en));
+            var scenario = (avail.length > 0 ? avail : SCENARIOS)[Math.floor(Math.random() * (avail.length || SCENARIOS.length))];
+            var spy = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+            var roles = {};
+            activePlayers.forEach(p => roles[p.uid] = p.uid === spy.uid ? 'spy' : 'agent');
+            var potentialStarters = activePlayers.filter(p => roles[p.uid] !== 'spy');
+            if (potentialStarters.length === 0) potentialStarters = activePlayers;
+            var firstPlayer = potentialStarters[Math.floor(Math.random() * potentialStarters.length)];
+            await roomsCollection.doc(roomId).update({
+                status: 'word_selection', scenario, spyId: spy.uid,
+                currentTurnUID: firstPlayer.uid, turnEndTime: null, currentRound: 1,
+                players: room.players.map(p => ({ ...p, role: roles[p.uid] || 'agent' })),
+                usedLocations: firebase.firestore.FieldValue.arrayUnion(scenario.loc_en),
+                messages: [], votes: {}, wordVotes: {}, chosenWord: null,
+                wordSelEndTime: Date.now() + 45000, votingRequest: null, startedAt: TS()
+            });
+        }, [room, currentUID, roomId, t]);
+
+        var resetGame = useCallback(async () => {
+            if (!room) return;
+            await roomsCollection.doc(roomId).update({
+                status: 'waiting', scenario: null, spyId: null, mrwhiteId: null, informantId: null,
+                currentTurnUID: null, currentRound: 0, votes: {}, messages: [], votingEndTime: null,
+                turnEndTime: null, ejectedUID: null,
+                players: room.players.map(p => ({ uid: p.uid, name: p.name, status: 'active', photo: p.photo, role: null, equipped: p.equipped || {}, vip: p.vip || {} })),
+                wordVotes: {}, chosenWord: null, wordSelEndTime: null, votingRequest: null,
+                startedAt: null, finishedAt: null, summaryShown: false
+            });
+            setShowSummary(false);
+        }, [room, roomId]);
+
+        var submitVote = useCallback(async (targetUID) => {
+            if (!targetUID || !currentUID || !room || (room.votes && room.votes[currentUID])) return;
+            var voteUpdate = {};
+            voteUpdate[`votes.${currentUID}`] = targetUID;
+            await roomsCollection.doc(roomId).update(voteUpdate);
+        }, [room, currentUID, roomId]);
+
+        var submitWordVote = useCallback(async (word) => {
+            if (!currentUID || !room || room.status !== 'word_selection') return;
+            var myPlayer = room.players.find(p => p.uid === currentUID);
+            if (myPlayer?.role === 'spy') return;
+            var voteUpdate = {};
+            voteUpdate[`wordVotes.${currentUID}`] = word;
+            await roomsCollection.doc(roomId).update(voteUpdate);
+        }, [currentUID, room, roomId]);
 
         return {
             lang, setLang, room, setRoom, roomId, setRoomId, inputCode, setInputCode,
@@ -302,7 +372,9 @@
             showGameChat, setShowGameChat, gameChatRef,
             user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading,
             t, isGuest, currentUID, isNotLoggedIn, currentUserData,
-            incrementMissionProgress, checkAndUnlockAchievements
+            incrementMissionProgress, checkAndUnlockAchievements, activeRooms,
+            handleCreateGame, handleJoinGame, handleLeaveRoom, startGame, resetGame,
+            submitVote, submitWordVote
         };
     };
 })();
