@@ -463,7 +463,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
                 authorUID: currentUser.uid,
                 authorName: currentUser.displayName || (lang === 'ar' ? 'مستخدم' : 'User'),
                 authorPhoto: currentUser.photoURL || null,
-                authorVipLevel: getVIPLevel(currentUser) || 0,
+                authorVipLevel: window.getVIPLevel(currentUser) || 0,
                 type: momentType,
                 content: textContent.trim(),
                 mediaUrl: finalMediaUrl,

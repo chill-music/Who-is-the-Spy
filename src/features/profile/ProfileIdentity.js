@@ -101,7 +101,7 @@ var ProfileIdentity = ({
 
             {/* ══ ROW 4: ID على الشمال — صورة داخل الـ pill لو موجودة ══ */}
             {(() => {
-                var vipLvl = getVIPLevel(targetData);
+                var vipLvl = window.getVIPLevel(targetData);
                 var vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
                 var idBeforeImg = vipCfg?.idBeforeImageUrl || null;
                 var idIconImg = (vipLvl >= 6

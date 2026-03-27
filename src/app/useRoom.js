@@ -60,7 +60,7 @@
                                     if (isInformant && (spyEscaped || mrwhiteWon)) iWon = true;
                                     if (!isSpy && !isInformant && agentsWon) iWon = true;
 
-                                    var vipXpMult = typeof getVIPXPMultiplier === 'function' ? getVIPXPMultiplier(userData) : 1;
+                                    var vipXpMult = typeof window.getVIPXPMultiplier === 'function' ? window.getVIPXPMultiplier(userData) : 1;
                                     var partnerInRoom = coupleData && data.players?.some(p => p.uid === (coupleData.uid1 === user.uid ? coupleData.uid2 : coupleData.uid1));
                                     var coupleBonus = partnerInRoom ? 1.10 : 1.0;
                                     var gameXP = Math.round((iWon ? 20 : 5) * vipXpMult * coupleBonus);

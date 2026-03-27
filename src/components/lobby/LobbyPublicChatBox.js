@@ -33,7 +33,7 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
         if (!msgText.trim() || !user || !isLoggedIn || sending || cooldown > 0) return;
         var text = msgText.trim(); setMsgText(''); setSending(true);
         try {
-            var vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
+            var vipLevel = (typeof window.getVIPLevel === 'function') ? (window.getVIPLevel(currentUser) || 0) : 0;
             await publicChatCollection.add({
                 type: 'text', text,
                 senderId: user.uid,
@@ -78,7 +78,7 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
                 )}
                 {visibleMsgs.map((msg, i) => {
                     var isMe = msg.senderId === currentUID;
-                    var vipCfg = getVIPConfig(msg.senderVipLevel);
+                    var vipCfg = window.getVIPConfig(msg.senderVipLevel);
                     if (msg.type === 'red_packet') return (
                         <div key={msg.id||i} style={{alignSelf:'center',fontSize:'10px',color:'#ffd700',padding:'3px 10px',background:'rgba(239,68,68,0.08)',borderRadius:'12px',border:'1px solid rgba(239,68,68,0.2)'}}>
                             🧧 {msg.senderName} {lang==='ar'?'أرسل مغلف':'sent a packet'} {msg.rpAmount?.toLocaleString()} 🧠

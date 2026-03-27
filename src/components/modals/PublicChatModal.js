@@ -35,7 +35,7 @@
         if (!msgText.trim() || !user || !isLoggedIn || sending) return;
         var text = msgText.trim(); setMsgText(''); setSending(true);
         try {
-            var vipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(currentUser) || 0) : 0;
+            var vipLevel = (typeof window.getVIPLevel === 'function') ? (window.getVIPLevel(currentUser) || 0) : 0;
             await publicChatCollection.add({
                 type: 'text', text,
                 senderId: user.uid,
@@ -235,7 +235,7 @@
                             }
                             var isMe = msg.senderId === currentUID;
                             var isImg = msg.type === 'image';
-                            var vipCfg = getVIPConfig(msg.senderVipLevel);
+                            var vipCfg = window.getVIPConfig(msg.senderVipLevel);
                             var nameColor = vipCfg ? vipCfg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
                             return (
                                 <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'8px',alignItems:'flex-end'}}>
