@@ -30,6 +30,7 @@
             targetProfileUID, showBrowseRooms, setShowBrowseRooms, showPrivateChat,
             chatFriend, closePrivateChat, createNotification, showSelfChat,
             setShowSelfChat, showFunPass, setShowFunPass, alertMessage, setAlertMessage,
+            profileInitialTab, handleSendRequest,
             showSetupModal, setShowSetupModal, setSetupMode, setupMode, setIsPrivate,
             isPrivate, setPassword, password, showPassword, setShowPassword,
             unreadNotifications, showNotifications, setShowNotifications,
@@ -390,7 +391,7 @@
                                         </div>
                                     </div>
                                     {friendsData && friendsData.filter(f => f.isOnline).map(f => (
-                                        <div key={f.uid} className="lb-row-new" onClick={() => window.openChatWith && window.openChatWith(f.uid)}>
+                                        <div key={f.uid} className="lb-row-new" onClick={() => openPrivateChat(f)}>
                                             <div className="lb-av-new">
                                                 {f.photoURL ? <img src={f.photoURL} alt="" /> : <i className="fas fa-user"></i>}
                                             </div>
@@ -469,7 +470,7 @@
                                                 <div className="me-action-icon" style={{background:'rgba(255,215,0,0.1)', color:'var(--gold)'}}><i className="fas fa-shopping-bag"></i></div>
                                                 <div className="me-action-label">{lang==='ar'?'المتجر':'Shop'}</div>
                                             </div>
-                                            <div className="me-action-card" onClick={() => window.FriendSystem?.show()}>
+                                            <div className="me-action-card" onClick={() => openProfile(currentUID, 'friends')}>
                                                 <div className="me-action-icon" style={{background:'rgba(0,255,136,0.1)', color:'#00ff88'}}><i className="fas fa-users"></i></div>
                                                 <div className="me-action-label">{lang==='ar'?'الأصدقاء':'Friends'}</div>
                                             </div>
@@ -588,7 +589,7 @@
                                         return (
                                             <div 
                                                 key={p.uid} 
-                                                onClick={() => { if(room.status === 'voting' && !isEliminated && p.uid !== currentUID) window.vote && window.vote(p.uid); }}
+                                                onClick={() => { if(room.status === 'voting' && !isEliminated && p.uid !== currentUID) submitVote(p.uid); }}
                                                 className={`relative flex items-center gap-3 p-3 rounded-2xl border transition-all ${isEliminated ? 'opacity-40 filter grayscale scale-95' : 'bg-white/5 active:scale-95 cursor-pointer'} ${isTarget ? 'border-primary/50 bg-primary/10' : 'border-white/5'}`}
                                             >
                                                 <div className="flex-1" style={{minWidth:0}}>
@@ -690,6 +691,54 @@
                         </div>
                     </div>
                 )}
+                
+                {/* ── ADDITIONAL MODALS ── */}
+                {showUserProfile && window.ProfileV11 && (
+                    <window.ProfileV11 
+                        show={showUserProfile} 
+                        targetUID={targetProfileUID} 
+                        onClose={() => setShowUserProfile(false)} 
+                        currentUserUID={currentUID} 
+                        lang={lang} 
+                        onSendGift={handleSendGiftToUser} 
+                        onNotification={setNotification} 
+                        initialTab={profileInitialTab}
+                        userData={userData}
+                        currentUserFriends={userData?.friends || []}
+                        currentUserFriendRequests={userData?.friendRequests || []}
+                        friendsData={friendsData}
+                        onSendFriendRequest={handleSendRequest}
+                        isLoggedIn={isLoggedIn}
+                        isGuest={isGuest}
+                        currency={userData?.currency}
+                        onOpenMarriage={() => setShowWeddingHall(true)}
+                        onOpenFamily={(fid) => { setViewFamilyId(fid); setShowFamilyModal(true); }}
+                        onOpenBFFModal={() => setShowBFFModal(true)}
+                        onOpenShop={() => setShowShop(true)}
+                        onOpenInventory={() => setShowInventory(true)}
+                        onLogout={handleLogout}
+                        onLoginGoogle={handleGoogleLogin}
+                        sessionClaimedToday={sessionClaimedToday}
+                        onOpenLoginRewards={() => setShowLoginRewards(true)}
+                    />
+                )}
+                {showWeddingHall && window.WeddingHallModal && <window.WeddingHallModal show={showWeddingHall} onClose={() => setShowWeddingHall(false)} userData={userData} partnerData={partnerData} lang={lang} />}
+                {showIncomingProposal && window.IncomingProposalModal && <window.IncomingProposalModal show={showIncomingProposal} from={incomingProposalFrom} proposal={incomingProposal} onAccept={handleAcceptProposal} onDecline={handleDeclineProposal} lang={lang} />}
+                {showCoupleCard && window.CoupleCardModal && <window.CoupleCardModal show={showCoupleCard} onClose={() => setShowCoupleCard(false)} userData={userData} partnerData={partnerData} coupleData={userData?.couple} lang={lang} />}
+                {showProposalModal && window.ProposalModal && <window.ProposalModal show={showProposalModal} onClose={() => setShowProposalModal(false)} targetUID={targetProfileUID} ring={proposalRing} onSend={handleSendProposal} lang={lang} />}
+                {showFriendsMoments && window.FriendsMomentsModal && <window.FriendsMomentsModal show={showFriendsMoments} onClose={() => setShowFriendsMoments(false)} friends={friendsData} lang={lang} />}
+                {showFamilyModal && window.FamilyModal && <window.FamilyModal show={showFamilyModal} familyId={viewFamilyId} onClose={() => setShowFamilyModal(false)} currentUID={currentUID} userData={userData} lang={lang} onCreateSuccess={() => {}} />}
+                {showFamilyChat && window.FamilyChatModal && <window.FamilyChatModal show={showFamilyChat} onClose={() => setShowFamilyChat(false)} family={userFamily} currentUID={currentUID} userData={userData} lang={lang} />}
+                {showBFFModal && window.BFFModal && <window.BFFModal show={showBFFModal} onClose={() => setShowBFFModal(false)} initialTab={bffInitialTab} unreadCount={bffUnreadCount} currentUID={currentUID} userData={userData} lang={lang} />}
+                {showDetectiveBot && window.DetectiveBotModal && <window.DetectiveBotModal show={showDetectiveBot} onClose={() => setShowDetectiveBot(false)} unreadCount={detectiveBotUnread} currentUID={currentUID} userData={userData} lang={lang} />}
+                {showLoveBot && window.LoveBotModal && <window.LoveBotModal show={showLoveBot} onClose={() => setShowLoveBot(false)} unreadCount={loveBotUnread} currentUID={currentUID} userData={userData} lang={lang} />}
+                {showMyAccount && window.MyAccountModal && <window.MyAccountModal show={showMyAccount} onClose={() => setShowMyAccount(false)} userData={userData} onLogout={handleLogout} sessionClaimed={sessionClaimedToday} lang={lang} />}
+                {showPrivateChat && window.PrivateChatModal && <window.PrivateChatModal show={showPrivateChat} onClose={closePrivateChat} friend={chatFriend} currentUID={currentUID} lang={lang} />}
+                {showSelfChat && window.SelfChatModal && <window.SelfChatModal show={showSelfChat} onClose={() => setShowSelfChat(false)} currentUID={currentUID} lang={lang} />}
+                {showFunPass && window.FunPassModal && <window.FunPassModal show={showFunPass} onClose={() => setShowFunPass(false)} userData={userData} lang={lang} />}
+                {alertMessage && window.AlertModal && <window.AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} lang={lang} />}
+                {showSummary && window.SummaryModal && <window.SummaryModal show={showSummary} room={room} onClose={() => setShowSummary(false)} lang={lang} />}
+                {showAdminPanel && window.AdminPanelModal && <window.AdminPanelModal show={showAdminPanel} onClose={() => setShowAdminPanel(false)} lang={lang} />}
             </div>
         );
     };

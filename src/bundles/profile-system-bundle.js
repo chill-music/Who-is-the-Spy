@@ -1155,6 +1155,7 @@ window.AchievementsDisplayV11 = AchievementsDisplayV11;
     onOpenFamily,       // opens family modal (pass familyId to view any family)
     onOpenBFFModal,     // opens BFF modal for own profile
     onNotification = () => {},  // optional notification callback
+    initialTab = 'about'
 }) => {
     var t = TRANSLATIONS[lang] || {};
 
@@ -1196,7 +1197,7 @@ window.AchievementsDisplayV11 = AchievementsDisplayV11;
     var [guardLockedUntil, setGuardLockedUntil] = useState(null); // timestamp of next unlock
     var guardCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
 
-    var [activeTab, setActiveTab] = useState('about');
+    var [activeTab, setActiveTab] = useState(initialTab || 'about');
     var optionsRef = useRef(null);
 
     useEffect(() => {
