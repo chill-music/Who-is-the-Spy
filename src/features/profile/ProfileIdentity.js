@@ -16,9 +16,9 @@ var ProfileIdentity = ({
     return (
         <div className="profile-identity">
             {/* ══ ROW 0: Staff Role Badge (if any) ══ */}
-            {getUserRole(targetData, targetUID) && (
+            {window.getUserRole && window.getUserRole(targetData, targetUID) && (
                 <div style={{display:'flex', justifyContent:'center', marginBottom:'4px'}}>
-                    <StaffRoleBadge
+                    <window.StaffRoleBadge
                         userData={targetData}
                         uid={targetUID}
                         lang={lang}
@@ -30,12 +30,12 @@ var ProfileIdentity = ({
 
             {/* ══ ROW 1: الاسم + VIP Badge (وسط) ══ */}
             <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', flexWrap:'wrap', marginBottom:'6px'}}>
-                <VIPName
+                <window.VIPName
                     displayName={targetData?.displayName || 'Unknown'}
                     userData={targetData}
                     className="profile-name"
                 />
-                <VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
+                <window.VIPBadge userData={targetData} size="md" onClick={(lvl) => {}} />
             </div>
 
             {/* ══ ROW 2: الجنس + الكاريزما + فاميلي ساين (يسار) | البلد (يمين) ══ */}
@@ -50,7 +50,7 @@ var ProfileIdentity = ({
                     )}
                     {/* الكاريزما مباشرة بعد الجنس */}
                     {(() => {
-                        var { currentLevel: lvlData } = getCharismaLevel(targetData?.charisma || 0);
+                        var { currentLevel: lvlData } = (window.getCharismaLevel ? window.getCharismaLevel(targetData?.charisma || 0) : { currentLevel: null });
                         if (!lvlData) return null;
                         var hasGlow = lvlData.hasGlow;
                         var isDivine = lvlData.isDivine;
@@ -89,8 +89,8 @@ var ProfileIdentity = ({
                 </div>
                 {/* يمين: البلد فقط */}
                 <div style={{display:'flex', alignItems:'center', gap:'4px', flexShrink:0}}>
-                    {targetData?.country?.flag && (
-                        <FlagDisplay
+                    {targetData?.country?.flag && window.FlagDisplay && (
+                        <window.FlagDisplay
                             countryCode={targetData.country.code}
                             flagEmoji={targetData.country.flag}
                             size={22}
@@ -101,12 +101,12 @@ var ProfileIdentity = ({
 
             {/* ══ ROW 4: ID على الشمال — صورة داخل الـ pill لو موجودة ══ */}
             {(() => {
-                var vipLvl = window.getVIPLevel(targetData);
-                var vipCfg = vipLvl > 0 ? VIP_CONFIG.find(v => v.level === vipLvl) : null;
+                var vipLvl = window.getVIPLevel ? window.getVIPLevel(targetData) : 0;
+                var vipCfg = (vipLvl > 0 && window.VIP_CONFIG) ? window.VIP_CONFIG.find(v => v.level === vipLvl) : null;
                 var idBeforeImg = vipCfg?.idBeforeImageUrl || null;
                 var idIconImg = (vipLvl >= 6
-                    ? (vipCfg?.idIconImageUrl || (typeof VIP_ID_ICONS !== 'undefined' ? VIP_ID_ICONS[vipLvl] : null) || null)
-                    : null) || (typeof ID_ICON_IMAGE_URL !== 'undefined' ? ID_ICON_IMAGE_URL : null);
+                    ? (vipCfg?.idIconImageUrl || (typeof window.VIP_ID_ICONS !== 'undefined' ? window.VIP_ID_ICONS[vipLvl] : null) || null)
+                    : null) || (typeof window.ID_ICON_IMAGE_URL !== 'undefined' ? window.ID_ICON_IMAGE_URL : null);
                 var idValue = targetData?.customId || targetUID?.substring(0, 8);
                 return (
                     <div style={{display:'flex', alignItems:'center', justifyContent:'flex-start', gap:'6px', marginBottom:'6px', padding:'0 8px'}}>
@@ -139,13 +139,13 @@ var ProfileIdentity = ({
             })()}
 
             {/* ══ ROW 5: البادجات (max 10) ══ */}
-            <UserBadgesV11 equipped={targetData?.equipped} lang={lang} />
+            {window.UserBadgesV11 && <window.UserBadgesV11 equipped={targetData?.equipped} lang={lang} />}
 
             {/* ══ ROW 6: التايتلز — كل التايتلز المفعّلة ══ */}
-            <UserTitleV11 equipped={targetData?.equipped} lang={lang} />
+            {window.UserTitleV11 && <window.UserTitleV11 equipped={targetData?.equipped} lang={lang} />}
 
             {/* ══ Charisma ══ */}
-            <CharismaDisplay charisma={targetData?.charisma} lang={lang} />
+            {window.CharismaDisplay && <window.CharismaDisplay charisma={targetData?.charisma} lang={lang} />}
         </div>
     );
 };

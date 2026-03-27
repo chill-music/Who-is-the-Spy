@@ -59,7 +59,7 @@ var ProfileEffectOverlayInline = ({ effectId, loopEvery = 2500 }) => {
 
     // useMemo prevents new object reference on every render (was identical bug to ProfileEffectOverlay)
     var effect = React.useMemo(() =>
-        (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
+        (window.SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
     [effectId]);
 
     var spawnParticles = React.useCallback(() => {
@@ -124,7 +124,7 @@ var ProfileEffectOverlay = ({ effectId }) => {
 
     // useMemo prevents new object reference on every render (was causing infinite loop)
     var effect = React.useMemo(() =>
-        (SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
+        (window.SHOP_ITEMS.profileEffects || []).find(e => e.id === effectId),
     [effectId]);
 
     var loopEvery       = effect?.loopEvery       || 4000;

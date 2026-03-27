@@ -16,7 +16,7 @@ var UserTitleV11 = ({ equipped, lang }) => {
     var titleId = equipped?.titles;
     if (!titleId) return null;
 
-    var title = SHOP_ITEMS.titles.find(t => t.id === titleId);
+    var title = window.SHOP_ITEMS.titles.find(t => t.id === titleId);
     if (!title) return null;
 
     // If title has an image URL, show the image
@@ -51,7 +51,7 @@ var UserBadgesV11 = ({ equipped, lang }) => {
     return (
         <div className="profile-badges-row">
             {badges.slice(0, 10).map((badgeId, idx) => {
-                var badge = SHOP_ITEMS.badges.find(b => b.id === badgeId);
+                var badge = window.SHOP_ITEMS.badges.find(b => b.id === badgeId);
                 if (!badge) return null;
 
                 return (
@@ -92,11 +92,11 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
 
     var s = sizeMap[size] || sizeMap.lg;
     var frame = equipped?.frames;
-    var frameStyle = frame ? SHOP_ITEMS.frames.find(f => f.id === frame) : null;
+    var frameStyle = frame && window.SHOP_ITEMS ? window.SHOP_ITEMS.frames.find(f => f.id === frame) : null;
 
     // Resolve profile effect (from prop or equipped)
     var resolvedEffectId = effectId || equipped?.profileEffects;
-    var effect = resolvedEffectId ? (SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
+    var effect = (resolvedEffectId && window.SHOP_ITEMS) ? (window.SHOP_ITEMS.profileEffects || []).find(e => e.id === resolvedEffectId) : null;
     var hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
 
     var showBan = banData?.isBanned && (
@@ -154,8 +154,8 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
                         filter: showBan ? 'grayscale(70%) brightness(0.45)' : 'none',
                     }}
                 />
-                {hasImageEffect && effect && (
-                    <ProfileEffectOverlayInline effectId={resolvedEffectId} />
+                {hasImageEffect && effect && window.ProfileEffectOverlayInline && (
+                    <window.ProfileEffectOverlayInline effectId={resolvedEffectId} />
                 )}
                 {/* 🚫 Ban Overlay on Profile Avatar */}
                 {showBan && (
