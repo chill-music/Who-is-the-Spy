@@ -2,15 +2,25 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
     var [rankings, setRankRankings] = React.useState([]);
     var [loading, setLoading] = React.useState(true);
 
+    var { 
+        getFamilyLevelConfig = () => ({}), 
+        getFamilySignLevelData = () => ({ level: 0 }),
+        getFamilySignImage = () => ''
+    } = window.FamilyConstants || window.FamilyService || {};
+    var familiesCollection = (window.db || window.firestore)?.collection('families');
+    var currentFamilyId = window.currentFamilyId;
+
     React.useEffect(() => {
+        if (!familiesCollection) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
-        // Using global firebase and db for now, but following FamilyService pattern
-        var familiesCollection = db.collection('families');
         familiesCollection.orderBy('xp', 'desc').limit(50).get().then(snap => {
-            setRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            setRankRankings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }).catch(() => setLoading(false));
-    }, []);
+    }, [familiesCollection]);
 
     if (loading) return <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>⏳</div>;
 
@@ -20,15 +30,15 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {rankings.map((fam, i) => {
-                    var fl = FamilyService.getFamilyLevelConfig(fam.level || 1);
-                    var sign = window.FamilyConstants?.getFamilySignLevelData?.(fam.weeklyActiveness || 0);
+                    var fl = getFamilyLevelConfig(fam.level || 1);
+                    var sign = getFamilySignLevelData(fam.weeklyActiveness || 0);
                     var signColor = sign?.color || '#6b7280';
                     var signLevel = sign?.level || 1;
                     var isMine = fam.id === currentFamilyId;
 
                     return (
                         <div key={fam.id}
-                            onClick={() => onOpenFamily && onOpenFamily(fam.id)}
+                            onClick={() => window.onOpenFamily && window.onOpenFamily(fam.id)}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '12px', padding: '12px',
                                 borderRadius: '16px',
@@ -42,7 +52,7 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
                                     : i === 0 
                                         ? '1px solid rgba(255,215,0,0.2)' 
                                         : '1px solid rgba(255,255,255,0.06)',
-                                cursor: onOpenFamily ? 'pointer' : 'default',
+                                cursor: window.onOpenFamily ? 'pointer' : 'default',
                                 transition: 'all 0.15s ease',
                                 position: 'relative',
                                 overflow: 'hidden'
@@ -72,7 +82,7 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
                                     }}>
                                         {fam.name}
                                     </span>
-                                    {sign && window.FamilySignBadge && <window.FamilySignBadge tag={fam.tag} color={signColor} small signLevel={signLevel} imageURL={window.FamilyConstants?.getFamilySignImage?.(0, signLevel)} />}
+                                    {window.FamilySignBadge && <window.FamilySignBadge tag={fam.tag} color={signColor} small signLevel={signLevel} imageURL={getFamilySignImage(0, signLevel)} />}
                                 </div>
                                 <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span>{fl.icon} Lv.{fl.level}</span>
@@ -90,7 +100,7 @@ var FamilyRanking = ({ currentUID, lang, isLeaderboard = true }) => {
                             </div>
                             
                             {/* Hover Arrow */}
-                            {onOpenFamily && <div style={{ fontSize: '12px', color: '#4b5563', marginLeft: '4px' }}>›</div>}
+                            {window.onOpenFamily && <div style={{ fontSize: '12px', color: '#4b5563', marginLeft: '4px' }}>›</div>}
                         </div>
                     );
                 })}

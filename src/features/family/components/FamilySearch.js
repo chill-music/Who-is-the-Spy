@@ -1,13 +1,3 @@
-var { 
-    getFamilyLevelConfig, 
-    createFamily, 
-    loadFamilies, 
-    searchFamilyByTag,
-    joinFamily,
-    getFamilySignLevelData
-} = window.FamilyService;
-var { FAMILY_CREATE_COST, FAMILY_EMBLEMS } = window.FamilyConstants || { FAMILY_CREATE_COST: 1000, FAMILY_EMBLEMS: ['🛡️','🦅','🦁','👑','⚔️','🐺','🐉'] };
-var FamilySignBadge = window.FamilySignBadge;
 var { useState, useEffect, useMemo } = React;
 
 var FamilySearch = ({ 
@@ -20,6 +10,17 @@ var FamilySearch = ({
     onClose,
     S
 }) => {
+    var FamilyService = window.FamilyService || {};
+    var { 
+        getFamilyLevelConfig = () => ({}), 
+        createFamily = () => {}, 
+        loadFamilies = () => [], 
+        searchFamilyByTag = () => [],
+        joinFamily = () => {},
+        getFamilySignLevelData = () => null
+    } = FamilyService;
+    var { FAMILY_CREATE_COST = 1000, FAMILY_EMBLEMS = [] } = window.FamilyConstants || {};
+    var FamilySignBadge = window.FamilySignBadge;
     // ---- Home State ----
     var [homeTab, setHomeTab] = useState('new'); // 'new' | 'active'
     var [searchQuery, setSearchQuery] = useState('');
@@ -291,7 +292,7 @@ var FamilySearch = ({
                                 <button onClick={() => setPreviewSignLevel(Math.max(1, previewSignLevel - 1))} style={{background:'rgba(255,255,255,0.1)', border:'none', color:'white', width:'30px', height:'30px', borderRadius:'50%', cursor:previewSignLevel>1?'pointer':'not-allowed', opacity:previewSignLevel>1?1:0.3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', fontWeight:800}}>‹</button>
                                 
                                 <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:'4px'}}>
-                                    <FamilySignBadge tag={tribeTag} color="#a78bfa" small={false} signLevel={previewSignLevel} imageURL={window.FamilyConstants?.getFamilySignImage?.(0, previewSignLevel)} />
+                                    {FamilySignBadge && <FamilySignBadge tag={tribeTag} color="#a78bfa" small={false} signLevel={previewSignLevel} imageURL={window.FamilyConstants?.getFamilySignImage?.(0, previewSignLevel)} />}
                                     <span style={{fontSize:'10px', color:'#9ca3af', fontWeight:700}}>Lv.{previewSignLevel}</span>
                                 </div>
                                 

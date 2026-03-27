@@ -1,6 +1,3 @@
-var FamilyService = window.FamilyService;
-var FamilyConstants = window.FamilyConstants;
-var { FAMILY_ROLE_CONFIG, FAMILY_SIGN_LEVELS } = FamilyConstants;
 var { useState, useEffect, useRef } = React;
 
 var FamilyManagement = ({
@@ -18,7 +15,16 @@ var FamilyManagement = ({
     onLeaveFamily,
     onDeleteFamily
 }) => {
-    var myRole = propMyRole || window.FamilyConstants.getFamilyRole(family, currentUID);
+    var FamilyService = window.FamilyService || {};
+    var FamilyConstants = window.FamilyConstants || {};
+    var { FAMILY_ROLE_CONFIG = {}, FAMILY_SIGN_LEVELS = [] } = FamilyConstants;
+    
+    // Late-bind helper functions
+    var getFamilyRole = FamilyConstants.getFamilyRole || (() => 'member');
+    var getFamilyLevelConfig = FamilyService.getFamilyLevelConfig || (() => ({}));
+    var getFamilySignLevelData = FamilyService.getFamilySignLevelData || (() => null);
+
+    var myRole = propMyRole || getFamilyRole(family, currentUID);
     var canManage = propCanManage || (myRole === 'owner' || myRole === 'admin');
     var meProfile = familyMembers && familyMembers.find(m => m.id === currentUID);
     var actorName = meProfile?.displayName || (lang === 'ar' ? 'مسؤول' : 'Admin');
@@ -172,8 +178,8 @@ var FamilyManagement = ({
     };
 
     var requests = family?.joinRequests || [];
-    var fLvl = FamilyService.getFamilyLevelConfig(family.level || 1);
-    var signData = FamilyService.getFamilySignLevelData(family.lastWeekActiveness || 0) || { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
+    var fLvl = getFamilyLevelConfig(family.level || 1);
+    var signData = getFamilySignLevelData(family.lastWeekActiveness || 0) || { level: 0, color: '#4b5563', name_ar: 'بدون شارة', name_en: 'No Sign', threshold: 0 };
 
     return (
         <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>

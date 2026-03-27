@@ -1,15 +1,6 @@
 /**
  * FamilyMembers.js - Component for displaying and managing family members.
  */
-var { 
-    FAMILY_ROLE_CONFIG, 
-    getFamilyRole, 
-    getFamilyLevelConfig,
-    getFamilySignLevelData
-} = window.FamilyConstants;
-var { fmtFamilyNum } = window;
-var { FamilyRoleBadge, FamilySignBadge } = window.FamilyShared;
-
 var FamilyMembers = ({ 
     family, 
     members, 
@@ -19,6 +10,15 @@ var FamilyMembers = ({
     onKick,
     onSetRole
 }) => {
+    var { 
+        FAMILY_ROLE_CONFIG = {}, 
+        getFamilyRole = () => 'member', 
+        getFamilyLevelConfig = () => ({}),
+        getFamilySignLevelData = () => ({ level: 0 })
+    } = window.FamilyConstants || {};
+    var { fmtFamilyNum = n => n } = window;
+    var { FamilyRoleBadge } = window.FamilyShared || {};
+    var FamilySignBadge = window.FamilySignBadge;
     var [memberSearch, setMemberSearch] = React.useState('');
     var [donationSort, setDonationSort] = React.useState('intel'); // 'intel' or 'activity'
     var [gearMenuUid, setGearMenuUid] = React.useState(null);
@@ -136,9 +136,9 @@ var FamilyMembers = ({
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
                                     <span style={{ fontSize: '12px', fontWeight: 800, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90px' }}>{m.displayName}</span>
-                                    {signData.level > 0 && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
+                                    {signData.level > 0 && FamilySignBadge && <FamilySignBadge tag={family.tag} color={signData.color} small signLevel={signData.level} imageURL={family.signImageURL} />}
                                 </div>
-                                <FamilyRoleBadge role={role} lang={lang} small />
+                                {FamilyRoleBadge && <FamilyRoleBadge role={role} lang={lang} small />}
                             </div>
                             {/* Stats */}
                             <div style={{ textAlign: 'right', flexShrink: 0, marginRight: showGear ? '6px' : '0' }}>

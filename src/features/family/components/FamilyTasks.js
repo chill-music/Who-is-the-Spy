@@ -13,7 +13,6 @@
  * Daily activity bar: 20 / 60 / 100 pts → chest at each milestone.
  */
 
-var { FAMILY_TASKS_CONFIG, DAILY_TASKS_MILESTONES } = window.FamilyConstants;
 var { useState, useEffect } = React;
 
 var FamilyTasks = ({
@@ -26,6 +25,7 @@ var FamilyTasks = ({
     setActiveTab,   // for "Go" actions to switch tab
     onOpenChat,     // optional
 }) => {
+    var { FAMILY_TASKS_CONFIG = [], DAILY_TASKS_MILESTONES = [] } = window.FamilyConstants || {};
     if (!family) return null;
 
     var [previewMs, setPreviewMs] = useState(null);

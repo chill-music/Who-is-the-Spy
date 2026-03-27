@@ -1,10 +1,9 @@
-var { redPacketsCollection } = window;
-
 /**
  * 🧧 RED PACKET CARD — Tap once to see details, tap Claim to get funds
  * Used in Public Chat, Family Chat, Group Chat
  */
 var RedPacketCard = ({ rpId, rpAmount, maxClaims, senderName, currentUID, user, currentUser, lang, onClaim }) => {
+    var redPacketsCollection = window.redPacketsCollection || (window.db || window.firestore)?.collection('redPackets');
     var [showDetails, setShowDetails] = React.useState(false);
     var [rpData, setRpData] = React.useState(null);
     var [loading, setLoading] = React.useState(false);

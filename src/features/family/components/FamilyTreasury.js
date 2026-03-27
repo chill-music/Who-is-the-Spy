@@ -1,20 +1,3 @@
-var { 
-    CHEST_CONFIG, 
-    ACTIVENESS_MILESTONES, 
-    Z, 
-    PortalModal,
-    FAMILY_COINS_SYMBOL
-} = window;
-var { getFamilyLevelConfig } = window.FamilyConstants || window;
-var { 
-    familiesCollection, 
-    db, 
-    firebase 
-} = window;
-var FamilyService = window.FamilyService;
-var fmtFamilyNum = window.fmtFamilyNum || ((n) => n?.toLocaleString() || '0');
-var S = window.FamilyShared?.S || {};
-
 /**
  * FamilyTreasury - Component for managing family funds, chests, and upgrades.
  */
@@ -34,6 +17,17 @@ var FamilyTreasury = ({
     showDonatePanel,
     setShowDonatePanel
 }) => {
+    // ─── Late-Binding Dependencies ───
+    var { 
+        CHEST_CONFIG = {}, 
+        ACTIVENESS_MILESTONES = [], 
+        Z = { MODAL_TOP: 10000 }, 
+        PortalModal,
+        FAMILY_COINS_SYMBOL = '🏅',
+        FamilyService = window.FamilyService || {},
+        fmtFamilyNum = window.fmtFamilyNum || ((n) => n?.toLocaleString() || '0')
+    } = window;
+
     // ─── State ───
     var [activeTab, setActiveTab] = React.useState('vault');
     var [depositing, setDepositing] = React.useState(false);

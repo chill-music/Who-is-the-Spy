@@ -1,4 +1,4 @@
-var FamilyMemberQuickCard = ({ member, role, isMe, lang, onOpenProfile }) => {
+var FamilyMemberQuickCard = ({ member, role, isMe, lang, onOpenProfile, onClose, onSendGift, currentUID }) => {
     if (!member) return null;
     var isSelf = member.uid === currentUID;
     return (

@@ -28,14 +28,21 @@ var FamilyProfile = ({
     var [weeklyChestBusy, setWeeklyChestBusy] = React.useState(false);
 
     var fmtFamilyNum = window.fmtFamilyNum || ((n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n)));
-    var fLvl = window.FamilyConstants.getFamilyLevelConfig(family.level || 1);
-    var myRole = window.FamilyConstants.getFamilyRole(family, currentUID);
+    var { 
+        getFamilyLevelConfig = () => ({}), 
+        getFamilyRole = () => 'member', 
+        getFamilySignLevelData = () => ({ level: 0 }),
+        FAMILY_LEVEL_CONFIG = []
+    } = window.FamilyConstants || {};
+
+    var fLvl = getFamilyLevelConfig(family.level || 1);
+    var myRole = getFamilyRole(family, currentUID);
     var canManage = myRole === 'owner' || myRole === 'admin';
 
     // ── Sign data: based on lastWeekActiveness ──
     var SIGN_FALLBACK = { level: 1, color: '#4b5563', glow: 'rgba(75,85,99,0.3)', defaultIcon: '🏠', bg: 'rgba(75,85,99,0.1)', name_ar: 'العائلة', name_en: 'Family', threshold: 0 };
     var lastWeekAct = family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : (family.weeklyActiveness || 0);
-    var signData = window.FamilyConstants.getFamilySignLevelData(lastWeekAct) || SIGN_FALLBACK;
+    var signData = getFamilySignLevelData(lastWeekAct) || SIGN_FALLBACK;
 
     // ── Activeness progress ──
     var totalActiveness = family.activeness || 0;
@@ -45,8 +52,7 @@ var FamilyProfile = ({
     var WEEKLY_MILESTONES = ORIGINAL_MILESTONES.map((ms, originalIdx) => ({ ...ms, originalIdx })).sort((a, b) => a.threshold - b.threshold);
 
     // Level progress
-    var FAMILY_LEVEL_CONFIGS = window.FamilyConstants?.FAMILY_LEVEL_CONFIG || window.FAMILY_LEVEL_CONFIG || [];
-    var nextLevelCfg = FAMILY_LEVEL_CONFIGS.find(c => c.level === (fLvl.level + 1));
+    var nextLevelCfg = FAMILY_LEVEL_CONFIG.find(c => c.level === (fLvl.level + 1));
     var lvlProgress = nextLevelCfg
         ? Math.min(100, Math.round(((totalActiveness - fLvl.activeness) / (nextLevelCfg.activeness - fLvl.activeness)) * 100))
         : 100;

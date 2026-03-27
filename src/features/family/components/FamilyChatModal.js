@@ -1,41 +1,41 @@
-var { 
-    Z, 
-    RED_PACKETS_CONFIG, 
-    CHEST_CONFIG, 
-    FAMILY_COINS_SYMBOL, 
-    ACTIVENESS_MILESTONES, 
-    PortalModal, 
-    fetchMiniProfileData 
-} = window;
-var { 
-    getFamilySignLevelData, 
-    getFamilyLevelConfig 
-} = window.FamilyConstants;
-var { 
-    firebase, 
-    auth, 
-    db, 
-    usersCollection, 
-    familiesCollection, 
-    redPacketsCollection, 
-    reportsCollection, 
-    publicChatCollection 
-} = window;
-var playNotificationSound = window.playNotificationSound || (() => {});
-var { 
-    canManageFamily, 
-    sendMessage: serviceSendMessage, 
-    handleImageUpload: serviceHandleImageUpload 
-} = window.FamilyService;
-var { renderMsgText: utilRenderMsgText } = window.FamilyUtils;
-var TS = window.TS || (() => firebase.firestore.FieldValue.serverTimestamp());
-var { MiniProfilePopup, FamilySignBadge, RedPacketCard } = window;
-var { SendGiftModal } = window;
-
 /**
  * FamilyChatModal - Extracted component for family chat functionality.
  */
 var FamilyChatModal = (props) => {
+    // ---- Late Binding Global Refs ----
+    var { 
+        Z = { MODAL: 1000, OVERLAY: 900 }, 
+        RED_PACKETS_CONFIG = {}, 
+        CHEST_CONFIG = {}, 
+        FAMILY_COINS_SYMBOL = '🧠', 
+        ACTIVENESS_MILESTONES = [], 
+        PortalModal, 
+        fetchMiniProfileData 
+    } = window;
+    var { 
+        getFamilySignLevelData = () => null, 
+        getFamilyLevelConfig = () => ({}) 
+    } = window.FamilyConstants || {};
+    var { 
+        firebase, 
+        auth, 
+        db, 
+        usersCollection, 
+        familiesCollection, 
+        redPacketsCollection, 
+        reportsCollection, 
+        publicChatCollection 
+    } = window;
+    var playNotificationSound = window.playNotificationSound || (() => {});
+    var { 
+        canManageFamily, 
+        sendMessage: serviceSendMessage, 
+        handleImageUpload: serviceHandleImageUpload 
+    } = window.FamilyService || {};
+    var { renderMsgText: utilRenderMsgText } = window.FamilyUtils || { renderMsgText: t => t };
+    var TS = window.TS || (() => firebase?.firestore?.FieldValue?.serverTimestamp() || Date.now());
+    var { MiniProfilePopup, FamilySignBadge, RedPacketCard } = window;
+    var { SendGiftModal } = window;
     var { isOpen, onClose, currentUID, currentUserData, lang, onSendGift, userData, onNotification, onOpenProfile, onOpenFamily, family, S, myRole } = props;
     var show = props.show !== undefined ? props.show : (isOpen !== undefined ? isOpen : !onClose);
     var familyData = props.familyData || family;
@@ -257,7 +257,7 @@ var FamilyChatModal = (props) => {
     var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:1, color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', imageURL:'icos/Family Sign1.png' };
     var fLvl = familyData ? getFamilyLevelConfig(familyData.level || 1) : null;
 
-    return React.createElement(PortalModal, null,
+    return React.createElement(PortalModal || React.Fragment, null,
         React.createElement('div', {
             style: { position:'fixed', inset:0, zIndex: Z.MODAL, background:'rgba(0,0,0,0.75)', display:'flex', alignItems:'center', justifyContent:'center', padding:'12px' },
             onClick: onClose
@@ -281,7 +281,7 @@ var FamilyChatModal = (props) => {
                 },
                     React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
                         React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color: onOpenFamily ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenFamily ? 'underline dotted rgba(0,242,255,0.4)' : 'none' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
-                        familyData && signData.level >= 1 && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: signData.imageURL })
+                        familyData && signData.level >= 1 && FamilySignBadge && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: signData.imageURL })
                     ),
                     React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
                         ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
@@ -305,7 +305,7 @@ var FamilyChatModal = (props) => {
                 )
             ),
             // ── Mini Profile Popup ──
-            miniProfile && React.createElement(MiniProfilePopup, {
+            miniProfile && MiniProfilePopup && React.createElement(MiniProfilePopup, {
                 profile: miniProfile,
                 onClose: function() { setMiniProfile(null); },
                 currentUID: currentUID,
@@ -448,7 +448,7 @@ var FamilyChatModal = (props) => {
                         }, msg.senderPhoto ? React.createElement('img', { src:msg.senderPhoto, alt:'', style:{width:'100%',height:'100%',objectFit:'cover'} }) : React.createElement('div', { style:{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px'} }, '😎')),
                         React.createElement('div', { style:{ maxWidth:'min(220px,calc(100vw-90px))' } },
                             !isMe && React.createElement('div', { style:{ fontSize:'9px', color:'#a78bfa', fontWeight:700, marginBottom:'3px', paddingLeft:'4px', cursor:'pointer' }, onClick: function(){ openFamilyChatMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto}); } }, msg.senderName),
-                            typeof RedPacketCard !== 'undefined' && React.createElement(RedPacketCard, {
+                            RedPacketCard && React.createElement(RedPacketCard, {
                                 rpId: msg.rpId, rpAmount: msg.rpAmount, maxClaims: msg.maxClaims, senderName: msg.senderName,
                                 currentUID: currentUID, user: { uid: currentUID }, currentUser: userData||currentUserData, lang: lang,
                                 onClaim: async function(rpId) {
@@ -647,7 +647,7 @@ var FamilyChatModal = (props) => {
                 )
             ),
             // Gift modal
-            showChatGiftModal && onSendGift && React.createElement(SendGiftModal, {
+            showChatGiftModal && onSendGift && SendGiftModal && React.createElement(SendGiftModal, {
                 show: showChatGiftModal,
                 onClose: function() { setShowChatGiftModal(false); setGiftTarget(null); },
                 targetUser: giftTarget,
