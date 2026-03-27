@@ -591,3 +591,5 @@ var generateRandomBonus = (min, max, giftCost = 0) => {
 };
 
 // --- Translations ---
+window.getCharismaLevel = getCharismaLevel;
+window.getCharismaProgress = getCharismaProgress;

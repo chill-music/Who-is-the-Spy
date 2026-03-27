@@ -1623,6 +1623,7 @@ window.VIPBadge = VIPBadge;
 window.VIPName = VIPName;
 window.StaffRoleBadge = StaffRoleBadge;
 window.PlayerNameTag = PlayerNameTag;
+window.FlagDisplay = FlagDisplay;
 window.VIPCenterSection = VIPCenterSection;
 window.getVIPLevel = getVIPLevel;
 window.getVIPData = getVIPData;
@@ -1633,5 +1634,6 @@ window.getVIPCustomIdLength = getVIPCustomIdLength;
 window.getGiftVIPXP = getGiftVIPXP;
 window.getVIPLevelFromXP = getVIPLevelFromXP;
 window.getVIPXPProgress = getVIPXPProgress;
+window.VIP_CONFIG = VIP_CONFIG;
 
 })();
