@@ -443,7 +443,7 @@ var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift,
     if (!show) return null;
 
     var hasDirectTarget = targetUser && targetUser.uid !== 'self';
-    var vipLevel  = currentUser ? (getVIPLevel ? getVIPLevel(currentUser) : 0) : 0;
+    var vipLevel  = currentUser ? (window.getVIPLevel ? window.getVIPLevel(currentUser) : 0) : 0;
     var inventory = currentUser?.inventory || {};
     // fix #9: only require familyId — ignore level requirement
     var hasFamilyId = !!(currentUser?.familyId);

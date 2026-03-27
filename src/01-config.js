@@ -433,8 +433,8 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
                 .slice(0, 3)
             : [];
 
-        var vipLevel = typeof getVIPLevel === 'function' ? (getVIPLevel(d) || 0) : 0;
-        var vipCfg = getVIPConfig(vipLevel);
+        var vipLevel = typeof window.getVIPLevel === 'function' ? (window.getVIPLevel(d) || 0) : 0;
+        var vipCfg = window.getVIPConfig(vipLevel);
 
         return {
             uid,

@@ -113,8 +113,8 @@ var PrivateChatModal = ({
     var headerMenuBtnRef  = useRef(null);
 
     // VIP level helpers
-    var myVipLevel     = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(currentUser) || 0) : 0; } catch { return 0; } }, [currentUser]);
-    var friendVipLevel = useMemo(() => { try { return getVIPLevel ? (getVIPLevel(friend) || 0) : 0; } catch { return 0; } }, [friend]);
+    var myVipLevel     = useMemo(() => { try { return window.getVIPLevel ? (window.getVIPLevel(currentUser) || 0) : 0; } catch { return 0; } }, [currentUser]);
+    var friendVipLevel = useMemo(() => { try { return window.getVIPLevel ? (window.getVIPLevel(friend) || 0) : 0; } catch { return 0; } }, [friend]);
     var isMyVIP10      = myVipLevel >= 10;
     var isFriendVIP10  = friendVipLevel >= 10;
     // Typing indicator available when EITHER party is VIP10
@@ -465,12 +465,12 @@ var PrivateChatModal = ({
                   display: 'flex', alignItems: 'center', gap: '5px',
                 }}>
                   {friend.displayName || 'User'}
-                  {friend.vip?.isActive && getVIPLevel && getVIPLevel(friend) > 0 && VIP_CONFIG && (
+                  {friend.vip?.isActive && window.getVIPLevel && window.getVIPLevel(friend) > 0 && VIP_CONFIG && (
                     <span style={{
                       fontSize: '8px', fontWeight: 900,
-                      background: getVIPConfig(getVIPLevel(friend))?.nameColor || '#7c3aed',
+                      background: window.getVIPConfig(window.getVIPLevel(friend))?.nameColor || '#7c3aed',
                       color: '#000', padding: '1px 4px', borderRadius: '3px', flexShrink: 0,
-                    }}>VIP{getVIPLevel(friend)}</span>
+                    }}>VIP{window.getVIPLevel(friend)}</span>
                   )}
                 </div>
                 <div style={{ fontSize: '10px', color: friendTyping ? '#00f2ff' : statusColor, fontWeight: 600 }}>
@@ -574,7 +574,7 @@ var PrivateChatModal = ({
                 var isLastGroup = nextSender !== msg.senderId;
                 // Get VIP config for this message sender
                 var msgVipLevel = msg.senderVipLevel || 0;
-                var msgVipCfg = getVIPConfig(msgVipLevel);
+                var msgVipCfg = window.getVIPConfig(msgVipLevel);
 
                 // 🧧 Red Packet bubble
                 if(isRedPacket) {

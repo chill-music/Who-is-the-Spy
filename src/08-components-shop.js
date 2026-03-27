@@ -23,8 +23,8 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
     var currency     = userData?.currency || 0;
     var inventory    = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     var equipped     = userData?.equipped  || {};
-    var vipLevel     = getVIPLevel(userData);
-    var vipXpInfo    = getVIPXPProgress(userData?.vip?.xp || 0);
+    var vipLevel     = window.getVIPLevel(userData);
+    var vipXpInfo    = window.getVIPXPProgress(userData?.vip?.xp || 0);
     var hasVIP       = vipLevel >= 1;
 
     var vipExpiresAt = userData?.vip?.expiresAt;

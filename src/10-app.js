@@ -1223,7 +1223,7 @@
                 senderId:      user.uid,
                 senderName:    userData?.displayName || 'User',
                 senderPhoto:   userData?.photoURL || null,
-                senderVipLevel: getVIPLevel(userData) || 0,
+                senderVipLevel: window.getVIPLevel ? (window.getVIPLevel(userData) || 0) : 0,
                 type:          'gift',
                 giftId:        gift.id,
                 giftName,
@@ -1329,7 +1329,7 @@
 
         // ✅ VIP Gift Lock — حد أدنى من مستوى VIP
         if (item.vipMinLevel && item.vipMinLevel > 0) {
-            var userVipLevel = getVIPLevel(userData);
+            var userVipLevel = window.getVIPLevel ? window.getVIPLevel(userData) : 0;
             if (userVipLevel < item.vipMinLevel) {
                 setNotification(lang === 'ar'
                     ? `🔒 يتطلب VIP ${item.vipMinLevel} على الأقل`
@@ -2475,8 +2475,8 @@
                                     var offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
                                     var statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
                                     var renderFriend = (friend) => {
-                                        var fVipLevel = (typeof getVIPLevel === 'function') ? (getVIPLevel(friend) || 0) : 0;
-                                        var fVipCfg = getVIPConfig(fVipLevel);
+                                        var fVipLevel = (typeof window.getVIPLevel === 'function') ? (window.getVIPLevel(friend) || 0) : 0;
+                                        var fVipCfg = window.getVIPConfig(fVipLevel);
                                         var fEquipped = friend.equipped || {};
                                         var fBadgeIds = (fEquipped.badges || []).slice(0, 3);
                                         var fTitleId = fEquipped.titles || null;

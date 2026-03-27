@@ -1630,5 +1630,8 @@ window.hasVIP = hasVIP;
 window.hasVIPDailyTasks = hasVIPDailyTasks;
 window.getVIPXPMultiplier = getVIPXPMultiplier;
 window.getVIPCustomIdLength = getVIPCustomIdLength;
+window.getGiftVIPXP = getGiftVIPXP;
+window.getVIPLevelFromXP = getVIPLevelFromXP;
+window.getVIPXPProgress = getVIPXPProgress;
 
 })();

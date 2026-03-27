@@ -93,7 +93,7 @@ var FunPassModal = ({ show, onClose, userData, user, lang, onNotification, onOpe
         try {
             var updates = {};
             // Add XP with VIP multiplier
-            var vipMult = getVIPXPMultiplier(userData);
+            var vipMult = window.getVIPXPMultiplier(userData);
             var finalXP = Math.round(mission.xp * vipMult);
             updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.xp`] = firebase.firestore.FieldValue.increment(finalXP);
             // Mark claimed with date

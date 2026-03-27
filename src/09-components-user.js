@@ -614,7 +614,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
         setMsgText('');
         try {
             var nowMs = Date.now();
-            var senderVipLevel = (typeof getVIPLevel === 'function' ? (getVIPLevel(currentUserData) || 0) : 0);
+            var senderVipLevel = (typeof window.getVIPLevel === 'function' ? (window.getVIPLevel(currentUserData) || 0) : 0);
             var senderTitle = currentUserData?.activeTitle || currentUserData?.title || null;
             var senderFrame = currentUserData?.equipped?.frames || null;
             var senderBadges = (currentUserData?.equipped?.badges || []).slice(0, 3);
@@ -1363,7 +1363,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                 // 🧧 Red Packet message
                                 if(msg.type==='red_packet') {
                                     var isMe=msg.senderId===currentUID;
-                                    var vipCfgRP = getVIPConfig(msg.senderVipLevel);
+                                    var vipCfgRP = window.getVIPConfig(msg.senderVipLevel);
                                     return(
                                         <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end',marginBottom:'4px'}}>
                                             <div onClick={()=>openGroupMiniProfile(msg.senderId,{name:msg.senderName,photo:msg.senderPhoto})}
@@ -1397,7 +1397,7 @@ var GroupsSection = ({ currentUser, currentUserData, currentUID, friendsData, la
                                 }
                                 var isMe=msg.senderId===currentUID;
                                 var isImage=msg.type==='image';
-                                var vipCfgMsg = getVIPConfig(msg.senderVipLevel);
+                                var vipCfgMsg = window.getVIPConfig(msg.senderVipLevel);
                                 var nameColor = vipCfgMsg ? vipCfgMsg.nameColor : (isMe ? '#00f2ff' : '#a78bfa');
                                 return(
                                     <div key={msg.id} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'7px',alignItems:'flex-end'}}>
