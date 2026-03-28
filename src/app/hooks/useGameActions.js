@@ -10,7 +10,7 @@
      * - Achievements/Missions
      */
     window.useGameActions = function({
-        user, userData, isLoggedIn, lang, t, currentUID, currentUserData,
+        user, userData, isLoggedIn, isGuest, nickname, lang, t, currentUID, currentUserData,
         room, roomId, setRoom, setRoomId,
         guestData, setGuestData, setNickname, setAuthLoading,
         setNotification, playSound, setAlertMessage, setLoading,
