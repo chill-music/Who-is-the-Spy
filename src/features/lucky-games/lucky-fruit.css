@@ -89,7 +89,7 @@
   border: none;
   font-family: inherit;
 }
-.lf-game .lf-mvp-badge {
+.lf-game .lf-avatar-box {
   width: 42px; height: 42px; border-radius: 50%;
   background: linear-gradient(135deg, #FFD700, #FF8C00);
   border: 3px solid var(--lf-gold);
@@ -98,12 +98,6 @@
   box-shadow: 0 0 12px rgba(255,215,0,0.6);
   position: relative;
   flex-shrink: 0;
-}
-.lf-game .lf-mvp-badge::after {
-  content: 'MVP';
-  position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
-  background: var(--lf-gold); color: var(--lf-purple-dark);
-  font-size: 7px; font-weight: 900; padding: 1px 3px; border-radius: 3px;
 }
 
 /* ── FREE SPINS BANNER ───────────────────────────────────── */
