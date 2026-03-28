@@ -254,7 +254,9 @@ var FamilyChatModal = (props) => {
 
     if (!show) return null;
 
-    var signData = (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0) : null) || { level:1, color:'#6b7280', glow:'rgba(107,114,128,0.3)', defaultIcon:'🏠', imageURL:'icos/Family Sign1.png' };
+    var signLvl = familyData?.signLevel || (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0)?.level : 1) || 1;
+    var signData = (typeof window.FamilyConstants !== 'undefined' && window.FamilyConstants.FAMILY_SIGN_LEVELS?.find(s => s.level === signLvl)) || { level: signLvl, color: '#6b7280' };
+    var signImageURL = typeof window.FamilyConstants !== 'undefined' && window.FamilyConstants.getFamilySignImage ? window.FamilyConstants.getFamilySignImage(0, signLvl) : 'icos/Family Sign1.png';
     var fLvl = familyData ? getFamilyLevelConfig(familyData.level || 1) : null;
 
     return React.createElement(PortalModal || React.Fragment, null,
@@ -281,7 +283,7 @@ var FamilyChatModal = (props) => {
                 },
                     React.createElement('div', { style: { display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap' } },
                         React.createElement('span', { style: { fontSize:'14px', fontWeight:800, color: onOpenFamily ? '#00f2ff' : 'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: onOpenFamily ? 'underline dotted rgba(0,242,255,0.4)' : 'none' } }, (familyData && familyData.name) || (lang==='ar'?'شات العائلة':'Family Chat')),
-                        familyData && signData.level >= 1 && FamilySignBadge && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: signData.imageURL })
+                        familyData && signData.level >= 1 && FamilySignBadge && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: signImageURL })
                     ),
                     React.createElement('div', { style: { fontSize:'10px', color:'#6b7280' } },
                         ((familyData && familyData.members && familyData.members.length) || 0) + ' ' + (lang==='ar'?'عضو':'members'),
