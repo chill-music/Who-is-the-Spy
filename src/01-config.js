@@ -441,10 +441,11 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
             name: d.displayName || 'User',
             photo: d.photoURL || null,
             customId: d.customId || null,
-            bannerUrl: d.profileBanner || d.bannerUrl || d.banner || d.profileBannerUrl || null,
+            bannerUrl: d.profileBanner || d.bannerUrl || d.banner || d.profileBannerUrl || d.bannerURL || null,
             gender: d.gender || null,
             charisma: d.charisma || 0,
             isFriend: myFriendsList.includes(uid),
+            familyId: d.familyId || null,
             familyTag: d.familyTag || null,
             familyName: d.familyName || null,
             familySignLevel: d.familySignLevel || null,
@@ -458,6 +459,7 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
             topBadges,
             vipLevel,
             vipCfg,
+            vip: d.vip || null,
             loading: false,
         };
     } catch (e) {
@@ -583,36 +585,36 @@ var resolveRewardItem = function (reward) {
     var SI = window.SHOP_ITEMS;
 
     // Helper: copy item metadata fields from SHOP_ITEMS entry
-    var _meta = function(item) {
+    var _meta = function (item) {
         if (!item) return;
-        if (item.isEvent    !== undefined) resolved.isEvent    = item.isEvent;
-        if (item.limitedTime!== undefined) resolved.limitedTime= item.limitedTime;
-        if (item.eventOnly  !== undefined) resolved.eventOnly  = item.eventOnly;
-        if (item.season     !== undefined) resolved.season     = item.season;
-        if (item.rarity     !== undefined) resolved.rarity     = item.rarity;
-        if (item.durationDays!==undefined) resolved.durationDays= item.durationDays;
+        if (item.isEvent !== undefined) resolved.isEvent = item.isEvent;
+        if (item.limitedTime !== undefined) resolved.limitedTime = item.limitedTime;
+        if (item.eventOnly !== undefined) resolved.eventOnly = item.eventOnly;
+        if (item.season !== undefined) resolved.season = item.season;
+        if (item.rarity !== undefined) resolved.rarity = item.rarity;
+        if (item.durationDays !== undefined) resolved.durationDays = item.durationDays;
     };
 
     if (resolved.type === 'currency') {
-        resolved.icon     = resolved.icon     || '🧠';
-        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K Intel'  : resolved.amount+' Intel');
-        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K إنتل'   : resolved.amount+' إنتل');
+        resolved.icon = resolved.icon || '🧠';
+        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K Intel' : resolved.amount + ' Intel');
+        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K إنتل' : resolved.amount + ' إنتل');
 
     } else if (resolved.type === 'coins' || resolved.type === 'familyCoins') {
-        resolved.icon     = resolved.icon     || '🏅';
-        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K Family Coins' : resolved.amount+' Family Coins');
-        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K عملة قبيلة'   : resolved.amount+' عملة قبيلة');
+        resolved.icon = resolved.icon || '🏅';
+        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K Family Coins' : resolved.amount + ' Family Coins');
+        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K عملة قبيلة' : resolved.amount + ' عملة قبيلة');
 
     } else if (resolved.type === 'charisma') {
-        resolved.icon     = resolved.icon     || '⭐';
-        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K Charisma Ring' : resolved.amount+' Charisma Ring');
-        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K خاتم كاريزما'   : resolved.amount+' خاتم كاريزما');
+        resolved.icon = resolved.icon || '⭐';
+        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K Charisma Ring' : resolved.amount + ' Charisma Ring');
+        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K خاتم كاريزما' : resolved.amount + ' خاتم كاريزما');
 
     } else if (resolved.type === 'gift' && resolved.giftId && SI) {
-        var allGifts = [].concat(SI.gifts||[], SI.gifts_vip||[], SI.gifts_family||[], SI.gifts_special||[], SI.gifts_flag||[]);
-        var gift = allGifts.find(function(g){ return g.id === resolved.giftId; });
+        var allGifts = [].concat(SI.gifts || [], SI.gifts_vip || [], SI.gifts_family || [], SI.gifts_special || [], SI.gifts_flag || []);
+        var gift = allGifts.find(function (g) { return g.id === resolved.giftId; });
         if (gift) {
-            resolved.icon     = gift.emoji || gift.icon || '🎁';
+            resolved.icon = gift.emoji || gift.icon || '🎁';
             if (gift.imageUrl) resolved.imageURL = gift.imageUrl;
             resolved.label_en = resolved.label_en || gift.name_en;
             resolved.label_ar = resolved.label_ar || gift.name_ar;
@@ -620,23 +622,23 @@ var resolveRewardItem = function (reward) {
         }
 
     } else if (resolved.type === 'frame' && resolved.frameId && SI) {
-        var allFrames = [].concat(SI.frames||[], SI.limitedFrames||[]);
-        var frame = allFrames.find(function(f){ return f.id === resolved.frameId; });
+        var allFrames = [].concat(SI.frames || [], SI.limitedFrames || []);
+        var frame = allFrames.find(function (f) { return f.id === resolved.frameId; });
         resolved.icon = resolved.icon || '🖼️';
         if (frame) {
-            var durSfx_en = resolved.duration ? ' · '+resolved.duration+'d'     : '';
-            var durSfx_ar = resolved.duration ? ' · '+resolved.duration+' أيام' : '';
+            var durSfx_en = resolved.duration ? ' · ' + resolved.duration + 'd' : '';
+            var durSfx_ar = resolved.duration ? ' · ' + resolved.duration + ' أيام' : '';
             resolved.label_en = resolved.label_en || (frame.name_en + durSfx_en);
             resolved.label_ar = resolved.label_ar || (frame.name_ar + durSfx_ar);
-            if (frame.preview)  resolved.preview  = frame.preview;   // CSS gradient or image URL
+            if (frame.preview) resolved.preview = frame.preview;   // CSS gradient or image URL
             if (frame.imageUrl) resolved.imageURL = frame.imageUrl;
             _meta(frame);
         }
 
     } else if (resolved.type === 'title' && resolved.titleId && SI) {
-        var title = (SI.titles||[]).find(function(t){ return t.id === resolved.titleId; });
+        var title = (SI.titles || []).find(function (t) { return t.id === resolved.titleId; });
         if (title) {
-            resolved.icon     = title.preview || '🏅';
+            resolved.icon = title.preview || '🏅';
             if (title.imageUrl) resolved.imageURL = title.imageUrl;
             resolved.label_en = resolved.label_en || title.name_en;
             resolved.label_ar = resolved.label_ar || title.name_ar;
@@ -644,9 +646,9 @@ var resolveRewardItem = function (reward) {
         }
 
     } else if (resolved.type === 'badge' && resolved.badgeId && SI) {
-        var badge = (SI.badges||[]).find(function(b){ return b.id === resolved.badgeId; });
+        var badge = (SI.badges || []).find(function (b) { return b.id === resolved.badgeId; });
         if (badge) {
-            resolved.icon     = badge.preview || '🏅';
+            resolved.icon = badge.preview || '🏅';
             if (badge.imageUrl) resolved.imageURL = badge.imageUrl;
             resolved.label_en = resolved.label_en || badge.name_en;
             resolved.label_ar = resolved.label_ar || badge.name_ar;
@@ -654,7 +656,7 @@ var resolveRewardItem = function (reward) {
         }
 
     } else if (resolved.type === 'ring' && resolved.ringId && SI) {
-        var ring = (SI.rings||[]).find(function(r){ return r.id === resolved.ringId; });
+        var ring = (SI.rings || []).find(function (r) { return r.id === resolved.ringId; });
         if (ring) {
             resolved.icon = ring.emoji || ring.icon || '💍';
             if (ring.imageURL || ring.imageUrl) resolved.imageURL = ring.imageURL || ring.imageUrl;
@@ -664,9 +666,9 @@ var resolveRewardItem = function (reward) {
         }
 
     } else if (resolved.type === 'effect' && resolved.effectId && SI) {
-        var effect = (SI.profileEffects||[]).find(function(e){ return e.id === resolved.effectId; });
+        var effect = (SI.profileEffects || []).find(function (e) { return e.id === resolved.effectId; });
         if (effect) {
-            resolved.icon     = effect.preview || '✨';
+            resolved.icon = effect.preview || '✨';
             if (effect.imageUrl) resolved.imageURL = effect.imageUrl;
             resolved.label_en = resolved.label_en || effect.name_en;
             resolved.label_ar = resolved.label_ar || effect.name_ar;
@@ -674,7 +676,7 @@ var resolveRewardItem = function (reward) {
         }
     }
 
-    resolved.icon     = resolved.icon     || '🎁';
+    resolved.icon = resolved.icon || '🎁';
     resolved.label_en = resolved.label_en || 'Reward';
     resolved.label_ar = resolved.label_ar || 'مكافأة';
     return resolved;
