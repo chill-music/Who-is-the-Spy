@@ -92,6 +92,7 @@
             showLobbyPassword, setShowLobbyPassword, showNotifications, setShowNotifications,
             notifications, setNotifications, unreadNotifications, setUnreadNotifications,
             notificationBellRef, historyWrittenRooms, lastAchievementCheck, showSettings, setShowSettings,
+            showLuckyGames, setShowLuckyGames,
             soundMuted, setSoundMuted, showAdminPanel, setShowAdminPanel, showFriendsMoments, setShowFriendsMoments,
             showFamilyModal, setShowFamilyModal, viewFamilyId, setViewFamilyId, userFamily, setUserFamily,
             showFamilyChat, setShowFamilyChat, hasNewMoments, setHasNewMoments, coupleData, setCoupleData,
@@ -275,6 +276,7 @@
                     showShop={showShop} setShowShop={setShowShop}
                     showInventory={showInventory} setShowInventory={setShowInventory}
                     showSettings={showSettings} setShowSettings={setShowSettings}
+                    showLuckyGames={showLuckyGames} setShowLuckyGames={setShowLuckyGames}
                     showVIPCenter={showVIPCenter} setShowVIPCenter={setShowVIPCenter}
                     showHelpCenter={showHelpCenter} setShowHelpCenter={setShowHelpCenter}
                     showPublicChat={showPublicChat} setShowPublicChat={setShowPublicChat}
@@ -793,6 +795,14 @@
                             <span className="sec-title-new">{lang==='ar'?'الإعدادات والأدوات':'Settings & Tools'}</span>
                         </div>
                         <div className="me-actions-grid">
+                            {/* 🎰 Lucky Games — FIRST card */}
+                            {isLoggedIn && (
+                                <div className="me-action-card" onClick={() => setShowLuckyGames(true)}
+                                    style={{background:'linear-gradient(135deg,rgba(123,63,255,0.14),rgba(255,140,0,0.09))',border:'1px solid rgba(255,215,0,0.28)'}}>
+                                    <div className="me-action-icon" style={{background:'rgba(123,63,255,0.2)'}}>🎰</div>
+                                    <div className="me-action-label" style={{color:'#FFD700'}}>{lang==='ar'?'ألعاب الحظ':'Lucky Games'}</div>
+                                </div>
+                            )}
                             {isLoggedIn && (
                                 <div className="me-action-card" onClick={() => setShowInventory(true)}>
                                     <div className="me-action-icon" style={{background:'rgba(112,0,255,0.15)'}}>📦</div>
