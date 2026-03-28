@@ -360,120 +360,314 @@
                     />
                 )}
 
-                {/* ══ CHAT / GROUPS VIEW ══ */}
-                {!room && activeView === 'chat' && window.GroupsSection && (
-                    <window.GroupsSection
-                        lang={lang} t={t}
-                        user={user} userData={currentUserData}
-                        onOpenFamily={() => setShowFamilyModal(true)}
-                        onOpenFamilyChat={() => setShowFamilyChat(true)}
-                        onNotification={(msg) => setNotification(msg)}
-                        onOpenProfile={gameActions.openProfile}
-                        friendsData={friendsData}
-                        coupleData={coupleData}
-                        partnerData={partnerData}
-                        totalUnread={totalFriendsUnread}
-                        userFamily={userFamily}
-                        bffUnreadCount={bffUnreadCount}
-                        detectiveBotUnread={detectiveBotUnread}
-                        loveBotUnread={loveBotUnread}
-                        setShowBFFModal={(v) => { setShowBFFModal(v); }}
-                        setShowDetectiveBot={setShowDetectiveBot}
-                        setShowLoveBot={setShowLoveBot}
-                        chatsMeta={chatsMeta}
-                        setOpenChatId={setOpenChatId}
-                        openChatId={openChatId}
-                        setChatFriend={setChatFriend}
-                        setShowPrivateChat={setShowPrivateChat}
-                        isLoggedIn={isLoggedIn}
-                        currentUID={currentUID}
-                    />
-                )}
-
-                {/* ══ DISCOVER VIEW ══ */}
-                {!room && activeView === 'discover' && (
+                {/* ══ CHAT VIEW (OG Faithful) ══ */}
+                {!room && activeView === 'chat' && (
                     <div style={{paddingBottom:'8px'}}>
-                        {/* Friends Moments */}
-                        <div className="discover-sq"
-                            style={{
-                                '--dsq-bg':'linear-gradient(145deg,rgba(0,242,255,0.09),rgba(112,0,255,0.06))',
-                                '--dsq-border':'rgba(0,242,255,0.22)',
-                                padding:'18px 12px',
-                                margin:'12px 16px 0',
-                                borderRadius:'16px',
-                                background:'var(--dsq-bg)',
-                                border:'1px solid var(--dsq-border)',
-                                cursor:'pointer',
-                                display:'flex',
-                                flexDirection:'column',
-                                alignItems:'center',
-                                gap:'6px',
-                            }}
-                            onClick={() => {
-                                if (!isLoggedIn) { setShowLoginAlert(true); return; }
-                                setShowFriendsMoments(true);
-                            }}
-                        >
-                            {hasNewMoments && <div className="dsq-dot" style={{background:'#00f2ff'}}/>}
-                            <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.15))',width:'54px',height:'54px',borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px'}}>📸</div>
-                            <div className="dsq-label" style={{fontSize:'14px'}}>{'مومنت الأصدقاء'}</div>
-                            <div style={{fontSize:'10px', color:'var(--text-muted)', marginTop:'-4px'}}>{'شارك لحظاتك مع أصدقائك'}</div>
+                        {/* Guest gate */}
+                        {isGuest && !isLoggedIn && (
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'48px 24px',gap:'16px',textAlign:'center'}}>
+                                <div style={{fontSize:'48px'}}>🔐</div>
+                                <div style={{fontSize:'16px',fontWeight:800,color:'#e5e7eb'}}>{lang==='ar'?'سجّل دخولك أولاً':'Login Required'}</div>
+                                <div style={{fontSize:'12px',color:'#6b7280',maxWidth:'240px'}}>{lang==='ar'?'سجّل الدخول بجوجل للوصول للأصدقاء والجروبات':'Sign in with Google to access friends & groups'}</div>
+                                <button onClick={gameActions.handleGoogleLogin} style={{display:'flex',alignItems:'center',gap:'10px',padding:'11px 24px',borderRadius:'14px',background:'linear-gradient(135deg,#4285f4,#1a73e8)',border:'none',color:'#fff',fontWeight:800,fontSize:'14px',cursor:'pointer',boxShadow:'0 4px 16px rgba(66,133,244,0.4)'}}>
+                                    <span style={{fontSize:'18px'}}>🔑</span> {lang==='ar'?'تسجيل الدخول بجوجل':'Sign in with Google'}
+                                </button>
+                            </div>
+                        )}
+                        {/* Logged-in content: Friends + Groups tabs */}
+                        {(!isGuest || isLoggedIn) && (<>
+                        <div style={{display:'flex',gap:'4px',padding:'10px 16px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'10px'}}>
+                            <button id="chat-tab-friends"
+                                onClick={() => {
+                                    var fs = document.getElementById('chat-section-friends');
+                                    var gs = document.getElementById('chat-section-groups');
+                                    var tf = document.getElementById('chat-tab-friends');
+                                    var tg = document.getElementById('chat-tab-groups');
+                                    if(fs) fs.style.display='block';
+                                    if(gs) gs.style.display='none';
+                                    if(tf){ tf.style.color='#00f2ff'; tf.style.borderBottom='2px solid #00f2ff'; }
+                                    if(tg){ tg.style.color='#6b7280'; tg.style.borderBottom='2px solid transparent'; }
+                                }}
+                                style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#00f2ff',borderBottom:'2px solid #00f2ff',transition:'all 0.2s'}}>
+                                👥 {lang==='ar'?'الأصدقاء':t.tabFriends}
+                                {friendRequests.length > 0 && <span style={{marginLeft:'4px',fontSize:'9px',background:'var(--accent)',color:'#fff',borderRadius:'10px',padding:'1px 5px',fontWeight:700}}>{friendRequests.length}</span>}
+                            </button>
+                            <button id="chat-tab-groups"
+                                onClick={() => {
+                                    var fs = document.getElementById('chat-section-friends');
+                                    var gs = document.getElementById('chat-section-groups');
+                                    var tf = document.getElementById('chat-tab-friends');
+                                    var tg = document.getElementById('chat-tab-groups');
+                                    if(fs) fs.style.display='none';
+                                    if(gs) gs.style.display='block';
+                                    if(tg){ tg.style.color='#a78bfa'; tg.style.borderBottom='2px solid #a78bfa'; }
+                                    if(tf){ tf.style.color='#6b7280'; tf.style.borderBottom='2px solid transparent'; }
+                                }}
+                                style={{flex:1,padding:'8px 0',borderRadius:'10px 10px 0 0',border:'none',cursor:'pointer',fontSize:'12px',fontWeight:700,background:'transparent',color:'#6b7280',borderBottom:'2px solid transparent',transition:'all 0.2s'}}>
+                                👨‍👩‍👧 {lang==='ar'?'الجروبات':'Groups'}
+                            </button>
                         </div>
 
-                        {/* Social squares grid */}
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',margin:'12px 16px 0'}}>
-                            {/* Couples */}
-                            <div className="discover-sq"
+                        {/* ── Friends Section ── */}
+                        <div id="chat-section-friends">
+                            {/* Add Friend */}
+                            <div style={{margin:'0 16px 10px',display:'flex',gap:'8px'}}>
+                                <input type="text" className="hero-input" style={{flex:1,padding:'9px 13px',fontSize:'12px'}} value={addFriendId} onChange={e => setAddFriendId(e.target.value)} placeholder={t.friendIdPlaceholder} />
+                                <button onClick={gameActions.handleAddFriendById} disabled={!addFriendId.trim()} className="hero-btn-primary" style={{padding:'9px 14px',fontSize:'12px'}}>+ {lang==='ar'?'أضف':'Add'}</button>
+                            </div>
+                            {friendSearchMsg && <p style={{fontSize:'11px',textAlign:'center',padding:'0 16px 8px',color:friendSearchMsg.includes('تم')||friendSearchMsg.includes('Sent')?'#4ade80':'#ff4d4d'}}>{friendSearchMsg}</p>}
+
+                            {/* Official Bot Chats */}
+                            {isLoggedIn && (
+                                <div style={{margin:'0 16px 10px',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'12px',overflow:'hidden'}}>
+                                    <div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',padding:'6px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>🤖 {lang==='ar'?'قنوات رسمية':'Official Channels'}</div>
+                                    {/* Detective Bot */}
+                                    <div onClick={()=>setShowDetectiveBot(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:detectiveBotUnread>0?'rgba(0,212,255,0.05)':'transparent'}} className="me-friend-row">
+                                        <div style={{position:'relative',flexShrink:0}}>
+                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,212,255,0.25),rgba(0,212,255,0.1))',border:'1.5px solid rgba(0,212,255,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>🕵️</div>
+                                            {detectiveBotUnread>0&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#ef4444',border:'1.5px solid var(--bg-main)'}}/>}
+                                        </div>
+                                        <div style={{flex:1,minWidth:0}}>
+                                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                                                <span style={{fontSize:'13px',fontWeight:detectiveBotUnread>0?800:600,color:detectiveBotUnread>0?'#e2e8f0':'#9ca3af'}}>{lang==='ar'?'المحقق':'The Detective'}</span>
+                                                <span style={{fontSize:'8px',fontWeight:900,background:'#00d4ff',color:'#000',padding:'1px 4px',borderRadius:'3px'}}>OFFICIAL</span>
+                                            </div>
+                                            <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'البلاغات والردود':'Reports & Responses'}</div>
+                                        </div>
+                                    </div>
+                                    {/* Love Bot */}
+                                    <div onClick={()=>setShowLoveBot(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,0.04)',cursor:'pointer',background:loveBotUnread>0?'rgba(249,168,212,0.05)':'transparent'}} className="me-friend-row">
+                                        <div style={{position:'relative',flexShrink:0}}>
+                                            <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'linear-gradient(135deg,rgba(249,168,212,0.25),rgba(249,168,212,0.1))',border:'1.5px solid rgba(249,168,212,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px'}}>💌</div>
+                                            {(loveBotUnread>0||bffUnreadCount>0)&&<div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#ec4899',border:'1.5px solid var(--bg-main)'}}/>}
+                                        </div>
+                                        <div style={{flex:1,minWidth:0}}>
+                                            <div style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                                                <span style={{fontSize:'13px',fontWeight:loveBotUnread>0||bffUnreadCount>0?800:600,color:loveBotUnread>0||bffUnreadCount>0?'#e2e8f0':'#9ca3af'}}>{lang==='ar'?'دواء بوت':'Dawa Bot'}</span>
+                                                <span style={{fontSize:'8px',fontWeight:900,background:'#f9a8d4',color:'#000',padding:'1px 4px',borderRadius:'3px'}}>OFFICIAL</span>
+                                            </div>
+                                            <div style={{fontSize:'11px',color:'#6b7280'}}>{lang==='ar'?'إشعارات الزواج و BFF':'Wedding & BFF Notifications'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Friend Requests */}
+                            {friendRequests.length > 0 && (
+                                <div style={{margin:'0 16px 10px',background:'rgba(255,215,0,0.05)',border:'1px solid rgba(255,215,0,0.15)',borderRadius:'12px',overflow:'hidden'}}>
+                                    <div style={{fontSize:'10px',fontWeight:700,color:'var(--gold)',padding:'8px 14px 4px',textTransform:'uppercase',letterSpacing:'1px'}}>⏳ {lang==='ar'?'طلبات صداقة':'Friend Requests'} ({friendRequests.length})</div>
+                                    {friendRequests.map(req => (
+                                        <div key={req.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 14px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                                            <div style={{flex:1,minWidth:0}}>
+                                                {window.PlayerNameTag
+                                                    ? <window.PlayerNameTag player={req} lang={lang} size="sm" />
+                                                    : <span style={{fontSize:'13px',color:'#e2e8f0'}}>{req.displayName || req.name}</span>}
+                                            </div>
+                                            <button onClick={() => gameActions.handleAcceptRequest && gameActions.handleAcceptRequest(req.id)} style={{padding:'4px 10px',borderRadius:'8px',background:'#00ff88',color:'#000',fontSize:'11px',fontWeight:700,border:'none',cursor:'pointer'}}>{t.accept} ✓</button>
+                                            <button onClick={() => gameActions.handleRejectRequest && gameActions.handleRejectRequest(req.id)} style={{padding:'4px 8px',borderRadius:'8px',background:'rgba(255,255,255,0.07)',color:'var(--text-muted)',fontSize:'11px',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>✕</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Friends List Card */}
+                            <div style={{margin:'0 16px',background:'var(--new-card)',border:'1px solid var(--new-border)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
+                                {/* Self Chat */}
+                                {isLoggedIn && currentUserData && (
+                                    <div onClick={() => setShowSelfChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
+                                        <div style={{flex:1,minWidth:0}}>
+                                            {window.PlayerNameTag
+                                                ? <window.PlayerNameTag player={currentUserData} lang={lang} size="sm" />
+                                                : <span style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>{currentUserData.displayName}</span>}
+                                        </div>
+                                        <div style={{fontSize:'9px',fontWeight:700,color:'var(--primary)',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',borderRadius:'6px',padding:'2px 7px',flexShrink:0}}>💬 {lang==='ar'?'شاتي':'My Chat'}</div>
+                                    </div>
+                                )}
+                                {/* Family Chat Entry */}
+                                {isLoggedIn && userFamily && (() => {
+                                    var readAt = userFamily.chatReadBy?.[currentUID];
+                                    var lastChatAt = userFamily.lastChatAt;
+                                    var hasUnread = lastChatAt && readAt
+                                        ? (lastChatAt.toDate ? lastChatAt.toDate() : new Date(lastChatAt.seconds*1000)) > (readAt.toDate ? readAt.toDate() : new Date(readAt.seconds*1000)) && userFamily.lastChatSenderId !== currentUID
+                                        : !!lastChatAt && userFamily.lastChatSenderId !== currentUID;
+                                    var familyWeeklyAct = userFamily.lastWeekActiveness !== undefined ? userFamily.lastWeekActiveness : (userFamily.weeklyActiveness || 0);
+                                    var signData = typeof window.getFamilySignLevelData === 'function' ? window.getFamilySignLevelData(familyWeeklyAct) : null;
+                                    var signImageURL = typeof window.getFamilySignImage === 'function' ? window.getFamilySignImage(familyWeeklyAct) : null;
+                                    return (
+                                        <div onClick={()=>setShowFamilyChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer',background:hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.06),rgba(255,80,0,0.04))':'transparent'}} className="me-friend-row">
+                                            <div style={{position:'relative',flexShrink:0}}>
+                                                <div style={{width:'36px',height:'36px',borderRadius:'50%',overflow:'hidden',background:'linear-gradient(135deg,rgba(255,136,0,0.2),rgba(255,80,0,0.1))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',border:'1.5px solid rgba(255,136,0,0.3)'}}>
+                                                    {userFamily.photoURL ? <img src={userFamily.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : (userFamily.emblem||'🏠')}
+                                                </div>
+                                                {hasUnread && <div style={{position:'absolute',top:'-2px',right:'-2px',width:'10px',height:'10px',borderRadius:'50%',background:'#f97316',border:'1.5px solid var(--bg-main)'}}/>}
+                                            </div>
+                                            <div style={{flex:1,minWidth:0}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
+                                                    <span style={{fontSize:'13px',fontWeight:hasUnread?800:600,color:hasUnread?'#f97316':'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'120px'}}>{userFamily.name}</span>
+                                                    {window.FamilySignBadge && signData ? (
+                                                        <div style={{transform:'scale(0.85)',transformOrigin:'left center'}}>
+                                                            <window.FamilySignBadge tag={userFamily.tag||'FAM'} color={signData.color} signLevel={signData.level} imageURL={signImageURL} small={true} />
+                                                        </div>
+                                                    ) : signData && <span style={{fontSize:'9px',fontWeight:800,color:signData.color,background:`${signData.color}20`,border:`1px solid ${signData.color}44`,borderRadius:'4px',padding:'1px 5px'}}>{userFamily.tag||'FAM'}</span>}
+                                                </div>
+                                                <div style={{fontSize:'11px',color:'#6b7280',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userFamily.lastChatMessage||(lang==='ar'?'شات العائلة':'Family Chat')}</div>
+                                            </div>
+                                            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
+                                                <div style={{fontSize:'9px',fontWeight:700,color:'#f97316',background:'rgba(255,136,0,0.1)',border:'1px solid rgba(255,136,0,0.25)',borderRadius:'6px',padding:'2px 7px',cursor:'pointer'}} onClick={(e)=>{e.stopPropagation();setShowFamilyModal(true);}}>🏠 {lang==='ar'?'عائلة':'Family'}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                                {/* Friends */}
+                                {friendsData.length === 0 ? (
+                                    <div style={{padding:'24px',textAlign:'center',color:'var(--text-muted)',fontSize:'12px'}}>👥 {t.noFriends}</div>
+                                ) : (() => {
+                                    var online  = friendsData.filter(f => f.onlineStatus === 'online');
+                                    var away    = friendsData.filter(f => f.onlineStatus === 'away');
+                                    var offline = friendsData.filter(f => !f.onlineStatus || f.onlineStatus === 'offline');
+                                    var statusColor = (f) => f.onlineStatus==='online' ? '#4ade80' : f.onlineStatus==='away' ? '#facc15' : '#6b7280';
+                                    var renderFriend = (friend) => {
+                                        var fVipLevel = typeof window.getVIPLevel === 'function' ? (window.getVIPLevel(friend)||0) : 0;
+                                        var fVipCfg = window.getVIPConfig ? window.getVIPConfig(fVipLevel) : null;
+                                        var fEquipped = friend.equipped || {};
+                                        var fBadgeIds = (fEquipped.badges || []).slice(0, 3);
+                                        var fTitleId = fEquipped.titles || null;
+                                        var fTitleItem = fTitleId && typeof SHOP_ITEMS !== 'undefined' ? SHOP_ITEMS.titles?.find(tt => tt.id === fTitleId) : null;
+                                        var sc = statusColor(friend);
+                                        return (
+                                            <div key={friend.id} onClick={() => gameActions.openProfile(friend.id)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer'}} className="me-friend-row">
+                                                <div style={{position:'relative',flexShrink:0}}>
+                                                    <div style={{width:'38px',height:'38px',borderRadius:'50%',overflow:'hidden',border:fVipCfg?`2px solid ${fVipCfg.nameColor}`:'2px solid rgba(255,255,255,0.1)',boxShadow:fVipCfg?`0 0 8px ${fVipCfg.nameColor}44`:'none'}}>
+                                                        {friend.photoURL
+                                                            ? <img src={friend.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                                            : <div style={{width:'100%',height:'100%',background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',color:'#6b7280',fontWeight:700}}>{(friend.displayName||'U')[0].toUpperCase()}</div>}
+                                                    </div>
+                                                    <div style={{position:'absolute',bottom:'0px',right:'0px',width:'9px',height:'9px',borderRadius:'50%',background:sc,border:'1.5px solid #0a0a14'}}/>
+                                                </div>
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    <div style={{display:'flex',alignItems:'center',gap:'4px',flexWrap:'nowrap',marginBottom:fBadgeIds.length>0||fTitleItem?'2px':'0'}}>
+                                                        <span style={{fontSize:'13px',fontWeight:700,color:fVipCfg?fVipCfg.nameColor:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'130px',textShadow:fVipCfg?`0 0 8px ${fVipCfg.nameColor}55`:'none'}}>{friend.displayName||friend.name||'—'}</span>
+                                                        {fVipLevel>0&&fVipCfg&&<span style={{fontSize:'7px',fontWeight:900,background:fVipCfg.nameColor,color:'#000',padding:'1px 3px',borderRadius:'2px',flexShrink:0}}>VIP{fVipLevel}</span>}
+                                                        {friend.staffRole?.role && window.StaffRoleBadge && <window.StaffRoleBadge userData={friend} uid={friend.id} lang={lang} size="sm" />}
+                                                    </div>
+                                                    {fBadgeIds.length>0 && typeof SHOP_ITEMS !== 'undefined' && (
+                                                        <div style={{display:'flex',alignItems:'center',gap:'2px',marginBottom:'2px'}}>
+                                                            {fBadgeIds.map((bid,idx)=>{
+                                                                var b = SHOP_ITEMS.badges?.find(b=>b.id===bid);
+                                                                if(!b) return null;
+                                                                return b.imageUrl&&b.imageUrl.trim()!==''?<img key={idx} src={b.imageUrl} alt="" style={{width:'13px',height:'13px',objectFit:'contain'}}/>:<span key={idx} style={{fontSize:'11px',lineHeight:1}}>{b.preview}</span>;
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                    {fTitleItem && (
+                                                        <div style={{display:'flex',alignItems:'center',gap:'2px'}}>
+                                                            {fTitleItem.imageUrl&&fTitleItem.imageUrl.trim()!==''?<img src={fTitleItem.imageUrl} alt="" style={{maxWidth:'70px',maxHeight:'12px',objectFit:'contain'}}/>:<span style={{fontSize:'9px',color:'#a78bfa',lineHeight:1,whiteSpace:'nowrap'}}>🌐 {lang==='ar'?fTitleItem.name_ar:fTitleItem.name_en}</span>}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button onClick={(e)=>{e.stopPropagation(); gameActions.openPrivateChat && gameActions.openPrivateChat(friend);}} className="btn-ghost" style={{padding:'5px 8px',borderRadius:'8px',fontSize:'12px',flexShrink:0}}>💬</button>
+                                            </div>
+                                        );
+                                    };
+                                    return (<>
+                                        {online.length>0&&(<><div style={{fontSize:'9px',fontWeight:700,color:'#4ade80',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80',display:'inline-block'}}/>{t.online} ({online.length})</div>{online.map(renderFriend)}</>)}
+                                        {away.length>0&&(<><div style={{fontSize:'9px',fontWeight:700,color:'#facc15',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#facc15',display:'inline-block'}}/>{lang==='ar'?'بعيد':'Away'} ({away.length})</div>{away.map(renderFriend)}</>)}
+                                        {offline.length>0&&(<><div style={{fontSize:'9px',fontWeight:700,color:'#6b7280',textTransform:'uppercase',padding:'8px 14px 4px',display:'flex',alignItems:'center',gap:'5px'}}><span style={{width:'6px',height:'6px',borderRadius:'50%',background:'#6b7280',display:'inline-block'}}/>{t.offline} ({offline.length})</div>{offline.map(renderFriend)}</>)}
+                                    </>);
+                                })()}
+                            </div>
+                        </div>{/* end friends section */}
+
+                        {/* ── Groups Section ── */}
+                        <div id="chat-section-groups" style={{display:'none'}}>
+                            {window.GroupsSection && (
+                                <window.GroupsSection
+                                    currentUser={user}
+                                    currentUserData={currentUserData}
+                                    currentUID={currentUID}
+                                    friendsData={friendsData}
+                                    lang={lang}
+                                    onNotification={setNotification}
+                                    isLoggedIn={isLoggedIn}
+                                    onOpenProfile={gameActions.openProfile}
+                                />
+                            )}
+                        </div>
+                        </>)}
+                    </div>
+                )}
+
+                {/* ══ DISCOVER VIEW (OG Faithful) ══ */}
+                {!room && activeView === 'discover' && (
+                    <div style={{paddingBottom:'8px'}}>
+                        <div className="sec-head-new" style={{paddingTop:'14px'}}>
+                            <span className="sec-title-new">🔥 {lang==='ar'?'اكتشف':'Discover'}</span>
+                        </div>
+                        <div className="discover-grid" style={{gridTemplateColumns:'repeat(2,1fr)', gap:'12px'}}>
+                            {/* Moments — full width */}
+                            <div
+                                className="discover-sq"
                                 style={{
-                                    background:'linear-gradient(145deg,rgba(236,72,153,0.12),rgba(168,85,247,0.08))',
-                                    border:'1px solid rgba(236,72,153,0.3)',
-                                    borderRadius:'16px', padding:'18px 12px',
-                                    cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px',
-                                    position:'relative',
+                                    '--dsq-bg':'linear-gradient(145deg,rgba(0,242,255,0.12),rgba(112,0,255,0.08))',
+                                    '--dsq-border':'rgba(0,242,255,0.3)',
+                                    padding:'18px 12px',
+                                    gridColumn:'span 2',
+                                    aspectRatio:'2 / 1.2',
+                                }}
+                                onClick={() => { setShowFriendsMoments(true); setHasNewMoments(false); localStorage.setItem('last_moments_view', Date.now().toString()); }}
+                            >
+                                {hasNewMoments && <div className="dsq-dot" style={{background:'#ff4b4b',boxShadow:'0 0 10px #ff4b4b',width:'10px',height:'10px'}}/>}
+                                <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(0,242,255,0.25),rgba(112,0,255,0.2))',width:'56px',height:'56px',fontSize:'28px'}}>📸</div>
+                                <div className="dsq-label" style={{fontSize:'14px'}}>{lang==='ar'?'مومنت الأصدقاء':'Friends Moments'}</div>
+                                <div style={{fontSize:'10px',color:'var(--text-muted)',marginTop:'-4px'}}>{lang==='ar'?'شارك لحظاتك مع أصدقائك':'Share moments with friends'}</div>
+                            </div>
+
+                            {/* Couples */}
+                            <div
+                                className="discover-sq"
+                                style={{
+                                    '--dsq-bg':'linear-gradient(145deg,rgba(236,72,153,0.12),rgba(168,85,247,0.08))',
+                                    '--dsq-border':'rgba(236,72,153,0.3)',
+                                    padding:'18px 12px',
                                 }}
                                 onClick={() => {
                                     if (!isLoggedIn) { setShowLoginAlert(true); return; }
                                     setShowWeddingHall(true);
                                 }}
                             >
-                                {coupleData && <div className="dsq-dot" style={{background:'#ec4899', position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',borderRadius:'50%'}}/>}
-                                <div style={{width:'54px',height:'54px',borderRadius:'14px',background:'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(168,85,247,0.2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',overflow:'hidden'}}>
+                                {coupleData && <div className="dsq-dot" style={{background:'#ec4899'}}/>}
+                                <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(168,85,247,0.2))'}}>
                                     {coupleData && partnerData?.photoURL
                                         ? <img src={partnerData.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'14px'}}/>
                                         : '💍'
                                     }
                                 </div>
-                                <div style={{fontSize:'13px',fontWeight:700,color:'rgba(255,255,255,0.85)'}}>{lang==='ar'?'الكابلز':'Couples'}</div>
+                                <div className="dsq-label">{lang==='ar'?'الكابلز':'Couples'}</div>
                                 {coupleData && partnerData && (
-                                    <div style={{fontSize:'9px',color:'#f9a8d4',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                                        {partnerData.displayName}
-                                    </div>
+                                    <div style={{fontSize:'9px',color:'#f9a8d4',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{partnerData.displayName}</div>
                                 )}
                             </div>
 
                             {/* Family */}
-                            <div className="discover-sq"
+                            <div
+                                className="discover-sq"
                                 style={{
-                                    background:'linear-gradient(145deg,rgba(255,136,0,0.1),rgba(255,80,0,0.06))',
-                                    border:'1px solid rgba(255,136,0,0.28)',
-                                    borderRadius:'16px', padding:'18px 12px',
-                                    cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:'6px',
-                                    position:'relative',
+                                    '--dsq-bg':'linear-gradient(145deg,rgba(255,136,0,0.1),rgba(255,80,0,0.06))',
+                                    '--dsq-border':'rgba(255,136,0,0.28)',
+                                    padding:'18px 12px',
                                 }}
                                 onClick={()=>setShowFamilyModal(true)}
                             >
-                                {userFamily && <div style={{position:'absolute',top:'8px',right:'8px',width:'8px',height:'8px',background:'#f97316',borderRadius:'50%'}}/>}
-                                <div style={{width:'54px',height:'54px',borderRadius:'14px',background:'linear-gradient(135deg,rgba(255,136,0,0.22),rgba(255,80,0,0.12))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',overflow:'hidden'}}>
+                                {userFamily && <div className="dsq-dot" style={{background:'#f97316'}}/>}
+                                <div className="dsq-icon" style={{background:'linear-gradient(135deg,rgba(255,136,0,0.22),rgba(255,80,0,0.12))'}}>
                                     {userFamily?.photoURL
                                         ? <img src={userFamily.photoURL} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'14px'}}/>
                                         : (userFamily?.emblem || '🏠')
                                     }
                                 </div>
-                                <div style={{fontSize:'13px',fontWeight:700,color:'rgba(255,255,255,0.85)'}}>{lang==='ar'?'العائلة':'Family'}</div>
+                                <div className="dsq-label">{lang==='ar'?'العائلة':'Family'}</div>
                                 {userFamily && (
-                                    <div style={{fontSize:'9px',color:'#fb923c',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                                        {userFamily.name}
-                                    </div>
+                                    <div style={{fontSize:'9px',color:'#fb923c',textAlign:'center',fontWeight:600,maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{userFamily.name}</div>
                                 )}
                             </div>
                         </div>
