@@ -390,17 +390,33 @@ var FamilyChatModal = (props) => {
                                     React.createElement('div', { style:{ fontSize:'10px', fontWeight:800, color:'#9ca3af', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' } },
                                         '📦 ' + (lang==='ar'?'محتويات الصندوق':'Chest Contents')
                                     ),
-                                    cfg2 && React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(56px,1fr))', gap:'6px', marginBottom:'10px' } },
+                                    cfg2 && React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(64px,1fr))', gap:'7px', marginBottom:'12px' } },
                                         cfg2.rewards.map(function(r, ri) {
                                             var resolved = typeof window.resolveRewardItem === 'function' ? window.resolveRewardItem(r) : r;
-                                            var imgSrc = resolved.imageURL || resolved.imageUrl || null;
-                                            var qty = r.amount || r.qty || 1;
-                                            return React.createElement('div', { key: ri, style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', padding:'6px 4px', minWidth:0 } },
+                                            var imgSrc   = resolved.imageURL || resolved.imageUrl || null;
+                                            var fprev    = resolved.preview || null;
+                                            var isGradient = fprev && !fprev.startsWith('http') && !fprev.startsWith('icos') && !fprev.startsWith('/');
+                                            var isImgPrev  = fprev && !isGradient;
+                                            var qty  = r.amount || r.qty || 1;
+                                            var dur  = r.duration || resolved.duration || null;
+                                            var isLimited = resolved.isEvent || resolved.limitedTime || resolved.eventOnly;
+                                            var RC   = window.RARITY_CONFIG;
+                                            var rarC = RC && resolved.rarity && RC[resolved.rarity];
+                                            var cardBg  = rarC ? rarC.color+'18' : 'rgba(255,255,255,0.05)';
+                                            var cardBdr = rarC ? rarC.color+'55' : 'rgba(255,255,255,0.12)';
+                                            return React.createElement('div', { key: ri, style:{ position:'relative', display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', background:cardBg, border:'1px solid '+cardBdr, borderRadius:'10px', padding:'7px 4px 5px', minWidth:0, overflow:'hidden' } },
+                                                isGradient && React.createElement('div', { style:{ position:'absolute', top:0, left:0, right:0, height:'3px', background:fprev, borderRadius:'10px 10px 0 0' } }),
                                                 imgSrc
-                                                    ? React.createElement('img', { src: imgSrc, alt:'', style:{ width:'32px', height:'32px', objectFit:'contain' } })
-                                                    : React.createElement('span', { style:{ fontSize:'22px', lineHeight:1 } }, resolved.icon || r.icon || '🎁'),
-                                                React.createElement('span', { style:{ fontSize:'9px', color:'#d1d5db', textAlign:'center', lineHeight:1.2, wordBreak:'break-word' } }, lang==='ar' ? (resolved.label_ar||r.label_ar||resolved.name||'') : (resolved.label_en||r.label_en||resolved.name||'')),
-                                                qty > 1 && React.createElement('span', { style:{ fontSize:'9px', color:'#9ca3af', fontWeight:700 } }, '\u00d7' + qty)
+                                                    ? React.createElement('img', { src:imgSrc, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain', borderRadius:'6px' } })
+                                                    : isImgPrev
+                                                        ? React.createElement('img', { src:fprev, alt:'', style:{ width:'36px', height:'36px', objectFit:'contain', borderRadius:'6px' } })
+                                                        : isGradient
+                                                            ? React.createElement('div', { style:{ width:'34px', height:'34px', borderRadius:'50%', background:fprev, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' } }, '🖼️')
+                                                            : React.createElement('span', { style:{ fontSize:'24px', lineHeight:1 } }, resolved.icon || r.icon || '🎁'),
+                                                React.createElement('span', { style:{ fontSize:'9px', color:'#d1d5db', textAlign:'center', lineHeight:1.2, wordBreak:'break-word', width:'100%' } }, lang==='ar' ? (resolved.label_ar||r.label_ar||resolved.name||'') : (resolved.label_en||r.label_en||resolved.name||'')),
+                                                dur && React.createElement('span', { style:{ fontSize:'8px', color:'#60a5fa', fontWeight:700, background:'rgba(96,165,250,0.15)', borderRadius:'4px', padding:'1px 4px' } }, dur+(lang==='ar'?' أيام':'d')),
+                                                qty > 1 && React.createElement('span', { style:{ fontSize:'9px', color:'#9ca3af', fontWeight:700 } }, '\u00d7'+qty),
+                                                isLimited && React.createElement('span', { style:{ fontSize:'7px', background:'rgba(245,158,11,0.2)', color:'#fbbf24', border:'1px solid rgba(245,158,11,0.4)', borderRadius:'3px', padding:'1px 3px' } }, lang==='ar'?'حصري':'Exclusive')
                                             );
                                         })
                                     ),
@@ -413,21 +429,35 @@ var FamilyChatModal = (props) => {
                                             var hasClaimed2 = !!liveClaimedBy[uid2];
                                             var isCurrentUser = uid2 === currentUID;
                                             var memberName = (msg.assignedMemberNames && msg.assignedMemberNames[uid2]) || ((familyMembers.find(function(m){ return m.id === uid2; })||{}).displayName) || uid2.slice(0,8);
-                                            var shareParts = [];
-                                            if (drop.currency > 0) shareParts.push(drop.currency + ' 🧠');
-                                            if (drop.coins > 0) shareParts.push(drop.coins + ' ' + FAMILY_COINS_SYMBOL);
-                                            if (drop.charisma > 0) shareParts.push(drop.charisma + ' ⭐');
-                                            (drop.items||[]).forEach(function(it) {
+                                            // Build reward pills for currency/coins/charisma
+                                            var pills = [];
+                                            if (drop.currency > 0) pills.push({ lbl: drop.currency.toLocaleString()+' 🧠', color:'#00f2ff', bg:'rgba(0,242,255,0.12)', bdr:'rgba(0,242,255,0.3)' });
+                                            if (drop.coins    > 0) pills.push({ lbl: drop.coins.toLocaleString()+' '+(FAMILY_COINS_SYMBOL||'🏅'), color:'#ffd700', bg:'rgba(255,215,0,0.12)', bdr:'rgba(255,215,0,0.3)' });
+                                            if (drop.charisma > 0) pills.push({ lbl: drop.charisma.toLocaleString()+' ⭐', color:'#a78bfa', bg:'rgba(167,139,250,0.12)', bdr:'rgba(167,139,250,0.3)' });
+                                            // Build mini item cards
+                                            var itemCards = (drop.items||[]).map(function(it, iti) {
                                                 var res = typeof window.resolveRewardItem === 'function' ? window.resolveRewardItem(it) : it;
-                                                shareParts.push((it.qty||1) + '\u00d7' + (res.icon || it.icon || '🎁'));
+                                                var iSrc = res.imageURL || res.imageUrl || null;
+                                                var fp   = res.preview || null;
+                                                var isIP = fp && (fp.startsWith('http') || fp.startsWith('icos'));
+                                                return React.createElement('div', { key: iti, style:{ display:'inline-flex', alignItems:'center', gap:'3px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.14)', borderRadius:'6px', padding:'2px 5px' } },
+                                                    iSrc ? React.createElement('img', { src:iSrc, alt:'', style:{width:'14px',height:'14px',objectFit:'contain',borderRadius:'2px'} })
+                                                        : isIP ? React.createElement('img', { src:fp, alt:'', style:{width:'14px',height:'14px',objectFit:'contain',borderRadius:'2px'} })
+                                                        : React.createElement('span', { style:{fontSize:'12px',lineHeight:1} }, res.icon||it.icon||'🎁'),
+                                                    React.createElement('span', { style:{fontSize:'8px',color:'#d1d5db',maxWidth:'55px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'} }, lang==='ar'?(res.label_ar||''):(res.label_en||'')),
+                                                    (it.qty||1)>1 && React.createElement('span', {style:{fontSize:'8px',color:'#9ca3af',fontWeight:700}}, '\u00d7'+(it.qty||1))
+                                                );
                                             });
-                                            return React.createElement('div', { key: uid2, style:{ display:'flex', alignItems:'center', gap:'6px', padding:'5px 8px', marginBottom:'3px', borderRadius:'7px', background: hasClaimed2 ? 'rgba(16,185,129,0.1)' : (isCurrentUser ? 'rgba(0,242,255,0.07)' : 'rgba(255,255,255,0.03)'), border: '1px solid ' + (hasClaimed2 ? 'rgba(16,185,129,0.25)' : isCurrentUser ? 'rgba(0,242,255,0.25)' : 'rgba(255,255,255,0.07)') } },
-                                                React.createElement('span', { style:{ fontSize:'14px', flexShrink:0 } }, hasClaimed2 ? '✅' : '⏳'),
-                                                React.createElement('div', { style:{ flex:1, minWidth:0 } },
-                                                    React.createElement('div', { style:{ fontSize:'10px', color: hasClaimed2 ? '#10b981' : '#e2e8f0', fontWeight:700 } }, memberName + (isCurrentUser ? (lang==='ar'?' (أنت)':' (You)') : '')),
-                                                    hasClaimed2 && shareParts.length > 0 && React.createElement('div', { style:{ fontSize:'9px', color:'#fbbf24', marginTop:'1px' } }, (lang==='ar'?'استلم: ':'Got: ') + shareParts.join(' • ')),
-                                                    !hasClaimed2 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', marginTop:'1px' } }, lang==='ar'?'لم يستلم بعد':'Not claimed yet')
-                                                )
+                                            var hasRewards = pills.length > 0 || itemCards.length > 0;
+                                            return React.createElement('div', { key: uid2, style:{ display:'flex', flexDirection:'column', gap:'5px', padding:'7px 8px', marginBottom:'4px', borderRadius:'9px', background: hasClaimed2 ? 'rgba(16,185,129,0.1)' : (isCurrentUser ? 'rgba(0,242,255,0.07)' : 'rgba(255,255,255,0.03)'), border: '1px solid ' + (hasClaimed2 ? 'rgba(16,185,129,0.25)' : isCurrentUser ? 'rgba(0,242,255,0.25)' : 'rgba(255,255,255,0.07)') } },
+                                                React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:'6px' } },
+                                                    React.createElement('span', { style:{ fontSize:'14px', flexShrink:0 } }, hasClaimed2 ? '✅' : '⏳'),
+                                                    React.createElement('span', { style:{ fontSize:'10px', color: hasClaimed2 ? '#10b981' : '#e2e8f0', fontWeight:700, flex:1 } }, memberName + (isCurrentUser ? (lang==='ar'?' (أنت)':' (You)') : ''))
+                                                ),
+                                                hasClaimed2 && hasRewards && React.createElement('div', { style:{ display:'flex', flexWrap:'wrap', gap:'4px', paddingLeft:'20px' } },
+                                                    pills.map(function(p,pi){ return React.createElement('span',{key:'p'+pi, style:{fontSize:'9px',color:p.color,background:p.bg,border:'1px solid '+p.bdr,borderRadius:'5px',padding:'2px 6px',fontWeight:700}}, p.lbl); }).concat(itemCards)
+                                                ),
+                                                !hasClaimed2 && React.createElement('div', { style:{ fontSize:'9px', color:'#6b7280', paddingLeft:'20px' } }, lang==='ar'?'لم يستلم بعد':'Not claimed yet')
                                             );
                                         }),
                                         React.createElement('div', { style:{ marginTop:'8px', padding:'5px 8px', borderRadius:'7px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', fontSize:'10px', color:'#9ca3af', display:'flex', justifyContent:'space-between' } },

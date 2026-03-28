@@ -16,6 +16,9 @@
             fmtTime, messagesEndRef, chatInputRef, fileInputRef, groupImgInputRef, showEmojiPicker, setShowEmojiPicker
         } = props;
 
+        // ── Late-binding: read from window at render time ──
+        var PortalModal = window.PortalModal || (({ children }) => children);
+
         // Local state for invite overlay (managed here, passed to GroupDetailsModal)
         var [showInvite, setShowInvite] = React.useState(false);
 

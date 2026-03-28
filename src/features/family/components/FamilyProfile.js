@@ -304,6 +304,68 @@ var FamilyProfile = ({
                 )}
             </div>
 
+            {/* ══ FAMILY SIGN CARD ══ */}
+            {(() => {
+                var SIGN_LEVELS = (window.FamilyConstants || {}).FAMILY_SIGN_LEVELS || [];
+                if (!SIGN_LEVELS.length) return null;
+                var currentSign = signData;
+                var nextSign = SIGN_LEVELS.find(s => s.level === currentSign.level + 1) || null;
+                var prevThreshold = currentSign.threshold || 0;
+                var nextThreshold = nextSign ? nextSign.threshold : null;
+                var signProgress = nextThreshold
+                    ? Math.min(100, Math.round(((weeklyActiveness - prevThreshold) / (nextThreshold - prevThreshold)) * 100))
+                    : 100;
+                var needed = nextThreshold ? Math.max(0, nextThreshold - weeklyActiveness) : 0;
+
+                return (
+                    <div style={{ margin: '10px 12px 0', background: `linear-gradient(135deg,${currentSign.color}0d,rgba(0,0,0,0.3))`, border: `1px solid ${currentSign.color}33`, borderRadius: '16px', padding: '12px 14px', position: 'relative', overflow: 'hidden' }}>
+                        {/* Glow bg */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at top left, ${currentSign.color}08 0%, transparent 60%)`, pointerEvents: 'none' }} />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {/* Sign image */}
+                            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                {currentSign.imageURL
+                                    ? <div style={{ position: 'relative', width: '62px', height: '36px', filter: currentSign.hasGlow ? `drop-shadow(0 0 8px ${currentSign.color}cc)` : 'none' }}>
+                                        <img src={currentSign.imageURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        <span style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', fontSize: '8px', fontWeight: 900, fontStyle: 'italic', color: '#fff', textShadow: '0 0 6px rgba(0,0,0,0.9),1px 1px 0 rgba(0,0,0,0.8)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>{family.tag || 'FAM'}</span>
+                                    </div>
+                                    : <span style={{ fontSize: '28px' }}>{currentSign.defaultIcon || '🏠'}</span>}
+                                <span style={{ fontSize: '9px', fontWeight: 800, color: currentSign.color }}>{lang === 'ar' ? `المستوى ${currentSign.level}` : `Lv.${currentSign.level}`}</span>
+                            </div>
+
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🪪 {lang === 'ar' ? 'شارة القبيلة' : 'Family Sign'}</span>
+                                    <span style={{ fontSize: '10px', fontWeight: 700, color: currentSign.color }}>{lang === 'ar' ? (currentSign.name_ar || '') : (currentSign.name_en || '')}</span>
+                                </div>
+
+                                {nextSign ? (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                            <span style={{ fontSize: '9px', color: '#9ca3af' }}>{weeklyActiveness.toLocaleString()} / {nextSign.threshold.toLocaleString()}</span>
+                                            <span style={{ fontSize: '9px', color: '#6b7280' }}>{lang === 'ar' ? `يتبقى ${needed.toLocaleString()} نشاط` : `${needed.toLocaleString()} left`}</span>
+                                        </div>
+                                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.07)', borderRadius: '10px', overflow: 'hidden', marginBottom: '5px' }}>
+                                            <div style={{ height: '100%', width: `${signProgress}%`, background: `linear-gradient(90deg,${currentSign.color},${nextSign.color})`, borderRadius: '10px', transition: 'width 0.5s ease' }} />
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#9ca3af' }}>
+                                            {nextSign.imageURL && <img src={nextSign.imageURL} alt="" style={{ height: '16px', objectFit: 'contain', opacity: 0.6 }} />}
+                                            <span style={{ color: nextSign.color, fontWeight: 700 }}>{lang === 'ar' ? nextSign.name_ar : nextSign.name_en}</span>
+                                            <span>—</span>
+                                            <span>{lang === 'ar' ? 'الأسبوع القادم عند' : 'next week at'}</span>
+                                            <span style={{ color: '#fff', fontWeight: 800 }}>{nextSign.threshold.toLocaleString()} ⚡</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{ fontSize: '10px', color: currentSign.color, fontWeight: 800 }}>✨ {lang === 'ar' ? 'أعلى مستوى! استمر في بناء نشاطك' : 'Max level! Keep up the activeness!'}</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
             {/* ══ ACTIVENESS SECTION ══ */}
             <div style={{ margin: '10px 12px 0', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>

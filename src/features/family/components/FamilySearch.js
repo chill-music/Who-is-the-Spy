@@ -63,6 +63,20 @@ var FamilySearch = ({
         setLoadingFamilies(false);
     };
 
+    // Safe alert helper — uses Swal if available, falls back to onNotification
+    var _alert = function(opts, thenFn) {
+        var Swal = window.Swal;
+        if (Swal && typeof Swal.fire === 'function') {
+            var p = Swal.fire(opts);
+            if (thenFn) p.then(thenFn);
+        } else {
+            var icon = opts.icon === 'success' ? '✅ ' : opts.icon === 'error' ? '❌ ' : opts.icon === 'info' ? 'ℹ️ ' : '';
+            var msg = [opts.title, opts.text].filter(Boolean).join(' — ');
+            if (onNotification) onNotification(icon + msg);
+            if (thenFn) thenFn();
+        }
+    };
+
     var handleJoin = async (family) => {
         if (!family?.id) return;
         
@@ -75,7 +89,7 @@ var FamilySearch = ({
             });
 
             if (res?.status === 'pending') {
-                window.Swal.fire({
+                _alert({
                     icon: 'info',
                     title: lang === 'ar' ? 'تم إرسال الطلب' : 'Request Sent',
                     text: lang === 'ar' ? 'القبيلة تطلب موافقة للانضمام. تم إرسال طلبك للقائد.' : 'This family requires approval. Your request has been sent to the leaders.',
@@ -83,24 +97,22 @@ var FamilySearch = ({
                     background: '#1a1a2e', color: '#fff', confirmButtonColor: '#fc00ff'
                 });
             } else if (res?.status === 'joined') {
-                window.Swal.fire({
+                _alert({
                     icon: 'success',
                     title: lang === 'ar' ? 'تم الانضمام' : 'Joined Successfully',
                     text: lang === 'ar' ? 'مرحباً بك في القبيلة!' : 'Welcome to the family!',
                     confirmButtonText: lang === 'ar' ? 'دخول' : 'Enter',
                     background: '#1a1a2e', color: '#fff', confirmButtonColor: '#00dbde'
-                }).then(() => {
-                    if (onClose) onClose();
-                });
+                }, () => { if (onClose) onClose(); });
             }
         } catch (e) {
             console.error(e);
             var errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
-            if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
-            else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
-            else if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة (تم الحذف)' : 'This family no longer exists (deleted)';
+            if (e.message === 'Family is full')    errorMsg = lang === 'ar' ? 'القبيلة ممتلئة'                    : 'Family is full';
+            else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً'          : 'Request already sent';
+            else if (e.message === 'Family not found')  errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة'    : 'This family no longer exists';
             
-            window.Swal.fire({
+            _alert({
                 icon: 'error',
                 title: lang === 'ar' ? 'عفواً' : 'Oops',
                 text: errorMsg,
