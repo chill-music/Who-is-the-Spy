@@ -17,7 +17,6 @@
     onOpenSettings,
     onOpenShop,
     onOpenInventory,
-    onOpenLuckyGames,
     onLogout,
     onLoginGoogle,
     isLoggedIn: isLoggedInProp,
@@ -56,7 +55,6 @@
     var [reportSending, setReportSending] = useState(false);
     var [selfGift, setSelfGift] = useState(null);
     var [showSelfGiftModal, setShowSelfGiftModal] = useState(false);
-    var [showLuckyGamesHub, setShowLuckyGamesHub] = useState(false);
 
     var [showBanModal, setShowBanModal] = useState(false);
     var [showRoleModal, setShowRoleModal] = useState(false);
@@ -845,49 +843,12 @@
 
                         {/* Own profile action buttons */}
                         {isOwnProfile && (
-                            <div style={{padding:'0 12px 12px', display:'flex', flexDirection:'column', gap:'8px'}}>
-                                {/* Row 1: Lucky Games + Self Gift */}
-                                <div style={{display:'flex', gap:'8px'}}>
-                                    {/* 🎰 Lucky Games Hub */}
-                                    <button
-                                        onClick={() => {
-                                            if (onOpenLuckyGames) onOpenLuckyGames();
-                                            else setShowLuckyGamesHub(true);
-                                        }}
-                                        style={{
-                                            flex:1, padding:'11px', borderRadius:'12px',
-                                            background:'linear-gradient(135deg,rgba(123,63,255,0.18),rgba(255,140,0,0.14))',
-                                            border:'1px solid rgba(255,215,0,0.35)', color:'#FFD700',
-                                            fontSize:'12px', fontWeight:800, cursor:'pointer',
-                                            display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
-                                            transition:'all 0.2s',
-                                            boxShadow:'0 0 14px rgba(255,215,0,0.1)',
-                                        }}
-                                    >
-                                        <span style={{fontSize:'16px'}}>🎰</span>
-                                        <span>{lang === 'ar' ? 'ألعاب الحظ' : 'Lucky Games'}</span>
-                                    </button>
-                                    {/* Self Gift */}
-                                    <button
-                                        onClick={() => setShowSelfGiftModal(true)}
-                                        style={{
-                                            flex:1, padding:'11px', borderRadius:'12px',
-                                            background:GR.GOLD,
-                                            border:'1px solid rgba(255,215,0,0.4)', color:'#facc15',
-                                            fontSize:'12px', fontWeight:800, cursor:'pointer',
-                                            display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
-                                            transition:'all 0.2s'
-                                        }}
-                                    >
-                                        <span style={{fontSize:'16px'}}>🎁</span>
-                                        <span>{lang === 'ar' ? 'هدية لنفسي' : 'Gift Myself'}</span>
-                                    </button>
-                                </div>
-                                {/* Row 2: Personal Notes Chat */}
+                            <div style={{padding:'0 12px 12px', display:'flex', gap:'8px'}}>
+                                {/* Personal Notes Chat */}
                                 <button
                                     onClick={() => onOpenChat && onOpenChat('self')}
                                     style={{
-                                        width:'100%', padding:'11px', borderRadius:'12px',
+                                        flex:1, padding:'11px', borderRadius:'12px',
                                         background:'linear-gradient(135deg,rgba(0,242,255,0.12),rgba(112,0,255,0.1))',
                                         border:'1px solid rgba(0,242,255,0.3)', color:'#00f2ff',
                                         fontSize:'12px', fontWeight:800, cursor:'pointer',
@@ -898,17 +859,22 @@
                                     <span style={{fontSize:'16px'}}>💬</span>
                                     <span>{lang === 'ar' ? 'شاتي' : 'My Chat'}</span>
                                 </button>
+                                {/* Self Gift */}
+                                <button
+                                    onClick={() => setShowSelfGiftModal(true)}
+                                    style={{
+                                        flex:1, padding:'11px', borderRadius:'12px',
+                                        background:GR.GOLD,
+                                        border:'1px solid rgba(255,215,0,0.4)', color:'#facc15',
+                                        fontSize:'12px', fontWeight:800, cursor:'pointer',
+                                        display:'flex', alignItems:'center', justifyContent:'center', gap:'6px',
+                                        transition:'all 0.2s'
+                                    }}
+                                >
+                                    <span style={{fontSize:'16px'}}>🎁</span>
+                                    <span>{lang === 'ar' ? 'هدية لنفسي' : 'Gift Myself'}</span>
+                                </button>
                             </div>
-                        )}
-
-                        {/* 🎰 Lucky Games Hub Modal (inline fallback when onOpenLuckyGames not provided) */}
-                        {showLuckyGamesHub && window.LuckyGamesHubModal && (
-                            <window.LuckyGamesHubModal
-                                show={showLuckyGamesHub}
-                                onClose={() => setShowLuckyGamesHub(false)}
-                                lang={lang}
-                                userData={userData}
-                            />
                         )}
                     </>
                 )}
