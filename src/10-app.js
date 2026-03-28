@@ -91,12 +91,20 @@
         });
 
         var gameActions = window.useGameActions({
-            user, userData, currentUID, isLoggedIn, isGuest, lang, t, room, roomId, nickname,
-            setNotification, setAlertMessage, setRoom, setRoomId, setShowSetupModal, setLoading,
-            setShowMyAccount, setShowUserProfile, setTargetProfileUID, setShowShop, setShowInventory,
-            setShowSettings, setShowFamilyModal, setShowFamilyChat, setViewFamilyId, setShowBFFModal,
-            setBffInitialTab, setShowWeddingHall, setNickname, setGuestData, setInputCode,
-            setActiveView, setCopied, setGameChatInput, setShowGameChat
+            user, userData, isLoggedIn, isGuest, nickname, lang, t, currentUID, currentUserData,
+            room, roomId, setRoom, setRoomId,
+            guestData, setGuestData, setNickname, setAuthLoading,
+            setNotification, playSound: window.playSound, setAlertMessage, setLoading,
+            setShowSetupModal, setActiveView, setCopied, setShowSummary,
+            setShowLoginAlert, setShowDropdown, setJoinError, setShowBrowseRooms,
+            setFriendsData, setFriendRequests, setChatsMeta, setTotalUnread,
+            setChatFriend, setShowPrivateChat, setOpenChatId, setShowUserProfile, setTargetProfileUID,
+            setLeaderboardData, setCharismaLeaderboard, setFamilyLeaderboard,
+            setIncomingProposal, setShowIncomingProposal,
+            proposalRing, setSessionClaimedToday,
+            isPrivate, password, setupMode, gameChatInput, setGameChatInput,
+            userFamily, friendsData, notifications, setNotifications, setUnreadNotifications,
+            OWNER_UID, addFriendId, setAddFriendId, setFriendSearchMsg
         });
 
         useRoom({
