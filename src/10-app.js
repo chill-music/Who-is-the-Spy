@@ -552,8 +552,9 @@
                                         ? (lastChatAt.toDate ? lastChatAt.toDate() : new Date(lastChatAt.seconds*1000)) > (readAt.toDate ? readAt.toDate() : new Date(readAt.seconds*1000)) && userFamily.lastChatSenderId !== currentUID
                                         : !!lastChatAt && userFamily.lastChatSenderId !== currentUID;
                                     var familyWeeklyAct = userFamily.lastWeekActiveness !== undefined ? userFamily.lastWeekActiveness : (userFamily.weeklyActiveness || 0);
-                                    var signData = typeof window.getFamilySignLevelData === 'function' ? window.getFamilySignLevelData(familyWeeklyAct) : null;
-                                    var signImageURL = typeof window.getFamilySignImage === 'function' ? window.getFamilySignImage(familyWeeklyAct) : null;
+                                    var getFamilySignLvlData = window.FamilyConstants ? window.FamilyConstants.getFamilySignLevelData : null;
+                                    var signData = getFamilySignLvlData ? getFamilySignLvlData(familyWeeklyAct) : { level:1, color:'#6b7280', imageURL:'icos/Family Sign1.png' };
+                                    var signImageURL = signData ? signData.imageURL : null;
                                     return (
                                         <div onClick={()=>setShowFamilyChat(true)} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderBottom:'1px solid var(--new-border)',cursor:'pointer',background:hasUnread?'linear-gradient(135deg,rgba(255,136,0,0.06),rgba(255,80,0,0.04))':'transparent'}} className="me-friend-row">
                                             <div style={{position:'relative',flexShrink:0}}>
