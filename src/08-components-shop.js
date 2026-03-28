@@ -832,19 +832,88 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
             document.body
         )}
 
-        {/* ── Gift Preview Modal ── */}
+        {/* ── Item Preview / Confirm Modal — for frames, titles, badges, effects ── */}
         {showPreview && selectedItem && ReactDOM.createPortal(
-            <GiftPreviewModal
-                show={showPreview}
-                onClose={()=>setShowPreview(false)}
-                gift={selectedItem}
-                lang={lang}
-                onBuy={(item,target)=>{ if(currency>=item.cost){onPurchase(item,target);setShowPreview(false);} }}
-                currency={currency}
-                friendsData={[]}
-                user={{uid:userData?.uid}}
-                currentUserData={userData}
-            />,
+            (() => {
+                // للهدايا: نستخدم GiftPreviewModal الأصلي
+                if (selectedItem.type === 'gifts' || selectedItem.type === 'gifts_vip') {
+                    var GPM = window.GiftPreviewModal;
+                    if (!GPM) return null;
+                    return (
+                        <GPM
+                            show={showPreview}
+                            onClose={()=>setShowPreview(false)}
+                            gift={selectedItem}
+                            lang={lang}
+                            onBuy={(item,target)=>{ if(currency>=item.cost){onPurchase(item,target);setShowPreview(false);} }}
+                            currency={currency}
+                            friendsData={[]}
+                            user={{uid:userData?.uid}}
+                            currentUserData={userData}
+                        />
+                    );
+                }
+                // للأيتمز الأخرى (frames/titles/badges/effects): نافذة شراء مخصصة
+                var item = selectedItem;
+                var canAfford = currency >= item.cost;
+                var owned = (userData?.inventory?.[item.type] || []).includes(item.id);
+                var name = lang === 'ar' ? item.name_ar : item.name_en;
+                var desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
+                return (
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'20px'}}
+                        onClick={()=>setShowPreview(false)}>
+                        <div style={{background:'linear-gradient(160deg,#0a0e1f,#0d1225)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'22px',width:'100%',maxWidth:'320px',overflow:'hidden',boxShadow:'0 0 80px rgba(0,0,0,0.9)'}}
+                            onClick={e=>e.stopPropagation()} className="animate-pop">
+                            {/* Top accent */}
+                            <div style={{height:'2px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)'}}/>
+                            <div style={{padding:'24px 20px 20px',textAlign:'center'}}>
+                                {/* Preview */}
+                                <div style={{width:'72px',height:'72px',borderRadius:'18px',background:'rgba(0,242,255,0.06)',border:'1px solid rgba(0,242,255,0.18)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',fontSize:'40px'}}>
+                                    {item.type === 'frames'
+                                        ? (item.preview?.startsWith('http')
+                                            ? <img src={item.preview} alt="" style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover'}}/>
+                                            : <div style={{width:'52px',height:'52px',borderRadius:'50%',background:item.preview}}/>)
+                                        : item.imageUrl
+                                            ? <img src={item.imageUrl} alt="" style={{width:'48px',height:'48px',objectFit:'contain'}}/>
+                                            : <span>{item.preview || '🎨'}</span>}
+                                </div>
+                                <div style={{fontSize:'17px',fontWeight:900,color:'#f1f5f9',marginBottom:'4px'}}>{name}</div>
+                                {desc && <div style={{fontSize:'11px',color:'#6b7280',lineHeight:1.6,marginBottom:'12px'}}>{desc}</div>}
+                                {/* Cost */}
+                                <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.05))',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'10px',padding:'6px 16px',marginBottom:'16px'}}>
+                                    <span style={{fontSize:'16px'}}>🧠</span>
+                                    <span style={{fontSize:'16px',fontWeight:900,color:'#fbbf24'}}>{item.cost?.toLocaleString()}</span>
+                                </div>
+                                {/* Owned / Buy */}
+                                {owned ? (
+                                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                        <div style={{padding:'10px',borderRadius:'10px',background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.25)',fontSize:'13px',color:'#4ade80',fontWeight:700}}>
+                                            ✅ {lang==='ar'?'تمتلك هذا العنصر':'You own this item'}
+                                        </div>
+                                        <button onClick={()=>setShowPreview(false)} style={{width:'100%',padding:'11px',borderRadius:'12px',border:'none',background:'rgba(255,255,255,0.06)',color:'#9ca3af',fontSize:'13px',fontWeight:700,cursor:'pointer'}}>
+                                            {lang==='ar'?'إغلاق':'Close'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{display:'flex',gap:'10px'}}>
+                                        <button onClick={()=>setShowPreview(false)} style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#6b7280',fontSize:'13px',fontWeight:700,cursor:'pointer'}}>
+                                            {lang==='ar'?'إلغاء':'Cancel'}
+                                        </button>
+                                        <button
+                                            onClick={()=>{ if(canAfford){onPurchase(item);setShowPreview(false);} }}
+                                            disabled={!canAfford}
+                                            style={{flex:1,padding:'11px',borderRadius:'12px',border:'none',background:canAfford?'linear-gradient(135deg,#00f2ff22,#7c3aed44)':'rgba(100,100,100,0.12)',color:canAfford?'#00f2ff':'#4b5563',fontSize:'13px',fontWeight:900,cursor:canAfford?'pointer':'not-allowed',border:canAfford?'1px solid rgba(0,242,255,0.35)':'1px solid rgba(255,255,255,0.05)'}}>
+                                            {canAfford
+                                                ? (lang==='ar'?'🛒 شراء':'🛒 Buy')
+                                                : (lang==='ar'?'❌ رصيد غير كافٍ':'❌ Not enough')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })(),
             document.body
         )}
     </React.Fragment>
@@ -1444,21 +1513,27 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
         {/* ✅ FIX2: Item Detail Popup */}
         {detailItem && <ItemDetailPopup item={detailItem} onClose={()=>setDetailItem(null)} />}
 
-        {/* Gift Preview Modal — rendered via Portal to escape overflow:hidden */}
+        {/* Gift Preview Modal — rendered via Portal, using window.GiftPreviewModal for late-binding */}
         {showGiftPreview&&selectedGift&&ReactDOM.createPortal(
-            <GiftPreviewModal
-                show={showGiftPreview}
-                onClose={()=>setShowGiftPreview(false)}
-                gift={selectedGift}
-                lang={lang}
-                onBuy={()=>{}}
-                currency={userData?.currency||0}
-                isFromInventory={true}
-                onSendFromInventory={onSendGift}
-                friendsData={friendsData}
-                currentUserData={currentUserData}
-                user={user}
-            />,
+            (() => {
+                var GPM = window.GiftPreviewModal;
+                if (!GPM) return null;
+                return (
+                    <GPM
+                        show={showGiftPreview}
+                        onClose={()=>setShowGiftPreview(false)}
+                        gift={selectedGift}
+                        lang={lang}
+                        onBuy={()=>{}}
+                        currency={userData?.currency||0}
+                        isFromInventory={true}
+                        onSendFromInventory={onSendGift}
+                        friendsData={friendsData}
+                        currentUserData={currentUserData}
+                        user={user}
+                    />
+                );
+            })(),
             document.body
         )}
         </>
