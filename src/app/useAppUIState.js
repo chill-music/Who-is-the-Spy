@@ -99,6 +99,7 @@
         var [gameChatInput, setGameChatInput] = useState('');
         var [showGameChat, setShowGameChat] = useState(true);
         var gameChatRef = useRef(null);
+        var [showLuckyGames, setShowLuckyGames] = useState(false);
 
         return {
             lang, setLang,
@@ -183,7 +184,8 @@
             showGuestMenu, setShowGuestMenu,
             gameChatInput, setGameChatInput,
             showGameChat, setShowGameChat,
-            gameChatRef
+            gameChatRef,
+            showLuckyGames, setShowLuckyGames,
         };
     };
 })();
