@@ -446,7 +446,6 @@
                         onOpenSettings={() => { setShowMyAccount(false); setShowSettings(true); }}
                         onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
                         onOpenInventory={() => { setShowMyAccount(false); setShowInventory(true); }}
-                        onOpenLuckyGames={() => { setShowMyAccount(false); if(setShowLuckyGames) setShowLuckyGames(true); }}
                         onLogout={handleLogout}
                         onLoginGoogle={() => { setShowMyAccount(false); handleGoogleLogin && handleGoogleLogin(); }}
                         isLoggedIn={isLoggedIn}
