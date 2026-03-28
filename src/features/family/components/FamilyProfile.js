@@ -19,7 +19,7 @@ var FamilyProfile = ({
     if (isReadOnly === undefined) isReadOnly = false;
 
     var photoFileRef = React.useRef(null);
-    var onNotification = window.showNotification || (() => {});
+    var onNotification = window.showNotification || (() => { });
 
     // ── Activeness modal state ──
     var [showActModal, setShowActModal] = React.useState(false);
@@ -28,9 +28,9 @@ var FamilyProfile = ({
     var [weeklyChestBusy, setWeeklyChestBusy] = React.useState(false);
 
     var fmtFamilyNum = window.fmtFamilyNum || ((n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n)));
-    var { 
-        getFamilyLevelConfig = () => ({}), 
-        getFamilyRole = () => 'member', 
+    var {
+        getFamilyLevelConfig = () => ({}),
+        getFamilyRole = () => 'member',
         getFamilySignLevelData = () => ({ level: 0 }),
         FAMILY_LEVEL_CONFIG = []
     } = window.FamilyConstants || {};
@@ -101,9 +101,9 @@ var FamilyProfile = ({
 
     // ── Buy activeness gift ──
     var ACTIVENESS_GIFTS = [
-        { label_ar: 'هدية نشاط صغيرة',  label_en: 'Small Activity Gift',  activeness: 50,   cost: 500,   icon: '🎁',  color: '#4ade80' },
-        { label_ar: 'هدية نشاط متوسطة', label_en: 'Medium Activity Gift', activeness: 500,  cost: 5000,  icon: '🎀',  color: '#60a5fa' },
-        { label_ar: 'هدية نشاط كبيرة',  label_en: 'Large Activity Gift',  activeness: 5000, cost: 50000, icon: '🏆',  color: '#fbbf24' },
+        { label_ar: 'هدية نشاط صغيرة', label_en: 'Small Activity Gift', activeness: 50, cost: 500, icon: '🎁', color: '#4ade80' },
+        { label_ar: 'هدية نشاط متوسطة', label_en: 'Medium Activity Gift', activeness: 500, cost: 5000, icon: '🎀', color: '#60a5fa' },
+        { label_ar: 'هدية نشاط كبيرة', label_en: 'Large Activity Gift', activeness: 5000, cost: 50000, icon: '🏆', color: '#fbbf24' },
     ];
 
     var handleBuyActiveness = async (gift) => {
@@ -304,68 +304,6 @@ var FamilyProfile = ({
                 )}
             </div>
 
-            {/* ══ FAMILY SIGN CARD ══ */}
-            {(() => {
-                var SIGN_LEVELS = (window.FamilyConstants || {}).FAMILY_SIGN_LEVELS || [];
-                if (!SIGN_LEVELS.length) return null;
-                var currentSign = signData;
-                var nextSign = SIGN_LEVELS.find(s => s.level === currentSign.level + 1) || null;
-                var prevThreshold = currentSign.threshold || 0;
-                var nextThreshold = nextSign ? nextSign.threshold : null;
-                var signProgress = nextThreshold
-                    ? Math.min(100, Math.round(((weeklyActiveness - prevThreshold) / (nextThreshold - prevThreshold)) * 100))
-                    : 100;
-                var needed = nextThreshold ? Math.max(0, nextThreshold - weeklyActiveness) : 0;
-
-                return (
-                    <div style={{ margin: '10px 12px 0', background: `linear-gradient(135deg,${currentSign.color}0d,rgba(0,0,0,0.3))`, border: `1px solid ${currentSign.color}33`, borderRadius: '16px', padding: '12px 14px', position: 'relative', overflow: 'hidden' }}>
-                        {/* Glow bg */}
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at top left, ${currentSign.color}08 0%, transparent 60%)`, pointerEvents: 'none' }} />
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {/* Sign image */}
-                            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                {currentSign.imageURL
-                                    ? <div style={{ position: 'relative', width: '62px', height: '36px', filter: currentSign.hasGlow ? `drop-shadow(0 0 8px ${currentSign.color}cc)` : 'none' }}>
-                                        <img src={currentSign.imageURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                        <span style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', fontSize: '8px', fontWeight: 900, fontStyle: 'italic', color: '#fff', textShadow: '0 0 6px rgba(0,0,0,0.9),1px 1px 0 rgba(0,0,0,0.8)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>{family.tag || 'FAM'}</span>
-                                    </div>
-                                    : <span style={{ fontSize: '28px' }}>{currentSign.defaultIcon || '🏠'}</span>}
-                                <span style={{ fontSize: '9px', fontWeight: 800, color: currentSign.color }}>{lang === 'ar' ? `المستوى ${currentSign.level}` : `Lv.${currentSign.level}`}</span>
-                            </div>
-
-                            {/* Info */}
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🪪 {lang === 'ar' ? 'شارة القبيلة' : 'Family Sign'}</span>
-                                    <span style={{ fontSize: '10px', fontWeight: 700, color: currentSign.color }}>{lang === 'ar' ? (currentSign.name_ar || '') : (currentSign.name_en || '')}</span>
-                                </div>
-
-                                {nextSign ? (
-                                    <>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                            <span style={{ fontSize: '9px', color: '#9ca3af' }}>{weeklyActiveness.toLocaleString()} / {nextSign.threshold.toLocaleString()}</span>
-                                            <span style={{ fontSize: '9px', color: '#6b7280' }}>{lang === 'ar' ? `يتبقى ${needed.toLocaleString()} نشاط` : `${needed.toLocaleString()} left`}</span>
-                                        </div>
-                                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.07)', borderRadius: '10px', overflow: 'hidden', marginBottom: '5px' }}>
-                                            <div style={{ height: '100%', width: `${signProgress}%`, background: `linear-gradient(90deg,${currentSign.color},${nextSign.color})`, borderRadius: '10px', transition: 'width 0.5s ease' }} />
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#9ca3af' }}>
-                                            {nextSign.imageURL && <img src={nextSign.imageURL} alt="" style={{ height: '16px', objectFit: 'contain', opacity: 0.6 }} />}
-                                            <span style={{ color: nextSign.color, fontWeight: 700 }}>{lang === 'ar' ? nextSign.name_ar : nextSign.name_en}</span>
-                                            <span>—</span>
-                                            <span>{lang === 'ar' ? 'الأسبوع القادم عند' : 'next week at'}</span>
-                                            <span style={{ color: '#fff', fontWeight: 800 }}>{nextSign.threshold.toLocaleString()} ⚡</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div style={{ fontSize: '10px', color: currentSign.color, fontWeight: 800 }}>✨ {lang === 'ar' ? 'أعلى مستوى! استمر في بناء نشاطك' : 'Max level! Keep up the activeness!'}</div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            })()}
-
             {/* ══ ACTIVENESS SECTION ══ */}
             <div style={{ margin: '10px 12px 0', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -448,10 +386,10 @@ var FamilyProfile = ({
                         var isUnclaimed = status === 'unclaimed';
                         var milestoneDone = (family.activenessClaimedMilestones || []).includes(ms.originalIdx);
                         var showDone = milestoneDone || isClaimed;
-                        
+
                         // Scale chests: first 3 are smaller, last 2 are bigger
                         var chestSize = idx < 3 ? 32 : 44;
-                        
+
                         return (
                             <button
                                 type="button"
@@ -468,8 +406,8 @@ var FamilyProfile = ({
                                 }}
                             >
                                 <div style={{ position: 'relative', width: `${chestSize}px`, height: `${chestSize}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{fontSize: `${chestSize - 4}px`}}>{ms.icon}</span>}
-                                    
+                                    {ms.imageURL ? <img src={ms.imageURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: `${chestSize - 4}px` }}>{ms.icon}</span>}
+
                                     {showDone && (
                                         <div style={{ position: 'absolute', bottom: idx < 3 ? '-2px' : '0px', right: idx < 3 ? '-2px' : '0px', width: '14px', height: '14px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#fff', border: '1.5px solid #1a1a2e' }}>✓</div>
                                     )}
@@ -477,7 +415,7 @@ var FamilyProfile = ({
                                         <div style={{ position: 'absolute', bottom: '-2px', right: '-4px', width: '14px', height: '14px', borderRadius: '50%', background: '#ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 900, color: '#111', border: '1.5px solid #1a1a2e' }}>!</div>
                                     )}
                                 </div>
-                                
+
                                 <div style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af' }}>
                                     {ms.threshold >= 1000 ? (ms.threshold / 1000).toFixed(1) + 'K' : ms.threshold}
                                 </div>
@@ -501,7 +439,7 @@ var FamilyProfile = ({
                         isReadOnly={isReadOnly}
                         showDonatePanel={showDonatePanel}
                         setShowDonatePanel={setShowDonatePanel}
-                      />
+                    />
                     : null}
             </div>
 
