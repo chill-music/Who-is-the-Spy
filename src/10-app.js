@@ -74,7 +74,7 @@
         var currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
         var currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
         
-        var { showLoginRewards, setShowLoginRewards, sessionClaimedToday } = useLoginRewards({ user, isLoggedIn, userData, lang, setNotification });
+        var { showLoginRewards, setShowLoginRewards, sessionClaimedToday, setSessionClaimedToday } = window.useLoginRewards({ user, isLoggedIn, userData, lang, setNotification });
 
         // ── Specialized Listeners ──
         usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
