@@ -25,8 +25,13 @@
 
         // ── PWA Install Listener ──
         useEffect(() => {
-            var handler = () => setShowPWAInstall(true);
+            var handler = () => {
+                var neverShow = localStorage.getItem('pro_spy_pwa_never') === 'true';
+                if (!neverShow) setShowPWAInstall(true);
+            };
             window.addEventListener('pwa-available', handler);
+            // Re-check in case the PWA event fired before React mounted
+            if (window.recheckPWAAvailable) window.recheckPWAAvailable();
             return () => window.removeEventListener('pwa-available', handler);
         }, []);
 

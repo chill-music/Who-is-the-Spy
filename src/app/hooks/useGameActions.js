@@ -19,7 +19,7 @@
         setFriendsData, setFriendRequests, setChatsMeta, setTotalUnread,
         setChatFriend, setShowPrivateChat, setOpenChatId, setShowUserProfile, setTargetProfileUID,
         setLeaderboardData, setCharismaLeaderboard, setFamilyLeaderboard,
-        setProgress, setIncomingProposal, setShowIncomingProposal,
+        setIncomingProposal, setShowIncomingProposal,
         proposalRing, setSessionClaimedToday,
         isPrivate, password, setupMode, gameChatInput, setGameChatInput,
         userFamily, friendsData, notifications, setNotifications, setUnreadNotifications,
