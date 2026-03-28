@@ -8,10 +8,20 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
     var [messages, setMessages] = useState([]);
     var [msgText, setMsgText] = useState('');
     var [sending, setSending] = useState(false);
-    var [cooldown, setCooldown]   = useState(0); // seconds remaining
+    var [cooldown, setCooldown]   = useState(0);
+    var [miniProfile, setMiniProfile] = useState(null);
     var messagesEndRef = useRef(null);
     var inputRef = useRef(null);
     var cooldownRef = useRef(null);
+
+    // Open mini profile instead of full profile
+    var openMini = async (uid, basicData) => {
+        if (!uid) return;
+        setMiniProfile({ uid, name: basicData?.name || '...', photo: basicData?.photo || null, loading: true });
+        var friends = currentUser ? (currentUser.friends || []) : [];
+        var data = typeof fetchMiniProfileData === 'function' ? await fetchMiniProfileData(uid, friends) : null;
+        if (data) setMiniProfile(data);
+    };
 
     var isFirstLoad = useRef(true);
     useEffect(() => {
@@ -67,6 +77,7 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
     var visibleMsgs = messages.filter(m => m.type === 'text' || m.type === 'image' || m.type === 'red_packet');
 
     return (
+        <>
         <div style={{margin:'0 8px 16px',background:'linear-gradient(160deg,rgba(5,5,18,0.98),rgba(9,8,26,0.96))',border:'1px solid rgba(74,222,128,0.15)',borderRadius:'16px',overflow:'hidden',boxSizing:'border-box',width:'calc(100% - 16px)'}}>
             {/* Messages */}
             <div style={{height:'clamp(140px,25vw,200px)',overflowY:'auto',padding:'10px 10px 4px',display:'flex',flexDirection:'column',gap:'4px'}}>
@@ -86,13 +97,13 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
                     );
                     return (
                         <div key={msg.id||i} style={{display:'flex',flexDirection:isMe?'row-reverse':'row',gap:'6px',alignItems:'flex-end'}}>
-                            {/* Avatar — clickable */}
-                            <div onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
+                            {/* Avatar — clickable → mini profile */}
+                            <div onClick={() => openMini(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto })}
                                 style={{width:'24px',height:'24px',borderRadius:'50%',overflow:'hidden',flexShrink:0,cursor:'pointer',border:vipCfg?`1.5px solid ${vipCfg.nameColor}`:'1.5px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.08)'}}>
                                 {msg.senderPhoto ? <img src={msg.senderPhoto} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <span style={{fontSize:'11px',display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>😎</span>}
                             </div>
                             <div style={{maxWidth:'min(70%, calc(100vw - 70px))' }}>
-                                <div onClick={() => onOpenProfile && onOpenProfile(msg.senderId)}
+                                <div onClick={() => openMini(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto })}
                                     style={{display:'flex',alignItems:'center',gap:'3px',marginBottom:'1px',cursor:'pointer',justifyContent:isMe?'flex-end':'flex-start'}}>
                                     <span style={{fontSize:'8px',fontWeight:700,color:vipCfg?vipCfg.nameColor:'#a78bfa'}}>{msg.senderName}</span>
                                     {vipCfg && <span style={{fontSize:'7px',fontWeight:900,background:vipCfg.nameColor,color:'#000',padding:'0 2px',borderRadius:'2px'}}>VIP{msg.senderVipLevel}</span>}
@@ -135,9 +146,20 @@ var LobbyPublicChatBox = ({ currentUser, user, lang, isLoggedIn, onOpenProfile, 
                 </div>
             )}
         </div>
+        {/* Mini Profile Popup */}
+        {miniProfile && window.MiniProfilePopup && (
+            <window.MiniProfilePopup
+                profile={miniProfile}
+                onClose={() => setMiniProfile(null)}
+                currentUID={currentUID}
+                lang={lang}
+                onOpenProfile={(uid) => { setMiniProfile(null); if (onOpenProfile) onOpenProfile(uid); }}
+                zIndex={(window.Z && window.Z.MODAL_HIGH ? window.Z.MODAL_HIGH : 9000) + 20}
+            />
+        )}
+        </>
     );
 };
 
 window.LobbyPublicChatBox = LobbyPublicChatBox;
 })();
-

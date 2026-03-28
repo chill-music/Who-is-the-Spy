@@ -221,6 +221,9 @@
     }) => {
         var [showMenu, setShowMenu] = useState(false);
         var [bannerErr, setBannerErr] = useState(false);
+        var [reportModal, setReportModal] = useState(false);
+        var [reportReason, setReportReason] = useState('');
+        var [reportNote, setReportNote] = useState('');
 
         if (!profile) return null;
 
@@ -263,6 +266,24 @@
 
         var hasBanner = profile.bannerUrl && !bannerErr;
 
+        // Report dialog submit
+        var _submitReport = async () => {
+            if (!reportReason) return;
+            if (onReport) await onReport(profile, reportReason, reportNote);
+            else if (typeof reportsCollection !== 'undefined') {
+                try {
+                    await reportsCollection.add({
+                        type: 'user', reportedUID: profile.uid, reportedName: profile.name,
+                        reporterUID: currentUID, reason: reportReason, note: reportNote,
+                        createdAt: typeof TS === 'function' ? TS() : new Date(),
+                        status: 'pending',
+                    });
+                } catch(e) { console.error(e); }
+            }
+            setReportModal(false); setReportReason(''); setReportNote('');
+            onClose();
+        };
+
         return (
             <PortalModal>
                 <div style={{
@@ -272,7 +293,7 @@
                     padding:'16px',
                 }} onClick={() => { setShowMenu(false); onClose(); }}>
                     <div style={{
-                        width:'100%', maxWidth:'min(370px, calc(100vw - 20px))',
+                        width:'100%', maxWidth:'min(400px, calc(100vw - 20px))',
                         borderRadius:'24px', overflow:'hidden',
                         background:'#0d0d1f',
                         border:`1px solid ${vipColor ? vipColor+'44' : 'rgba(255,255,255,0.1)'}`,
@@ -313,7 +334,7 @@
                                                     </button>
                                                 )}
                                                 {onReport && !isSelf && (
-                                                    <button onClick={() => { setShowMenu(false); onClose(); onReport(profile); }}
+                                                    <button onClick={() => { setShowMenu(false); setReportModal(true); }}
                                                         style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color:'#f87171', textAlign:'right' }}
                                                         onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.1)'}
                                                         onMouseLeave={e => e.currentTarget.style.background='none'}>
@@ -321,7 +342,7 @@
                                                     </button>
                                                 )}
                                                 {(onBlock || onUnblock) && !isSelf && (
-                                                    <button onClick={async () => { setShowMenu(false); onClose(); isBlocked ? await onUnblock?.() : await onBlock?.(); }}
+                                                    <button onClick={async () => { setShowMenu(false); onClose(); isBlocked ? await onUnblock?.(profile.uid) : await onBlock?.(profile.uid); }}
                                                         style={{ width:'100%', padding:'9px 12px', borderRadius:'8px', background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', fontSize:'12px', fontWeight:700, color: isBlocked?'#4ade80':'#f59e0b', textAlign:'right' }}
                                                         onMouseEnter={e => e.currentTarget.style.background = isBlocked?'rgba(74,222,128,0.1)':'rgba(245,158,11,0.1)'}
                                                         onMouseLeave={e => e.currentTarget.style.background='none'}>
@@ -384,7 +405,6 @@
                                             </span>
                                         )}
                                         <span style={nameStyle}>{profile.name}</span>
-                                        {profile.gender && <span style={{fontSize:'15px',lineHeight:1,flexShrink:0}}>{profile.gender==='male'?'♂️':'♀️'}</span>}
                                     </div>
 
                                     <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px' }}>
@@ -399,6 +419,7 @@
                                                 <span style={{fontSize:'10px',fontWeight:800,color:charismaLevel.isDivine?'#00d4ff':charismaLevel.color}}>Lv.{charismaLevel.level}</span>
                                             </div>
                                         )}
+                                        {profile.gender && <span style={{fontSize:'15px',lineHeight:1,flexShrink:0}}>{profile.gender==='male'?'♂️':'♀️'}</span>}
                                         {familySignEl}
                                     </div>
 
@@ -406,7 +427,9 @@
                                         <div style={{ display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:'#6b7280' }}>
                                             {profile.vipCfg?.idBeforeImageUrl
                                                 ? <><img src={profile.vipCfg.idBeforeImageUrl} alt="" style={{height:'14px',objectFit:'contain',flexShrink:0}}/><span>{profile.customId}</span></>
-                                                : <span>ID:{profile.customId}</span>}
+                                                : profile.vipCfg?.idBeforeText
+                                                    ? <><span style={{color:vipColor||'#a78bfa',fontWeight:700}}>{profile.vipCfg.idBeforeText}</span><span>{profile.customId}</span></>
+                                                    : <span>ID:{profile.customId}</span>}
                                             <button onClick={() => navigator.clipboard?.writeText(profile.customId)}
                                                 style={{background:'none',border:'none',cursor:'pointer',fontSize:'12px',color:'#4b5563',padding:'0 2px',lineHeight:1}}>⎘</button>
                                         </div>
@@ -463,6 +486,37 @@
                         </div>
                     </div>
                 </div>
+
+                {/* Report Dialog */}
+                {reportModal && (
+                    <div style={{ position:'fixed', inset:0, zIndex: zIndex+1, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}
+                        onClick={() => setReportModal(false)}>
+                        <div style={{ width:'100%', maxWidth:'340px', background:'#0d0d1f', borderRadius:'20px', padding:'20px', border:'1px solid rgba(239,68,68,0.3)', boxShadow:'0 20px 60px rgba(0,0,0,0.9)' }}
+                            onClick={e => e.stopPropagation()}>
+                            <div style={{ fontSize:'15px', fontWeight:800, color:'#f87171', marginBottom:'14px', display:'flex', alignItems:'center', gap:'8px' }}>🚨 {lang==='ar'?'إبلاغ عن مستخدم':'Report User'}</div>
+                            <div style={{ fontSize:'12px', color:'#9ca3af', marginBottom:'10px' }}>{lang==='ar'?'السبب:':'Reason:'}</div>
+                            {['spam','harassment','cheating','inappropriate','other'].map(r => (
+                                <button key={r} onClick={() => setReportReason(r)}
+                                    style={{ display:'block', width:'100%', textAlign:'right', padding:'9px 12px', marginBottom:'6px', borderRadius:'10px', border: reportReason===r?'1px solid #f87171':'1px solid rgba(255,255,255,0.08)', background: reportReason===r?'rgba(239,68,68,0.15)':'rgba(255,255,255,0.04)', color: reportReason===r?'#f87171':'#d1d5db', fontSize:'12px', fontWeight: reportReason===r?800:500, cursor:'pointer' }}>
+                                    {lang==='ar' ? {spam:'سبام',harassment:'تحرش',cheating:'غش',inappropriate:'محتوى مسيء',other:'أخرى'}[r] : {spam:'Spam',harassment:'Harassment',cheating:'Cheating',inappropriate:'Inappropriate Content',other:'Other'}[r]}
+                                </button>
+                            ))}
+                            <textarea value={reportNote} onChange={e => setReportNote(e.target.value)} maxLength={200} rows={2}
+                                placeholder={lang==='ar'?'تفاصيل إضافية (اختياري)...':'Additional details (optional)...'}
+                                style={{ width:'100%', marginTop:'8px', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color:'white', fontSize:'12px', outline:'none', resize:'none', boxSizing:'border-box' }}/>
+                            <div style={{ display:'flex', gap:'8px', marginTop:'14px' }}>
+                                <button onClick={() => { setReportModal(false); setReportReason(''); setReportNote(''); }}
+                                    style={{ flex:1, padding:'11px', borderRadius:'12px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>
+                                    {lang==='ar'?'إلغاء':'Cancel'}
+                                </button>
+                                <button onClick={_submitReport} disabled={!reportReason}
+                                    style={{ flex:1, padding:'11px', borderRadius:'12px', background: reportReason?'rgba(239,68,68,0.25)':'rgba(255,255,255,0.05)', border: reportReason?'1px solid rgba(239,68,68,0.5)':'1px solid rgba(255,255,255,0.08)', color: reportReason?'#f87171':'#6b7280', fontSize:'13px', fontWeight:800, cursor: reportReason?'pointer':'not-allowed' }}>
+                                    {lang==='ar'?'إرسال البلاغ':'Send Report'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </PortalModal>
     );
 };

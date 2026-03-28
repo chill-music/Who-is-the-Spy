@@ -578,60 +578,102 @@ var CHEST_CONFIG = {
 
 var resolveRewardItem = function (reward) {
     if (!reward) return reward;
-    var resolved = { ...reward };
+    var resolved = Object.assign({}, reward);
+    var SI = window.SHOP_ITEMS;
+
+    // Helper: copy item metadata fields from SHOP_ITEMS entry
+    var _meta = function(item) {
+        if (!item) return;
+        if (item.isEvent    !== undefined) resolved.isEvent    = item.isEvent;
+        if (item.limitedTime!== undefined) resolved.limitedTime= item.limitedTime;
+        if (item.eventOnly  !== undefined) resolved.eventOnly  = item.eventOnly;
+        if (item.season     !== undefined) resolved.season     = item.season;
+        if (item.rarity     !== undefined) resolved.rarity     = item.rarity;
+        if (item.durationDays!==undefined) resolved.durationDays= item.durationDays;
+    };
 
     if (resolved.type === 'currency') {
-        resolved.icon = resolved.icon || '🧠';
-        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K Intel' : resolved.amount + ' Intel');
-        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K إنتل' : resolved.amount + ' إنتل');
+        resolved.icon     = resolved.icon     || '🧠';
+        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K Intel'  : resolved.amount+' Intel');
+        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K إنتل'   : resolved.amount+' إنتل');
+
     } else if (resolved.type === 'coins' || resolved.type === 'familyCoins') {
-        resolved.icon = resolved.icon || '🏅';
-        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K Family Coins' : resolved.amount + ' Family Coins');
-        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K عملة قبيلة' : resolved.amount + ' عملة قبيلة');
+        resolved.icon     = resolved.icon     || '🏅';
+        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K Family Coins' : resolved.amount+' Family Coins');
+        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K عملة قبيلة'   : resolved.amount+' عملة قبيلة');
+
     } else if (resolved.type === 'charisma') {
-        resolved.icon = resolved.icon || '⭐';
-        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K Charisma Ring' : resolved.amount + ' Charisma Ring');
-        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K خاتم كاريزما' : resolved.amount + ' خاتم كاريزما');
-    } else if (resolved.type === 'gift' && resolved.giftId && window.SHOP_ITEMS) {
-        var gift = (window.SHOP_ITEMS.gifts || []).find(g => g.id === resolved.giftId) || (window.SHOP_ITEMS.gifts_vip || []).find(g => g.id === resolved.giftId);
+        resolved.icon     = resolved.icon     || '⭐';
+        resolved.label_en = resolved.label_en || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K Charisma Ring' : resolved.amount+' Charisma Ring');
+        resolved.label_ar = resolved.label_ar || (resolved.amount >= 1000 ? (resolved.amount/1000).toFixed(1).replace(/\.0$/,'')+'K خاتم كاريزما'   : resolved.amount+' خاتم كاريزما');
+
+    } else if (resolved.type === 'gift' && resolved.giftId && SI) {
+        var allGifts = [].concat(SI.gifts||[], SI.gifts_vip||[], SI.gifts_family||[], SI.gifts_special||[], SI.gifts_flag||[]);
+        var gift = allGifts.find(function(g){ return g.id === resolved.giftId; });
         if (gift) {
-            resolved.icon = gift.emoji || gift.icon || '🎁';
+            resolved.icon     = gift.emoji || gift.icon || '🎁';
             if (gift.imageUrl) resolved.imageURL = gift.imageUrl;
             resolved.label_en = resolved.label_en || gift.name_en;
             resolved.label_ar = resolved.label_ar || gift.name_ar;
+            _meta(gift);
         }
-    } else if (resolved.type === 'frame' && resolved.frameId && window.SHOP_ITEMS) {
-        var frame = (window.SHOP_ITEMS.frames || []).find(f => f.id === resolved.frameId) || (window.SHOP_ITEMS.limitedFrames || []).find(f => f.id === resolved.frameId);
+
+    } else if (resolved.type === 'frame' && resolved.frameId && SI) {
+        var allFrames = [].concat(SI.frames||[], SI.limitedFrames||[]);
+        var frame = allFrames.find(function(f){ return f.id === resolved.frameId; });
         resolved.icon = resolved.icon || '🖼️';
         if (frame) {
-            resolved.label_en = resolved.label_en || `${frame.name_en} ${resolved.duration ? resolved.duration + ' Days' : ''}`;
-            resolved.label_ar = resolved.label_ar || `${frame.name_ar} ${resolved.duration ? resolved.duration + ' أيام' : ''}`;
+            var durSfx_en = resolved.duration ? ' · '+resolved.duration+'d'     : '';
+            var durSfx_ar = resolved.duration ? ' · '+resolved.duration+' أيام' : '';
+            resolved.label_en = resolved.label_en || (frame.name_en + durSfx_en);
+            resolved.label_ar = resolved.label_ar || (frame.name_ar + durSfx_ar);
+            if (frame.preview)  resolved.preview  = frame.preview;   // CSS gradient or image URL
+            if (frame.imageUrl) resolved.imageURL = frame.imageUrl;
+            _meta(frame);
         }
-    } else if (resolved.type === 'title' && resolved.titleId && window.SHOP_ITEMS) {
-        var title = (window.SHOP_ITEMS.titles || []).find(t => t.id === resolved.titleId);
+
+    } else if (resolved.type === 'title' && resolved.titleId && SI) {
+        var title = (SI.titles||[]).find(function(t){ return t.id === resolved.titleId; });
         if (title) {
-            resolved.icon = title.preview || title.imageUrl || '🏅';
+            resolved.icon     = title.preview || '🏅';
+            if (title.imageUrl) resolved.imageURL = title.imageUrl;
             resolved.label_en = resolved.label_en || title.name_en;
             resolved.label_ar = resolved.label_ar || title.name_ar;
+            _meta(title);
         }
-    } else if (resolved.type === 'badge' && resolved.badgeId && window.SHOP_ITEMS) {
-        var badge = (window.SHOP_ITEMS.badges || []).find(b => b.id === resolved.badgeId);
+
+    } else if (resolved.type === 'badge' && resolved.badgeId && SI) {
+        var badge = (SI.badges||[]).find(function(b){ return b.id === resolved.badgeId; });
         if (badge) {
-            resolved.icon = badge.preview || badge.imageUrl || '🏅';
+            resolved.icon     = badge.preview || '🏅';
+            if (badge.imageUrl) resolved.imageURL = badge.imageUrl;
             resolved.label_en = resolved.label_en || badge.name_en;
             resolved.label_ar = resolved.label_ar || badge.name_ar;
+            _meta(badge);
         }
-    } else if (resolved.type === 'ring' && resolved.ringId && window.SHOP_ITEMS) {
-        var ring = (window.SHOP_ITEMS.rings || []).find(r => r.id === resolved.ringId);
+
+    } else if (resolved.type === 'ring' && resolved.ringId && SI) {
+        var ring = (SI.rings||[]).find(function(r){ return r.id === resolved.ringId; });
         if (ring) {
             resolved.icon = ring.emoji || ring.icon || '💍';
             if (ring.imageURL || ring.imageUrl) resolved.imageURL = ring.imageURL || ring.imageUrl;
             resolved.label_en = resolved.label_en || ring.name_en;
             resolved.label_ar = resolved.label_ar || ring.name_ar;
+            _meta(ring);
+        }
+
+    } else if (resolved.type === 'effect' && resolved.effectId && SI) {
+        var effect = (SI.profileEffects||[]).find(function(e){ return e.id === resolved.effectId; });
+        if (effect) {
+            resolved.icon     = effect.preview || '✨';
+            if (effect.imageUrl) resolved.imageURL = effect.imageUrl;
+            resolved.label_en = resolved.label_en || effect.name_en;
+            resolved.label_ar = resolved.label_ar || effect.name_ar;
+            _meta(effect);
         }
     }
 
-    resolved.icon = resolved.icon || '🎁';
+    resolved.icon     = resolved.icon     || '🎁';
     resolved.label_en = resolved.label_en || 'Reward';
     resolved.label_ar = resolved.label_ar || 'مكافأة';
     return resolved;

@@ -820,7 +820,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
 
         {/* ── VIP Confirm Dialog ── */}
         {showVIPConfirm && ReactDOM.createPortal(
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH}}
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:(Z.MODAL_HIGH||9000)+10}}
                 onClick={()=>setShowVIPConfirm(false)}>
                 <div style={{background:'linear-gradient(135deg,#1a0533,#0d0d2b)',border:'2px solid #a855f7',borderRadius:'20px',padding:'28px',maxWidth:'300px',width:'90%',textAlign:'center',boxShadow:'0 0 60px rgba(168,85,247,0.28)'}}
                     onClick={e=>e.stopPropagation()}>
@@ -869,7 +869,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                 var name = lang === 'ar' ? item.name_ar : item.name_en;
                 var desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
                 return (
-                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:Z.MODAL_HIGH,padding:'20px'}}
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:(Z.MODAL_HIGH||9000)+10,padding:'20px'}}
                         onClick={()=>setShowPreview(false)}>
                         <div style={{background:'linear-gradient(160deg,#0a0e1f,#0d1225)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'22px',width:'100%',maxWidth:'320px',overflow:'hidden',boxShadow:'0 0 80px rgba(0,0,0,0.9)'}}
                             onClick={e=>e.stopPropagation()} className="animate-pop">
