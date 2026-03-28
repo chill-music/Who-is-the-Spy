@@ -47,6 +47,7 @@
             showPublicChat, setShowPublicChat,
             showHelpCenter, setShowHelpCenter,
             showSettings, setShowSettings,
+            showLuckyGames, setShowLuckyGames,
 
             // Wedding / Couples
             showWeddingHall, setShowWeddingHall,
@@ -445,6 +446,7 @@
                         onOpenSettings={() => { setShowMyAccount(false); setShowSettings(true); }}
                         onOpenShop={() => { setShowMyAccount(false); setShowShop(true); }}
                         onOpenInventory={() => { setShowMyAccount(false); setShowInventory(true); }}
+                        onOpenLuckyGames={() => { setShowMyAccount(false); if(setShowLuckyGames) setShowLuckyGames(true); }}
                         onLogout={handleLogout}
                         onLoginGoogle={() => { setShowMyAccount(false); handleGoogleLogin && handleGoogleLogin(); }}
                         isLoggedIn={isLoggedIn}
@@ -615,6 +617,15 @@
                             </div>
                         </div>
                     </div>
+                )}
+                {/* ── LUCKY GAMES HUB ── */}
+                {showLuckyGames && window.LuckyGamesHubModal && (
+                    <window.LuckyGamesHubModal
+                        show={showLuckyGames}
+                        onClose={() => setShowLuckyGames && setShowLuckyGames(false)}
+                        lang={lang}
+                        userData={currentUserData}
+                    />
                 )}
 
             </div>
