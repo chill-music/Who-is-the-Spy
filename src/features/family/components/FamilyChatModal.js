@@ -165,7 +165,7 @@ var FamilyChatModal = (props) => {
         if (!familyId || !currentUID || openingChest) return;
         setOpeningChest(true);
         try {
-            var result = await FamilyService.openAssignedChest({
+            var result = await window.FamilyService.openAssignedChest({
                 family: familyData,
                 currentUID,
                 currentUserData,

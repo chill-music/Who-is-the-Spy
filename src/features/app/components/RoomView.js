@@ -66,7 +66,9 @@
                                 {room.players.map((p, i) => (
                                     <div key={p.uid || i} className="player-slot relative group" onClick={() => openProfile(p.uid)}>
                                         <div className="aspect-square rounded-xl bg-white/5 border-2 border-dashed border-white/10 flex items-center justify-center p-1.5 transition-all group-hover:border-primary/50 group-hover:bg-primary/5">
-                                            <window.AvatarComponent userData={p} size={64} />
+                                            {window.AvatarWithFrame
+                                                ? <window.AvatarWithFrame photoURL={p.photoURL} equipped={p.equipped} size={64} />
+                                                : <img src={p.photoURL || `https://ui-avatars.com/api/?name=${p.displayName||'U'}&background=random`} style={{width:'64px',height:'64px',borderRadius:'50%',objectFit:'cover'}} alt="" />}
                                         </div>
                                         <div className="text-[10px] font-bold mt-1 text-center truncate text-gray-400 group-hover:text-primary transition-colors">{p.displayName || p.name}</div>
                                         {p.uid === OWNER_UID && <span className="absolute -top-1 -right-1 text-sm drop-shadow-lg">👑</span>}

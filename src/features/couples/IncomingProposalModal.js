@@ -70,7 +70,7 @@
                         React.createElement('span', { style:{ fontSize:'22px' }}, ring.emoji),
                         React.createElement('div', null,
                             React.createElement('div', { style:{ fontSize:'12px', fontWeight:700, color:ring.color }}, lang==='ar' ? ring.name_ar : ring.name_en),
-                            React.createElement('div', { style:{ fontSize:'10px', color: RARITY_COLORS_C[ring.rarity] }}, ring.rarity)
+                            React.createElement('div', { style:{ fontSize:'10px', color: (window.RARITY_COLORS_C||{})[ring.rarity] }}, ring.rarity)
                         )
                     ),
                     /* Gift info */

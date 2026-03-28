@@ -1,6 +1,7 @@
-var { momentsCollection, notificationsCollection, TS, firebase, Z, PortalModal } = window;
-
 var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, currentUID, friendsData, lang, onOpenProfile }) => {
+    // Late-binding: قراءة الـ globals داخل الكومبوننت لضمان توفرها
+    var { momentsCollection, notificationsCollection, TS, firebase, Z, PortalModal } = window;
+
     var [moments, setMoments] = React.useState([]);
     var [loading, setLoading] = React.useState(true);
     var [selectedMoment, setSelectedMoment] = React.useState(null);

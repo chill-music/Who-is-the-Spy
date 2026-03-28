@@ -1,52 +1,64 @@
 (function() {
-    var deferredPrompt;
-    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    // Check if user has already dismissed the popup
+    var deferredPrompt = null;
+    var pwaEventFired  = false;
+
+    // ── helpers ──
     window.canShowInstallPopup = function() {
-        var dismissed = localStorage.getItem('pro_spy_pwa_dismissed') === 'true';
-        return isMobile && !dismissed && deferredPrompt;
+        var neverShow = localStorage.getItem('pro_spy_pwa_never') === 'true';
+        return !neverShow && !!deferredPrompt;
     };
 
+    // Called when user clicks ✕ WITHOUT the checkbox
     window.markInstallPopupDismissed = function() {
-        localStorage.setItem('pro_spy_pwa_dismissed', 'true');
+        // Only temporary — will show again next session unless neverShow is set
+    };
+
+    // Called when user checks "don't show again"
+    window.markInstallNeverShow = function() {
+        localStorage.setItem('pro_spy_pwa_never', 'true');
     };
 
     window.triggerPWAInstall = function() {
-        if (!deferredPrompt) return;
+        if (!deferredPrompt) return Promise.resolve('no-prompt');
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function(choiceResult) {
-            if (choiceResult.outcome === 'accepted') {
-                // User accepted the PWA install prompt
-            } else {
-                // User dismissed the PWA install prompt
-            }
+        return deferredPrompt.userChoice.then(function(choiceResult) {
             deferredPrompt = null;
+            return choiceResult.outcome; // 'accepted' | 'dismissed'
         });
     };
 
+    // Capture the browser install event
     window.addEventListener('beforeinstallprompt', function(e) {
-        // Prevent Chrome 67 and earlier from automatically showing the prompt
         e.preventDefault();
-        // Stash the event so it can be triggered later.
-        deferredPrompt = e;
-        
-        // Dispatch custom event to notify React components
-        window.dispatchEvent(new CustomEvent('pwa-available'));
+        deferredPrompt   = e;
+        pwaEventFired    = true;
+
+        var neverShow = localStorage.getItem('pro_spy_pwa_never') === 'true';
+        if (!neverShow) {
+            // Delay slightly so React's useEffect listeners are ready
+            setTimeout(function() {
+                window.dispatchEvent(new CustomEvent('pwa-available'));
+            }, 1500);
+        }
     });
 
-    window.addEventListener('appinstalled', function(evt) {
-        // PWA was installed
+    window.addEventListener('appinstalled', function() {
         deferredPrompt = null;
     });
 
-    // Register Service Worker
+    // If React mounts after the event already fired, re-dispatch on demand
+    window.recheckPWAAvailable = function() {
+        var neverShow = localStorage.getItem('pro_spy_pwa_never') === 'true';
+        if (pwaEventFired && deferredPrompt && !neverShow) {
+            window.dispatchEvent(new CustomEvent('pwa-available'));
+        }
+    };
+
+    // Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./sw.js').then(function(registration) {
-                // Service worker registered
-            }, function(err) {
-                console.error('SW registration failed: ', err);
+            navigator.serviceWorker.register('./sw.js').catch(function(err) {
+                console.warn('SW registration failed:', err);
             });
         });
     }

@@ -454,7 +454,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
             if (momentType === 'image' || momentType === 'video') {
                 var fileExt = mediaFile.name.split('.').pop();
                 var fileName = `${currentUser.uid}_${Date.now()}.${fileExt}`;
-                var storageRef = storage.ref(`moments/${fileName}`);
+                var storageRef = firebase.storage().ref(`moments/${fileName}`);
                 var snapshot = await storageRef.put(mediaFile);
                 finalMediaUrl = await snapshot.ref.getDownloadURL();
             }

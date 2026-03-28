@@ -1,9 +1,10 @@
-var { familiesCollection } = window;
-var { getFamilyLevelConfig, getFamilySignLevelData } = window.FamilyConstants || {};
-var { fmtFamilyNum } = window;
-var FamilySignBadge = window.FamilySignBadge;
-
 var FamilyRankingInline = ({ currentUID, lang, currentFamilyId, onOpenFamily }) => {
+    // Late-binding: قراءة الـ globals وقت الـ render لضمان توفرها
+    var { familiesCollection, fmtFamilyNum } = window;
+    var { getFamilyLevelConfig, getFamilySignLevelData } = window.FamilyConstants || {};
+    var FamilySignBadge = window.FamilySignBadge;
+    fmtFamilyNum = fmtFamilyNum || (n => n?.toLocaleString() || '0');
+
     var [rankings, setRankings] = useState([]);
     var [loading, setLoading] = useState(true);
 
@@ -14,6 +15,7 @@ var FamilyRankingInline = ({ currentUID, lang, currentFamilyId, onOpenFamily }) 
             setLoading(false);
         }).catch(() => setLoading(false));
     }, []);
+
 
     if (loading) return <div style={{textAlign:'center',padding:'40px',color:'#6b7280'}}>⏳</div>;
 
