@@ -122,6 +122,7 @@
             showLoginRewards,
             setShowLoginRewards,
             sessionClaimedToday,
+            setSessionClaimedToday,
             handleClaimLoginReward
         };
     };
