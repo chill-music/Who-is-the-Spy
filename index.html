@@ -23,17 +23,17 @@
     <meta name="theme-color" content="#7000ff">
     <link rel="apple-touch-icon" href="icos/icon-192.png">
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-
     <!-- 👑 VIP System CSS -->
     <link rel="stylesheet" href="vip.css">
 </head>
 <body>
     <div id="root"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <!--
     ════════════════════════════════════════════════════════════
@@ -44,7 +44,6 @@
 
     <!-- 01 · Constants, Firebase, Collections -->
     <script src="src/01-config.js"></script>
-    <script src="src/utils/format.js"></script>
     <script src="src/features/profile/ProfileHelpers.js"></script>
     <script src="src/features/pwa/PWAHandler.js"></script>
 
@@ -58,7 +57,7 @@
     <script src="src/04-data-game.js"></script>
 
     <!-- 05 · Translations (AR / EN) -->
-    <script type="text/babel" data-presets="react" src="src/05-translations.js"></script>
+    <script src="src/05-translations.js"></script>
 
     <!-- 06 · Base UI Components -->
     <script type="text/babel" data-presets="react" src="src/06-components-base.js"></script>
@@ -73,24 +72,46 @@
     <script type="text/babel" data-presets="react" src="src/08-components-shop.js"></script>
 
     <!-- Family System Core (must load before components that use them) -->
-    <script type="text/babel" data-presets="react" src="src/features/family/FamilyConstants.js"></script>
+    <script src="src/features/family/FamilyConstants.js"></script>
     <script type="text/babel" data-presets="react" src="src/features/family/components/FamilySignBadge.js"></script>
 
-    <!-- 09 · User Components (Onboarding, Daily Tasks, Login Rewards) -->
+    <!-- 09 · User Components (Modularized: Onboarding, Daily Tasks, Groups) -->
+    <script type="text/babel" data-presets="react" src="src/features/onboarding/OnboardingFlow.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/tasks/DailyTasksPanel.js"></script>
+    <script src="src/features/groups/GroupConfig.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/groups/GroupChatModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/groups/GroupDetailsModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/groups/GroupsList.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/groups/GroupsSection.js"></script>
     <script type="text/babel" data-presets="react" src="src/09-components-user.js"></script>
 
     <!-- Core App Logic -->
-    <script type="text/babel" data-presets="react" src="src/app/useAuthState.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/usePresence.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/useNotifications.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/useRoom.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/useLeaderboards.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/useSocial.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/useGameAutomation.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/useBots.js"></script>
-    <script type="text/babel" data-presets="react" src="src/app/AppState.js"></script>
-    <script type="text/babel" data-presets="react" src="src/components/AppView.js"></script>
-    <script type="text/babel" data-presets="react" src="src/10-app.js"></script>
+    <script src="src/app/useAuthState.js"></script>
+    <script src="src/app/useAppUIState.js"></script>
+    <script src="src/app/usePresence.js"></script>
+    <script src="src/app/useBanningLogic.js"></script>
+    <script src="src/app/useOnboarding.js"></script>
+    <script src="src/app/useNotifications.js"></script>
+    <script src="src/app/useRoom.js"></script>
+    <script src="src/app/useLeaderboards.js"></script>
+        <script src="src/app/useSocial.js"></script>
+        <script src="src/app/useLoginRewards.js"></script>
+        <script src="src/app/useGameAutomation.js"></script>
+    <script src="src/app/useBots.js"></script>
+    <script src="src/app/utils/bgAnimation.js"></script>
+    <script src="src/app/hooks/useUserListeners.js"></script>
+    <script src="src/app/hooks/useGameActions.js"></script>
+    <!-- App Feature Modules -->
+    <script src="src/features/room/RoomState.js"></script>
+    <script src="src/features/game/GameLogic.js"></script>
+    <script src="src/features/chat/ChatManager.js"></script>
+
+    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/features/app/components/BannedScreen.js"></script>
+    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/features/app/components/RankingView.js"></script>
+    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/features/app/components/LobbyView.js"></script>
+    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/features/app/components/RoomView.js"></script>
+    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/features/app/components/GlobalModals.js"></script>
+    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/10-app.js"></script>
 
     <!-- 11 · Self Chat Modal -->
     <script type="text/babel" data-presets="react" src="src/11-modal-selfchat.js"></script>
@@ -101,31 +122,94 @@
     <!-- 13 · Private Chat Modal -->
     <script type="text/babel" data-presets="react" src="src/13-modal-chat.js"></script>
 
-    <!-- 14 · Misc Modals (Settings, Browse Rooms, Tutorial, Login Rewards) (DEPRECATED: Now in src/components/modals/) -->
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/LoginRewards.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/BrowseRoomsModal.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/TutorialModal.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/SettingsModal.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/SupportTicketSection.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/lobby/LobbyPublicChatBox.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/VIPCenterModal.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/HelpCenterModal.js"></script>
-    <script defer type="text/babel" data-presets="react" src="src/components/modals/PublicChatModal.js"></script>
+    <!-- 14 · Specialized Modals (Migration Complete: Componentized in src/components/modals/) -->
+    <script type="text/babel" data-presets="react" src="src/components/modals/LoginRewards.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/BrowseRoomsModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/TutorialModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/SettingsModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/SupportTicketSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/lobby/LobbyPublicChatBox.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/VIPCenterModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/HelpCenterModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/modals/PublicChatModal.js"></script>
 
-    <!-- Profile System Bundle (Consolidated 15 Modules) -->
-    <script defer type="text/babel" data-presets="react" src="src/bundles/profile-system-bundle.js"></script>
+    <!-- 15 · Profile V11 + All Moments Components -->
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileFamilySignBadge.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/WinRateCircle.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/GiftWallDetailModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/GiftWall.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileStats.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileTabs.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/AchievementsDisplay.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileEffects.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileIdentityElements.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/MomentsSystem.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileFriendsSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileAdmin.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileHeader.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileIdentity.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/profile/ProfileV11.js"></script>
 
-    <!-- Admin System Bundle (Consolidated 16 Modules) -->
-    <script defer type="text/babel" data-presets="react" src="src/bundles/admin-system-bundle.js"></script>
+    <!-- 18 · Admin Panel — Owner / Admin / Moderator only -->
+    <script src="src/components/admin/AdminUtils.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/AdminStatCard.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/AdminOverview.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/StaffManagementSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/UserManagementSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/BroadcastSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/ActivityLogSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/BanPanelInline.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/ReportsSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/TicketsSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/MomentsModerationSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FinancialLogSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FAQManagementSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FeedbackInboxSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/components/admin/FakeProfilesSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/18-admin-panel.js"></script>
 
-    <!-- Family System Bundle (Consolidated 20 Modules) -->
-    <script defer type="text/babel" data-presets="react" src="src/bundles/family-system-bundle.js"></script>
+    <!-- Family System Modules -->
+    <script src="src/features/family/FamilyUtils.js"></script>
+    <script src="src/features/family/FamilyService.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyRoleBadge.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyShared.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/RedPacketCard.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyChatModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyTreasury.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyGacha.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyMembers.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyProfile.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyTasks.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyShop.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyManagement.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyRanking.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyRankingInline.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyNews.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilySearch.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FriendsMomentsModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilyMemberQuickCard.js"></script>
+
+    <!-- 19 · Family System & Friends Moments -->
+    <script type="text/babel" data-presets="react" src="src/19-family.js"></script>
 
     <!-- 20 · Couples / Marriage System -->
-    <script defer type="text/babel" data-presets="react" src="src/20-couples.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/CoupleConfig.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/CoupleService.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/CoupleUIComponents.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/ProposalModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/IncomingProposalModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/RingsShopSection.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/CoupleCardModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/couples/WeddingHallModal.js"></script>
 
     <!-- 21 · BFF System + Bot Chats — must load BEFORE 16-main renders -->
-    <script defer type="text/babel" data-presets="react" src="src/21-bff.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BFFService.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BFFCardModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BFFRequestItem.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BFFProfileListModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BFFModal.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BFFStripProfile.js"></script>
+    <script type="text/babel" data-presets="react" src="src/features/bff/BotChatModal.js"></script>
 
     <!-- 16 · Entry Point — render app (always last) -->
     <script type="text/babel" data-presets="react" src="src/16-main.js"></script>
