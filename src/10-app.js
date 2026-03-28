@@ -117,7 +117,8 @@
 
         var { 
             showOnboarding, setShowOnboarding, setOnboardingGoogleUser, setPendingNewUserRef,
-            showTutorial, setShowTutorial, showPWAInstall, setShowPWAInstall
+            showTutorial, setShowTutorial, showPWAInstall, setShowPWAInstall,
+            onboardingGoogleUser, handleOnboardingComplete
         } = useOnboarding({
             user, userData, isLoggedIn, authLoading, setUser, setUserData, 
             setNickname, setGuestData, lang, setNotification, playSound: window.playSound
@@ -252,6 +253,7 @@
                     setNotification={setNotification}
                     openProfile={gameActions.openProfile}
                     showOnboarding={showOnboarding} setShowOnboarding={setShowOnboarding}
+                    onboardingGoogleUser={onboardingGoogleUser} handleOnboardingComplete={handleOnboardingComplete}
                     showLoginAlert={showLoginAlert} setShowLoginAlert={setShowLoginAlert}
                     showTutorial={showTutorial} setShowTutorial={setShowTutorial}
                     showLoginRewards={showLoginRewards} setShowLoginRewards={setShowLoginRewards}
