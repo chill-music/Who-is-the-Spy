@@ -9,6 +9,11 @@
         onNotification, friendsData,
         onOpenBFFModal,  // opens BFF modal from outside (for own profile)
     }) => {
+        // ── Late-binding: read from window at render time ──
+        var getBFFLevel         = window.getBFFLevel         || (() => ({ level: 1, icon: '⭐', color: '#60a5fa', glow: 'rgba(96,165,250,0.3)' }));
+        var BFFCardModal        = window.BFFCardModal        || null;
+        var BFFProfileListModal = window.BFFProfileListModal || null;
+
         var [myRelationships, setMyRelationships] = useState([]);
         var [partnerProfiles, setPartnerProfiles] = useState({});
         var [targetData, setTargetData] = useState(null);

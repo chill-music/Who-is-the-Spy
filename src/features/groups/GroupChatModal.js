@@ -16,9 +16,22 @@
             fmtTime, messagesEndRef, chatInputRef, fileInputRef, groupImgInputRef, showEmojiPicker, setShowEmojiPicker
         } = props;
 
+        // Local state for invite overlay (managed here, passed to GroupDetailsModal)
+        var [showInvite, setShowInvite] = React.useState(false);
+
         var isOwner = activeGroup.createdBy === currentUID;
         var isAdm = activeGroup.admins?.includes(currentUID);
         var grpLvl = window.getGroupLevel(activeGroup.xp || 0);
+
+        // ─── inviteFriend helper for GroupDetailsModal ───
+        var handleInviteFriend = async (friendId) => {
+            if (!activeGroup || activeGroup.members?.includes(friendId)) return;
+            try {
+                await groupsCollection.doc(activeGroup.id).update({ members: firebase.firestore.FieldValue.arrayUnion(friendId) });
+                onNotification(lang === 'ar' ? '✅ تمتالدعوة' : '✅ Invited');
+                setShowInvite(false);
+            } catch(e) {}
+        };
 
         return (
             <Fragment>
@@ -185,6 +198,60 @@
                         </div>
                     </div>
                 </div>
+
+                {/* ── GROUP DETAILS / SETTINGS PANEL — must be inside the position:relative card ── */}
+                {(showDetails||showInvite) && (() => {
+                    var GDM = window.GroupDetailsModal;
+                    if (!GDM) return null;
+                    return (
+                        <GDM
+                            showDetails={showDetails}
+                            setShowDetails={setShowDetails}
+                            showInvite={showInvite}
+                            setShowInvite={setShowInvite}
+                            activeGroup={activeGroup}
+                            friendsData={friendsData}
+                            inviteFriend={handleInviteFriend}
+                            lang={lang}
+                            settingsView={settingsView}
+                            setSettingsView={setSettingsView}
+                            isOwner={isOwner}
+                            isAdm={isAdm}
+                            groupImgInputRef={groupImgInputRef}
+                            grpLvl={grpLvl}
+                            membersData={membersData}
+                            loadingMembers={loadingMembers}
+                            editingNotice={editingNotice}
+                            setEditingNotice={setEditingNotice}
+                            groupNotice={groupNotice}
+                            setGroupNotice={setGroupNotice}
+                            saveGroupNotice={saveGroupNotice}
+                            saveGroupManageSettings={saveGroupManageSettings}
+                            groupMuted={groupMuted}
+                            setGroupMuted={setGroupMuted}
+                            showReportGroup={showReportGroup}
+                            setShowReportGroup={setShowReportGroup}
+                            reportGroupReason={reportGroupReason}
+                            setReportGroupReason={setReportGroupReason}
+                            handleSubmitGroupReport={handleSubmitGroupReport}
+                            sendingGroupReport={sendingGroupReport}
+                            handleLeaveGroup={handleLeaveGroup}
+                            handleDeleteGroup={handleDeleteGroup}
+                            removeAdmin={()=>{}}
+                            makeAdmin={()=>{}}
+                            kickMember={()=>{}}
+                            groupInviteType={groupInviteType}
+                            setGroupInviteType={setGroupInviteType}
+                            groupIsPublic={groupIsPublic}
+                            setGroupIsPublic={setGroupIsPublic}
+                            transferToId={transferToId}
+                            setTransferToId={setTransferToId}
+                            showTransferConfirm={showTransferConfirm}
+                            setShowTransferConfirm={setShowTransferConfirm}
+                            handleTransferOwnership={handleTransferOwnership}
+                        />
+                    );
+                })()}
             </PortalModal>
             </Fragment>
         );

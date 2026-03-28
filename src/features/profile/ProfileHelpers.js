@@ -118,6 +118,9 @@ var formatBanExpiry = (userData, lang) => {
 };
 
 // Global exports
+window.getGiftLevel = getGiftLevel;
+window.getGiftLevelFrame = getGiftLevelFrame;
+window.getGiftRarity = getGiftRarity;
 window.isAdmin = isAdmin;
 window.isBannedUser = isBannedUser;
 window.canManageRoles = canManageRoles;

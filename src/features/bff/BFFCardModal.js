@@ -5,6 +5,11 @@
     // 👁️ BFF CARD MODAL — shows when clicking BFF strip
     // ─────────────────────────────────────────────
     var BFFCardModal = ({ show, onClose, bffDoc, selfData, partnerData, currentUID, lang, onNotification, viewOnly = false }) => {
+        // ── Late-binding: read from window at render time ──
+        var PortalModal   = window.PortalModal   || (({ children }) => children);
+        var getBFFLevel   = window.getBFFLevel   || (() => ({ level: 1, icon: '⭐', color: '#60a5fa', glow: 'rgba(96,165,250,0.3)', name_ar: '', name_en: '', pct: 0 }));
+        var endBFFRelationship = window.endBFFRelationship || (() => Promise.resolve());
+
         var [ending, setEnding] = useState(false);
         var [confirmEnd, setConfirmEnd] = useState(false);
 
@@ -21,7 +26,7 @@
 
         var handleEnd = async () => {
             setEnding(true);
-            await endBFFRelationship({ bffDocId: bffDoc.id, onNotification, lang });
+            await (window.endBFFRelationship || endBFFRelationship)({ bffDocId: bffDoc.id, onNotification, lang });
             setEnding(false);
             setConfirmEnd(false);
             onClose();

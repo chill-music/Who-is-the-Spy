@@ -12,6 +12,14 @@
         coupleData,
         couplePartnerData,
     }) => {
+        // ── Late-binding: read from window at render time ──
+        var PortalModal       = window.PortalModal       || (({ children }) => children);
+        var getBFFLevel       = window.getBFFLevel       || (() => ({ level: 1, icon: '⭐', color: '#60a5fa', glow: 'rgba(96,165,250,0.3)', name_ar: '', name_en: '', pct: 0 }));
+        var sendBFFRequest    = window.sendBFFRequest    || (() => Promise.resolve());
+        var buyBFFExtraSlot   = window.buyBFFExtraSlot   || (() => Promise.resolve());
+        var BFFRequestItem    = window.BFFRequestItem    || null;
+        var BFFCardModal      = window.BFFCardModal      || null;
+
         var [tab, setTab] = useState('relationships'); // 'relationships' | 'requests' | 'send'
         var [myRelationships, setMyRelationships] = useState([]);
         var [pendingRequests, setPendingRequests] = useState([]);

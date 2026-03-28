@@ -5,6 +5,9 @@
     // 📋 BFF PROFILE LIST MODAL — full card grid view
     // ─────────────────────────────────────────────
     var BFFProfileListModal = ({ show, onClose, relationships, partnerProfiles, targetUID, lang }) => {
+        // ── Late-binding: read from window at render time ──
+        var PortalModal = window.PortalModal || (({ children }) => children);
+
         if (!show) return null;
 
         return (

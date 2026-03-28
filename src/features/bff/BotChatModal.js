@@ -8,6 +8,9 @@
         show, onClose, botId, currentUID, currentUserData, lang,
         onOpenWeddingHall, onOpenBFFModal,
     }) => {
+        // ── Late-binding: read from window at render time ──
+        var PortalModal = window.PortalModal || (({ children }) => children);
+
         var [messages, setMessages] = useState([]);
         var [loading, setLoading] = useState(true);
         var chatEndRef = useRef(null);
