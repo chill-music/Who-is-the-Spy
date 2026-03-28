@@ -23,7 +23,8 @@
         proposalRing, setSessionClaimedToday,
         isPrivate, password, setupMode, gameChatInput, setGameChatInput,
         userFamily, friendsData, notifications, setNotifications, setUnreadNotifications,
-        incrementMissionProgress, checkAndUnlockAchievements // recursive or cross-ref
+        incrementMissionProgress, checkAndUnlockAchievements, // recursive or cross-ref
+        OWNER_UID, addFriendId, setAddFriendId, setFriendSearchMsg
     }) {
 
         // ── Auth Functions ──
