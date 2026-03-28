@@ -136,7 +136,7 @@
         var currentUID = useMemo(() => { if (user && !user.isAnonymous) return user.uid; if (guestData) return guestData.uid; return null; }, [user, guestData]);
         var currentUserData = useMemo(() => { if (isLoggedIn) return userData; if (isGuest) return guestData; return null; }, [isLoggedIn, userData, isGuest, guestData]);
         
-        var { showLoginRewards, setShowLoginRewards, sessionClaimedToday, setSessionClaimedToday } = window.useLoginRewards({ user, isLoggedIn, userData, lang, setNotification });
+        var { showLoginRewards, setShowLoginRewards, sessionClaimedToday, setSessionClaimedToday, handleClaimLoginReward } = window.useLoginRewards({ user, isLoggedIn, userData, lang, setNotification });
 
         // ── Specialized Listeners ──
         usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
@@ -256,7 +256,7 @@
                     onboardingGoogleUser={onboardingGoogleUser} handleOnboardingComplete={handleOnboardingComplete}
                     showLoginAlert={showLoginAlert} setShowLoginAlert={setShowLoginAlert}
                     showTutorial={showTutorial} setShowTutorial={setShowTutorial}
-                    showLoginRewards={showLoginRewards} setShowLoginRewards={setShowLoginRewards}
+                    showLoginRewards={showLoginRewards} setShowLoginRewards={setShowLoginRewards} handleClaimLoginReward={handleClaimLoginReward}
                     showSummary={showSummary} setShowSummary={setShowSummary}
                     showFriendsMoments={showFriendsMoments} setShowFriendsMoments={setShowFriendsMoments}
                     showFamilyModal={showFamilyModal} setShowFamilyModal={setShowFamilyModal} viewFamilyId={viewFamilyId} setViewFamilyId={setViewFamilyId}
