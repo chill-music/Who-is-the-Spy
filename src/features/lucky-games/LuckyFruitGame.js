@@ -76,8 +76,8 @@
           '<span class="lf-coin-star">&#11088;</span>',
           '<span id="lf-coins">0</span>',
         '</div>',
-        /* Avatar — photo loaded dynamically from useAuthState */
-        '<div class="lf-mvp-badge" id="lf-avatar" style="cursor:pointer;overflow:hidden;"></div>',
+        /* Avatar — photo loaded dynamically */
+        '<div class="lf-avatar-box" id="lf-avatar" style="cursor:pointer;position:relative;"></div>',
       '</div>',
 
       /* FREE SPINS BANNER */
@@ -280,6 +280,11 @@
   ══════════════════════════════════════════════════════════ */
   function readCoinsFromAppState() {
     try {
+      if (window.userData) {
+        if (typeof window.userData.currency === 'number') { coins = window.userData.currency; return true; }
+        if (typeof window.userData.coins === 'number') { coins = window.userData.coins; return true; }
+      }
+      /* Fallback to State functions if needed */
       if (window.useAuthState && typeof window.useAuthState === 'function') {
         var state = window.useAuthState();
         if (state && typeof state.coins === 'number') { coins = state.coins; return true; }
@@ -296,8 +301,8 @@
       if (window.AppState && typeof window.AppState.setCoins === 'function') {
         window.AppState.setCoins(newVal);
       }
-      var uid = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') {
+      var uid = window.currentUserData?.uid || window.userData?.uid;
+      if (!uid && window.useAuthState && typeof window.useAuthState === 'function') {
         var st = window.useAuthState();
         uid = st && st.uid ? st.uid : null;
       }
@@ -546,9 +551,20 @@
   ══════════════════════════════════════════════════════════ */
   function spin() {
     if (spinning) return;
+    
     var totalCost = cost * lines;
-    readCoinsFromAppState();
-    if (freeSpins <= 0 && coins < totalCost) { showMsg(T('NOT_ENOUGH')); return; }
+    if (freeSpins > 0) totalCost = 0;
+
+    if (coins < totalCost) {
+      if (!autoMode) {
+        var msg = lang === 'ar' ? 'عذراً، لا تملك عملات كافية!' : 'Sorry, insufficient coins!';
+        alert(msg);
+      } else {
+        stopAutoSpin();
+      }
+      return;
+    }
+    
     if (freeSpins <= 0) {
       writeCoinsToAppState(coins - totalCost);
       sessionCoinsSpent += totalCost;
@@ -730,9 +746,20 @@
   function updateJackpot()      { $('lf-jackpotVal').textContent = jackpot.toLocaleString(); }
   function updateTotalCost()    { $('lf-totalCosts').textContent = T('TOTAL_COSTS') + ' ' + (cost * lines); }
   function updateFSBanner() {
-    var banner=$('lf-fsBanner');
-    if(freeSpins>0){ $('lf-fsCount').textContent=freeSpins; banner.classList.add('show'); }
-    else { banner.classList.remove('show'); }
+    var banner = document.getElementById('lf-fsBanner');
+    var count  = document.getElementById('lf-fsCount');
+    if (freeSpins > 0) {
+      if (count) count.textContent = freeSpins + ' remaining!';
+      if (banner) {
+        banner.innerHTML = '&#127808; ' + T('FREE_SPINS') + '! <span id="lf-fsCount">' + freeSpins + ' ' + (lang === 'ar' ? 'متبقية!' : 'remaining!') + '</span>';
+        banner.classList.add('show');
+      }
+    } else {
+      if (banner) {
+        banner.innerHTML = '&#127808; Get 1 Free Spin Daily!';
+        banner.classList.add('show');
+      }
+    }
   }
   function updateProgress(win) {
     progressVal = Math.min(progressVal + win, 1000);
@@ -826,36 +853,60 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     17. AVATAR SYNC — photo + name + MiniProfilePopup on click
+     17. AVATAR SYNC — photo + name + frame + MiniProfilePopup on click
   ══════════════════════════════════════════════════════════ */
   function syncAvatar() {
     try {
-      var state = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') state = window.useAuthState();
+      var state = window.userData || window.currentUserData;
+      var authUser = null;
+      if (window.useAuthState && typeof window.useAuthState === 'function') {
+        var authSt = window.useAuthState();
+        authUser = authSt ? authSt.user || authSt : null;
+      }
+
       var avatarEl = document.getElementById('lf-avatar');
       if (!avatarEl) return;
 
-      if (state && state.photoURL) {
-        avatarEl.innerHTML = '<img src="' + state.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="" />';
-      } else if (state && state.displayName) {
-        avatarEl.style.backgroundImage = 'none';
-        avatarEl.innerHTML = '<span style="font-size:16px;font-weight:900;color:#fff">' + state.displayName.charAt(0).toUpperCase() + '</span>';
+      var photoURL = state?.photoURL || authUser?.photoURL;
+      var displayName = state?.displayName || authUser?.displayName || 'U';
+      var frameId = state?.equipped?.frames;
+
+      /* Base avatar inner HTML */
+      var inner = "";
+      if (photoURL) {
+        inner = '<img src="' + photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:relative;z-index:2;" alt="" />';
       } else {
-        avatarEl.innerHTML = '\uD83D\uDE0E';
+        avatarEl.style.backgroundImage = 'none';
+        inner = '<span style="font-size:16px;font-weight:900;color:#fff;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:100%;height:100%">' + displayName.charAt(0).toUpperCase() + '</span>';
       }
+
+      /* Apply frame if has one */
+      if (frameId && window.SHOP_ITEMS && window.SHOP_ITEMS.frames) {
+        var frameObj = window.SHOP_ITEMS.frames.find(function(f) { return f.id === frameId; });
+        if (frameObj && frameObj.preview) {
+           var frameSrc = frameObj.preview;
+           if (frameSrc.startsWith('http')) {
+             inner += '<img src="' + frameSrc + '" style="position:absolute;width:150%;height:150%;top:-25%;left:-25%;z-index:3;pointer-events:none;" alt="" />';
+           } else {
+             /* color/gradient frame */
+             inner += '<div style="position:absolute;inset:-4px;background:'+frameSrc+';border-radius:50%;z-index:1;pointer-events:none;"></div>';
+           }
+           avatarEl.style.border = 'none';
+        }
+      }
+      avatarEl.innerHTML = inner;
 
       /* Click → open MiniProfilePopup (not full profile page) */
       avatarEl.onclick = function() {
-        var uid = state && state.uid ? state.uid : null;
+        var uid = state?.uid || authUser?.uid;
         if (!uid) return;
-        /* Try MiniProfilePopup first, fall back to full profile */
+        
         if (window.openMiniProfile) {
           window.openMiniProfile(uid);
         } else if (window.setMiniProfileUID) {
           window.setMiniProfileUID(uid);
           if (window.setShowMiniProfile) window.setShowMiniProfile(true);
         } else {
-          /* fallback: open My Account modal */
           if (window.setShowMyAccount) window.setShowMyAccount(true);
         }
       };
