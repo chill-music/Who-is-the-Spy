@@ -1,6 +1,6 @@
 (function() {
     var { useState, useEffect, useRef, useCallback, useMemo } = React;
-    var { RingsShopSection } = window;
+    // NOTE: RingsShopSection is loaded AFTER this file, so we must read it late (at render time)
 
 // ═══════════════════════════════════════════════════════════════
 // 🛒  SHOP MODAL — Premium Dark Gaming Store
@@ -220,13 +220,21 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                 }}>
 
                     {/* ════ RINGS ════ */}
-                    {activeTab === 'rings' && (
-                        <RingsShopSection
-                            userData={userData} lang={lang} currentUID={currentUID}
-                            onPropose={onPropose||(() => {})} coupleData={coupleData}
-                            onOpenCoupleCard={onOpenCoupleCard}
-                        />
-                    )}
+                    {activeTab === 'rings' && (() => {
+                        var RSS = window.RingsShopSection;
+                        if (!RSS) return (
+                            <div style={{padding:'32px',textAlign:'center',color:'#6b7280',fontSize:'12px'}}>
+                                ⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}
+                            </div>
+                        );
+                        return (
+                            <RSS
+                                userData={userData} lang={lang} currentUID={currentUID}
+                                onPropose={onPropose||(() => {})} coupleData={coupleData}
+                                onOpenCoupleCard={onOpenCoupleCard}
+                            />
+                        );
+                    })()}
 
                     {/* ════ BFF TOKENS ════ */}
                     {activeTab === 'bff_tokens' && (
@@ -1436,8 +1444,8 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
         {/* ✅ FIX2: Item Detail Popup */}
         {detailItem && <ItemDetailPopup item={detailItem} onClose={()=>setDetailItem(null)} />}
 
-        {/* Gift Preview Modal */}
-        {showGiftPreview&&selectedGift&&(
+        {/* Gift Preview Modal — rendered via Portal to escape overflow:hidden */}
+        {showGiftPreview&&selectedGift&&ReactDOM.createPortal(
             <GiftPreviewModal
                 show={showGiftPreview}
                 onClose={()=>setShowGiftPreview(false)}
@@ -1450,7 +1458,8 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
                 friendsData={friendsData}
                 currentUserData={currentUserData}
                 user={user}
-            />
+            />,
+            document.body
         )}
         </>
     );

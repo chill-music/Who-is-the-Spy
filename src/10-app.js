@@ -8,6 +8,67 @@
         OWNER_UID
     } = window;
 
+    // ── PWA Install Popup Component (separate so useState follows Rules of Hooks) ──
+    function PWAInstallPopup({ lang, onClose }) {
+        var [neverShow, setNeverShow] = useState(false);
+        return (
+            <div style={{
+                position:'fixed', bottom:'88px', left:'12px', right:'12px', zIndex:2000,
+                background:'linear-gradient(135deg,rgba(10,10,30,0.97),rgba(15,5,40,0.97))',
+                backdropFilter:'blur(14px)',
+                border:'1px solid rgba(0,242,255,0.3)', borderRadius:'20px',
+                padding:'18px 18px 14px',
+                boxShadow:'0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,242,255,0.08)',
+            }}>
+                {/* Header row */}
+                <div style={{display:'flex', gap:'12px', alignItems:'flex-start', flexDirection: lang==='ar'?'row-reverse':'row'}}>
+                    <div style={{width:'46px', height:'46px', background:'linear-gradient(135deg,rgba(0,242,255,0.15),rgba(112,0,255,0.15))', borderRadius:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0, border:'1px solid rgba(0,242,255,0.2)'}}>🚀</div>
+                    <div style={{flex:1}}>
+                        <div style={{fontSize:'15px', fontWeight:800, color:'white', marginBottom:'3px'}}>{lang==='ar'?'ثبّت التطبيق!':'Install App Now!'}</div>
+                        <div style={{fontSize:'11px', color:'rgba(255,255,255,0.55)', lineHeight:'1.4'}}>{lang==='ar'?'تجربة أسرع من الشاشة الرئيسية.':'Faster experience from your home screen.'}</div>
+                    </div>
+                    <button
+                        onClick={() => {
+                            if (neverShow && window.markInstallNeverShow) window.markInstallNeverShow();
+                            onClose();
+                        }}
+                        style={{background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.6)', padding:0, cursor:'pointer', fontSize:'14px', borderRadius:'8px', width:'26px', height:'26px', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}
+                    >✕</button>
+                </div>
+
+                {/* Action row */}
+                <div style={{marginTop:'14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px'}}>
+                    {/* Checkbox */}
+                    <label style={{display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', flexDirection: lang==='ar'?'row-reverse':'row'}}>
+                        <div
+                            onClick={() => setNeverShow(v => !v)}
+                            style={{
+                                width:'16px', height:'16px', borderRadius:'4px', flexShrink:0,
+                                border: neverShow ? '2px solid #00f2ff' : '2px solid rgba(255,255,255,0.25)',
+                                background: neverShow ? 'rgba(0,242,255,0.2)' : 'transparent',
+                                display:'flex', alignItems:'center', justifyContent:'center',
+                                transition:'all 0.15s', cursor:'pointer'
+                            }}
+                        >
+                            {neverShow && <span style={{fontSize:'10px', color:'#00f2ff', fontWeight:900, lineHeight:1}}>✓</span>}
+                        </div>
+                        <span style={{fontSize:'10px', color:'rgba(255,255,255,0.45)', userSelect:'none'}}>{lang==='ar'?'لا تُظهر مجدداً':"Don't show again"}</span>
+                    </label>
+
+                    {/* Install button */}
+                    <button
+                        onClick={() => {
+                            if (window.triggerPWAInstall) window.triggerPWAInstall();
+                            if (window.markInstallNeverShow) window.markInstallNeverShow();
+                            onClose();
+                        }}
+                        style={{padding:'9px 22px', borderRadius:'12px', background:'linear-gradient(135deg,#00f2ff,#7000ff)', border:'none', color:'white', fontSize:'13px', fontWeight:800, cursor:'pointer', boxShadow:'0 4px 16px rgba(0,242,255,0.3)', flexShrink:0}}
+                    >{lang==='ar'?'تثبيت':'Install'}</button>
+                </div>
+            </div>
+        );
+    }
+
     function App() {
         // ── Global States ──
         var uiState = useAppUIState();
@@ -830,30 +891,7 @@
 
                 {/* ── PWA Install Popup ── */}
                 {showPWAInstall && (
-                    <div style={{
-                        position:'fixed', bottom:'80px', left:'16px', right:'16px', zIndex:2000,
-                        background:'rgba(20,20,30,0.95)', backdropFilter:'blur(12px)',
-                        border:'1px solid rgba(0,242,255,0.3)', borderRadius:'20px',
-                        padding:'20px', boxShadow:'0 10px 40px rgba(0,0,0,0.5)',
-                    }}>
-                        <div style={{display:'flex', gap:'15px', alignItems:'start', flexDirection: lang === 'ar' ? 'row-reverse' : 'row'}}>
-                            <div style={{width:'50px', height:'50px', background:'rgba(0,242,255,0.1)', borderRadius:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'24px', flexShrink:0}}>🚀</div>
-                            <div style={{flex:1}}>
-                                <div style={{fontSize:'16px', fontWeight:800, color:'white', marginBottom:'4px'}}>{lang === 'ar' ? 'ثبّت التطبيق الآن!' : 'Install App Now!'}</div>
-                                <div style={{fontSize:'12px', color:'rgba(255,255,255,0.6)', lineHeight:'1.4'}}>{lang === 'ar' ? 'استمتع بتجربة أسرع من الشاشة الرئيسية.' : 'Enjoy a faster experience from your home screen.'}</div>
-                            </div>
-                            <button onClick={() => setShowPWAInstall(false)} style={{background:'none', border:'none', color:'rgba(255,255,255,0.4)', padding:0, cursor:'pointer', fontSize:'18px'}}>✕</button>
-                        </div>
-                        <div style={{marginTop:'20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px'}}>
-                            <button
-                                onClick={() => {
-                                    if (window.triggerPWAInstall) window.triggerPWAInstall();
-                                    setShowPWAInstall(false);
-                                }}
-                                style={{padding:'10px 24px', borderRadius:'12px', background:'linear-gradient(135deg,#00f2ff,#7000ff)', border:'none', color:'white', fontSize:'14px', fontWeight:800, cursor:'pointer'}}
-                            >{lang === 'ar' ? 'تثبيت' : 'Install'}</button>
-                        </div>
-                    </div>
+                    <PWAInstallPopup lang={lang} onClose={() => setShowPWAInstall(false)} />
                 )}
             </div>
         );

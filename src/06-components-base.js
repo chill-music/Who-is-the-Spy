@@ -474,6 +474,7 @@
     window.ModalCloseBtn = ModalCloseBtn;
     window.CharismaDisplay = CharismaDisplay;
     window.AvatarWithFrame = AvatarWithFrame;
+    window.AvatarComponent = AvatarWithFrame; // Alias: legacy name for the same component
     window.NotificationDropdown = NotificationDropdown;
     window.MiniProfilePopup = MiniProfilePopup;
 
