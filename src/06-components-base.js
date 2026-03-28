@@ -239,25 +239,24 @@
 
         var familySignEl = (() => {
             if (!profile.familyTag) return null;
-            var signImgURL = getFamilySignURL(profile);
-            var tag = profile.familyTag;
-            var sc  = profile.familySignColor || '#00f2ff';
-            var hg  = (profile.familySignLevel || 0) >= 4;
-            
-            if (signImgURL) {
-                var imgW = 44 + (tag.length * 6);
-                var imgH = Math.round(imgW * 0.55);
-                var fs   = tag.length <= 3 ? 11 : tag.length === 4 ? 10 : 9;
-                
+            if (window.FamilySignBadge) {
+                var flvl = profile.familySignLevel || 1;
+                var fcolor = window.FamilyConstants?.getFamilySignLevelDataByLevel?.(flvl)?.color || profile.familySignColor || '#00f2ff';
+                var imgURL = window.FamilyConstants?.getFamilySignImage?.(0, flvl) || profile.familySignImageURL;
                 return (
-                    <div className={`family-sign-layered ${hg ? 'family-sign-glow' : ''}`} 
-                         style={{ width: `${imgW}px`, height: `${imgH}px`, '--sign-color': sc }}>
-                        <img src={signImgURL} className="family-sign-bg" alt="" />
-                        <span className="family-sign-tag" style={{ fontSize: `${fs}px` }}>{tag}</span>
+                    <div style={{ transform: 'scale(1)', transformOrigin: 'left center' }}>
+                        <window.FamilySignBadge 
+                            tag={profile.familyTag} 
+                            signLevel={flvl} 
+                            color={fcolor}
+                            imageURL={imgURL}
+                            small={true}
+                        />
                     </div>
                 );
             }
-            return <span style={{fontSize:'10px',fontWeight:800,color:sc,background:`${sc}22`,border:`1px solid ${sc}44`,borderRadius:'6px',padding:'2px 8px'}}>{tag}</span>;
+            var sc = profile.familySignColor || '#00f2ff';
+            return <span style={{fontSize:'10px',fontWeight:800,color:sc,background:`${sc}22`,border:`1px solid ${sc}44`,borderRadius:'6px',padding:'2px 8px'}}>{profile.familyTag}</span>;
         })();
 
         var nameStyle = vipColor
@@ -398,16 +397,21 @@
                                 <div style={{ flex:1, paddingBottom:'6px', minWidth:0 }}>
                                     <div style={{ display:'flex', alignItems:'center', gap:'5px', marginBottom:'4px', flexWrap:'wrap' }}
                                         onClick={() => { onClose(); if(onOpenProfile) onOpenProfile(profile.uid); }}>
-                                        {profile.vipCfg && (
+                                        {window.VIPBadge && profile.vipLevel > 0 
+                                            ? <window.VIPBadge userData={profile} size="sm" onClick={() => {}} /> 
+                                            : profile.vipCfg && (
                                             <span style={{ fontSize:'8px', fontWeight:900, background:vipColor, color:'#000', padding:'1px 4px', borderRadius:'3px', flexShrink:0, display:'inline-flex', alignItems:'center', gap:'2px', cursor:'pointer' }}>
                                                 {profile.vipCfg.badgeImageUrl && <img src={profile.vipCfg.badgeImageUrl} alt="" style={{height:'10px',objectFit:'contain'}}/>}
                                                 VIP{profile.vipLevel}
                                             </span>
                                         )}
-                                        <span style={nameStyle}>{profile.name}</span>
+                                        {window.VIPName 
+                                            ? <window.VIPName displayName={profile.name} userData={profile} style={nameStyle} /> 
+                                            : <span style={nameStyle}>{profile.name}</span>}
                                     </div>
 
                                     <div style={{ display:'flex', alignItems:'center', gap:'6px', flexWrap:'wrap', marginBottom:'4px' }}>
+                                        {profile.gender && <span style={{fontSize:'15px',lineHeight:1,flexShrink:0}}>{profile.gender==='male'?'♂️':'♀️'}</span>}
                                         {charismaLevel && (
                                             <div style={{ display:'inline-flex', alignItems:'center', gap:'3px', borderRadius:'6px', padding:'2px 5px',
                                                 background: charismaLevel.isDivine?'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))':charismaLevel.hasGlow?`${charismaLevel.color}18`:'rgba(255,255,255,0.06)',
@@ -419,7 +423,6 @@
                                                 <span style={{fontSize:'10px',fontWeight:800,color:charismaLevel.isDivine?'#00d4ff':charismaLevel.color}}>Lv.{charismaLevel.level}</span>
                                             </div>
                                         )}
-                                        {profile.gender && <span style={{fontSize:'15px',lineHeight:1,flexShrink:0}}>{profile.gender==='male'?'♂️':'♀️'}</span>}
                                         {familySignEl}
                                     </div>
 
