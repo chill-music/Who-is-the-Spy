@@ -240,30 +240,16 @@
                     )
                   ),
 
-              /* Right: coins badge + close */
-              React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-                React.createElement('div', {
-                  style: {
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.35)',
-                    borderRadius: '20px', padding: '4px 10px',
-                  }
-                },
-                  React.createElement('span', { style: { fontSize: '14px' } }, '⭐'),
-                  React.createElement('span', {
-                    style: { fontSize: '13px', fontWeight: 900, color: '#FFD700' }
-                  }, coins.toLocaleString())
-                ),
-                React.createElement('button', {
-                  onClick: onClose,
-                  style: {
-                    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '10px', color: '#9ca3af', fontSize: '15px',
-                    width: '32px', height: '32px', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }
-                }, '✕')
-              )
+              /* Right: close only */
+              React.createElement('button', {
+                onClick: onClose,
+                style: {
+                  background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '10px', color: '#9ca3af', fontSize: '15px',
+                  width: '32px', height: '32px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }
+              }, '✕')
             ),
 
             /* ── GAME VIEW (when a game is active) ── */

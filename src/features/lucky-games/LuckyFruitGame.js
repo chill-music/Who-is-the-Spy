@@ -268,9 +268,12 @@
   var soundOn      = true;
   var rootEl       = null;
   var jackpotTicker = null;
+  var jackpotUnsub  = null;   /* Firestore listener */
   var sessionCoinsSpent = 0;
   var sessionCoinsWon   = 0;
   var sessionSpins      = 0;
+  var JACKPOT_DOC = 'lucky_fruit_jackpot'; /* shared Firestore doc key */
+  var FREE_SPIN_KEY = 'lf_free_spin_date'; /* localStorage key for daily free spin */
 
   /* ══════════════════════════════════════════════════════════
      6. COIN SYNC — reads/writes real user balance
@@ -290,20 +293,105 @@
   function writeCoinsToAppState(newVal) {
     coins = newVal;
     try {
-      /* 1) Update React state immediately via AppState setter */
       if (window.AppState && typeof window.AppState.setCoins === 'function') {
         window.AppState.setCoins(newVal);
       }
-      /* 2) Persist to Firestore in real-time */
       var uid = null;
       if (window.useAuthState && typeof window.useAuthState === 'function') {
         var st = window.useAuthState();
         uid = st && st.uid ? st.uid : null;
       }
       if (uid && window.usersCollection) {
-        window.usersCollection.doc(uid).update({ coins: newVal }).catch(function() {});
+        window.usersCollection.doc(uid).update({ currency: newVal }).catch(function() {});
       }
     } catch (e) {}
+  }
+
+  /* ══ JACKPOT FIRESTORE SYNC ══════════════════════════════════ */
+  function getJpRef() {
+    try {
+      if (window.db && window.appId) {
+        return window.db.collection('artifacts').doc(window.appId)
+          .collection('public').doc(JACKPOT_DOC);
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function subscribeJackpot() {
+    var ref = getJpRef();
+    if (!ref) return;
+    jackpotUnsub = ref.onSnapshot(function(snap) {
+      if (snap.exists) {
+        var d = snap.data();
+        if (typeof d.value === 'number') { jackpot = d.value; updateJackpot(); }
+      } else {
+        /* initialise doc with a starting value */
+        ref.set({ value: 1033921 }).catch(function(){});
+      }
+    }, function() {});
+  }
+
+  function unsubscribeJackpot() {
+    if (jackpotUnsub) { try { jackpotUnsub(); } catch(e){} jackpotUnsub = null; }
+  }
+
+  /* increment jackpot in Firestore (called per spin + wins) */
+  function incrementJackpotFirestore(amount) {
+    var ref = getJpRef();
+    if (!ref) { jackpot += amount; updateJackpot(); return; }
+    var FieldValue = null;
+    try {
+      if (window.firebase && window.firebase.firestore) FieldValue = window.firebase.firestore.FieldValue;
+    } catch(e){}
+    if (FieldValue) {
+      ref.update({ value: FieldValue.increment(amount) }).catch(function(){
+        jackpot += amount; updateJackpot();
+      });
+    } else {
+      ref.get().then(function(snap){
+        var cur = snap.exists ? (snap.data().value || 1033921) : 1033921;
+        ref.set({ value: cur + amount }).catch(function(){});
+      }).catch(function(){});
+    }
+  }
+
+  /* reset jackpot to base on jackpot win */
+  function resetJackpotFirestore() {
+    jackpot = 1000000;
+    var ref = getJpRef();
+    if (ref) ref.set({ value: 1000000 }).catch(function(){});
+    updateJackpot();
+  }
+
+  /* ══ DAILY FREE SPIN — stored in Firestore ═══════════════════ */
+  function checkGrantDailyFreeSpin() {
+    var today = new Date().toDateString();
+    try {
+      var uid = null;
+      if (window.useAuthState && typeof window.useAuthState === 'function') {
+        var st = window.useAuthState();
+        uid = st && st.uid ? st.uid : null;
+      }
+      if (uid && window.usersCollection) {
+        /* Read lastFreeSpin from Firestore */
+        window.usersCollection.doc(uid).get().then(function(snap) {
+          var last = snap.exists ? (snap.data().luckyGames || {}).lastFreeSpin : null;
+          if (last !== today) {
+            /* Grant 1 free spin and save today's date */
+            window.usersCollection.doc(uid).set({
+              luckyGames: { lastFreeSpin: today }
+            }, { merge: true }).catch(function() {});
+            freeSpins = Math.max(freeSpins, 1);
+            updateFSBanner();
+          }
+        }).catch(function() {
+          /* Firestore read failed — silent fail, no free spin */
+        });
+        return;
+      }
+    } catch(e) {}
+    /* Not logged in: no free spin (tied to account only) */
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -474,7 +562,8 @@
     soundSpinStart(); startReelTicks();
 
     jackpot += Math.floor(Math.random() * 50) + cost;
-    updateJackpot();
+    incrementJackpotFirestore(Math.floor(Math.random() * 50) + cost);
+    // local display is kept in sync via Firestore listener; updateJackpot() called there
 
     var delay = quickMode ? 30 : 80;
     var stopTimes = [0,1,2,3,4].map(function(i){ return (quickMode?200:350) + i*(quickMode?80:120); });
@@ -542,7 +631,7 @@
       var jpWin = Math.floor(jackpot * (cost / 10)); totalWin += jpWin;
       setTimeout(function() {
         soundJackpot(); showWinOverlay(T('JACKPOT_WIN'), jpWin, T('JACKPOT_MSG'));
-        launchConfetti(80); jackpot = 1000000; updateJackpot();
+        launchConfetti(80); resetJackpotFirestore();
       }, 500);
     }
 
@@ -646,9 +735,21 @@
     else { banner.classList.remove('show'); }
   }
   function updateProgress(win) {
-    progressVal=Math.min(progressVal+win,1000);
-    $('lf-progressFill').style.width=(progressVal/10)+'%';
-    $('lf-progressText').textContent=Math.floor(progressVal)+'/1000';
+    progressVal = Math.min(progressVal + win, 1000);
+    var pct = progressVal / 10;
+    var fill = document.getElementById('lf-progressFill');
+    var txt  = document.getElementById('lf-progressText');
+    if (fill) fill.style.width = pct + '%';
+    if (txt)  txt.textContent = Math.floor(progressVal) + '/1000';
+    if (progressVal >= 1000) {
+      progressVal = 0;
+      if (fill) fill.style.width = '0%';
+      if (txt)  txt.textContent = '0/1000';
+      /* Reward: grant 10 free spins */
+      freeSpins += 10;
+      updateFSBanner();
+      soundFreeSpins();
+    }
   }
   function showMsg(txt) { console.log('[LuckyFruit]', txt); }
   function showWinOverlay(title, amount, msg) {
@@ -725,39 +826,37 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     17. AVATAR SYNC — photo + name + mini-profile click
+     17. AVATAR SYNC — photo + name + MiniProfilePopup on click
   ══════════════════════════════════════════════════════════ */
   function syncAvatar() {
     try {
       var state = null;
       if (window.useAuthState && typeof window.useAuthState === 'function') state = window.useAuthState();
-      var avatarEl = $('lf-avatar');
+      var avatarEl = document.getElementById('lf-avatar');
       if (!avatarEl) return;
 
       if (state && state.photoURL) {
-        avatarEl.style.backgroundImage  = 'url(' + state.photoURL + ')';
-        avatarEl.style.backgroundSize   = 'cover';
-        avatarEl.style.backgroundPosition = 'center';
-        avatarEl.innerHTML = ''; /* remove default emoji */
+        avatarEl.innerHTML = '<img src="' + state.photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="" />';
       } else if (state && state.displayName) {
         avatarEl.style.backgroundImage = 'none';
-        avatarEl.innerHTML = state.displayName.charAt(0).toUpperCase();
-        avatarEl.style.fontSize = '18px';
-        avatarEl.style.color = '#fff';
-        avatarEl.style.display = 'flex';
-        avatarEl.style.alignItems = 'center';
-        avatarEl.style.justifyContent = 'center';
+        avatarEl.innerHTML = '<span style="font-size:16px;font-weight:900;color:#fff">' + state.displayName.charAt(0).toUpperCase() + '</span>';
+      } else {
+        avatarEl.innerHTML = '\uD83D\uDE0E';
       }
 
-      /* Remove MVP badge text (not needed when showing real avatar) */
-      avatarEl.style.removeProperty('--lf-mvp');
-
-      /* Click → open Mini-Profile */
+      /* Click → open MiniProfilePopup (not full profile page) */
       avatarEl.onclick = function() {
         var uid = state && state.uid ? state.uid : null;
-        if (uid) {
-          if (window.setTargetProfileUID) window.setTargetProfileUID(uid);
-          if (window.setShowUserProfile) window.setShowUserProfile(true);
+        if (!uid) return;
+        /* Try MiniProfilePopup first, fall back to full profile */
+        if (window.openMiniProfile) {
+          window.openMiniProfile(uid);
+        } else if (window.setMiniProfileUID) {
+          window.setMiniProfileUID(uid);
+          if (window.setShowMiniProfile) window.setShowMiniProfile(true);
+        } else {
+          /* fallback: open My Account modal */
+          if (window.setShowMyAccount) window.setShowMyAccount(true);
         }
       };
     } catch (e) {}
@@ -782,12 +881,14 @@
     for (var col = 0; col < 5; col++) grid[col] = [randomSymbol(), randomSymbol(), randomSymbol()];
     renderGrid();
 
-    jackpotTicker = setInterval(function(){
-      jackpot += Math.floor(Math.random()*3)+1; updateJackpot();
-    }, 800);
+    /* Subscribe to Firestore jackpot (real shared value) */
+    subscribeJackpot();
+
+    /* Grant 1 daily free spin */
+    checkGrantDailyFreeSpin();
 
     updateCoinsDisplay(); updateJackpot(); updateTotalCost();
-    $('lf-muteBtn').textContent = '\uD83D\uDD0A';
+    document.getElementById('lf-muteBtn').textContent = '\uD83D\uDD0A';
 
     wireControls();
     syncAvatar();
@@ -801,6 +902,7 @@
     if (jackpotTicker){ clearInterval(jackpotTicker); jackpotTicker=null; }
     if (autoTimer)    { clearTimeout(autoTimer); autoTimer=null; }
     stopReelTicks();
+    unsubscribeJackpot();
     logSession();
     if (rootEl){ rootEl.innerHTML=''; rootEl=null; }
   }
