@@ -73,7 +73,6 @@
 
     <!-- Family System Core (must load before components that use them) -->
     <script src="src/features/family/FamilyConstants.js"></script>
-    <script type="text/babel" data-presets="react" src="src/features/family/components/FamilySignBadge.js"></script>
 
     <!-- 09 · User Components (Modularized: Onboarding, Daily Tasks, Groups) -->
     <script type="text/babel" data-presets="react" src="src/features/onboarding/OnboardingFlow.js"></script>
@@ -168,8 +167,7 @@
     <script type="text/babel" data-presets="react" src="src/components/admin/FakeProfilesSection.js"></script>
     <script type="text/babel" data-presets="react" src="src/18-admin-panel.js"></script>
 
-    <!-- Group System Modules -->
-    <script type="text/babel" data-presets="react" charset="UTF-8" src="src/features/groups/GroupsSection.js"></script>
+    <!-- Group System Modules (second load removed - already loaded above) -->
 
     <!-- Family System Modules -->
     <script src="src/features/family/FamilyUtils.js"></script>
