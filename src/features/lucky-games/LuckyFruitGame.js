@@ -317,7 +317,7 @@
     try {
       if (window.db && window.appId) {
         return window.db.collection('artifacts').doc(window.appId)
-          .collection('public').doc(JACKPOT_DOC);
+          .collection('public').doc('data').collection('lucky_fruit_jackpot').doc('jackpot');
       }
     } catch(e){}
     return null;
