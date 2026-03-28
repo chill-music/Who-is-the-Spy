@@ -73,8 +73,8 @@
         '<button class="lf-nav-btn" id="lf-muteBtn">&#128266;</button>',
         '<button class="lf-nav-btn" id="lf-rulesBtn">&#9776;</button>',
         '<div class="lf-coin-display">',
-          '<span class="lf-coin-star">&#11088;</span>',
-          '<span id="lf-coins">0</span>',
+          '<span class="lf-coin-star">🧠</span>',
+          '<span id="lf-coins">1000</span>',
         '</div>',
         /* Avatar — photo loaded dynamically */
         '<div class="lf-avatar-box" id="lf-avatar" style="cursor:pointer;position:relative;"></div>',
@@ -254,7 +254,7 @@
   /* ══════════════════════════════════════════════════════════
      5. STATE
   ══════════════════════════════════════════════════════════ */
-  var coins        = 1000;
+  var coins        = 0;
   var cost         = 2;
   var lines        = 50;
   var jackpot      = 1033921;
@@ -278,36 +278,70 @@
   /* ══════════════════════════════════════════════════════════
      6. COIN SYNC — reads/writes real user balance
   ══════════════════════════════════════════════════════════ */
-  function readCoinsFromAppState() {
+  var currencyUnsub = null;
+
+  function subscribeUserCurrency() {
+    unsubscribeUserCurrency();
     try {
-      if (window.userData) {
-        if (typeof window.userData.currency === 'number') { coins = window.userData.currency; return true; }
-        if (typeof window.userData.coins === 'number') { coins = window.userData.coins; return true; }
-      }
-      /* Fallback to State functions if needed */
+      var stateObj = window.lfGameUserData || window.userData || window.currentUserData;
+      var authUser = null;
       if (window.useAuthState && typeof window.useAuthState === 'function') {
-        var state = window.useAuthState();
-        if (state && typeof state.coins === 'number') { coins = state.coins; return true; }
-        if (state && typeof state.currency === 'number') { coins = state.currency; return true; }
+        var authSt = window.useAuthState();
+        authUser = authSt ? authSt.user || authSt : null;
       }
-      if (window.AppState && typeof window.AppState.coins === 'number') { coins = window.AppState.coins; return true; }
-    } catch (e) {}
-    return false;
+      var uid = stateObj?.uid || authUser?.uid;
+      
+      if (!uid || !window.usersCollection) {
+        if (stateObj && typeof stateObj.currency === 'number') {
+          coins = stateObj.currency; updateCoinsDisplay(); 
+        }
+        return;
+      }
+      
+      currencyUnsub = window.usersCollection.doc(uid).onSnapshot(function(snap) {
+        if (snap.exists) {
+          var d = snap.data();
+          if (typeof d.currency === 'number') {
+            coins = d.currency;
+            updateCoinsDisplay();
+            /* Re-check buttons if coins changed */
+            if (document.getElementById('lf-spinBtn')) {
+              var totalCost = cost * lines;
+              if (freeSpins > 0) totalCost = 0;
+              document.getElementById('lf-spinBtn').disabled = spinning || (coins < totalCost);
+            }
+          }
+        }
+      });
+    } catch(e){}
   }
 
-  function writeCoinsToAppState(newVal) {
-    coins = newVal;
+  function unsubscribeUserCurrency() {
+    if (currencyUnsub) { try { currencyUnsub(); }catch(e){} currencyUnsub=null; }
+  }
+
+  function incrementUserCurrency(amount) {
+    if (amount === 0) return;
     try {
-      if (window.AppState && typeof window.AppState.setCoins === 'function') {
-        window.AppState.setCoins(newVal);
+      var stateObj = window.lfGameUserData || window.userData || window.currentUserData;
+      var authUser = null;
+      if (window.useAuthState && typeof window.useAuthState === 'function') {
+        var authSt = window.useAuthState();
+        authUser = authSt ? authSt.user || authSt : null;
       }
-      var uid = window.currentUserData?.uid || window.userData?.uid;
-      if (!uid && window.useAuthState && typeof window.useAuthState === 'function') {
-        var st = window.useAuthState();
-        uid = st && st.uid ? st.uid : null;
-      }
-      if (uid && window.usersCollection) {
-        window.usersCollection.doc(uid).update({ currency: newVal }).catch(function() {});
+      var uid = stateObj?.uid || authUser?.uid;
+      
+      if (uid && window.usersCollection && window.firebase && window.firebase.firestore) {
+        window.usersCollection.doc(uid).update({ 
+          currency: window.firebase.firestore.FieldValue.increment(amount) 
+        }).catch(function() {});
+      } else {
+        /* Fallback if db unavailable */
+        coins += amount;
+        if (window.AppState && typeof window.AppState.setCoins === 'function') {
+           window.AppState.setCoins(coins);
+        }
+        updateCoinsDisplay();
       }
     } catch (e) {}
   }
@@ -566,7 +600,7 @@
     }
     
     if (freeSpins <= 0) {
-      writeCoinsToAppState(coins - totalCost);
+      incrementUserCurrency(-totalCost);
       sessionCoinsSpent += totalCost;
     } else { freeSpins--; updateFSBanner(); }
     sessionSpins++;
@@ -676,7 +710,7 @@
     }
 
     if (totalWin > 0) {
-      writeCoinsToAppState(coins + totalWin);
+      incrementUserCurrency(totalWin);
       sessionCoinsWon += totalWin;
       highlightCells(winningCells); drawWinLines(winningLines); spawnCoins(); updateProgress(totalWin);
       if (totalWin >= cost*lines*20) soundBigWin(); else soundCoinWin();
@@ -728,7 +762,7 @@
       btn.onclick=function(){
         if(btn.classList.contains('opened')) return;
         btn.classList.add('opened'); btn.innerHTML='\uD83C\uDF81<span class="lf-chest-prize">+'+prize+'</span>';
-        soundChestOpen(); writeCoinsToAppState(coins+prize);
+        soundChestOpen(); incrementUserCurrency(prize);
         sessionCoinsWon += prize;
         updateCoinsDisplay(); res.textContent=T('YOU_WON')+' '+prize+' '+T('COINS');
         $('lf-bonusOverlay').classList.remove('show');
@@ -756,8 +790,7 @@
       }
     } else {
       if (banner) {
-        banner.innerHTML = '&#127808; Get 1 Free Spin Daily!';
-        banner.classList.add('show');
+        banner.classList.remove('show');
       }
     }
   }
@@ -857,7 +890,7 @@
   ══════════════════════════════════════════════════════════ */
   function syncAvatar() {
     try {
-      var state = window.userData || window.currentUserData;
+      var state = window.lfGameUserData || window.userData || window.currentUserData;
       var authUser = null;
       if (window.useAuthState && typeof window.useAuthState === 'function') {
         var authSt = window.useAuthState();
@@ -916,7 +949,9 @@
   /* ══════════════════════════════════════════════════════════
      18. START / STOP
   ══════════════════════════════════════════════════════════ */
-  function start(containerIdOrEl) {
+  function start(containerIdOrEl, initialUserData) {
+    if (initialUserData) window.lfGameUserData = initialUserData;
+    
     rootEl = typeof containerIdOrEl === 'string'
       ? document.getElementById(containerIdOrEl)
       : containerIdOrEl;
@@ -927,7 +962,7 @@
     progressVal = 0; freeSpins = 0; jackpot = 1033921;
 
     rootEl.innerHTML = buildHTML();
-    readCoinsFromAppState();
+    subscribeUserCurrency();
     buildReels();
     for (var col = 0; col < 5; col++) grid[col] = [randomSymbol(), randomSymbol(), randomSymbol()];
     renderGrid();
@@ -953,6 +988,7 @@
     if (jackpotTicker){ clearInterval(jackpotTicker); jackpotTicker=null; }
     if (autoTimer)    { clearTimeout(autoTimer); autoTimer=null; }
     stopReelTicks();
+    unsubscribeUserCurrency();
     unsubscribeJackpot();
     logSession();
     if (rootEl){ rootEl.innerHTML=''; rootEl=null; }
