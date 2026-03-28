@@ -163,20 +163,34 @@
 
                         {/* 📱 Sub-Navigation */}
                         <nav className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
-                            <button onClick={() => setActiveView('lobby')} className={`nav-tab ${activeView === 'lobby' ? 'active' : ''}`}>{t.lobby}</button>
-                            <button onClick={() => setActiveView('ranking')} className={`nav-tab ${activeView === 'ranking' ? 'active' : ''}`}>{t.ranking}</button>
+                            <button onClick={() => setActiveView('lobby')} className={`nav-tab ${activeView === 'lobby' ? 'active' : ''}`}>{t.tabLobby || 'Lobby'}</button>
+                            <button onClick={() => setActiveView('chat')} className={`nav-tab ${activeView === 'chat' ? 'active' : ''}`}>{t.tabChat || 'Chat'}</button>
+                            <button onClick={() => setActiveView('ranking')} className={`nav-tab ${activeView === 'ranking' ? 'active' : ''}`}>{t.tabLeaderboard || 'Ranking'}</button>
                             <button onClick={() => setShowBrowseRooms(true)} className="nav-tab browse-btn">{t.browse}</button>
                         </nav>
 
                         {/* 📈 Main View Content */}
                         <main className="view-content">
-                            {activeView === 'ranking' ? (
+                            {activeView === 'ranking' && window.RankingView && (
                                 <window.RankingView
                                     leaderboardTab={leaderboardTab} setLeaderboardTab={setLeaderboardTab}
                                     leaderboardData={leaderboardData} charismaLeaderboard={charismaLeaderboard} familyLeaderboard={familyLeaderboard}
                                     lang={lang} t={t} openProfile={gameActions.openProfile}
                                 />
-                            ) : (
+                            )}
+
+                            {activeView === 'chat' && window.GroupsSection && (
+                                <window.GroupsSection
+                                    lang={lang} t={t}
+                                    user={user} userData={currentUserData}
+                                    onOpenFamily={() => setShowFamilyModal(true)}
+                                    onOpenFamilyChat={() => setShowFamilyChat(true)}
+                                    onNotification={(msg) => setNotification({ type:'info', message: msg })}
+                                    onOpenProfile={gameActions.openProfile}
+                                />
+                            )}
+
+                            {activeView === 'lobby' && (
                                 <window.LobbyView
                                     currentUserData={currentUserData} user={user} lang={lang} t={t}
                                     showFunPass={showFunPass} setShowFunPass={setShowFunPass}

@@ -196,11 +196,11 @@ var fmtFamilyTime = (ts, lang) => {
 };
 
 // ── Components ──
-var FamilyRoleBadge = window.FamilyRoleBadge || (function() { return null; });
+window.FamilyRoleBadge = window.FamilyRoleBadge || (props => null);
+window.FamilySignBadge = window.FamilySignBadge || (props => null);
 
-// Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
-// Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
-var FamilySignBadge = (props) => (window.FamilySignBadge ? <window.FamilySignBadge {...props} /> : null);
+var FamilyRoleBadge = props => <window.FamilyRoleBadge {...props} />;
+var FamilySignBadge = props => <window.FamilySignBadge {...props} />;
 
 // ════════════════════════════════════════════════════════
 // 📸 FRIENDS MOMENTS MODAL
