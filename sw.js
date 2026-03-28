@@ -1,4 +1,4 @@
-var CACHE_NAME = 'pro-spy-v3';
+var CACHE_NAME = 'pro-spy-v4';
 var ASSETS = [
   './',
   './index.html',
@@ -21,8 +21,11 @@ var ASSETS = [
   './src/17-vip.js',
   './src/08-components-shop.js',
   './src/09-components-user.js',
+
+  // App Utils
+  './src/app/utils/bgAnimation.js',
   
-  // App Logic & Hooks
+  // App Hooks
   './src/app/useAuthState.js',
   './src/app/usePresence.js',
   './src/app/useNotifications.js',
@@ -31,8 +34,23 @@ var ASSETS = [
   './src/app/useSocial.js',
   './src/app/useGameAutomation.js',
   './src/app/useBots.js',
+  './src/app/useAppUIState.js',
+  './src/app/useBanningLogic.js',
+  './src/app/useLoginRewards.js',
+  './src/app/useOnboarding.js',
+  './src/app/hooks/useGameActions.js',
+  './src/app/hooks/useUserListeners.js',
+
+  // App Entry
   './src/10-app.js',
   
+  // App Feature Components
+  './src/features/app/components/GlobalModals.js',
+  './src/features/app/components/BannedScreen.js',
+  './src/features/app/components/LobbyView.js',
+  './src/features/app/components/RankingView.js',
+  './src/features/app/components/RoomView.js',
+
   // Modals
   './src/11-modal-selfchat.js',
   './src/12-modal-funpass.js',
@@ -63,7 +81,45 @@ var ASSETS = [
   './src/features/profile/ProfileHeader.js',
   './src/features/profile/ProfileIdentity.js',
   './src/features/profile/ProfileV11.js',
-  
+
+  // Onboarding Feature
+  './src/features/onboarding/OnboardingFlow.js',
+
+  // Chat Feature
+  './src/features/chat/ChatManager.js',
+
+  // Groups Feature
+  './src/features/groups/GroupConfig.js',
+  './src/features/groups/GroupsList.js',
+  './src/features/groups/GroupsSection.js',
+  './src/features/groups/GroupChatModal.js',
+  './src/features/groups/GroupDetailsModal.js',
+
+  // Tasks Feature
+  './src/features/tasks/DailyTasksPanel.js',
+
+  // Room Feature
+  './src/features/room/RoomState.js',
+
+  // BFF Feature
+  './src/features/bff/BFFService.js',
+  './src/features/bff/BFFModal.js',
+  './src/features/bff/BFFCardModal.js',
+  './src/features/bff/BFFProfileListModal.js',
+  './src/features/bff/BFFRequestItem.js',
+  './src/features/bff/BFFStripProfile.js',
+  './src/features/bff/BotChatModal.js',
+
+  // Couples Feature
+  './src/features/couples/CoupleConfig.js',
+  './src/features/couples/CoupleService.js',
+  './src/features/couples/CoupleUIComponents.js',
+  './src/features/couples/CoupleCardModal.js',
+  './src/features/couples/IncomingProposalModal.js',
+  './src/features/couples/ProposalModal.js',
+  './src/features/couples/RingsShopSection.js',
+  './src/features/couples/WeddingHallModal.js',
+
   // Family System
   './src/features/family/FamilyConstants.js',
   './src/features/family/FamilyUtils.js',
@@ -113,6 +169,7 @@ var ASSETS = [
   './icos/icon-192.png',
   './icos/icon-512.png'
 ];
+
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
