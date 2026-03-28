@@ -1,5 +1,14 @@
 (function() {
     var { useState, useEffect, useRef, useCallback, useMemo } = React;
+    // Late-bind helpers from ProfileHelpers.js
+    var getGiftRarity = function(cost) {
+        if (window.getGiftRarity) return window.getGiftRarity(cost);
+        if (cost >= 10000) return 'Mythic';
+        if (cost >= 500)   return 'Legendary';
+        if (cost >= 50)    return 'Epic';
+        if (cost >= 15)    return 'Uncommon';
+        return 'Common';
+    };
     // NOTE: RingsShopSection is loaded AFTER this file, so we must read it late (at render time)
 
 // ═══════════════════════════════════════════════════════════════

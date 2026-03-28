@@ -1,4 +1,14 @@
 (function() {
+// Late-bind getGiftRarity — defined in ProfileHelpers.js, fallback included for safety
+var getGiftRarity = function(cost) {
+    if (window.getGiftRarity) return window.getGiftRarity(cost);
+    if (cost >= 10000) return 'Mythic';
+    if (cost >= 500)   return 'Legendary';
+    if (cost >= 50)    return 'Epic';
+    if (cost >= 15)    return 'Uncommon';
+    return 'Common';
+};
+
 var EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
     var t = TRANSLATIONS[lang];
     var [activeCategory, setActiveCategory] = useState('smiles');
