@@ -240,7 +240,7 @@ var FamilyProfile = ({
     };
 
     return (
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#0d0d1f' }}>
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', background: '#0d0d1f', paddingBottom: '80px' }}>
 
             {/* ══ HEADER ══ */}
             <div style={{
