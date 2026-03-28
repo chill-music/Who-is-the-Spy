@@ -91,6 +91,22 @@
                         onClose={() => { setShowUserProfile(false); if(setTargetProfileUID) setTargetProfileUID(null); }}
                     />
                 )}
+
+                {/* 💬 Family Chat Modal */}
+                {props.showFamilyChat && window.FamilyChatModal && (
+                    <window.FamilyChatModal
+                        show={true}
+                        onClose={() => props.setShowFamilyChat(false)}
+                        currentUID={user?.uid}
+                        currentUserData={currentUserData}
+                        lang={lang}
+                        userData={currentUserData}
+                        onNotification={(msg) => setNotification({ type:'info', message: msg })}
+                        onOpenProfile={openProfile}
+                        onOpenFamily={() => { props.setShowFamilyChat(false); setShowFamilyModal(true); }}
+                        familyId={currentUserData?.familyId}
+                    />
+                )}
             </div>
         );
     };

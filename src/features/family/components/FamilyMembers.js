@@ -17,8 +17,9 @@ var FamilyMembers = ({
         getFamilySignLevelData = () => ({ level: 0 })
     } = window.FamilyConstants || {};
     var { fmtFamilyNum = n => n } = window;
-    var { FamilyRoleBadge } = window.FamilyShared || {};
-    var FamilySignBadge = window.FamilySignBadge;
+    var { FamilyRoleBadge: sharedRoleBadge } = window.FamilyShared || {};
+    var FamilyRoleBadge = window.FamilyRoleBadge || sharedRoleBadge || (props => null);
+    var FamilySignBadge = window.FamilySignBadge || window.FamilyShared?.FamilySignBadge || (props => null);
     var [memberSearch, setMemberSearch] = React.useState('');
     var [donationSort, setDonationSort] = React.useState('intel'); // 'intel' or 'activity'
     var [gearMenuUid, setGearMenuUid] = React.useState(null);
