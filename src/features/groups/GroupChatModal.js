@@ -76,9 +76,9 @@
                                         <div style={{transform:'scale(0.85)',transformOrigin:'left center',flexShrink:0}}>
                                             <window.FamilySignBadge 
                                                 tag={activeGroup.familyTag} 
-                                                signLevel={activeGroup.familySignLevel || 1} 
-                                                color={activeGroup.familySignColor || (window.FamilyConstants?.getFamilySignLevelDataByLevel?.(activeGroup.familySignLevel || 1)?.color) || '#00f2ff'}
-                                                imageURL={window.FamilyConstants?.getFamilySignImage?.(0, activeGroup.familySignLevel || 1) || activeGroup.familySignImageURL}
+                                                signLevel={activeGroup.familySignLevel || (activeGroup.level ? Math.min(activeGroup.level, 5) : 1)} 
+                                                color={activeGroup.familySignColor || (window.FamilyConstants?.getFamilySignLevelDataByLevel?.(activeGroup.familySignLevel || (activeGroup.level ? Math.min(activeGroup.level, 5) : 1))?.color) || '#00f2ff'}
+                                                imageURL={window.FamilyConstants?.getFamilySignImage?.(0, activeGroup.familySignLevel || (activeGroup.level ? Math.min(activeGroup.level, 5) : 1)) || activeGroup.familySignImageURL}
                                                 small={true}
                                             />
                                         </div>
