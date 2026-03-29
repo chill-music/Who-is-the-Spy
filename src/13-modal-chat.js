@@ -610,19 +610,35 @@ var PrivateChatModal = ({
                           if(!rpDoc.exists){return;}
                           var rp=rpDoc.data();
                           // ❌ المرسل لا يستطيع استلام مغلفه في البرايفت
-                          if(rp.senderId===user.uid){alert(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');return;}
-                          if(rp.claimedBy?.includes(user.uid)){alert(lang==='ar'?'استلمته من قبل':'Already claimed');return;}
-                          if((rp.claimedBy?.length||0)>=rp.maxClaims){alert(lang==='ar'?'المغلف نفد':'Packet exhausted');return;}
-                          if(rp.status!=='active'){alert(lang==='ar'?'المغلف منتهي':'Packet expired');return;}
+                          if(rp.senderId===user.uid){
+                            if(window.showToast) window.showToast(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');
+                            else alert(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');
+                            return;
+                          }
+                          if(rp.claimedBy?.includes(user.uid)){
+                            if(window.showToast) window.showToast(lang==='ar'?'استلمته من قبل':'Already claimed');
+                            return;
+                          }
+                          if((rp.claimedBy?.length||0)>=rp.maxClaims){
+                            if(window.showToast) window.showToast(lang==='ar'?'المغلف نفد':'Packet exhausted');
+                            return;
+                          }
+                          if(rp.status!=='active'){
+                            if(window.showToast) window.showToast(lang==='ar'?'المغلف منتهي':'Packet expired');
+                            return;
+                          }
                           // DM packet: recipient gets full amount
                           var claimAmt = rp.remaining || rp.amount;
+                          var myName = currentUserData?.displayName || currentUser?.displayName || 'User';
                           await redPacketsCollection.doc(msg.rpId).update({
-                            claimedBy:firebase.firestore.FieldValue.arrayUnion(user.uid),
-                            remaining:firebase.firestore.FieldValue.increment(-claimAmt),
-                            status:'exhausted',
+                            claimedBy: firebase.firestore.FieldValue.arrayUnion(user.uid),
+                            claimerNames: firebase.firestore.FieldValue.arrayUnion(myName),
+                            remaining: firebase.firestore.FieldValue.increment(-claimAmt),
+                            status: 'exhausted',
                           });
                           await usersCollection.doc(user.uid).update({currency:firebase.firestore.FieldValue.increment(claimAmt)});
-                          alert((lang==='ar'?'🎉 استلمت ':'🎉 You got ')+claimAmt+' Intel!');
+                          if(window.showToast) window.showToast((lang==='ar'?'🎉 استلمت ':'🎉 You got ')+claimAmt+' Intel!');
+                          else alert((lang==='ar'?'🎉 استلمت ':'🎉 You got ')+claimAmt+' Intel!');
                         } catch(e){console.error(e);}
                       }} disabled={isClaimed} style={{
                         display:'flex',alignItems:'center',gap:'10px',padding:'12px 16px',borderRadius:'16px',
