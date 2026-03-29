@@ -1050,44 +1050,62 @@
   async function spinLuckyWheel() {
     if (wheelSpinning) return;
     
-    // Safety check for 24h cooldown
-    var last = 0;
+    var btn = $('lf-spinWheelBtn');
+    var timer = $('lf-wheelTimer');
+    var originalBtnText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = lang==='ar'?'جاري التحقق...':'Verifying...';
+
+    // 🔐 STRICT COOLDOWN: Always fetch fresh data from Firestore before spinning
+    var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
+    if (!authUser) {
+      btn.textContent = originalBtnText;
+      btn.disabled = false;
+      return;
+    }
+
     try {
-      var state = window.lfGameUserData || window.userData || window.currentUserData;
-      last = state?.lastWheelSpin || 0;
+      var userDoc = await usersCollection.doc(authUser.uid).get();
+      if (!userDoc.exists) {
+        btn.textContent = originalBtnText;
+        btn.disabled = false;
+        return;
+      }
+
+      var userData = userDoc.data();
+      var last = userData.lastWheelSpin || 0;
       if (last instanceof firebase.firestore.Timestamp) last = last.toMillis();
-    } catch(e) {}
-    if (Date.now() < (last + 24*60*60*1000)) {
-       var msg = (lang==='ar'?'عذراً، يمكنك الدوران مرة واحدة كل 24 ساعة.':'Sorry, you can only spin once every 24 hours.');
-       if (typeof window.showToast === 'function') window.showToast(msg, 'warning');
-       else alert(msg);
-       return;
+      
+      var now = Date.now();
+      var cooldown = 24 * 60 * 60 * 1000;
+      if (now < (last + cooldown)) {
+        var msg = (lang==='ar'?'عذراً، يمكنك الدوران مرة واحدة كل 24 ساعة.':'Sorry, you can only spin once every 24 hours.');
+        if (typeof window.showToast === 'function') window.showToast(msg, 'warning');
+        updateWheelStatus(); // Refresh countdown
+        btn.textContent = originalBtnText;
+        return;
+      }
+    } catch(e) {
+      console.error('[Wheel] Verification error:', e);
+      btn.textContent = originalBtnText;
+      btn.disabled = false;
+      return;
     }
 
     soundSpinStart();
     wheelSpinning = true;
-    $('lf-spinWheelBtn').disabled = true;
+    btn.textContent = originalBtnText; // Restore text for actual spin
 
     var rewards = [50, 100, 300, 50, 500, 100, 5000, 50];
-    // Probabilities (not truly random per segment, but we force a result)
-    // 50: 4/8 (50%), 100: 2/8 (25%), 300: 1/8 (12.5%), 500: 1/16, 5000: very rare
     var rand = Math.random();
     var targetIdx = 0;
-    if (rand < 0.01) targetIdx = 6; // 5000 (1%)
-    else if (rand < 0.1) targetIdx = 4; // 500 (9%)
-    else if (rand < 0.25) targetIdx = 2; // 300 (15%)
-    else if (rand < 0.55) targetIdx = 1; // 100 (30%)
-    else targetIdx = (Math.random() > 0.5 ? 0 : (Math.random() > 0.5 ? 3 : 7)); // 50 (45%)
+    if (rand < 0.01) targetIdx = 6; 
+    else if (rand < 0.1) targetIdx = 4;
+    else if (rand < 0.25) targetIdx = 2;
+    else if (rand < 0.55) targetIdx = 1;
+    else targetIdx = (Math.random() > 0.5 ? 0 : (Math.random() > 0.5 ? 3 : 7)); 
 
-    var extraSpins = 5 + Math.floor(Math.random() * 5);
-    var finalDeg = (extraSpins * 360) + (targetIdx * 45) + 22.5; 
-    // Wheel pointer is at top (0 deg). Segment 0 is at 0-45 deg.
-    // To land on segment I, we need to rotate pointer to I or rotate wheel to -I.
-    // If spinner rotates clockwise, degrees increase. 
-    // 0 deg = segment 0. 45 deg = segment 7. 90 deg = segment 6.
-    // Let's invert targetIdx:
     var rotation = 3600 + (360 - (targetIdx * 45)) - 22.5;
-
     $('lf-wheelSpinner').style.transform = 'rotate(' + rotation + 'deg)';
 
     setTimeout(async function() {
@@ -1102,17 +1120,17 @@
 
       // Save to Firebase
       try {
-        var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
-        if (authUser) {
-          var now = firebase.firestore.FieldValue.serverTimestamp();
-          await usersCollection.doc(authUser.uid).update({
-            currency: firebase.firestore.FieldValue.increment(amt),
-            lastWheelSpin: now
-          });
-          // Update local state if it exists
-          if (window.lfGameUserData) window.lfGameUserData.lastWheelSpin = Date.now();
-          if (window.userData) window.userData.lastWheelSpin = Date.now();
-        }
+        var nowSrv = firebase.firestore.FieldValue.serverTimestamp();
+        await usersCollection.doc(authUser.uid).update({
+          currency: firebase.firestore.FieldValue.increment(amt),
+          lastWheelSpin: nowSrv
+        });
+        
+        // Synchronize local states
+        var tsNow = Date.now();
+        if (window.lfGameUserData) window.lfGameUserData.lastWheelSpin = tsNow;
+        if (window.userData) window.userData.lastWheelSpin = tsNow;
+        if (window.currentUserData) window.currentUserData.lastWheelSpin = tsNow;
       } catch(e) { console.error('[Wheel] Save error:', e); }
 
       updateWheelStatus();
