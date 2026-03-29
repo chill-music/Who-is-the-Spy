@@ -686,8 +686,10 @@
         if (autoTimer) clearTimeout(autoTimer);
         autoTimer = setTimeout(spin, quickMode ? 400 : 900);
       }
-      if (freeSpins > 0 && !autoMode) {
-        setTimeout(spin, quickMode ? 400 : 800);
+      // If we have free spins, we auto-play them, but don't toggle official 'autoMode'
+      if (freeSpins > 0) {
+        if (autoTimer) clearTimeout(autoTimer);
+        autoTimer = setTimeout(spin, quickMode ? 400 : 800);
       }
     }, maxTime);
   }
