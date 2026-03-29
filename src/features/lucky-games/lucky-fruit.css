@@ -49,11 +49,12 @@
 /* ── TOP NAV ─────────────────────────────────────────────── */
 .lf-game .lf-top-nav {
   background: linear-gradient(90deg, #5A2FD4 0%, #3A1A8A 100%);
-  padding: 10px 12px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   gap: 8px;
   border-bottom: 2px solid rgba(255,215,0,0.3);
+  min-height: 60px;
 }
 
 .lf-game .lf-nav-btn {
@@ -100,6 +101,12 @@
   box-shadow: 0 0 12px rgba(255,215,0,0.6);
   position: relative;
   flex-shrink: 0;
+}
+
+#lf-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── FREE SPINS BANNER ───────────────────────────────────── */
