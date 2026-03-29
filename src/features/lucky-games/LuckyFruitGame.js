@@ -274,6 +274,7 @@
   var sessionSpins      = 0;
   var JACKPOT_DOC = 'lucky_fruit_jackpot'; /* shared Firestore doc key */
   var FREE_SPIN_KEY = 'lf_free_spin_date'; /* localStorage key for daily free spin */
+  var lang = 'en';
 
   /* ══════════════════════════════════════════════════════════
      6. COIN SYNC — reads/writes real user balance
@@ -770,9 +771,18 @@
   /* ══════════════════════════════════════════════════════════
      15. UI UPDATES
   ══════════════════════════════════════════════════════════ */
-  function updateCoinsDisplay() { $('lf-coins').textContent = coins.toLocaleString(); }
-  function updateJackpot()      { $('lf-jackpotVal').textContent = jackpot.toLocaleString(); }
-  function updateTotalCost()    { $('lf-totalCosts').textContent = T('TOTAL_COSTS') + ' ' + (cost * lines); }
+  function updateCoinsDisplay() { 
+    var el = document.getElementById('lf-coins');
+    if (el) el.textContent = coins.toLocaleString(); 
+  }
+  function updateJackpot() { 
+    var el = document.getElementById('lf-jackpotVal');
+    if (el) el.textContent = jackpot.toLocaleString(); 
+  }
+  function updateTotalCost() { 
+    var el = document.getElementById('lf-totalCosts');
+    if (el) el.textContent = T('TOTAL_COSTS') + ' ' + (cost * lines); 
+  }
   function updateFSBanner() {
     var banner = document.getElementById('lf-fsBanner');
     if (banner) {
@@ -948,6 +958,11 @@
     sessionCoinsSpent = 0; sessionCoinsWon = 0; sessionSpins = 0;
     progressVal = 0; freeSpins = 0; jackpot = 1033921;
 
+    /* Initialize language */
+    lang = 'en';
+    if (window.AppState && window.AppState.language) lang = window.AppState.language;
+    else if (document.documentElement.lang) lang = document.documentElement.lang.split('-')[0];
+
     rootEl.innerHTML = buildHTML();
     subscribeUserCurrency();
     buildReels();
@@ -981,7 +996,8 @@
     if (rootEl){ rootEl.innerHTML=''; rootEl=null; }
   }
 
-  function setLanguage(lang) {
+  function setLanguage(newLang) {
+    lang = newLang;
     if (window.AppState) window.AppState.language = lang;
     else document.documentElement.lang = lang;
     if (rootEl){ var el=rootEl; stop(); start(el); }
