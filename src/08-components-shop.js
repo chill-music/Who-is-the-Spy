@@ -21,6 +21,7 @@
 var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
     var t = TRANSLATIONS[lang];
     var [activeTab, setActiveTab] = useState('frames');
+    var [activeGiftSubTab, setActiveGiftSubTab] = useState('all'); // ✅ New gift sub-tab state
     var [selectedItem, setSelectedItem] = useState(null);
     var [showPreview, setShowPreview] = useState(false);
     // ✅ Gift filter state
@@ -108,7 +109,22 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
             var spcGifts = (SHOP_ITEMS.gifts_special || []).filter(item => !item.hidden);
             var flgGifts = (SHOP_ITEMS.gifts_flag    || []).filter(item => !item.hidden);
 
-            var items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts, ...famGifts, ...spcGifts, ...flgGifts];
+            var items = [];
+            if (activeGiftSubTab === 'all') {
+                items = [...regular, ...vipGifts, ...famGifts, ...spcGifts, ...flgGifts];
+            } else if (activeGiftSubTab === 'vip') {
+                items = vipGifts;
+            } else if (activeGiftSubTab === 'family') {
+                items = famGifts;
+            } else if (activeGiftSubTab === 'special') {
+                items = spcGifts;
+            } else if (activeGiftSubTab === 'flags') {
+                items = flgGifts;
+            }
+
+            if (giftVIPOnly) {
+                items = items.filter(item => item.type === 'gifts_vip');
+            }
 
             if (giftRarityFilter !== 'all') {
                 items = items.filter(item => {
@@ -353,15 +369,9 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                         <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
                                             <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} 🧠</div>
                                             <button
-                                                onClick={async() => {
+                                                onClick={() => {
                                                     if(!canAfford||!currentUID) return;
-                                                    var uniqueId = rp.id + '_' + Date.now();
-                                                    try {
-                                                        await usersCollection.doc(currentUID).update({
-                                                            currency: firebase.firestore.FieldValue.increment(-rp.amount),
-                                                            'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
-                                                        });
-                                                    } catch(e) { console.error('Buy RP error', e); }
+                                                    onPurchase(rp);
                                                 }}
                                                 disabled={!canAfford}
                                                 style={{padding:'7px 14px',borderRadius:'10px',border:'none',cursor:canAfford?'pointer':'not-allowed',background:canAfford?`linear-gradient(135deg,${rp.color},${rp.color}88)`:'rgba(255,255,255,0.06)',color:canAfford?'#000':'#4b5563',fontSize:'11px',fontWeight:800,transition:'all 0.2s'}}>
@@ -621,8 +631,38 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
 
                             {/* Gift filters */}
                             {activeTab === 'gifts' && (
-                                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                                    <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
+                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    {/* 🎁 Gift Sub-Tabs (All, VIP, Family, Special, Flags) */}
+                                    <div style={{
+                                        display:'flex', gap:'5px', overflowX:'auto', paddingBottom:'6px',
+                                        scrollbarWidth:'none', borderBottom:'1px solid rgba(255,255,255,0.05)',
+                                        marginBottom:'4px'
+                                    }}>
+                                        {[
+                                            { id: 'all',     label_ar: 'الكل',    label_en: 'All',     icon: '📦' },
+                                            { id: 'vip',     label_ar: 'VIP',     label_en: 'VIP',     icon: '👑' },
+                                            { id: 'family',  label_ar: 'القبيلة', label_en: 'Family',  icon: '🛡️' },
+                                            { id: 'special', label_ar: 'مميز',    label_en: 'Special', icon: '✨' },
+                                            { id: 'flags',   label_ar: 'أعلام',    label_en: 'Flags',   icon: '🚩' }
+                                        ].map(st => {
+                                            var active = activeGiftSubTab === st.id;
+                                            return (
+                                                <button key={st.id} onClick={() => setActiveGiftSubTab(st.id)} style={{
+                                                    flexShrink:0, display:'flex', alignItems:'center', gap:'6px',
+                                                    padding:'7px 14px', borderRadius:'10px', fontSize:'11px', fontWeight:active?900:600,
+                                                    background: active ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.03)',
+                                                    border: active ? '1px solid rgba(0,242,255,0.32)' : '1px solid rgba(255,255,255,0.06)',
+                                                    color: active ? '#00f2ff' : '#4b6170', cursor:'pointer', transition:'all 0.18s'
+                                                }}>
+                                                    <span style={{fontSize:'14px'}}>{st.icon}</span>
+                                                    <span>{lang==='ar' ? st.label_ar : st.label_en}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
                                         <button onClick={() => setShowGiftFilter(p=>!p)} style={{
                                             display:'flex',alignItems:'center',gap:'5px',
                                             padding:'5px 11px',borderRadius:'8px',fontSize:'10px',fontWeight:700,
@@ -689,7 +729,8 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                                         </div>
                                     )}
                                 </div>
-                            )}
+                            </div>
+                        )}
 
                             {/* Grid */}
                             <div style={{

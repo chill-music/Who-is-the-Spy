@@ -82,7 +82,7 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
     var [previewBonus, setPreviewBonus] = useState(0);
     // ✅ Quantity system
     var [selectedQty, setSelectedQty] = useState(1);
-    var isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
+    var isGiftItem = gift?.type?.startsWith('gifts');
 
     useEffect(() => {
         if (show && gift) {
