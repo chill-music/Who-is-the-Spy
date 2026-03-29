@@ -402,6 +402,7 @@
                 return; 
             }
 
+            // ✅ VIP Gift Lock
             if (item.vipMinLevel && item.vipMinLevel > 0) {
                 var userVipLevel = window.getVIPLevel ? window.getVIPLevel(userData) : 0;
                 if (userVipLevel < item.vipMinLevel) {
@@ -415,6 +416,7 @@
                 }
             }
 
+            // 🧧 Red Packets
             if (item.type === 'red_packets') {
                 try {
                     await usersCollection.doc(user.uid).update({
@@ -422,7 +424,7 @@
                         'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(item.id),
                     });
                     if (typeof setNotification === 'function') {
-                        setNotification(lang === 'ar' ? '✅ تم شراء المغلف!' : '✅ Packet purchased!');
+                        setNotification(lang === 'ar' ? '✅ تم شراء المغلف! موجود في حقيبتك' : '✅ Packet purchased! Check your inventory');
                     }
                 } catch(e) { 
                     if (typeof setNotification === 'function') setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); 
@@ -430,6 +432,7 @@
                 return;
             }
 
+            // 🎁 Gifts
             if (item.type === 'gifts' || item.type === 'gifts_vip') {
                 if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
                     await this.handleSendGiftToUser(context, item, targetUser, qty || 1);
@@ -465,6 +468,7 @@
                 return;
             }
 
+            // 🤝 BFF Tokens
             if (item.cardType !== undefined) {
                 try {
                     await usersCollection.doc(user.uid).update({
@@ -480,6 +484,56 @@
                     if (typeof setNotification === 'function') setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); 
                 }
                 return;
+            }
+
+            // 🛠️ Generic Inventory Items (Frames, Badges, Titles, etc.)
+            var inventory = userData?.inventory || {};
+            var alreadyOwned = inventory[item.type]?.includes(item.id);
+
+            if (alreadyOwned) {
+                if (item.durationDays && item.durationDays > 0) {
+                    try {
+                        var existingExpiry = userData?.inventory?.expiry?.[item.id];
+                        var baseTime = existingExpiry && existingExpiry > Date.now() ? existingExpiry : Date.now();
+                        var newExpiry = baseTime + item.durationDays * 86400000;
+                        await usersCollection.doc(user.uid).update({
+                            currency: firebase.firestore.FieldValue.increment(-item.cost),
+                            ["inventory.expiry." + item.id]: newExpiry,
+                        });
+                        if (typeof playSound === 'function') playSound('success');
+                        var itemName = lang === 'ar' ? item.name_ar : item.name_en;
+                        if (typeof setNotification === 'function') {
+                            setNotification("✅ " + itemName + " (⏳ +" + item.durationDays + " " + (lang === 'ar' ? 'يوم' : 'days') + ")");
+                        }
+                    } catch(e) { 
+                        if (typeof setNotification === 'function') setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); 
+                    }
+                    return;
+                }
+                if (typeof setNotification === 'function') setNotification(t.alreadyOwned);
+                return;
+            }
+
+            try {
+                var updateData = {
+                    currency: firebase.firestore.FieldValue.increment(-item.cost),
+                };
+                updateData["inventory." + item.type] = firebase.firestore.FieldValue.arrayUnion(item.id);
+                
+                if (item.durationDays && item.durationDays > 0) {
+                    updateData["inventory.expiry." + item.id] = Date.now() + item.durationDays * 86400000;
+                }
+                
+                await usersCollection.doc(user.uid).update(updateData);
+                if (typeof playSound === 'function') playSound('success');
+                
+                var itemName = lang === 'ar' ? item.name_ar : item.name_en;
+                var timerMsg = item.durationDays ? (" (⏳ " + item.durationDays + " " + (lang === 'ar' ? 'يوم' : 'days') + ")") : '';
+                if (typeof setNotification === 'function') {
+                    setNotification(t.purchaseSuccess + " " + itemName + timerMsg);
+                }
+            } catch (error) { 
+                if (typeof setNotification === 'function') setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); 
             }
         },
 
