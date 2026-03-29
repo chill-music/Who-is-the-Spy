@@ -430,7 +430,7 @@
                                                 style={{
                                                     position:'absolute', top: '50%', left: '50%', 
                                                     transform: 'translate(-50%, -50%)', 
-                                                    width:'102px', height:'102px', 
+                                                    width:'106px', height:'106px', 
                                                     objectFit:'contain', pointerEvents:'none', zIndex:2
                                                 }}
                                             />
