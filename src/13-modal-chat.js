@@ -699,8 +699,8 @@ var PrivateChatModal = ({
                           {msgVipCfg && <span style={{fontSize:'7px',fontWeight:900,background:msgVipCfg.nameColor,color:'#000',padding:'0 3px',borderRadius:'2px',flexShrink:0}}>VIP{msgVipLevel}</span>}
                           {isMine ? (currentUser?.displayName || msg.senderName || 'You') : msg.senderName}
                           {isMine && <span style={{fontSize:'8px',color:'#4b5563',fontWeight:500}}> ({lang==='ar'?'أنت':'you'})</span>}
-                          {msg.senderVipLevel > 0 && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
-                            <img src={VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt=""
+                          {msg.senderVipLevel > 0 && typeof window.VIP_CHAT_TITLE_URLS !== 'undefined' && window.VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && (
+                            <img src={window.VIP_CHAT_TITLE_URLS[msg.senderVipLevel]} alt=""
                               style={{ height: '13px', objectFit: 'contain' }} />
                           )}
                         </div>
