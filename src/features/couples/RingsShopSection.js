@@ -10,6 +10,8 @@
 
         var handleBuy = async (ring) => {
             if (buying) return;
+            var charismaLvl = window.getCharismaLevel ? window.getCharismaLevel(userData?.charisma || 0).currentLevel.level : 0;
+            if (charismaLvl < ring.levelReq) return;
             setBuying(ring.id); setBuyMsg('');
             try {
                 var snap = await usersCollection.doc(currentUID).get();
@@ -59,7 +61,7 @@
                     /* Purchase / Use button */
                     React.createElement('div', { style:{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'4px' }},
                         React.createElement('div', { style:{ fontSize:'12px', fontWeight:800, color: canAfford ? '#fcd34d' : '#ef4444' }}, `${ring.cost}🧠`),
-                        !limitExpired && React.createElement('button', { onClick: () => handleBuy(ring), disabled: isBuying || !canAfford, style:{ padding:'7px 12px', borderRadius:'10px', border:'none', background: !canAfford ? 'rgba(255,255,255,0.06)' : `linear-gradient(135deg,#ec4899,#a855f7)`, color:'white', fontSize:'11px', fontWeight:800, cursor:'pointer' }}, isBuying ? '⏳' : (lang==='ar'?'شراء':'Buy')),
+                        !limitExpired && React.createElement('button', { onClick: () => handleBuy(ring), disabled: isBuying || !canAfford || !meetsLevel, style:{ padding:'7px 12px', borderRadius:'10px', border:'none', background: !canAfford || !meetsLevel ? 'rgba(255,255,255,0.06)' : `linear-gradient(135deg,#ec4899,#a855f7)`, color: !canAfford || !meetsLevel ? '#4b5563' : 'white', fontSize:'11px', fontWeight:800, cursor: !canAfford || !meetsLevel ? 'not-allowed' : 'pointer' }}, isBuying ? '⏳' : (lang==='ar'?'شراء':'Buy')),
                         isMine && onPropose && React.createElement('button', { onClick: () => onPropose(ring), style:{ padding:'4px 10px', borderRadius:'8px', border:`1px solid ${ring.color}50`, background:`${ring.color}15`, color:ring.color, fontSize:'9px', fontWeight:700, cursor:'pointer' }}, lang==='ar'?'استخدم':'Use')
                     )
                 );

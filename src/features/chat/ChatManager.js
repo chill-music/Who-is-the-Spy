@@ -418,10 +418,16 @@
 
             // 🧧 Red Packets
             if (item.type === 'red_packets') {
+                var rpCost = item.amount || item.cost || 0;
+                if (currency < rpCost) {
+                    if (typeof setNotification === 'function') setNotification(t.purchaseFail);
+                    return;
+                }
+                var uniqueId = item.id + '_' + Date.now();
                 try {
                     await usersCollection.doc(user.uid).update({
-                        currency: firebase.firestore.FieldValue.increment(-item.cost),
-                        'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(item.id),
+                        currency: firebase.firestore.FieldValue.increment(-rpCost),
+                        'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId),
                     });
                     if (typeof setNotification === 'function') {
                         setNotification(lang === 'ar' ? '✅ تم شراء المغلف! موجود في حقيبتك' : '✅ Packet purchased! Check your inventory');
@@ -433,7 +439,7 @@
             }
 
             // 🎁 Gifts
-            if (item.type === 'gifts' || item.type === 'gifts_vip') {
+            if (item.type && typeof item.type === 'string' && item.type.startsWith('gifts')) {
                 if (targetUser && targetUser.uid !== 'self' && targetUser.uid !== user?.uid) {
                     await this.handleSendGiftToUser(context, item, targetUser, qty || 1);
                     return;
