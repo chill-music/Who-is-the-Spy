@@ -35,10 +35,10 @@ var OverviewSection = ({ lang }) => {
             </div>
             {loading ? <div style={{textAlign:'center',padding:'20px'}}>⏳</div> : (
                 <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
-                    <AdminStatCard label={lang==='ar'?'إجمالي المستخدمين':'Total Users'} value={stats.users.toLocaleString()} icon="👥" color="#3b82f6" />
-                    <AdminStatCard label={lang==='ar'?'جديد اليوم':'New Today'} value={stats.today} icon="✨" color="#10b981" />
-                    <AdminStatCard label={lang==='ar'?'بلاغات مفتوحة':'Open Reports'} value={stats.reports} icon="🚨" color="#ef4444" />
-                    <AdminStatCard label={lang==='ar'?'تذاكر مفتوحة':'Open Tickets'} value={stats.tickets} icon="🎫" color="#f59e0b" />
+                    <window.AdminStatCard label={lang==='ar'?'إجمالي المستخدمين':'Total Users'} value={stats.users.toLocaleString()} icon="👥" color="#3b82f6" />
+                    <window.AdminStatCard label={lang==='ar'?'جديد اليوم':'New Today'} value={stats.today} icon="✨" color="#10b981" />
+                    <window.AdminStatCard label={lang==='ar'?'بلاغات مفتوحة':'Open Reports'} value={stats.reports} icon="🚨" color="#ef4444" />
+                    <window.AdminStatCard label={lang==='ar'?'تذاكر مفتوحة':'Open Tickets'} value={stats.tickets} icon="🎫" color="#f59e0b" />
                 </div>
             )}
             
@@ -54,5 +54,5 @@ var OverviewSection = ({ lang }) => {
     );
 };
 
-window.OverviewSection = OverviewSection;
+window.AdminOverview = OverviewSection;
 })();
