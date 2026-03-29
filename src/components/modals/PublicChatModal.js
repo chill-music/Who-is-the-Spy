@@ -128,25 +128,46 @@
             if (!rpDoc.exists) return;
             var rp = rpDoc.data();
             // ❌ المرسل لا يستطيع الاستلام من مغلفه في الشات العام
-            if (rp.senderId === user.uid) { onNotification(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet'); return; }
-            if (rp.claimedBy?.includes(user.uid)) { onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
-            if ((rp.claimedBy?.length||0) >= rp.maxClaims) { onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); return; }
-            var perClaim = Math.floor(rp.amount / rp.maxClaims);
+            if (rp.senderId === user.uid) {
+                if (window.showToast) window.showToast(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');
+                else onNotification(lang==='ar'?'❌ لا يمكنك استلام مغلفك الخاص':'❌ You cannot claim your own packet');
+                return;
+            }
+            if (rp.claimedBy?.includes(user.uid)) {
+                if (window.showToast) window.showToast(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed');
+                else onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed');
+                return;
+            }
+            if ((rp.claimedBy?.length || 0) >= rp.maxClaims) {
+                if (window.showToast) window.showToast(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted');
+                else onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted');
+                return;
+            }
+            var perClaim = Math.floor(rp.amount / (rp.maxClaims || 1));
             var bonus = Math.floor(Math.random() * Math.floor(perClaim * 0.5));
             var claim = Math.min(perClaim + bonus, rp.remaining || rp.amount);
+            
+            var myName = currentUser?.displayName || 'User';
+            
             await redPacketsCollection.doc(rpId).update({
                 claimedBy: firebase.firestore.FieldValue.arrayUnion(user.uid),
+                claimerNames: firebase.firestore.FieldValue.arrayUnion(myName),
                 remaining: firebase.firestore.FieldValue.increment(-claim),
-                status: ((rp.claimedBy?.length||0) + 1 >= rp.maxClaims) ? 'exhausted' : 'active',
+                status: ((rp.claimedBy?.length || 0) + 1 >= (rp.maxClaims || 1)) ? 'exhausted' : 'active',
             });
             await usersCollection.doc(user.uid).update({ currency: firebase.firestore.FieldValue.increment(claim) });
             await publicChatCollection.add({
                 type: 'system',
-                text: lang==='ar' ? `🎉 ${currentUser?.displayName||'مستخدم'} استلم ${claim} 🧠 من مغلف ${rp.senderName}` : `🎉 ${currentUser?.displayName||'User'} claimed ${claim} 🧠 from ${rp.senderName}'s packet`,
+                text: lang==='ar' ? `🎉 ${myName} استلم ${claim} 🧠 من مغلف ${rp.senderName}` : `🎉 ${myName} claimed ${claim} 🧠 from ${rp.senderName}'s packet`,
                 createdAt: TS(), senderId: 'system',
             });
-            onNotification(lang==='ar'?`🎉 استلمت ${claim} Intel!`:`🎉 You got ${claim} Intel!`);
-        } catch(e) { onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+            if (window.showToast) window.showToast(lang==='ar'?`🎉 استلمت ${claim} Intel!`:`🎉 You got ${claim} Intel!`);
+            else onNotification(lang==='ar'?`🎉 استلمت ${claim} Intel!`:`🎉 You got ${claim} Intel!`);
+        } catch(e) { 
+            console.error(e);
+            if (window.showToast) window.showToast(lang==='ar'?'❌ خطأ':'❌ Error');
+            else onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); 
+        }
     };
 
     var fmtTs = (ts) => {
