@@ -639,7 +639,9 @@
     var spinInterval = setInterval(function() {
       for (var col = 0; col < 5; col++) {
         for (var row = 0; row < 3; row++) {
-          var cell = $('lf-cell' + col + '_' + row);
+          var cellId = 'lf-cell' + col + '_' + row;
+          var cell = $(cellId);
+          if (!cell) continue; // 🛡️ Guard against null cell (if modal closes mid-spin)
           if (!cell.classList.contains('stopped')) {
             var s = getSymbol(randomSymbol());
             cell.innerHTML = '<span class="lf-cell-symbol">' + s.emoji + '</span>';
@@ -665,16 +667,28 @@
     });
 
     setTimeout(function() {
-      clearInterval(spinInterval); stopReelTicks();
+      if (typeof spinInterval !== 'undefined') clearInterval(spinInterval); 
+      stopReelTicks();
       for (var col = 0; col < 5; col++) {
         for (var row = 0; row < 3; row++) {
-          var c = $('lf-cell' + col + '_' + row); c.classList.remove('stopped', 'spinning');
+          var cEl = $('lf-cell' + col + '_' + row); 
+          if (cEl) cEl.classList.remove('stopped', 'spinning');
         }
       }
-      checkWins(); spinning = false; $('lf-spinBtn').disabled = false;
+      checkWins(); 
+      spinning = false; 
+      var endBtn = $('lf-spinBtn');
+      if (endBtn) endBtn.disabled = false;
       updateCoinsDisplay();
-      if (autoMode && freeSpins <= 0) autoTimer = setTimeout(spin, quickMode ? 400 : 900);
-      if (freeSpins > 0 && !autoMode) setTimeout(spin, quickMode ? 400 : 800);
+
+      // 🔄 SAFE RECURSION: Only queue one spin at a time
+      if (autoMode && freeSpins <= 0) {
+        if (autoTimer) clearTimeout(autoTimer);
+        autoTimer = setTimeout(spin, quickMode ? 400 : 900);
+      }
+      if (freeSpins > 0 && !autoMode) {
+        setTimeout(spin, quickMode ? 400 : 800);
+      }
     }, maxTime);
   }
 
