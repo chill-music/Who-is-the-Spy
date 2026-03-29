@@ -6,6 +6,8 @@ var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotificati
     var [loading, setLoading] = useState(true);
     var [editing, setEditing] = useState(null);
     var [newRole, setNewRole] = useState('');
+    var [searchUID, setSearchUID] = useState('');
+    var [searching, setSearching] = useState(false);
 
     useEffect(() => {
         var unsub = usersCollection.where('role', 'in', ['moderator','admin','owner']).onSnapshot(snap => {
@@ -27,10 +29,36 @@ var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotificati
         } catch(e) { onNotification('❌ Error'); }
     };
 
+    var addStaffById = async () => {
+        if (!searchUID.trim() || searching) return;
+        setSearching(true);
+        try {
+            var res = await usersCollection.doc(searchUID.trim()).get();
+            if (!res.exists) {
+                onNotification(lang==='ar'?'❌ المستخدم غير موجود':'❌ User not found');
+            } else {
+                await usersCollection.doc(searchUID.trim()).update({ role: 'moderator' });
+                onNotification(lang==='ar'?'✅ تمت إضافة المشرف':'✅ Added as Moderator');
+                setSearchUID('');
+            }
+        } catch(e) { onNotification('❌ Error'); }
+        setSearching(false);
+    };
+
     return (
         <div>
-            <div style={{ fontSize:'13px', fontWeight:700, color:'#8b5cf6', marginBottom:'16px' }}>
-                🛡️ {lang==='ar'?'إدارة فريق العمل':'Staff Management'}
+            <div style={{ fontSize:'13px', fontWeight:700, color:'#8b5cf6', marginBottom:'16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span>🛡️ {lang==='ar'?'إدارة فريق العمل':'Staff Management'}</span>
+                {getUserRole(currentUserData, currentUser?.uid) === 'owner' && (
+                    <div style={{ display:'flex', gap:'6px' }}>
+                        <input className="input-dark" style={{ width:'120px', padding:'5px 10px', fontSize:'11px' }} 
+                            placeholder="User ID" value={searchUID} onChange={e=>setSearchUID(e.target.value)} />
+                        <button onClick={addStaffById} disabled={searching || !searchUID}
+                            className="btn-neon" style={{ padding:'5px 12px', fontSize:'11px' }}>
+                            {searching ? '⏳' : `➕ ${lang==='ar'?'إضافة':'Add'}`}
+                        </button>
+                    </div>
+                )}
             </div>
             {loading ? <div style={{textAlign:'center',padding:'20px'}}>⏳</div> : (
                 <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
