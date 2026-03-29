@@ -76,6 +76,8 @@
         // Re-export some setters to window so non-React code can use them
         window.setTargetProfileUID = setTargetProfileUID;
         window.setShowUserProfile = setShowUserProfile;
+        window.setAlertMessage = setAlertMessage;
+        window.setNotification = setNotification;
 
         return (
             <div className="global-modals-container" style={{position:'relative',zIndex:9999}}>
