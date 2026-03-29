@@ -343,7 +343,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
 
                 // ── Weekly sign reset logic (client-side) ──
                 // Every Sunday: save weeklyActiveness as lastWeekActiveness, reset weekly
-                if (!viewFamilyId && canManageFamily(d, currentUID) && d.createdBy === currentUID) {
+                if (canManageFamily(d, currentUID) && d.createdBy === currentUID) {
                     var now = new Date();
                     var lastReset = d.lastWeeklyReset;
                     var lastResetDate = lastReset ? (lastReset.toDate ? lastReset.toDate() : new Date(lastReset.seconds * 1000)) : null;
@@ -356,38 +356,28 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                             lastWeekActiveness: d.weeklyActiveness || 0,
                             weeklyActiveness: 0,
                             lastWeeklyReset: firebase.firestore.FieldValue.serverTimestamp(),
+                            // Also store current sign level on family for lazy member updates
+                            currentSignLevel: newSignData?.level || null,
+                            currentSignColor: newSignData?.color || null
                         };
-                        
                         familiesCollection.doc(fid).update(updates).catch(() => {});
-                        
-                        // Update members in batches (optimized)
-                        var batch = window.db.batch();
-                        var members = d.members || [];
-                        var batchSize = 0;
-                        
-                        for (var uid of members) {
-                            var userRef = usersCollection.doc(uid);
-                            if (newSignData) {
-                                batch.update(userRef, {
-                                    familySignLevel: newSignData.level,
-                                    familySignColor: newSignData.color,
-                                    familySignImageURL: d.signImageURL || null,
-                                });
-                            } else {
-                                batch.update(userRef, {
-                                    familySignLevel: null,
-                                    familySignColor: null,
-                                    familySignImageURL: null,
-                                });
-                            }
-                            batchSize++;
-                            if (batchSize >= 450) {
-                                batch.commit().catch(() => {});
-                                batch = window.db.batch();
-                                batchSize = 0;
-                            }
-                        }
-                        if (batchSize > 0) batch.commit().catch(() => {});
+                        // BATCH UPDATE REMOVED for optimization. Members update lazily below.
+                    }
+                }
+
+                // ── Lazy Member Update ──
+                // If the member's badge is out of sync with the family's last week performance, update just this member
+                if (!viewFamilyId && d.id === currentUserData?.familyId) {
+                    var lastWeekSign = getFamilySignLevelData(d.lastWeekActiveness || 0);
+                    var expectedLevel = lastWeekSign?.level || null;
+                    var expectedColor = lastWeekSign?.color || null;
+                    
+                    if (currentUserData.familySignLevel !== expectedLevel) {
+                        usersCollection.doc(currentUID).update({
+                            familySignLevel: expectedLevel,
+                            familySignColor: expectedColor,
+                            familySignImageURL: d.signImageURL || null
+                        }).catch(() => {});
                     }
                 }
             } else {
