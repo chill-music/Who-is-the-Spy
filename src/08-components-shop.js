@@ -83,6 +83,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
 
     // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
     var tabs = [
+        { id: 'gifts',          icon: '🎁', label_ar: 'هدايا',     label_en: 'Gifts'   },
         { id: 'red_packets',    icon: '🧧', label_ar: 'مغلفات',   label_en: 'Packets' },
         { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
         { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
@@ -101,9 +102,14 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
             return typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS.filter(t => !t.hidden) : [];
         }
         if (tab === 'gifts') {
-            var regular  = (SHOP_ITEMS.gifts     || []).filter(item => !item.hidden);
-            var vipGifts = (SHOP_ITEMS.gifts_vip || []).filter(item => !item.hidden && item.vipExclusive !== false);
-            var items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts];
+            var regular  = (SHOP_ITEMS.gifts         || []).filter(item => !item.hidden);
+            var vipGifts = (SHOP_ITEMS.gifts_vip     || []).filter(item => !item.hidden && item.vipExclusive !== false);
+            var famGifts = (SHOP_ITEMS.gifts_family  || []).filter(item => !item.hidden);
+            var spcGifts = (SHOP_ITEMS.gifts_special || []).filter(item => !item.hidden);
+            var flgGifts = (SHOP_ITEMS.gifts_flag    || []).filter(item => !item.hidden);
+
+            var items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts, ...famGifts, ...spcGifts, ...flgGifts];
+
             if (giftRarityFilter !== 'all') {
                 items = items.filter(item => {
                     var rKey = item.type === 'gifts_vip' ? 'Legendary' : getGiftRarity(item.cost);
@@ -845,7 +851,7 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
         {showPreview && selectedItem && ReactDOM.createPortal(
             (() => {
                 // للهدايا: نستخدم GiftPreviewModal الأصلي
-                if (selectedItem.type === 'gifts' || selectedItem.type === 'gifts_vip') {
+                if (selectedItem.type && selectedItem.type.startsWith('gifts')) {
                     var GPM = getGiftPreviewModal();
                     if (!GPM) {
                         console.warn('GiftPreviewModal not yet available in window');
