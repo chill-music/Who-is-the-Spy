@@ -118,7 +118,7 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
         var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
         var owned = currency >= gift.cost;
         return (
-            <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-overlay" onClick={onClose} style={{zIndex: (window.Z?.MODAL_TOP || 15000)}}>
                 <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{maxWidth:'340px'}}>
                     <div className="modal-header">
                         <h2 className="modal-title">{lang === 'ar' ? gift.name_ar : gift.name_en}</h2>
@@ -219,7 +219,7 @@ var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending 
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} style={{zIndex: (window.Z?.MODAL_TOP || 15000)}}>
             <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
                 <div className="modal-header"><h2 className="modal-title">{isGiftItem ? t.giftPreview : (lang === 'ar' ? gift.name_ar : gift.name_en)}</h2><ModalCloseBtn onClose={onClose} /></div>
                 <div className="modal-body text-center py-3">
