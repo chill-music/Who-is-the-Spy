@@ -261,8 +261,7 @@
                                 });
                                 setActiveGroup(null); onNotification(lang==='ar'?'🚪 غادرت الجروب':'🚪 Left group');
                             } catch(e) {}
-                        }, 
-                        handleDeleteGroup: async()=>{
+                        }, handleDeleteGroup: async()=>{
                             if(!activeGroup) return;
                             if(!confirm(lang==='ar'?'هل أنت متأكد من حذف الجروب؟':'Delete group?')) return;
                             try {
@@ -274,8 +273,9 @@
                             if(!activeGroup||(currentUserData?.currency||0)<rp.amount) return;
                             setSendingRedPacket(true);
                             try {
-                                var rpRef = await db.collection('red_packets').add({
-                                    groupId: activeGroup.id, senderId: currentUID, 
+                                var rpRef = await redPacketsCollection.add({
+                                    targetId: activeGroup.id, targetType: 'group',
+                                    senderId: currentUID, senderName: currentUserData?.displayName || 'User',
                                     amount: rp.amount, maxClaims: 10, remaining: rp.amount,
                                     claimedBy: [], createdAt: TS(), status: 'active'
                                 });
@@ -286,7 +286,7 @@
                                 await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(-rp.amount) });
                                 onNotification(lang==='ar'?'🧧 تم الإرسال':'🧧 Sent');
                                 setShowRedPacketModal(false);
-                            } catch(e) {}
+                            } catch(e) { console.error(e); }
                             setSendingRedPacket(false);
                         }, claimRedPacket, 
                         groupMiniProfile, setGroupMiniProfile, openGroupMiniProfile, 
