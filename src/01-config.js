@@ -83,6 +83,8 @@ var RED_PACKETS_CONFIG = [
     {
         id: 'rp_600',
         amount: 600,
+        cost: 600,
+        type: 'red_packets',
         emoji: '🧧',
         name_ar: 'مغلف 600',
         name_en: 'Red Packet 600',
@@ -90,14 +92,16 @@ var RED_PACKETS_CONFIG = [
         glow: 'rgba(239,68,68,0.6)',
         bg: 'linear-gradient(135deg,rgba(239,68,68,0.18),rgba(185,28,28,0.12))',
         border: 'rgba(239,68,68,0.4)',
-        imageURL: null, // ← ضع رابط صورة المغلف هنا
-        maxClaims: 5,   // عدد الأشخاص اللي يقدروا يستلموا منه
+        imageURL: null,
+        maxClaims: 5,
         desc_ar: 'مغلف أحمر صغير — يوزع على 5 أشخاص',
         desc_en: 'Small red packet — shared among 5 people',
     },
     {
         id: 'rp_1800',
         amount: 1800,
+        cost: 1800,
+        type: 'red_packets',
         emoji: '🧧',
         name_ar: 'مغلف 1800',
         name_en: 'Red Packet 1800',
@@ -113,6 +117,8 @@ var RED_PACKETS_CONFIG = [
     {
         id: 'rp_3000',
         amount: 3000,
+        cost: 3000,
+        type: 'red_packets',
         emoji: '🧧',
         name_ar: 'مغلف 3000',
         name_en: 'Red Packet 3000',
@@ -128,6 +134,8 @@ var RED_PACKETS_CONFIG = [
     {
         id: 'rp_10000',
         amount: 10000,
+        cost: 10000,
+        type: 'red_packets',
         emoji: '🧧',
         name_ar: 'مغلف 10000',
         name_en: 'Red Packet 10K',
@@ -143,6 +151,8 @@ var RED_PACKETS_CONFIG = [
     {
         id: 'rp_50000',
         amount: 50000,
+        cost: 50000,
+        type: 'red_packets',
         emoji: '🧧',
         name_ar: 'مغلف 50000',
         name_en: 'Red Packet 50K',
