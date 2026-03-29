@@ -18,6 +18,8 @@
   --lf-bg-bot:       #1A0A4B;
   --lf-font-main:    'Nunito', sans-serif;
   --lf-font-display: 'Fredoka One', cursive;
+  --lf-wheel-bg:     #1E1E3F;
+  --lf-wheel-border: #FFD700;
 }
 
 /* ── Game Wrapper ──────────────────────────────────────────── */
@@ -166,6 +168,17 @@
 @keyframes lf-jpulse {
   0%,100%{ transform: scale(1); }
   50%{ transform: scale(1.15); color: #FFD700; }
+}
+
+/* ── WIN GLOW ────────────────────────────────────────────── */
+.lf-game .lf-win-text.large-win-glow {
+  color: #fff;
+  text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 40px #FFDA00;
+  animation: lf-winGlowPulse 1.5s infinite alternate;
+}
+@keyframes lf-winGlowPulse {
+  from { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FF8C00; transform: scale(1); }
+  to   { text-shadow: 0 0 20px #FFF, 0 0 40px #FFD700, 0 0 60px #FFDA00; transform: scale(1.05); }
 }
 
 /* ── PROGRESS BAR ────────────────────────────────────────── */
@@ -496,3 +509,44 @@
   0%   { left: -100%; }
   100% { left: 200%; }
 }
+
+/* ── Lucky Wheel 24h ─────────────────────────────────────── */
+.lf-wheel-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 9500;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; font-family: var(--lf-font-main);
+}
+.lf-wheel-container {
+    position: relative; width: 280px; height: 280px; margin: 20px 0;
+    border: 8px solid var(--lf-wheel-border); border-radius: 50%;
+    box-shadow: 0 0 30px rgba(255,215,0,0.4), inset 0 0 20px rgba(0,0,0,0.5);
+    background: var(--lf-wheel-bg); overflow: hidden;
+}
+.lf-wheel-spinner {
+    width: 100%; height: 100%; position: relative; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+}
+.lf-wheel-segment {
+    position: absolute; width: 50%; height: 50%; left: 50%; top: 0;
+    transform-origin: 0% 100%; display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 20px; color: white; font-weight: 900; font-size: 14px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+}
+.lf-wheel-pointer {
+    position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+    width: 30px; height: 40px; background: #FF3366; clip-path: polygon(50% 100%, 0 0, 100% 0);
+    z-index: 10; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+}
+.lf-wheel-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 50px; height: 50px; background: var(--lf-wheel-border); border-radius: 50%;
+    z-index: 5; border: 4px solid #fff; box-shadow: 0 0 15px rgba(255,215,0,0.8);
+}
+.lf-wheel-btn {
+    background: linear-gradient(180deg, #FFB800, #FF8C00);
+    border: none; border-radius: 12px; color: #2D1B6B; font-family: var(--lf-font-display);
+    font-size: 20px; padding: 12px 40px; cursor: pointer; margin-top: 20px;
+    box-shadow: 0 6px 20px rgba(255,140,0,0.4);
+}
+.lf-wheel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.lf-wheel-timer { color: #FFD700; font-size: 18px; font-weight: 900; margin-top: 10px; }
+
