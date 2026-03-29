@@ -35,7 +35,7 @@ var FakeProfilesSection = ({ lang, onNotification }) => {
         setGenerating(true);
         try {
             var batch = db.batch();
-            for (var i = 0; i < 10; i++) {
+            for (var i = 0; i < 1; i++) {
                 var randomId = 'bot_' + Math.random().toString(36).substr(2, 9);
                 var name = FAKE_NAMES[Math.floor(Math.random()*FAKE_NAMES.length)] + ' (Bot)';
                 var photo = FAKE_PROFILE_PHOTOS[Math.floor(Math.random()*FAKE_PROFILE_PHOTOS.length)];
@@ -52,7 +52,7 @@ var FakeProfilesSection = ({ lang, onNotification }) => {
                 });
             }
             await batch.commit();
-            onNotification(lang==='ar'?'✅ تم إنشاء 10 حسابات':'✅ Generated 10 profiles');
+            onNotification(lang==='ar'?'✅ تم إنشاء حساب واحد':'✅ Generated 1 profile');
         } catch(e) { onNotification('❌ Error'); }
         setGenerating(false);
     };
