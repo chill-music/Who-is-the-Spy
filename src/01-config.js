@@ -75,6 +75,7 @@ var couplesCollection = db.collection('artifacts').doc(appId).collection('public
 var groupsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('group_chats');
 var staffLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff_activity_log');
 var ticketsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('support_tickets');
+var goldLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('gold_transactions');
 
 // ════════════════════════════════════════════════════════
 // 🧧 RED PACKETS SYSTEM CONFIG
