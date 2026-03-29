@@ -76,8 +76,8 @@
           '<span class="lf-coin-star">🧠</span>',
           '<span id="lf-coins">1000</span>',
         '</div>',
-        /* Avatar — photo loaded dynamically */
-        '<div class="lf-avatar-box" id="lf-avatar" style="cursor:pointer;position:relative;"></div>',
+        /* Avatar — photo loaded dynamically via React */
+        '<div id="lf-avatar" style="cursor:pointer;position:relative;width:48px;height:48px;flex-shrink:0;"></div>',
       '</div>',
 
       /* FREE SPINS BANNER */
@@ -284,11 +284,7 @@
     unsubscribeUserCurrency();
     try {
       var stateObj = window.lfGameUserData || window.userData || window.currentUserData;
-      var authUser = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') {
-        var authSt = window.useAuthState();
-        authUser = authSt ? authSt.user || authSt : null;
-      }
+      var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
       var uid = stateObj?.uid || authUser?.uid;
       
       if (!uid || !window.usersCollection) {
@@ -324,11 +320,7 @@
     if (amount === 0) return;
     try {
       var stateObj = window.lfGameUserData || window.userData || window.currentUserData;
-      var authUser = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') {
-        var authSt = window.useAuthState();
-        authUser = authSt ? authSt.user || authSt : null;
-      }
+      var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
       var uid = stateObj?.uid || authUser?.uid;
       
       if (uid && window.usersCollection && window.firebase && window.firebase.firestore) {
@@ -408,10 +400,8 @@
     var today = new Date().toDateString();
     try {
       var uid = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') {
-        var st = window.useAuthState();
-        uid = st && st.uid ? st.uid : null;
-      }
+      var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
+      uid = authUser ? authUser.uid : null;
       if (uid && window.usersCollection) {
         /* Read lastFreeSpin from Firestore */
         window.usersCollection.doc(uid).get().then(function(snap) {
@@ -439,10 +429,8 @@
   function logSession() {
     try {
       var uid = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') {
-        var st = window.useAuthState();
-        uid = st && st.uid ? st.uid : null;
-      }
+      var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
+      uid = authUser ? authUser.uid : null;
       if (!uid || !window.db || !window.appId) return;
       window.db.collection('artifacts').doc(window.appId)
         .collection('public').doc('data')
@@ -592,7 +580,13 @@
     if (coins < totalCost) {
       if (!autoMode) {
         var msg = lang === 'ar' ? 'عذراً، لا تملك عملات كافية!' : 'Sorry, insufficient coins!';
-        alert(msg);
+        if (typeof window.setAlertMessage === 'function') {
+          window.setAlertMessage(msg);
+        } else if (typeof window.setNotification === 'function') {
+          window.setNotification({ msg: msg, type: 'error' });
+        } else {
+          alert(msg);
+        }
       } else {
         stopAutoSpin();
       }
@@ -781,16 +775,13 @@
   function updateTotalCost()    { $('lf-totalCosts').textContent = T('TOTAL_COSTS') + ' ' + (cost * lines); }
   function updateFSBanner() {
     var banner = document.getElementById('lf-fsBanner');
-    var count  = document.getElementById('lf-fsCount');
-    if (freeSpins > 0) {
-      if (count) count.textContent = freeSpins + ' remaining!';
-      if (banner) {
-        banner.innerHTML = '&#127808; ' + T('FREE_SPINS') + '! <span id="lf-fsCount">' + freeSpins + ' ' + (lang === 'ar' ? 'متبقية!' : 'remaining!') + '</span>';
-        banner.classList.add('show');
-      }
-    } else {
-      if (banner) {
-        banner.classList.remove('show');
+    if (banner) {
+      if (freeSpins > 0) {
+        banner.innerHTML = '&#127808; ' + (lang === 'ar' ? 'لديك لفة مجانية يومياً! <span id="lf-fsCount">' + freeSpins + '</span> متبقية' : '1 Free Spin Daily! <span id="lf-fsCount">' + freeSpins + '</span> remaining');
+        banner.style.opacity = '1';
+      } else {
+        banner.innerHTML = '&#127808; ' + (lang === 'ar' ? 'لديك لفة مجانية يومياً! <span id="lf-fsCount">0</span> متبقية' : '1 Free Spin Daily! <span id="lf-fsCount">0</span> remaining');
+        banner.style.opacity = '0.6'; /* Dimmed when 0 */
       }
     }
   }
@@ -810,6 +801,63 @@
       updateFSBanner();
       soundFreeSpins();
     }
+  }
+  function syncAvatar() {
+    try {
+      var state = window.lfGameUserData || window.userData || window.currentUserData;
+      var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
+      var uid = authUser?.uid || state?.uid;
+      var avatarEl = document.getElementById('lf-avatar');
+      if (!avatarEl) return;
+
+      var photoURL = state?.photoURL || authUser?.photoURL;
+      var displayName = state?.displayName || authUser?.displayName || 'U';
+
+      /* Map into React land so it perfectly matches Shop & Profile */
+      if (window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+        window.ReactDOM.render(
+          window.React.createElement(window.AvatarWithFrameV11, {
+            photoURL: photoURL,
+            equipped: state?.equipped || authUser?.equipped,
+            size: 'md',
+            lang: lang
+          }),
+          avatarEl
+        );
+      } else {
+        /* Vanilla fallback */
+        avatarEl.style.borderRadius = '50%';
+        avatarEl.style.overflow = 'hidden';
+        avatarEl.style.border = '2px solid var(--lf-gold)';
+        if (photoURL) {
+          avatarEl.innerHTML = '<img src="' + photoURL + '" style="width:100%;height:100%;object-fit:cover;" alt="" />';
+        } else {
+          avatarEl.style.background = 'linear-gradient(135deg, #FFD700, #FF8C00)';
+          avatarEl.innerHTML = '<span style="font-size:16px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;width:100%;height:100%">' + displayName.charAt(0).toUpperCase() + '</span>';
+        }
+      }
+
+      /* Click → open MiniProfilePopup */
+      if (typeof window.openLuckyGamesMiniProfile === 'function') {
+        avatarEl.onclick = function() {
+          var popUid = uid || (state ? state.uid : null);
+          if (popUid) window.openLuckyGamesMiniProfile(popUid);
+        };
+      } else if (typeof window.openMiniProfile !== 'undefined') {
+        avatarEl.onclick = function() {
+          var popUid = uid || (state ? state.uid : null);
+          if (popUid) window.openMiniProfile(popUid);
+        };
+      } else if (typeof window.setMiniProfileUID !== 'undefined') {
+        avatarEl.onclick = function() {
+          var popUid = uid || (state ? state.uid : null);
+          if (popUid) {
+            window.setMiniProfileUID(popUid);
+            if(window.setShowMiniProfile) window.setShowMiniProfile(true);
+          }
+        };
+      }
+    } catch(e) { console.warn('[LuckyFruit] Avatar error:', e); }
   }
   function showMsg(txt) { console.log('[LuckyFruit]', txt); }
   function showWinOverlay(title, amount, msg) {
@@ -883,67 +931,6 @@
     window.lfCloseOverlay = function(){ $('lf-winOverlay').classList.remove('show'); };
     window.lfCloseRules   = function(){ $('lf-rulesOverlay').classList.remove('show'); };
     window.addEventListener('resize', resizeCanvas);
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     17. AVATAR SYNC — photo + name + frame + MiniProfilePopup on click
-  ══════════════════════════════════════════════════════════ */
-  function syncAvatar() {
-    try {
-      var state = window.lfGameUserData || window.userData || window.currentUserData;
-      var authUser = null;
-      if (window.useAuthState && typeof window.useAuthState === 'function') {
-        var authSt = window.useAuthState();
-        authUser = authSt ? authSt.user || authSt : null;
-      }
-
-      var avatarEl = document.getElementById('lf-avatar');
-      if (!avatarEl) return;
-
-      var photoURL = state?.photoURL || authUser?.photoURL;
-      var displayName = state?.displayName || authUser?.displayName || 'U';
-      var frameId = state?.equipped?.frames;
-
-      /* Base avatar inner HTML */
-      var inner = "";
-      if (photoURL) {
-        inner = '<img src="' + photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:relative;z-index:2;" alt="" />';
-      } else {
-        avatarEl.style.backgroundImage = 'none';
-        inner = '<span style="font-size:16px;font-weight:900;color:#fff;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;width:100%;height:100%">' + displayName.charAt(0).toUpperCase() + '</span>';
-      }
-
-      /* Apply frame if has one */
-      if (frameId && window.SHOP_ITEMS && window.SHOP_ITEMS.frames) {
-        var frameObj = window.SHOP_ITEMS.frames.find(function(f) { return f.id === frameId; });
-        if (frameObj && frameObj.preview) {
-           var frameSrc = frameObj.preview;
-           if (frameSrc.startsWith('http')) {
-             inner += '<img src="' + frameSrc + '" style="position:absolute;width:150%;height:150%;top:-25%;left:-25%;z-index:3;pointer-events:none;" alt="" />';
-           } else {
-             /* color/gradient frame */
-             inner += '<div style="position:absolute;inset:-4px;background:'+frameSrc+';border-radius:50%;z-index:1;pointer-events:none;"></div>';
-           }
-           avatarEl.style.border = 'none';
-        }
-      }
-      avatarEl.innerHTML = inner;
-
-      /* Click → open MiniProfilePopup (not full profile page) */
-      avatarEl.onclick = function() {
-        var uid = state?.uid || authUser?.uid;
-        if (!uid) return;
-        
-        if (window.openMiniProfile) {
-          window.openMiniProfile(uid);
-        } else if (window.setMiniProfileUID) {
-          window.setMiniProfileUID(uid);
-          if (window.setShowMiniProfile) window.setShowMiniProfile(true);
-        } else {
-          if (window.setShowMyAccount) window.setShowMyAccount(true);
-        }
-      };
-    } catch (e) {}
   }
 
   /* ══════════════════════════════════════════════════════════

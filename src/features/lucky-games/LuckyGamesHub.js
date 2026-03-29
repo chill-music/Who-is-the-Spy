@@ -141,7 +141,21 @@
     var userData  = props.userData;
 
     var [activeGame, setActiveGame] = useState(null); // 'lucky_fruit' | null
+    var [miniProfile, setMiniProfile] = useState(null);
     var gameContainerRef = useRef(null);
+
+    /* Expose mini profile trigger safely for games to call */
+    useEffect(function() {
+      window.openLuckyGamesMiniProfile = async function(uid) {
+         setMiniProfile({ uid: uid, loading: true });
+         if (window.fetchMiniProfileData) {
+            var friends = (userData && userData.friends) ? userData.friends : [];
+            var data = await window.fetchMiniProfileData(uid, friends);
+            if (data) setMiniProfile(data);
+         }
+      };
+      return function() { delete window.openLuckyGamesMiniProfile; };
+    }, [userData]);
 
     /* Start / stop Lucky Fruit when activeGame changes */
     useEffect(function() {
@@ -294,6 +308,17 @@
                   ? '🎮 ستُضاف ألعاب جديدة قريباً — تابع التحديثات!'
                   : '🎮 More games coming soon — stay tuned!')
               )
+            ),
+
+            /* ── MINI PROFILE POPUP ── */
+            miniProfile && window.MiniProfilePopup && (
+              React.createElement(window.MiniProfilePopup, {
+                profile: miniProfile,
+                onClose: function() { setMiniProfile(null); },
+                onAddFriend: window.handleSendRequest,
+                onMessage: function(u) { setMiniProfile(null); if(window.setShowPrivateChat) window.setShowPrivateChat(true); },
+                isFriend: userData?.friends?.some(function(f){return f.id === miniProfile.uid;}),
+              })
             )
           )
         )

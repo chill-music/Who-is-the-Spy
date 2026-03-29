@@ -105,16 +105,14 @@
   background: linear-gradient(90deg, #00CC66, #00FF88, #00CC66);
   color: var(--lf-purple-dark);
   font-family: var(--lf-font-display);
-  font-size: 15px; text-align: center; padding: 5px 8px;
-  /* sit in normal flow; hidden by zero height when not active */
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .35s ease, padding .35s ease;
+  font-size: 15px; text-align: center; padding: 6px 8px;
+  /* sit in normal flow, now always visible */
   position: relative;
   z-index: 5;
   flex-shrink: 0;
 }
-.lf-game .lf-fs-banner.show { max-height: 48px; padding: 6px 8px; }
+/* No longer need .show since it's always visible */
+
 
 /* ── TITLE / JACKPOT ─────────────────────────────────────── */
 .lf-game .lf-title-area {
