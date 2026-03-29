@@ -397,7 +397,15 @@
             }
             
             var currency = userData?.currency || 0;
-            if (currency < item.cost) { 
+            // 💰 Calculate actual cost (fallback for different naming conventions)
+            var actualCost = item.cost || item.amount || 0;
+            if (isNaN(actualCost) || actualCost < 0) {
+                console.error("Invalid purchase cost:", actualCost, item);
+                if (typeof setNotification === 'function') setNotification(lang === 'ar' ? '❌ خطأ في السعر' : '❌ Invalid Price');
+                return;
+            }
+
+            if (currency < actualCost) { 
                 if (typeof setNotification === 'function') setNotification(t.purchaseFail); 
                 return; 
             }
@@ -418,21 +426,17 @@
 
             // 🧧 Red Packets
             if (item.type === 'red_packets') {
-                var rpCost = item.amount || item.cost || 0;
-                if (currency < rpCost) {
-                    if (typeof setNotification === 'function') setNotification(t.purchaseFail);
-                    return;
-                }
                 var uniqueId = item.id + '_' + Date.now();
                 try {
                     await usersCollection.doc(user.uid).update({
-                        currency: firebase.firestore.FieldValue.increment(-rpCost),
+                        currency: firebase.firestore.FieldValue.increment(-actualCost),
                         'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId),
                     });
                     if (typeof setNotification === 'function') {
                         setNotification(lang === 'ar' ? '✅ تم شراء المغلف! موجود في حقيبتك' : '✅ Packet purchased! Check your inventory');
                     }
                 } catch(e) { 
+                    console.error("Red Packet Purchase Error:", e);
                     if (typeof setNotification === 'function') setNotification(lang === 'ar' ? '❌ خطأ' : '❌ Error'); 
                 }
                 return;
@@ -449,7 +453,7 @@
                 var currentCount = giftCounts[item.id] || 0;
                 try {
                     var updateData = {
-                        currency: firebase.firestore.FieldValue.increment(-item.cost),
+                        currency: firebase.firestore.FieldValue.increment(-actualCost),
                         'inventory.gifts': firebase.firestore.FieldValue.arrayUnion(item.id)
                     };
                     updateData["inventory.giftCounts." + item.id] = currentCount + 1;
@@ -478,7 +482,7 @@
             if (item.cardType !== undefined) {
                 try {
                     await usersCollection.doc(user.uid).update({
-                        currency: firebase.firestore.FieldValue.increment(-item.cost),
+                        currency: firebase.firestore.FieldValue.increment(-actualCost),
                         'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(item.id),
                     });
                     if (typeof playSound === 'function') playSound('success');
@@ -503,7 +507,7 @@
                         var baseTime = existingExpiry && existingExpiry > Date.now() ? existingExpiry : Date.now();
                         var newExpiry = baseTime + item.durationDays * 86400000;
                         await usersCollection.doc(user.uid).update({
-                            currency: firebase.firestore.FieldValue.increment(-item.cost),
+                            currency: firebase.firestore.FieldValue.increment(-actualCost),
                             ["inventory.expiry." + item.id]: newExpiry,
                         });
                         if (typeof playSound === 'function') playSound('success');
@@ -522,7 +526,7 @@
 
             try {
                 var updateData = {
-                    currency: firebase.firestore.FieldValue.increment(-item.cost),
+                    currency: firebase.firestore.FieldValue.increment(-actualCost),
                 };
                 updateData["inventory." + item.type] = firebase.firestore.FieldValue.arrayUnion(item.id);
                 
