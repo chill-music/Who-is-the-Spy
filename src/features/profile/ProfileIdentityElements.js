@@ -119,15 +119,19 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
                     className="profile-avatar-frame"
                     style={{
                         position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
                         width: s.frameSize,
                         height: s.frameSize,
                         borderRadius: '50%',
-                        overflow: 'hidden',
-                        zIndex: 1
+                        overflow: 'visible', // Changed from 'hidden' to 'visible' to allow gems/decorations to show
+                        zIndex: 1,
+                        pointerEvents: 'none'
                     }}
                 >
                     {frameStyle.preview.startsWith('http') ? (
-                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={frameStyle.preview} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> // Changed 'cover' to 'contain' for frames
                     ) : (
                         <div style={{
                             width: '100%',
@@ -140,7 +144,17 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
             )}
 
             {/* Avatar image - CENTERED inside frame */}
-            <div style={{ position:'relative', width: s.avatar, height: s.avatar, zIndex: 10, borderRadius:'50%', overflow: hasImageEffect ? 'hidden' : 'visible' }}>
+            <div style={{ 
+                position:'absolute', 
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: s.avatar, 
+                height: s.avatar, 
+                zIndex: 10, 
+                borderRadius:'50%', 
+                overflow: hasImageEffect ? 'hidden' : 'visible' 
+            }}>
                 <img
                     src={photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`}
                     alt=""
