@@ -1085,7 +1085,7 @@
         var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
         if (authUser) {
           var now = firebase.firestore.FieldValue.serverTimestamp();
-          await window.firebase.firestore().collection('users').doc(authUser.uid).update({
+          await usersCollection.doc(authUser.uid).update({
             currency: firebase.firestore.FieldValue.increment(amt),
             lastWheelSpin: now
           });
