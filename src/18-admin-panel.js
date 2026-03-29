@@ -1,18 +1,19 @@
 (function() {
     var { useState, useEffect, useMemo, useRef } = React;
 
-    var AdminPanel = ({ isOpen, onClose, currentUser, currentUserData, lang }) => {
+    var AdminPanel = ({ isOpen, show, onClose, currentUser, currentUserData, lang }) => {
+        var isVisible = isOpen || show;
         var [activeTab, setActiveTab] = useState('overview');
         var [stats, setStats] = useState({ users:0, reports:0, tickets:0 });
 
         useEffect(() => {
-            if (!isOpen) return;
+            if (!isVisible) return;
             // Basic stats for the sidebar/header
             var unsubUsers = usersCollection.onSnapshot(s => setStats(prev => ({ ...prev, users: s.size })));
             return () => { unsubUsers(); };
-        }, [isOpen]);
+        }, [isVisible]);
 
-        if (!isOpen) return null;
+        if (!isVisible) return null;
 
         var onNotification = (msg) => {
             if (window.showToast) window.showToast(msg);
@@ -53,7 +54,7 @@
             { id: 'fake', icon: '🎭', label: lang==='ar'?'وهمي':'Fake', minRole:'owner' },
         ];
 
-        var userRole = currentUserData?.role || 'user';
+        var userRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : (currentUserData?.role || 'user');
 
         return (
             <div className="admin-panel-overlay" style={{ position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(0,0,0,0.85)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(10px)' }}>
