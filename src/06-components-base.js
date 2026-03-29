@@ -127,17 +127,28 @@
         var avatarStyle = { width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none' };
 
         var renderFrame = () => {
+            if (!frameItem) {
+                // FALLBACK: If frameItem not found by ID (e.g. legacy ref or straight string), try to find it
+                if (typeof equipped?.frames === 'string' && equipped.frames.trim() !== '') {
+                    frameItem = (SHOP_ITEMS.frames || []).find(f => f.id === equipped.frames || f.preview === equipped.frames);
+                }
+            }
             if (!frameItem) return null;
-            if (frameItem.preview.startsWith('http')) {
+
+            var frameUrl = frameItem.preview || frameItem.imageUrl;
+            if (!frameUrl) return null;
+
+            if (frameUrl.startsWith('http') || frameUrl.startsWith('/') || frameUrl.startsWith('data:')) {
                 return (
                     <div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', overflow: 'hidden', zIndex: 1 }}>
-                        <img src={frameItem.preview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="frame" />
+                        <img src={frameUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="frame" 
+                             onError={e => { e.target.style.display='none'; }} />
                         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' }} />
                     </div>
                 );
             }
             return (
-                <div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', background: frameItem.preview, zIndex: 1 }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', background: frameUrl, zIndex: 1 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' }} />
                 </div>
             );
@@ -384,14 +395,24 @@
                                     {profile.photo
                                         ? <img src={profile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                                         : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px'}}>😎</div>}
-                                    {profile.equippedFrame && (
-                                        <img
-                                            src={profile.equippedFrame}
-                                            alt=""
-                                            onError={e => { e.target.style.display='none'; }}
-                                            style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}
-                                        />
-                                    )}
+                                    {(() => {
+                                        var fSrc = profile.equippedFrame;
+                                        if (!fSrc || fSrc === 'none') return null;
+                                        // If it's just an ID like 'frame_img', look it up
+                                        if (!fSrc.startsWith('http') && !fSrc.startsWith('/') && !fSrc.startsWith('data:')) {
+                                            var found = (window.SHOP_ITEMS?.frames || []).find(f => f.id === fSrc);
+                                            if (found) fSrc = found.preview || found.imageUrl;
+                                            else return null;
+                                        }
+                                        return (
+                                            <img
+                                                src={fSrc}
+                                                alt=""
+                                                onError={e => { e.target.style.display='none'; }}
+                                                style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}
+                                            />
+                                        );
+                                    })()}
                                 </div>
 
                                 <div style={{ flex:1, paddingBottom:'6px', minWidth:0 }}>
@@ -534,5 +555,15 @@
     window.AvatarComponent = AvatarWithFrame; // Alias: legacy name for the same component
     window.NotificationDropdown = NotificationDropdown;
     window.MiniProfilePopup = MiniProfilePopup;
+
+    // Global showToast helper
+    window.showToast = (msg) => {
+        if (typeof window.setGlobalNotification === 'function') {
+            window.setGlobalNotification(msg);
+        } else {
+            console.warn("showToast called but setGlobalNotification not ready:", msg);
+            if (msg) alert(msg);
+        }
+    };
 
 })();
