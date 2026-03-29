@@ -315,6 +315,7 @@
               React.createElement(window.MiniProfilePopup, {
                 profile: miniProfile,
                 onClose: function() { setMiniProfile(null); },
+                currentUID: userData?.uid,
                 onAddFriend: window.handleSendRequest,
                 onMessage: function(u) { setMiniProfile(null); if(window.setShowPrivateChat) window.setShowPrivateChat(true); },
                 isFriend: userData?.friends?.some(function(f){return f.id === miniProfile.uid;}),
