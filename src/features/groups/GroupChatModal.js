@@ -192,6 +192,97 @@
                             <div ref={messagesEndRef}/>
                         </div>
 
+                        {/* ── EMOJI PICKER ── */}
+                        {showEmojiPicker && window.EmojiPicker && (
+                            <div style={{
+                                position:'absolute', bottom:'56px', left:'8px', right:'8px', zIndex:100,
+                                background:'#0f0e1a', borderRadius:'12px', border:'1px solid rgba(255,255,255,0.1)',
+                                boxShadow:'0 10px 40px rgba(0,0,0,0.8)', overflow:'hidden'
+                            }}>
+                                <window.EmojiPicker 
+                                    onEmojiSelect={(emoji) => {
+                                        setMsgText(prev => prev + emoji);
+                                    }}
+                                    theme="dark"
+                                />
+                            </div>
+                        )}
+
+                        {/* ── RED PACKET SELECTION ── */}
+                        {showRedPacketModal && (
+                            <div style={{
+                                position:'absolute', inset:0, zIndex:110,
+                                background:'rgba(0,0,0,0.85)', backdropFilter:'blur(4px)',
+                                display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'
+                            }} onClick={()=>setShowRedPacketModal(false)}>
+                                <div style={{
+                                    width:'100%', maxWidth:'320px', background:'#1a1a2e', borderRadius:'24px',
+                                    border:'1px solid rgba(239,68,68,0.3)', overflow:'hidden',
+                                    boxShadow:'0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(239,68,68,0.1)'
+                                }} onClick={e=>e.stopPropagation()}>
+                                    <div style={{padding:'20px',textAlign:'center',background:'linear-gradient(180deg,#ef4444, #991b1b)',color:'white'}}>
+                                        <div style={{fontSize:'40px',marginBottom:'10px'}}>🧧</div>
+                                        <div style={{fontSize:'18px',fontWeight:800}}>{lang==='ar'?'إرسال مغلف أحمر':'Send Red Packet'}</div>
+                                    </div>
+                                    <div style={{padding:'15px',maxHeight:'300px',overflowY:'auto',display:'flex',flexDirection:'column',gap:'10px'}}>
+                                        {(window.RED_PACKETS_CONFIG || [
+                                            {id:'rp1', amount:1000, label:'1K'},
+                                            {id:'rp2', amount:5000, label:'5K'},
+                                            {id:'rp3', amount:10000, label:'10K'},
+                                            {id:'rp4', amount:50000, label:'50K'}
+                                        ]).map(rp => (
+                                            <button key={rp.id} onClick={()=>sendGroupRedPacket(rp)}
+                                                disabled={sendingRedPacket || (currentUserData?.currency||0) < rp.amount}
+                                                style={{
+                                                    display:'flex',alignItems:'center',justifyContent:'space-between',
+                                                    padding:'12px 18px', borderRadius:'14px',
+                                                    background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)',
+                                                    color:'white', cursor:'pointer'
+                                                }}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                                                    <span style={{fontSize:'18px'}}>🧠</span>
+                                                    <span style={{fontSize:'15px',fontWeight:700}}>{rp.amount.toLocaleString()}</span>
+                                                </div>
+                                                <div style={{fontSize:'20px',color:'#ef4444'}}>🧧</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── GROUP DETAILS / SETTINGS OVERLAY (Now inside the card) ── */}
+                        {(showDetails||showInvite) && (() => {
+                            var GDM = window.GroupDetailsModal;
+                            if (!GDM) return null;
+                            return (
+                                <GDM
+                                    showDetails={showDetails} setShowDetails={setShowDetails}
+                                    showInvite={showInvite} setShowInvite={setShowInvite}
+                                    activeGroup={activeGroup} friendsData={friendsData}
+                                    inviteFriend={handleInviteFriend} lang={lang}
+                                    settingsView={settingsView} setSettingsView={setSettingsView}
+                                    isOwner={isOwner} isAdm={isAdm}
+                                    groupImgInputRef={groupImgInputRef} grpLvl={grpLvl}
+                                    membersData={membersData} loadingMembers={loadingMembers}
+                                    editingNotice={editingNotice} setEditingNotice={setEditingNotice}
+                                    groupNotice={groupNotice} setGroupNotice={setGroupNotice}
+                                    saveGroupNotice={saveGroupNotice} saveGroupManageSettings={saveGroupManageSettings}
+                                    groupMuted={groupMuted} setGroupMuted={setGroupMuted}
+                                    showReportGroup={showReportGroup} setShowReportGroup={setShowReportGroup}
+                                    reportGroupReason={reportGroupReason} setReportGroupReason={setReportGroupReason}
+                                    handleSubmitGroupReport={handleSubmitGroupReport} sendingGroupReport={sendingGroupReport}
+                                    handleLeaveGroup={handleLeaveGroup} handleDeleteGroup={handleDeleteGroup}
+                                    removeAdmin={()=>{}} makeAdmin={()=>{}} kickMember={()=>{}}
+                                    groupInviteType={groupInviteType} setGroupInviteType={setGroupInviteType}
+                                    groupIsPublic={groupIsPublic} setGroupIsPublic={setGroupIsPublic}
+                                    transferToId={transferToId} setTransferToId={setTransferToId}
+                                    showTransferConfirm={showTransferConfirm} setShowTransferConfirm={setShowTransferConfirm}
+                                    handleTransferOwnership={handleTransferOwnership}
+                                />
+                            );
+                        })()}
+
                         {/* ── INPUT BAR ── */}
                         <div style={{display:'flex',gap:'5px',padding:'8px 8px',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0,background:'rgba(0,0,0,0.45)',boxSizing:'border-box',width:'100%'}}>
                             <button onClick={()=>setShowEmojiPicker(v=>!v)} style={{width:'34px',height:'34px',borderRadius:'10px',border:`1px solid ${showEmojiPicker?'rgba(0,242,255,0.3)':'rgba(255,255,255,0.08)'}`,background:showEmojiPicker?'rgba(0,242,255,0.12)':'rgba(255,255,255,0.05)',cursor:'pointer',fontSize:'16px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>😀</button>
@@ -214,60 +305,6 @@
                         </div>
                     </div>
                 </div>
-
-                {/* ── GROUP DETAILS / SETTINGS PANEL — must be inside the position:relative card ── */}
-                {(showDetails||showInvite) && (() => {
-                    var GDM = window.GroupDetailsModal;
-                    if (!GDM) return null;
-                    return (
-                        <GDM
-                            showDetails={showDetails}
-                            setShowDetails={setShowDetails}
-                            showInvite={showInvite}
-                            setShowInvite={setShowInvite}
-                            activeGroup={activeGroup}
-                            friendsData={friendsData}
-                            inviteFriend={handleInviteFriend}
-                            lang={lang}
-                            settingsView={settingsView}
-                            setSettingsView={setSettingsView}
-                            isOwner={isOwner}
-                            isAdm={isAdm}
-                            groupImgInputRef={groupImgInputRef}
-                            grpLvl={grpLvl}
-                            membersData={membersData}
-                            loadingMembers={loadingMembers}
-                            editingNotice={editingNotice}
-                            setEditingNotice={setEditingNotice}
-                            groupNotice={groupNotice}
-                            setGroupNotice={setGroupNotice}
-                            saveGroupNotice={saveGroupNotice}
-                            saveGroupManageSettings={saveGroupManageSettings}
-                            groupMuted={groupMuted}
-                            setGroupMuted={setGroupMuted}
-                            showReportGroup={showReportGroup}
-                            setShowReportGroup={setShowReportGroup}
-                            reportGroupReason={reportGroupReason}
-                            setReportGroupReason={setReportGroupReason}
-                            handleSubmitGroupReport={handleSubmitGroupReport}
-                            sendingGroupReport={sendingGroupReport}
-                            handleLeaveGroup={handleLeaveGroup}
-                            handleDeleteGroup={handleDeleteGroup}
-                            removeAdmin={()=>{}}
-                            makeAdmin={()=>{}}
-                            kickMember={()=>{}}
-                            groupInviteType={groupInviteType}
-                            setGroupInviteType={setGroupInviteType}
-                            groupIsPublic={groupIsPublic}
-                            setGroupIsPublic={setGroupIsPublic}
-                            transferToId={transferToId}
-                            setTransferToId={setTransferToId}
-                            showTransferConfirm={showTransferConfirm}
-                            setShowTransferConfirm={setShowTransferConfirm}
-                            handleTransferOwnership={handleTransferOwnership}
-                        />
-                    );
-                })()}
             </PortalModal>
             </Fragment>
         );
