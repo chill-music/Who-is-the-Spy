@@ -398,14 +398,14 @@
                         <div style={{ padding:'0 14px 16px', position:'relative' }}>
                             <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'10px' }}>
                                 <div onClick={() => { onClose(); if(onOpenProfile) onOpenProfile(profile.uid); }}
-                                    style={{ position:'relative', width:'76px', height:'76px', flexShrink:0, zIndex:2, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                    style={{ position:'relative', width:'84px', height:'84px', flexShrink:0, zIndex:2, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
                                     
-                                    {/* Circular Photo Container */}
+                                    {/* Circular Photo Container - Fixed size 68px */}
                                     <div style={{
                                         width:'68px', height:'68px', borderRadius:'50%',
-                                        border: vipColor ? `2px solid ${vipColor}` : '2px solid rgba(255,255,255,0.1)',
+                                        border: (profile.equippedFrame && profile.equippedFrame !== 'none') ? 'none' : (vipColor ? `2px solid ${vipColor}` : '2px solid rgba(255,255,255,0.1)'),
                                         overflow:'hidden', background:'#1a1a2e',
-                                        boxShadow: vipColor ? `0 0 16px ${vipColor}44, 0 4px 12px rgba(0,0,0,0.5)` : '0 4px 12px rgba(0,0,0,0.5)',
+                                        boxShadow: (profile.equippedFrame && profile.equippedFrame !== 'none') ? 'none' : (vipColor ? `0 0 16px ${vipColor}44, 0 4px 12px rgba(0,0,0,0.5)` : '0 4px 12px rgba(0,0,0,0.5)'),
                                         position:'relative', zIndex:1
                                     }}>
                                         {profile.photo
@@ -413,7 +413,7 @@
                                             : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px'}}>😎</div>}
                                     </div>
 
-                                    {/* Frame Overlay (Larger than photo, no overflow hidden) */}
+                                    {/* Frame Overlay - Precision 1.5x ratio (102px) */}
                                     {(() => {
                                         var fSrc = profile.equippedFrame;
                                         if (!fSrc || fSrc === 'none') return null;
@@ -430,7 +430,7 @@
                                                 style={{
                                                     position:'absolute', top: '50%', left: '50%', 
                                                     transform: 'translate(-50%, -50%)', 
-                                                    width:'124%', height:'124%', 
+                                                    width:'102px', height:'102px', 
                                                     objectFit:'contain', pointerEvents:'none', zIndex:2
                                                 }}
                                             />
