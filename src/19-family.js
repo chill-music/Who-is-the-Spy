@@ -331,6 +331,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
         var fid = viewFamilyId || currentUserData?.familyId;
         if (!fid) { setFamily(null); setLoadingFamily(false); return; }
         var unsub = familiesCollection.doc(fid).onSnapshot(snap => {
+            if (snap.metadata.hasPendingWrites) return; /* Prevent loop on local estimate */
             if (snap.exists) {
                 var d = { id: snap.id, ...snap.data() };
                 setFamily(d);
@@ -342,7 +343,7 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
 
                 // ── Weekly sign reset logic (client-side) ──
                 // Every Sunday: save weeklyActiveness as lastWeekActiveness, reset weekly
-                if (!viewFamilyId && canManageFamily(d, currentUID)) {
+                if (!viewFamilyId && canManageFamily(d, currentUID) && d.createdBy === currentUID) {
                     var now = new Date();
                     var lastReset = d.lastWeeklyReset;
                     var lastResetDate = lastReset ? (lastReset.toDate ? lastReset.toDate() : new Date(lastReset.seconds * 1000)) : null;
@@ -356,26 +357,37 @@ var FamilyModal = ({ show, onClose, currentUser, currentUserData, currentUID, la
                             weeklyActiveness: 0,
                             lastWeeklyReset: firebase.firestore.FieldValue.serverTimestamp(),
                         };
-                        // Update all members' sign level based on last week
+                        
                         familiesCollection.doc(fid).update(updates).catch(() => {});
-                        if (newSignData) {
-                            for (var uid of (d.members || [])) {
-                                usersCollection.doc(uid).update({
+                        
+                        // Update members in batches (optimized)
+                        var batch = window.db.batch();
+                        var members = d.members || [];
+                        var batchSize = 0;
+                        
+                        for (var uid of members) {
+                            var userRef = usersCollection.doc(uid);
+                            if (newSignData) {
+                                batch.update(userRef, {
                                     familySignLevel: newSignData.level,
                                     familySignColor: newSignData.color,
                                     familySignImageURL: d.signImageURL || null,
-                                }).catch(() => {});
-                            }
-                        } else {
-                            // No sign earned — clear members' signs
-                            for (var uid of (d.members || [])) {
-                                usersCollection.doc(uid).update({
+                                });
+                            } else {
+                                batch.update(userRef, {
                                     familySignLevel: null,
                                     familySignColor: null,
                                     familySignImageURL: null,
-                                }).catch(() => {});
+                                });
+                            }
+                            batchSize++;
+                            if (batchSize >= 450) {
+                                batch.commit().catch(() => {});
+                                batch = window.db.batch();
+                                batchSize = 0;
                             }
                         }
+                        if (batchSize > 0) batch.commit().catch(() => {});
                     }
                 }
             } else {
