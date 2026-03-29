@@ -681,15 +681,10 @@
       if (endBtn) endBtn.disabled = false;
       updateCoinsDisplay();
 
-      // 🔄 SAFE RECURSION: Only queue one spin at a time
-      if (autoMode && freeSpins <= 0) {
+      // 🔄 STABILITY: Only spin automatically if autoMode is ACTUALLY enabled by the user.
+      if (autoMode) {
         if (autoTimer) clearTimeout(autoTimer);
         autoTimer = setTimeout(spin, quickMode ? 400 : 900);
-      }
-      // If we have free spins, we auto-play them, but don't toggle official 'autoMode'
-      if (freeSpins > 0) {
-        if (autoTimer) clearTimeout(autoTimer);
-        autoTimer = setTimeout(spin, quickMode ? 400 : 800);
       }
     }, maxTime);
   }
