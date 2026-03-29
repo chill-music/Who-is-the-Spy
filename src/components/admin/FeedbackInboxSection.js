@@ -6,7 +6,7 @@ var FeedbackInboxSection = ({ lang, onNotification }) => {
     var [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        var unsub = db.collection('feedback').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
+        var unsub = feedbackCollection.orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
             setFeedback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
@@ -16,7 +16,7 @@ var FeedbackInboxSection = ({ lang, onNotification }) => {
     var deleteFeedback = async (id) => {
         if(!confirm('Delete this feedback?')) return;
         try {
-            await db.collection('feedback').doc(id).delete();
+            await feedbackCollection.doc(id).delete();
             onNotification('✅ Deleted');
         } catch(e) { onNotification('❌ Error'); }
     };

@@ -10,7 +10,7 @@ var FinancialLogSection = ({ lang }) => {
     var [processing, setProcessing] = useState(false);
 
     useEffect(() => {
-        var unsub = db.collection('gold_transactions').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+        var unsub = goldLogCollection.orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
             setGoldLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
@@ -35,7 +35,7 @@ var FinancialLogSection = ({ lang }) => {
                 var currentGold = freshDoc.data().gold || 0;
                 transaction.update(userRef, { gold: currentGold + num });
                 
-                var logRef = db.collection('gold_transactions').doc();
+                var logRef = goldLogCollection.doc();
                 transaction.set(logRef, {
                     userId: targetUID.trim(),
                     userName: freshDoc.data().displayName,

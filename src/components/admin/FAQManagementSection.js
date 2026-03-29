@@ -7,7 +7,7 @@ var FAQManagementSection = ({ lang, onNotification }) => {
     var [newQ, setNewQ] = useState({ q_en:'', a_en:'', q_ar:'', a_ar:'', category: 'general' });
 
     useEffect(() => {
-        var unsub = db.collection('faqs').orderBy('category').onSnapshot(snap => {
+        var unsub = helpFaqCollection.orderBy('category').onSnapshot(snap => {
             setFaqs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         });
@@ -17,7 +17,7 @@ var FAQManagementSection = ({ lang, onNotification }) => {
     var handleAdd = async () => {
         if (!newQ.q_en || !newQ.a_en) return;
         try {
-            await db.collection('faqs').add({ ...newQ, timestamp: TS() });
+            await helpFaqCollection.add({ ...newQ, timestamp: TS() });
             setNewQ({ q_en:'', a_en:'', q_ar:'', a_ar:'', category: 'general' });
             onNotification('✅ FAQ Added');
         } catch(e) { onNotification('❌ Error'); }
@@ -26,7 +26,7 @@ var FAQManagementSection = ({ lang, onNotification }) => {
     var deleteFAQ = async (id) => {
         if(!confirm('Delete this FAQ?')) return;
         try {
-            await db.collection('faqs').doc(id).delete();
+            await helpFaqCollection.doc(id).delete();
             onNotification('✅ Deleted');
         } catch(e) { onNotification('❌ Error'); }
     };

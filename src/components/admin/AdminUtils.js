@@ -2,7 +2,7 @@
     var { useState, useEffect, useMemo, useRef } = React;
 var logStaffAction = async (staffUID, staffName, action, targetUID = null, targetName = null, details = '') => {
     try {
-        await db.collection('staff_logs').add({
+        await staffLogCollection.add({
             staffUID,
             staffName,
             action,

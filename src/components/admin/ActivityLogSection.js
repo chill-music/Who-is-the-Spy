@@ -17,7 +17,7 @@ var ActivityLogSection = ({ lang }) => {
 
     useEffect(() => {
         // Fetch last 50 staff logs
-        var unsub = db.collection('staff_logs').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+        var unsub = staffLogCollection.orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
             setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, () => setLoading(false));
