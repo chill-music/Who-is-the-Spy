@@ -71,7 +71,10 @@
       /* TOP NAV */
       '<div class="lf-top-nav">',
         '<button class="lf-nav-btn" id="lf-muteBtn" title="Mute/Unmute">&#128266;</button>',
-        '<button class="lf-nav-btn" id="lf-wheelBtn" title="Lucky Wheel">🎡</button>',
+        '<button class="lf-nav-btn" id="lf-wheelBtn" title="Lucky Wheel" style="position:relative">',
+          '🎡',
+          '<span id="lf-wheelDot" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ff3b3b; border-radius:50%; border:2px solid #3A1A8A; box-shadow: 0 0 6px #ff3b3b;"></span>',
+        '</button>',
         '<button class="lf-nav-btn" id="lf-rulesBtn" title="Rules">&#9776;</button>',
         '<div class="lf-coin-display">',
           '<span class="lf-coin-star">🧠</span>',
@@ -732,7 +735,7 @@
       if (wt) {
         wt.textContent = T('WIN') + ' ' + totalWin.toLocaleString();
         wt.classList.add('big-win');
-        if (totalWin >= totalCost * 15) {
+        if (totalWin >= (cost * lines) * 15) {
           wt.classList.add('large-win-glow');
         }
         setTimeout(function(){ wt.classList.remove('big-win'); }, 600);
@@ -1017,9 +1020,11 @@
     if (remaining > 0) {
       btn.disabled = true;
       startWheelTimer(remaining);
+      if($('lf-wheelDot')) $('lf-wheelDot').style.display = 'none';
     } else {
       btn.disabled = false;
       timer.textContent = lang==='ar'?'جاهز للدوران!':'Ready to spin!';
+      if($('lf-wheelDot')) $('lf-wheelDot').style.display = 'block';
     }
   }
 
@@ -1044,6 +1049,21 @@
 
   async function spinLuckyWheel() {
     if (wheelSpinning) return;
+    
+    // Safety check for 24h cooldown
+    var last = 0;
+    try {
+      var state = window.lfGameUserData || window.userData || window.currentUserData;
+      last = state?.lastWheelSpin || 0;
+      if (last instanceof firebase.firestore.Timestamp) last = last.toMillis();
+    } catch(e) {}
+    if (Date.now() < (last + 24*60*60*1000)) {
+       var msg = (lang==='ar'?'عذراً، يمكنك الدوران مرة واحدة كل 24 ساعة.':'Sorry, you can only spin once every 24 hours.');
+       if (typeof window.showToast === 'function') window.showToast(msg, 'warning');
+       else alert(msg);
+       return;
+    }
+
     soundSpinStart();
     wheelSpinning = true;
     $('lf-spinWheelBtn').disabled = true;
