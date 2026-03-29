@@ -11,7 +11,7 @@ var ReportsSection = ({ currentUser, currentUserData, lang, onNotification, onOp
     var [selectedEscalateTo, setSelectedEscalateTo] = useState('');
     var [banningUID, setBanningUID]     = useState(null); // report.id of the one being banned
 
-    var myRole = getUserRole(currentUserData, currentUser?.uid);
+    var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : (currentUserData?.role || 'user');
 
     useEffect(() => {
         var unsubscribed = false;
