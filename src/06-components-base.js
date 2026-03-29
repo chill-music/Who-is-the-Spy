@@ -116,9 +116,14 @@
 
     // Avatar with Frame
     var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
-        var sizeConfig = { sm: { wrapper: 52, avatar: 30, mask: 32 }, md: { wrapper: 72, avatar: 40, mask: 42 }, lg: { wrapper: 110, avatar: 60, mask: 62 }, xl: { wrapper: 140, avatar: 80, mask: 82 } };
+        var sizeConfig = { 
+            sm: { wrapper: 48, avatar: 42, mask: 42 }, 
+            md: { wrapper: 68, avatar: 60, mask: 60 }, 
+            lg: { wrapper: 100, avatar: 88, mask: 88 }, 
+            xl: { wrapper: 140, avatar: 124, mask: 124 } 
+        };
         var config = sizeConfig[size] || sizeConfig.md;
-        var frameItem = SHOP_ITEMS.frames.find(f => f.id === equipped?.frames);
+        var frameItem = (window.SHOP_ITEMS?.frames || []).find(f => f.id === equipped?.frames);
         var showBan = banData?.isBanned && (
             !banData.expiresAt ||
             new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))
@@ -140,10 +145,10 @@
 
             if (frameUrl.startsWith('http') || frameUrl.startsWith('/') || frameUrl.startsWith('data:')) {
                 return (
-                    <div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', overflow: 'hidden', zIndex: 1 }}>
-                        <img src={frameUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="frame" 
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', overflow: 'hidden', zIndex: 1, pointerEvents: 'none' }}>
+                        <img src={frameUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.02)' }} alt="frame" 
                              onError={e => { e.target.style.display='none'; }} />
-                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' }} />
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'rgba(13,13,31,0.95)', boxShadow: 'inset 0 0 10px rgba(0,0,0,0.8)' }} />
                     </div>
                 );
             }
@@ -251,7 +256,13 @@
         var familySignEl = (() => {
             if (!profile.familyTag) return null;
             if (window.FamilySignBadge) {
+                // Determine the correct sign level (sync with real family level if possible)
                 var flvl = profile.familySignLevel || 1;
+                // If it's the Tribe Chat or a place where we should show the real tribe level
+                if (profile.tribeFamilySignLevel) {
+                    flvl = profile.tribeFamilySignLevel;
+                }
+                
                 var fcolor = window.FamilyConstants?.getFamilySignLevelDataByLevel?.(flvl)?.color || profile.familySignColor || '#00f2ff';
                 var imgURL = window.FamilyConstants?.getFamilySignImage?.(0, flvl) || profile.familySignImageURL;
                 return (
@@ -409,7 +420,7 @@
                                                 src={fSrc}
                                                 alt=""
                                                 onError={e => { e.target.style.display='none'; }}
-                                                style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}}
+                                                style={{position:'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(1.14)', width:'100%', height:'100%', objectFit:'contain', pointerEvents:'none'}}
                                             />
                                         );
                                     })()}
