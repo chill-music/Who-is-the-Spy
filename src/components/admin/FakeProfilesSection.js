@@ -12,6 +12,7 @@ var FAKE_NAMES = ['Alex Shadow','Nova Cipher','Rex Viper','Luna Storm','Kai Echo
 var FakeProfilesSection = ({ lang, onNotification }) => {
     var [profiles, setProfiles] = useState([]);
     var [loading, setLoading] = useState(true);
+    var [generating, setGenerating] = useState(false);
 
     useEffect(() => {
         var unsub = usersCollection.where('isFake', '==', true).onSnapshot(snap => {
@@ -29,15 +30,42 @@ var FakeProfilesSection = ({ lang, onNotification }) => {
         } catch(e) { onNotification('❌ Error'); }
     };
 
+    var generateProfiles = async () => {
+        if (generating) return;
+        setGenerating(true);
+        try {
+            var batch = db.batch();
+            for (var i = 0; i < 10; i++) {
+                var randomId = 'bot_' + Math.random().toString(36).substr(2, 9);
+                var name = FAKE_NAMES[Math.floor(Math.random()*FAKE_NAMES.length)] + ' (Bot)';
+                var photo = FAKE_PROFILE_PHOTOS[Math.floor(Math.random()*FAKE_PROFILE_PHOTOS.length)];
+                var ref = usersCollection.doc(randomId);
+                batch.set(ref, {
+                    uid: randomId,
+                    displayName: name,
+                    photoURL: photo,
+                    isFake: true,
+                    role: 'user',
+                    xp: Math.floor(Math.random()*2000),
+                    currency: 500,
+                    createdAt: TS()
+                });
+            }
+            await batch.commit();
+            onNotification(lang==='ar'?'✅ تم إنشاء 10 حسابات':'✅ Generated 10 profiles');
+        } catch(e) { onNotification('❌ Error'); }
+        setGenerating(false);
+    };
+
     return (
         <div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
                 <div style={{ fontSize:'13px', fontWeight:700, color:'#ec4899' }}>
                     🤖 {lang==='ar'?'الحسابات الوهمية':'Fake Profiles'}
                 </div>
-                <button onClick={() => window.open('/tools/fake-gen.html','_blank')}
-                    className="btn-neon" style={{ padding:'5px 12px', fontSize:'11px' }}>
-                    ➕ {lang==='ar'?'إنشاء حسابات':'Generate'}
+                <button onClick={generateProfiles} disabled={generating}
+                    className="btn-neon" style={{ padding:'5px 12px', fontSize:'11px', opacity: generating ? 0.6 : 1 }}>
+                    {generating ? '⏳' : `➕ ${lang==='ar'?'إنشاء 10 حسابات':'Generate 10'}`}
                 </button>
             </div>
 
