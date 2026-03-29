@@ -488,16 +488,41 @@ var FamilyChatModal = (props) => {
                                         var rpDoc = await redPacketsCollection.doc(rpId).get();
                                         if (!rpDoc.exists) return;
                                         var rp = rpDoc.data();
-                                        if (rp.claimedBy && rp.claimedBy.includes(currentUID)) { if(onNotification) onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); return; }
-                                        if ((rp.claimedBy&&rp.claimedBy.length||0)>=(rp.maxClaims||1)) { if(onNotification) onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); return; }
+                                        if (rp.claimedBy && rp.claimedBy.includes(currentUID)) { 
+                                            if(window.showToast) window.showToast(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed');
+                                            else if(onNotification) onNotification(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed'); 
+                                            return; 
+                                        }
+                                        if ((rp.claimedBy&&rp.claimedBy.length||0)>=(rp.maxClaims||1)) { 
+                                            if(window.showToast) window.showToast(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted');
+                                            else if(onNotification) onNotification(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted'); 
+                                            return; 
+                                        }
                                         var perClaim = Math.floor(rp.amount/(rp.maxClaims||1));
                                         var bonus = Math.floor(Math.random()*Math.floor(perClaim*0.5));
                                         var claim = Math.min(perClaim+bonus, rp.remaining||rp.amount);
-                                        await redPacketsCollection.doc(rpId).update({ claimedBy:firebase.firestore.FieldValue.arrayUnion(currentUID), remaining:firebase.firestore.FieldValue.increment(-claim), status:((rp.claimedBy&&rp.claimedBy.length||0)+1>=(rp.maxClaims||1))?'exhausted':'active' });
+                                        
+                                        var myName = currentUserData?.displayName || userData?.displayName || 'User';
+                                        
+                                        await redPacketsCollection.doc(rpId).update({ 
+                                            claimedBy: firebase.firestore.FieldValue.arrayUnion(currentUID),
+                                            claimerNames: firebase.firestore.FieldValue.arrayUnion(myName),
+                                            remaining: firebase.firestore.FieldValue.increment(-claim), 
+                                            status: ((rp.claimedBy&&rp.claimedBy.length||0)+1>=(rp.maxClaims||1))?'exhausted':'active' 
+                                        });
                                         await usersCollection.doc(currentUID).update({ currency:firebase.firestore.FieldValue.increment(claim) });
-                                        await familiesCollection.doc(familyId).collection('messages').add({ type:'system', text:(lang==='ar'?'🎉 '+((userData||currentUserData)?.displayName||'عضو')+' استلم '+claim+' 🧠 من مغلف '+rp.senderName:'🎉 '+((userData||currentUserData)?.displayName||'Member')+' claimed '+claim+' 🧠 from '+rp.senderName+"'s packet"), senderId:'system', timestamp:TS() });
-                                        if(onNotification) onNotification(lang==='ar'?'🎉 استلمت '+claim+' Intel!':'🎉 Got '+claim+' Intel!');
-                                    } catch(e) { if(onNotification) onNotification(lang==='ar'?'❌ خطأ':'❌ Error'); }
+                                        await familiesCollection.doc(familyId).collection('messages').add({ 
+                                            type:'system', 
+                                            text:(lang==='ar'?'🎉 '+myName+' استلم '+claim+' 🧠 من مغلف '+rp.senderName : '🎉 '+myName+' claimed '+claim+' 🧠 from '+rp.senderName+"'s packet"), 
+                                            senderId:'system', 
+                                            timestamp:TS() 
+                                        });
+                                        if(window.showToast) window.showToast(lang==='ar'?'🎉 استلمت '+claim+' Intel!':'🎉 Got '+claim+' Intel!');
+                                        else if(onNotification) onNotification(lang==='ar'?'🎉 استلمت '+claim+' Intel!':'🎉 Got '+claim+' Intel!');
+                                    } catch(e) { 
+                                        console.error(e);
+                                        if(window.showToast) window.showToast(lang==='ar'?'❌ خطأ':'❌ Error');
+                                    }
                                 }
                             }),
                             React.createElement('div', { style:{ fontSize:'9px', color:'#d1d5db', marginTop:'2px', textAlign: isMe?'right':'left', paddingLeft:'4px' } }, fmtTime(msg.timestamp))
