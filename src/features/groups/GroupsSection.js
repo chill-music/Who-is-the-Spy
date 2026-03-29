@@ -161,20 +161,45 @@
         };
 
         var claimRedPacket = async (rpId) => {
+            if (!activeGroup || !currentUID) return;
             try {
                 var rpDoc = await redPacketsCollection.doc(rpId).get();
-                if (!rpDoc.exists || rpDoc.data().claimedBy?.includes(currentUID)) return;
+                if (!rpDoc.exists) return;
                 var rp = rpDoc.data();
-                var perClaim = Math.floor(rp.amount / rp.maxClaims);
-                var claim = Math.min(perClaim + Math.floor(Math.random()*(perClaim*0.5)), rp.remaining);
+                if (rp.claimedBy?.includes(currentUID)) {
+                    if (window.showToast) window.showToast(lang==='ar'?'❌ استلمته من قبل':'❌ Already claimed');
+                    return;
+                }
+                if ((rp.claimedBy?.length || 0) >= rp.maxClaims) {
+                    if (window.showToast) window.showToast(lang==='ar'?'❌ نفد المغلف':'❌ Exhausted');
+                    return;
+                }
+                
+                var perClaim = Math.floor(rp.amount / (rp.maxClaims || 1));
+                var claim = Math.min(perClaim + Math.floor(Math.random() * (perClaim * 0.5)), rp.remaining || rp.amount);
+                var myName = currentUserData?.displayName || 'User';
+                
                 await redPacketsCollection.doc(rpId).update({
                     claimedBy: firebase.firestore.FieldValue.arrayUnion(currentUID),
+                    claimerNames: firebase.firestore.FieldValue.arrayUnion(myName),
                     remaining: firebase.firestore.FieldValue.increment(-claim),
-                    status: (rp.claimedBy?.length + 1 >= rp.maxClaims) ? 'exhausted' : 'active'
+                    status: (rp.claimedBy?.length + 1 >= (rp.maxClaims || 1)) ? 'exhausted' : 'active'
                 });
                 await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(claim) });
-                onNotification(lang==='ar'?`🎉 استلمت ${claim}`:`🎉 Claimed ${claim}`);
-            } catch(e) {}
+                
+                // Add system message to group chat
+                await groupsCollection.doc(activeGroup.id).collection('messages').add({
+                    type: 'system',
+                    text: lang === 'ar' ? `🎉 ${myName} استلم ${claim} 🧠 من مغلف ${rp.senderName || 'عضو'}` : `🎉 ${myName} claimed ${claim} 🧠 from ${rp.senderName || 'Member'}'s packet`,
+                    createdAt: TS(), senderId: 'system',
+                });
+
+                if (window.showToast) window.showToast(lang==='ar' ? `🎉 استلمت ${claim} Intel!` : `🎉 Got ${claim} Intel!`);
+                else onNotification(lang==='ar'?`🎉 استلمت ${claim}`:`🎉 Claimed ${claim}`);
+            } catch(e) {
+                console.error(e);
+                if (window.showToast) window.showToast(lang==='ar'?'❌ خطأ':'❌ Error');
+            }
         };
 
         var openGroupMiniProfile = async (uid, basic) => {
