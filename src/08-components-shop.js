@@ -1,961 +1,1571 @@
 (function() {
-// Late-bind getGiftRarity — defined in ProfileHelpers.js, fallback included for safety
-var getGiftRarity = function(cost) {
-    if (window.getGiftRarity) return window.getGiftRarity(cost);
-    if (cost >= 10000) return 'Mythic';
-    if (cost >= 500)   return 'Legendary';
-    if (cost >= 50)    return 'Epic';
-    if (cost >= 15)    return 'Uncommon';
-    return 'Common';
-};
+    var { useState, useEffect, useRef, useCallback, useMemo } = React;
+    // Late-bind helpers and sub-components for hybrid architecture safety
+    // NOTE: RingsShopSection and GiftPreviewModal might be loaded AFTER this file, 
+    // so we access them via window during render or as early as possible.
+    var getRingsShopSection = () => window.RingsShopSection;
+    var getGiftPreviewModal = () => window.GiftPreviewModal;
 
-var EmojiPicker = ({ show, onClose, onSelect, lang, inline = false }) => {
+    var getGiftRarity = function(cost) {
+        if (window.getGiftRarity) return window.getGiftRarity(cost);
+        if (cost >= 10000) return 'Mythic';
+        if (cost >= 500)   return 'Legendary';
+        if (cost >= 50)    return 'Epic';
+        if (cost >= 15)    return 'Uncommon';
+        return 'Common';
+    };
+
+// ═══════════════════════════════════════════════════════════════
+// 🛒  SHOP MODAL — Premium Dark Gaming Store
+// ═══════════════════════════════════════════════════════════════
+var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
     var t = TRANSLATIONS[lang];
-    var [activeCategory, setActiveCategory] = useState('smiles');
+    var [activeTab, setActiveTab] = useState('frames');
+    var [selectedItem, setSelectedItem] = useState(null);
+    var [showPreview, setShowPreview] = useState(false);
+    // ✅ Gift filter state
+    var [giftSort, setGiftSort] = useState('default');
+    var [giftRarityFilter, setGiftRarityFilter] = useState('all');
+    var [giftVIPOnly, setGiftVIPOnly] = useState(false);
+    var [showGiftFilter, setShowGiftFilter] = useState(false);
+    // ✅ VIP confirmation dialog
+    var [showVIPConfirm, setShowVIPConfirm] = useState(false);
 
     if (!show) return null;
 
-    var categories = [
-        { id: 'smiles',   icon: '😀', label_ar: 'وجوه',   label_en: 'Faces' },
-        { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
-        { id: 'hearts',   icon: '❤️', label_ar: 'قلوب',   label_en: 'Hearts' },
-        { id: 'objects',  icon: '🎉', label_ar: 'أشياء',   label_en: 'Objects' },
-        { id: 'nature',   icon: '🌸', label_ar: 'طبيعة',  label_en: 'Nature' },
+    var currency     = userData?.currency || 0;
+    var inventory    = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
+    var equipped     = userData?.equipped  || {};
+    var vipLevel     = (typeof window.getVIPLevel === 'function') ? window.getVIPLevel(userData) : 0;
+    var vipXpInfo    = (typeof window.getVIPXPProgress === 'function') ? window.getVIPXPProgress(userData?.vip?.xp || 0) : null;
+    var hasVIP       = vipLevel >= 1;
+
+    var vipExpiresAt = userData?.vip?.expiresAt;
+    var vipDaysLeft = (() => {
+        if (!vipExpiresAt) return null;
+        var expDate = vipExpiresAt.toDate ? vipExpiresAt.toDate() : new Date(vipExpiresAt);
+        var now = new Date();
+        var diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+        return diff > 0 ? diff : 0;
+    })();
+
+    var isOwned    = (item) => inventory[item.type]?.includes(item.id);
+    var isEquipped = (item) => {
+        if (item.type === 'badges') {
+            var eb = equipped.badges || [];
+            return Array.isArray(eb) ? eb.includes(item.id) : equipped.badges === item.id;
+        }
+        return equipped[item.type] === item.id;
+    };
+
+    var renderPreview = (item) => {
+        if (item.type === 'frames') return item.preview?.startsWith('http')
+            ? <img src={item.preview} alt="" style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover'}} />
+            : <div style={{width:'36px',height:'36px',borderRadius:'50%',background:item.preview}} />;
+        if (item.type === 'badges') return item.imageUrl
+            ? <img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}} />
+            : <span style={{fontSize:'26px'}}>{item.preview}</span>;
+        if (item.type === 'titles') return item.imageUrl
+            ? <img src={item.imageUrl} alt="" style={{width:'28px',height:'28px',objectFit:'contain'}} />
+            : <span style={{fontSize:'22px'}}>{item.preview}</span>;
+        if (item.type === 'gifts' || item.type === 'gifts_vip') return item.imageUrl
+            ? <img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain'}} />
+            : <span style={{fontSize:'26px'}}>{item.emoji}</span>;
+        if (item.type === 'profileEffects') {
+            var src = typeof item.particles === 'string' && item.particles.startsWith('http')
+                ? item.particles : (item.imageUrl || null);
+            return src
+                ? <img src={src} alt={item.name_en} style={{width:'32px',height:'32px',objectFit:'contain',borderRadius:'6px'}} />
+                : <span style={{fontSize:'26px'}}>{item.preview}</span>;
+        }
+        return <span style={{fontSize:'22px'}}>🎨</span>;
+    };
+
+    // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
+    var tabs = [
+        { id: 'gifts',          icon: '🎁', label_ar: 'هدايا',     label_en: 'Gifts'   },
+        { id: 'red_packets',    icon: '🧧', label_ar: 'مغلفات',   label_en: 'Packets' },
+        { id: 'rings',          icon: '💍', label_ar: 'خواتم',     label_en: 'Rings'   },
+        { id: 'bff_tokens',     icon: '🤝', label_ar: 'BFF',       label_en: 'BFF'     },
+        { id: 'frames',         icon: '🖼️', label_ar: 'إطارات',   label_en: 'Frames'  },
+        { id: 'titles',         icon: '🏷️', label_ar: 'ألقاب',    label_en: 'Titles'  },
+        { id: 'badges',         icon: '🏅', label_ar: 'شارات',     label_en: 'Badges'  },
+        { id: 'profileEffects', icon: '✨', label_ar: 'تأثيرات',   label_en: 'Effects' },
     ];
 
-    var wrapperStyle = inline ? {} : undefined;
-
-    return (
-        <div className={inline ? '' : 'emoji-picker-modal animate-slide-up'} style={wrapperStyle}>
-            {!inline && (
-                <div className="emoji-picker-header">
-                    <span className="emoji-picker-title">{t.selectEmojis || 'Emoji'}</span>
-                    <button className="emoji-picker-close" onClick={onClose}>✕</button>
-                </div>
-            )}
-            <div className="emoji-categories" style={{marginBottom:'6px'}}>
-                {categories.map(cat => (
-                    <button
-                        key={cat.id}
-                        className={`emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
-                        onClick={() => setActiveCategory(cat.id)}
-                        title={lang==='ar'?cat.label_ar:cat.label_en}
-                    >
-                        {cat.icon}
-                    </button>
-                ))}
-            </div>
-            <div className="emoji-picker-grid">
-                {(EMOJI_CATEGORIES[activeCategory] || []).map((emoji, i) => (
-                    <button
-                        key={i}
-                        className="emoji-picker-item"
-                        onClick={() => { onSelect(emoji); }}
-                    >
-                        {emoji}
-                    </button>
-                ))}
-            </div>
-            <div className="emoji-categories">
-                {categories.map(cat => (
-                    <button
-                        key={cat.id}
-                        className={`emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
-                        onClick={() => setActiveCategory(cat.id)}
-                        title={cat.label}
-                    >
-                        {cat.icon}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-// 🎁 GIFT PREVIEW MODAL - IMPROVED
-// Shows details for both sender and receiver
-var GiftPreviewModal = ({ show, onClose, gift, lang, onBuy, currency, isSending = false, isFromInventory = false, onSendFromInventory, friendsData, sendToSelf = false, currentUserData, user, directTarget = null }) => {
-    var t = TRANSLATIONS[lang];
-    var [showFriendSelect, setShowFriendSelect] = useState(false);
-    var [selectedFriend, setSelectedFriend] = useState(null);
-    var [sendMode, setSendMode] = useState(directTarget ? 'direct' : 'self');
-    var [previewBonus, setPreviewBonus] = useState(0);
-    // ✅ Quantity system
-    var [selectedQty, setSelectedQty] = useState(1);
-    var isGiftItem = gift?.type === 'gifts' || gift?.type === 'gifts_vip';
-
-    useEffect(() => {
-        if (show && gift) {
-            setSelectedFriend(directTarget || null);
-            setSendMode(directTarget ? 'direct' : 'self');
-            setShowFriendSelect(false);
-            setSelectedQty(1);
-            if (gift.minBonus && gift.maxBonus) {
-                setPreviewBonus(generateRandomBonus(gift.minBonus, gift.maxBonus));
-            }
+    var getTabItems = (tab) => {
+        if (tab === 'red_packets') {
+            return typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
         }
-    }, [show, gift, directTarget]);
+        if (tab === 'bff_tokens') {
+            // Return BFF_TOKEN_ITEMS from config (not hidden ones)
+            return typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS.filter(t => !t.hidden) : [];
+        }
+        if (tab === 'gifts') {
+            var regular  = (SHOP_ITEMS.gifts         || []).filter(item => !item.hidden);
+            var vipGifts = (SHOP_ITEMS.gifts_vip     || []).filter(item => !item.hidden && item.vipExclusive !== false);
+            var famGifts = (SHOP_ITEMS.gifts_family  || []).filter(item => !item.hidden);
+            var spcGifts = (SHOP_ITEMS.gifts_special || []).filter(item => !item.hidden);
+            var flgGifts = (SHOP_ITEMS.gifts_flag    || []).filter(item => !item.hidden);
 
-    if (!show || !gift) return null;
+            var items = giftVIPOnly ? vipGifts : [...regular, ...vipGifts, ...famGifts, ...spcGifts, ...flgGifts];
 
-    // ── Quantity buy handler ──
-    var handleBuyWithQty = (qty) => {
-        if (!onBuy) return;
-        var target = directTarget
-            ? directTarget
-            : sendMode === 'self'
-            ? { uid: 'self', displayName: currentUserData?.displayName || 'Me' }
-            : selectedFriend;
-        if (!target) return;
-        onBuy(gift, target, qty || selectedQty);
-    };
-
-    var handleBuy = () => handleBuyWithQty(selectedQty);
-
-    // ── Profile Effect special view ──
-    if (gift.type === 'profileEffects') {
-        var rKey = gift.rarity || 'Common';
-        var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
-        var owned = currency >= gift.cost;
-        return (
-            <div className="modal-overlay" onClick={onClose} style={{zIndex: (window.Z?.MODAL_TOP || 15000)}}>
-                <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{maxWidth:'340px'}}>
-                    <div className="modal-header">
-                        <h2 className="modal-title">{lang === 'ar' ? gift.name_ar : gift.name_en}</h2>
-                        <ModalCloseBtn onClose={onClose} />
-                    </div>
-                    <div className="modal-body text-center py-3">
-                        {/* Effect Preview Box */}
-                        {(() => {
-                            // ✅ Support: particles as URL, imageUrl, or emoji preview
-                            var effectSrc = (typeof gift.particles === 'string' && gift.particles.startsWith('http'))
-                                ? gift.particles
-                                : (gift.imageUrl && gift.imageUrl.trim() !== '' ? gift.imageUrl : null);
-                            return (
-                                <div style={{
-                                    width:'100%', height:'160px', borderRadius:'12px', marginBottom:'12px',
-                                    background: rarity.bg, border: `2px solid ${rarity.border}`,
-                                    display:'flex', alignItems:'center', justifyContent:'center',
-                                    position:'relative', overflow:'hidden',
-                                    boxShadow: rarity.glow ? `0 0 20px ${rarity.color}55` : 'none'
-                                }}>
-                                    {effectSrc ? (
-                                        <img
-                                            src={effectSrc}
-                                            alt={gift.name_en}
-                                            style={{
-                                                width:'100%', height:'100%',
-                                                objectFit:'contain', borderRadius:'10px',
-                                            }}
-                                        />
-                                    ) : (
-                                        <span style={{fontSize:'56px'}}>{gift.preview}</span>
-                                    )}
-                                    {gift.hasGlow && (
-                                        <div style={{position:'absolute',inset:0,background:'radial-gradient(circle at center, rgba(0,242,255,0.25), transparent 70%)',pointerEvents:'none'}} />
-                                    )}
-                                    {/* Rarity badge */}
-                                    <div style={{position:'absolute',top:'8px',right:'8px',background:rarity.color,color:'#000',fontSize:'9px',fontWeight:800,padding:'2px 7px',borderRadius:'8px'}}>
-                                        {rarity.icon} {lang==='ar'?rarity.name_ar:rarity.name_en}
-                                    </div>
-                                </div>
-                            );
-                        })()}
-                        <h3 style={{fontSize:'15px',fontWeight:800,color:'white',marginBottom:'6px'}}>{lang==='ar'?gift.name_ar:gift.name_en}</h3>
-                        {/* Details */}
-                        <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'10px',textAlign:'right',direction:'ltr'}}>
-                            <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
-                                <span>💰 {lang==='ar'?'السعر':'Price'}</span>
-                                <span style={{color:'#facc15',fontWeight:700}}>{gift.cost} 🧠</span>
-                            </div>
-                            {Array.isArray(gift.particles) && gift.particles.length > 0 && (
-                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
-                                    <span>✨ {lang==='ar'?'الجزيئات':'Particles'}</span>
-                                    <span style={{color:'white',fontWeight:700}}>{gift.particles.map(p=>`${p.emoji}×${p.count}`).join(' ')}</span>
-                                </div>
-                            )}
-                            {gift.hasGlow && (
-                                <div style={{display:'flex',justifyContent:'space-between',fontSize:'11px',color:'#9ca3af',padding:'6px 10px',background:'rgba(255,255,255,0.04)',borderRadius:'8px'}}>
-                                    <span>🌟 {lang==='ar'?'توهج خاص':'Special Glow'}</span>
-                                    <span style={{color:'#00f2ff',fontWeight:700}}>✓ {lang==='ar'?'نعم':'Yes'}</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="modal-footer py-2">
-                            <div className="flex gap-2">
-                                <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{lang==='ar'?'إغلاق':'Close'}</button>
-                                <button
-                                    onClick={() => onBuy && onBuy(gift, null)}
-                                    disabled={!owned}
-                                    style={{flex:1,padding:'8px',borderRadius:'8px',background: owned ? rarity.color : 'rgba(100,100,100,0.2)',color: owned ? '#000' : '#6b7280',border:'none',fontWeight:800,fontSize:'12px',cursor: owned ? 'pointer' : 'not-allowed'}}
-                                >
-                                    {owned ? `${lang==='ar'?'شراء':'Buy'} (${gift.cost}🧠)` : (lang==='ar'?'إنتل غير كافٍ':'Not enough Intel')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    var renderGiftIcon = () => {
-        if (gift.type === 'frames') { return gift.preview.startsWith('http') ? <img src={gift.preview} alt={gift.name_en} className="w-14 h-14 rounded-full object-cover mx-auto" /> : <div className="w-14 h-14 rounded-full mx-auto" style={{ background: gift.preview }}></div>; }
-        if (gift.type === 'badges') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.preview}</div>; }
-        if (gift.type === 'titles') { return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="h-8 object-contain mx-auto" /> : <div className="text-3xl mb-2">{gift.preview}</div>; }
-        return gift.imageUrl ? <img src={gift.imageUrl} alt={gift.name_en} className="w-12 h-12 object-contain mx-auto" /> : <div className="text-4xl mb-2">{gift.emoji}</div>;
-    };
-
-    var handleSendFromInventory = () => {
-        if (!onSendFromInventory) return;
-        var target = directTarget
-            ? directTarget
-            : sendMode === 'self'
-            ? { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL }
-            : selectedFriend;
-        if (!target) return;
-        onSendFromInventory(gift, target);
-        onClose();
+            if (giftRarityFilter !== 'all') {
+                items = items.filter(item => {
+                    var rKey = item.type === 'gifts_vip' ? 'Legendary' : getGiftRarity(item.cost);
+                    return rKey === giftRarityFilter;
+                });
+            }
+            if (giftSort === 'price_desc') items = [...items].sort((a,b) => b.cost - a.cost);
+            else if (giftSort === 'price_asc') items = [...items].sort((a,b) => a.cost - b.cost);
+            else {
+                var RARITY_ORDER = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+                items = [...items].sort((a,b) => {
+                    var rA = RARITY_ORDER.indexOf(a.type==='gifts_vip'?'Legendary':getGiftRarity(a.cost));
+                    var rB = RARITY_ORDER.indexOf(b.type==='gifts_vip'?'Legendary':getGiftRarity(b.cost));
+                    return rA - rB || a.cost - b.cost;
+                });
+            }
+            return items;
+        }
+        return (SHOP_ITEMS[tab] || []).filter(item => !item.hidden);
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{zIndex: (window.Z?.MODAL_TOP || 15000)}}>
-            <div className="modal-content animate-pop" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
-                <div className="modal-header"><h2 className="modal-title">{isGiftItem ? t.giftPreview : (lang === 'ar' ? gift.name_ar : gift.name_en)}</h2><ModalCloseBtn onClose={onClose} /></div>
-                <div className="modal-body text-center py-3">
-                    {renderGiftIcon()}
-                    <h3 className="text-base font-bold text-white mb-1">{lang === 'ar' ? gift.name_ar : gift.name_en}</h3>
-                    {isGiftItem && (gift.desc_ar || gift.desc_en) && <p className="text-[10px] text-gray-400 mb-2">{lang === 'ar' ? gift.desc_ar : gift.desc_en}</p>}
+    <React.Fragment>
+        <div className="modal-overlay" onClick={onClose} style={{backdropFilter:'blur(6px)'}}>
+            <div
+                onClick={e => e.stopPropagation()}
+                style={{
+                    background:'linear-gradient(160deg,#0a0e1f 0%,#0d1225 55%,#080c1a 100%)',
+                    border:'1px solid rgba(0,242,255,0.12)',
+                    borderRadius:'20px',
+                    width:'96vw', maxWidth:'540px',
+                    maxHeight:'92vh',
+                    display:'flex', flexDirection:'column',
+                    overflow:'hidden',
+                    boxShadow:'0 0 80px rgba(0,0,0,0.8),0 0 140px rgba(0,80,255,0.04),inset 0 1px 0 rgba(255,255,255,0.05)',
+                    position:'relative',
+                }}
+            >
+                {/* Top accent line */}
+                <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)',zIndex:2}} />
 
-                    {isGiftItem && (
-                        <div className="gift-preview-details">
-                            <div className="gift-preview-stat">
-                                <div className="gift-preview-stat-label">{t.giftCharisma}</div>
-                                <div className="gift-preview-stat-value charisma">+{formatCharisma(gift.charisma)}</div>
+                {/* ══ HEADER ══ */}
+                <div style={{
+                    background:'linear-gradient(135deg,rgba(0,242,255,0.055) 0%,rgba(112,0,255,0.055) 100%)',
+                    borderBottom:'1px solid rgba(255,255,255,0.06)',
+                    padding:'14px 16px 12px',
+                    display:'flex',alignItems:'center',justifyContent:'space-between',
+                    flexShrink:0,
+                }}>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                        <div style={{
+                            width:'38px',height:'38px',borderRadius:'11px',
+                            background:'linear-gradient(135deg,rgba(0,242,255,0.14),rgba(112,0,255,0.14))',
+                            border:'1px solid rgba(0,242,255,0.2)',
+                            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'19px',
+                            flexShrink:0,
+                        }}>🛒</div>
+                        <div>
+                            <div style={{fontSize:'15px',fontWeight:900,color:'#f1f5f9',letterSpacing:'0.2px'}}>
+                                {t.shop || (lang==='ar'?'المتجر':'Store')}
                             </div>
-                            <div className="gift-preview-stat">
-                                <div className="gift-preview-stat-label">{t.luckyBonus}</div>
-                                <div className="gift-preview-stat-value bonus" style={{color:'#facc15', fontStyle:'italic'}}>
-                                    🍀 {lang === 'ar' ? 'مفاجأة!' : 'Surprise!'}
-                                </div>
-                            </div>
-                            {/* VIP Required */}
-                            {gift.vipMinLevel > 0 && (
-                                <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">👑 {lang === 'ar' ? 'يتطلب' : 'Requires'}</div>
-                                    <div className="gift-preview-stat-value" style={{color: VIP_CONFIG[gift.vipMinLevel - 1]?.nameColor || '#ef4444', fontWeight:800}}>
-                                        VIP {gift.vipMinLevel}+
-                                    </div>
+                            {vipLevel > 0 && (
+                                <div style={{fontSize:'9px',color:'#a78bfa',fontWeight:700,marginTop:'1px',display:'flex',alignItems:'center',gap:'4px'}}>
+                                    <span style={{background:'rgba(124,58,237,0.22)',borderRadius:'4px',padding:'0 5px',lineHeight:'14px'}}>VIP {vipLevel}</span>
+                                    <span style={{color:'#4b5563'}}>{vipXpInfo.progress}% → VIP {vipLevel+1}</span>
                                 </div>
                             )}
-                            {/* Event */}
-                            {gift.isEvent && (
-                                <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">⚡ {lang === 'ar' ? 'نوع' : 'Type'}</div>
-                                    <div className="gift-preview-stat-value" style={{color:'#a78bfa', fontWeight:800}}>
-                                        {lang === 'ar' ? '🎉 إيفنت' : '🎉 Event'}
-                                    </div>
-                                </div>
-                            )}
-                            {/* Limited Time */}
-                            {gift.limitedTime && (
-                                <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">⏳ {lang === 'ar' ? 'متاح' : 'Available'}</div>
-                                    <div className="gift-preview-stat-value" style={{color:'#f97316', fontWeight:800}}>
-                                        {lang === 'ar' ? 'لوقت محدود' : 'Limited Time'}
-                                    </div>
-                                </div>
-                            )}
-                            {/* ✅ FIX 4: Duration days info */}
-                            {gift.durationDays && (
-                                <div className="gift-preview-stat">
-                                    <div className="gift-preview-stat-label">⏳ {lang === 'ar' ? 'تنتهي بعد' : 'Expires in'}</div>
-                                    <div className="gift-preview-stat-value" style={{color:'#f59e0b', fontWeight:800}}>
-                                        {gift.durationDays} {lang === 'ar' ? 'يوم' : 'days'}
-                                    </div>
-                                </div>
-                            )}
-                            {/* Price */}
-                            <div className="gift-preview-stat">
-                                <div className="gift-preview-stat-label">💰 {lang === 'ar' ? 'السعر' : 'Price'}</div>
-                                <div className="gift-preview-stat-value" style={{color:'#fbbf24', fontWeight:800}}>
-                                    {gift.cost.toLocaleString()} 🧠
-                                </div>
-                            </div>
                         </div>
-                    )}
-
-                    {/* Show target info if direct target */}
-                    {directTarget && (
-                        <div className="flex items-center gap-2 mb-2 p-2 bg-yellow-500/10 rounded-lg">
-                            <AvatarWithFrame photoURL={directTarget.photoURL} equipped={directTarget.equipped} size="sm" />
-                            <div className="text-left">
-                                <div className="font-bold text-xs">{lang === 'ar' ? 'إرسال إلى' : 'Sending to'}</div>
-                                <div className="text-[10px] text-primary">{directTarget.displayName}</div>
-                            </div>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:'7px'}}>
+                        <div style={{
+                            display:'flex',alignItems:'center',gap:'5px',
+                            background:'linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.05))',
+                            border:'1px solid rgba(251,191,36,0.22)',
+                            borderRadius:'10px',padding:'5px 10px',
+                        }}>
+                            <span style={{fontSize:'13px'}}>🧠</span>
+                            <span style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{currency.toLocaleString()}</span>
                         </div>
-                    )}
+                        {onOpenInventory && (
+                            <button onClick={() => { onClose(); setTimeout(onOpenInventory,100); }}
+                                title={lang==='ar'?'مخزوني':'My Inventory'}
+                                style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(0,242,255,0.07)',border:'1px solid rgba(0,242,255,0.18)',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
+                                onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,242,255,0.17)';e.currentTarget.style.transform='scale(1.06)';}}
+                                onMouseLeave={e=>{e.currentTarget.style.background='rgba(0,242,255,0.07)';e.currentTarget.style.transform='scale(1)';}}
+                            >🎒</button>
+                        )}
+                        <button onClick={onClose}
+                            style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'#6b7280',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
+                            onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.14)';e.currentTarget.style.color='#f87171';}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.color='#6b7280';}}
+                        >✕</button>
+                    </div>
+                </div>
 
-                    {/* Only show self/others toggle if no direct target */}
-                    {isGiftItem && !directTarget && (
-                        <div className="flex gap-1 mb-2">
-                            <button
-                                onClick={() => setSendMode('self')}
-                                className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
-                            >
-                                🎁 {t.sendToSelf}
+                {/* ══ TAB BAR ══ */}
+                <div style={{
+                    display:'flex',overflowX:'auto',gap:'3px',
+                    padding:'10px 10px 0',
+                    borderBottom:'1px solid rgba(255,255,255,0.05)',
+                    scrollbarWidth:'none',flexShrink:0,
+                    background:'rgba(0,0,0,0.14)',
+                }}>
+                    {tabs.map(tab => {
+                        var active = activeTab === tab.id;
+                        return (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                                flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',
+                                padding:'6px 12px 8px',borderRadius:'10px 10px 0 0',
+                                fontSize:'10px',fontWeight:active?800:500,cursor:'pointer',border:'none',
+                                background:active?'rgba(0,242,255,0.09)':'transparent',
+                                color:active?'#00f2ff':'#4b6070',
+                                borderBottom:active?'2px solid #00f2ff':'2px solid transparent',
+                                transition:'all 0.18s',minWidth:'50px',
+                            }}>
+                                <span style={{fontSize:'16px',lineHeight:1}}>{tab.icon}</span>
+                                <span>{lang==='ar'?tab.label_ar:tab.label_en}</span>
                             </button>
-                            <button
-                                onClick={() => { setSendMode('others'); setShowFriendSelect(true); }}
-                                className={`flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`}
-                            >
-                                👥 {t.sendToOthers}
-                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ══ BODY ══ */}
+                <div style={{
+                    flex:1,overflowY:'auto',padding:'14px',
+                    scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent',
+                }}>
+
+                    {/* ════ RINGS ════ */}
+                    {activeTab === 'rings' && (getRingsShopSection() ? (
+                        <window.RingsShopSection
+                            userData={userData} lang={lang} currentUID={currentUID}
+                            onPropose={onPropose||(() => {})} coupleData={coupleData}
+                            onOpenCoupleCard={onOpenCoupleCard}
+                        />
+                    ) : (
+                        <div style={{padding:'32px',textAlign:'center',color:'#6b7280',fontSize:'12px'}}>
+                            ⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}
+                        </div>
+                    ))}
+
+                    {/* ════ BFF TOKENS ════ */}
+                    {activeTab === 'bff_tokens' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                            {/* Info header */}
+                            <div style={{
+                                padding:'12px 14px', borderRadius:'14px',
+                                background:'linear-gradient(135deg,rgba(167,139,250,0.12),rgba(112,0,255,0.08))',
+                                border:'1px solid rgba(167,139,250,0.3)',
+                            }}>
+                                <div style={{fontSize:'13px',fontWeight:800,color:'#e9d5ff',marginBottom:'4px'}}>
+                                    🤝 {lang==='ar'?'توكنات BFF':'BFF Tokens'}
+                                </div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>
+                                    {lang==='ar'
+                                        ? `اشترِ توكن لإنشاء علاقة صداقة. لديك ${BFF_CONFIG.freeSlots} خانات مجانية.`
+                                        : `Buy a token to create a friendship. You have ${BFF_CONFIG.freeSlots} free slots.`}
+                                </div>
+                            </div>
+                            {/* Token grid */}
+                            {(typeof BFF_TOKEN_ITEMS !== 'undefined' ? BFF_TOKEN_ITEMS : []).map(token => {
+                                var myTokenCount = (userData?.inventory?.bff_tokens || []).filter(t => t === token.id).length;
+                                var canAfford = (userData?.currency || 0) >= token.cost;
+                                return (
+                                    <div key={token.id} style={{
+                                        padding:'14px 16px', borderRadius:'16px',
+                                        background:`linear-gradient(135deg,${token.color}10,${token.color}05)`,
+                                        border:`1px solid ${token.color}35`,
+                                        display:'flex', alignItems:'center', gap:'14px',
+                                    }}>
+                                        {/* Token icon */}
+                                        <div style={{
+                                            width:'50px', height:'50px', flexShrink:0, borderRadius:'14px',
+                                            background:`${token.color}18`, border:`1px solid ${token.color}40`,
+                                            display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px',
+                                            boxShadow:`0 0 12px ${token.glow}`,
+                                        }}>
+                                            {token.imageURL
+                                                ? <img src={token.imageURL} alt="" style={{width:'36px',height:'36px',objectFit:'contain'}}/>
+                                                : token.emoji}
+                                        </div>
+                                        {/* Info */}
+                                        <div style={{flex:1, minWidth:0}}>
+                                            <div style={{fontSize:'13px', fontWeight:800, color:'white', marginBottom:'2px'}}>
+                                                {lang==='ar' ? token.name_ar : token.name_en}
+                                            </div>
+                                            <div style={{fontSize:'9px', color:BFF_RARITY_COLORS?.[token.rarity]||'#9ca3af', fontWeight:700, marginBottom:'3px'}}>{token.rarity}</div>
+                                            <div style={{fontSize:'10px', color:'#6b7280'}}>
+                                                {lang==='ar' ? token.desc_ar : token.desc_en}
+                                            </div>
+                                            {myTokenCount > 0 && (
+                                                <div style={{fontSize:'9px', color:'#4ade80', fontWeight:700, marginTop:'3px'}}>
+                                                    ✅ {lang==='ar'?`لديك ${myTokenCount} توكن`:`You have ${myTokenCount} token(s)`}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Buy button */}
+                                        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
+                                            <div style={{fontSize:'12px', fontWeight:800, color:'#fcd34d'}}>
+                                                {token.cost.toLocaleString()} 🧠
+                                            </div>
+                                            <button
+                                                onClick={() => onPurchase && onPurchase(token)}
+                                                disabled={!canAfford}
+                                                style={{
+                                                    padding:'7px 14px', borderRadius:'10px', border:'none', cursor:canAfford?'pointer':'not-allowed',
+                                                    background:canAfford?`linear-gradient(135deg,${token.color},${token.color}88)`:'rgba(255,255,255,0.06)',
+                                                    color:canAfford?'#000':'#4b5563',
+                                                    fontSize:'11px', fontWeight:800,
+                                                    boxShadow:canAfford?`0 3px 12px ${token.glow}`:'none',
+                                                    transition:'all 0.2s',
+                                                }}>
+                                                🤝 {lang==='ar'?'شراء':'Buy'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
-                    {sendMode === 'others' && showFriendSelect && !directTarget && (
-                        <div className="friend-select-list">
-                            <div className="text-[10px] text-gray-400 p-2 border-b border-white/5">{t.selectFriend}</div>
-                            {friendsData && friendsData.length > 0 ? (
-                                friendsData.map(friend => (
-                                    <div
-                                        key={friend.id}
-                                        onClick={() => setSelectedFriend(friend)}
-                                        className={`friend-select-item ${selectedFriend?.id === friend.id ? 'selected' : ''}`}
-                                    >
-                                        <AvatarWithFrame photoURL={friend.photoURL} equipped={friend.equipped} size="sm" />
-                                        <div className="friend-select-info">
-                                            <div className="friend-select-name">{friend.displayName}</div>
-                                            <div className={`friend-select-status ${friend.isOnline ? 'online' : ''}`}>
-                                                {friend.isOnline ? t.online : t.offline}
+                    {/* ════ RED PACKETS BUY ════ */}
+                    {activeTab === 'red_packets' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                            <div style={{padding:'12px 14px',borderRadius:'14px',background:'linear-gradient(135deg,rgba(239,68,68,0.1),rgba(185,28,28,0.06))',border:'1px solid rgba(239,68,68,0.25)'}}>
+                                <div style={{fontSize:'13px',fontWeight:800,color:'#fca5a5',marginBottom:'4px'}}>🧧 {lang==='ar'?'مغلفات حمراء':'Red Packets'}</div>
+                                <div style={{fontSize:'11px',color:'#9ca3af',lineHeight:1.5}}>{lang==='ar'?'اشتر مغلفاً وأرسله لأصدقائك أو في الشات — يوزع الرصيد على المستلمين!':'Buy a packet and send it to friends or in chat — coins split among recipients!'}</div>
+                            </div>
+                            {(typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).map(rp => {
+                                var canAfford = (userData?.currency || 0) >= rp.amount;
+                                return (
+                                    <div key={rp.id} style={{display:'flex',alignItems:'center',gap:'14px',padding:'14px 16px',borderRadius:'16px',background:rp.bg,border:`1px solid ${rp.border}`}}>
+                                        {rp.imageURL
+                                            ? <img src={rp.imageURL} alt="" style={{width:'50px',height:'50px',objectFit:'contain',flexShrink:0}}/>
+                                            : <div style={{width:'50px',height:'50px',borderRadius:'14px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',flexShrink:0}}>🧧</div>}
+                                        <div style={{flex:1,minWidth:0}}>
+                                            <div style={{fontSize:'13px',fontWeight:800,color:rp.color,marginBottom:'2px'}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                                            <div style={{fontSize:'10px',color:'#9ca3af',marginBottom:'2px'}}>{lang==='ar'?rp.desc_ar:rp.desc_en}</div>
+                                            <div style={{fontSize:'10px',color:'#fbbf24',fontWeight:700}}>{(rp.amount||0).toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                                        </div>
+                                        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px',flexShrink:0}}>
+                                            <div style={{fontSize:'12px',fontWeight:800,color:'#fbbf24'}}>{(rp.amount||0).toLocaleString()} 🧠</div>
+                                            <button
+                                                onClick={async() => {
+                                                    if(!canAfford||!currentUID) return;
+                                                    var uniqueId = rp.id + '_' + Date.now();
+                                                    try {
+                                                        await usersCollection.doc(currentUID).update({
+                                                            currency: firebase.firestore.FieldValue.increment(-rp.amount),
+                                                            'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
+                                                        });
+                                                    } catch(e) { console.error('Buy RP error', e); }
+                                                }}
+                                                disabled={!canAfford}
+                                                style={{padding:'7px 14px',borderRadius:'10px',border:'none',cursor:canAfford?'pointer':'not-allowed',background:canAfford?`linear-gradient(135deg,${rp.color},${rp.color}88)`:'rgba(255,255,255,0.06)',color:canAfford?'#000':'#4b5563',fontSize:'11px',fontWeight:800,transition:'all 0.2s'}}>
+                                                🧧 {lang==='ar'?'شراء':'Buy'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* ════ VIP ════ */}
+                    {activeTab === 'vip' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+
+                            {/* ── Hero banner ── */}
+                            <div style={{
+                                borderRadius:'20px', overflow:'hidden', position:'relative',
+                                background:'linear-gradient(135deg,#1a0035 0%,#2d0060 40%,#1a0035 100%)',
+                                border:'1.5px solid rgba(168,85,247,0.45)',
+                                boxShadow:'0 0 60px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
+                                padding:'22px 18px 18px',
+                            }}>
+                                {/* Animated glow orbs */}
+                                <div style={{position:'absolute',top:'-30px',right:'-20px',width:'140px',height:'140px',borderRadius:'50%',background:'radial-gradient(circle,rgba(168,85,247,0.35),transparent 70%)',pointerEvents:'none'}}/>
+                                <div style={{position:'absolute',bottom:'-20px',left:'-20px',width:'100px',height:'100px',borderRadius:'50%',background:'radial-gradient(circle,rgba(124,58,237,0.28),transparent 70%)',pointerEvents:'none'}}/>
+                                {/* Top accent */}
+                                <div style={{position:'absolute',top:0,left:'10%',right:'10%',height:'2px',background:'linear-gradient(90deg,transparent,#c4b5fd,#a855f7,#c4b5fd,transparent)'}}/>
+
+                                <div style={{position:'relative',zIndex:1}}>
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px'}}>
+                                        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                                            <div style={{
+                                                width:'52px',height:'52px',borderRadius:'16px',
+                                                background:'linear-gradient(135deg,#7c3aed,#a855f7)',
+                                                display:'flex',alignItems:'center',justifyContent:'center',
+                                                fontSize:'28px',boxShadow:'0 4px 20px rgba(124,58,237,0.55)',
+                                                border:'2px solid rgba(196,181,253,0.3)',
+                                            }}>👑</div>
+                                            <div>
+                                                <div style={{fontSize:'18px',fontWeight:900,color:'#f5f3ff',letterSpacing:'0.5px'}}>VIP</div>
+                                                <div style={{fontSize:'11px',color:'#a78bfa',fontWeight:600,marginTop:'1px'}}>
+                                                    {lang==='ar'?'نظام التميز الحصري':'Exclusive Premium System'}
+                                                </div>
                                             </div>
                                         </div>
-                                        {selectedFriend?.id === friend.id && <span className="text-primary">✓</span>}
+                                        <div style={{
+                                            background:'linear-gradient(135deg,rgba(124,58,237,0.5),rgba(168,85,247,0.3))',
+                                            border:'1.5px solid rgba(196,181,253,0.4)',
+                                            borderRadius:'14px',padding:'6px 14px',
+                                            fontSize:'16px',fontWeight:900,color:'#e9d5ff',
+                                            boxShadow:'0 0 18px rgba(124,58,237,0.4)',
+                                        }}>VIP {vipLevel}</div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="p-3 text-center text-gray-400 text-xs">{t.noFriendsToSend}</div>
-                            )}
-                        </div>
-                    )}
-                </div>
-                {/* ✅ QUANTITY SELECTOR — يظهر فقط للهدايا التي maxSendOptions ليست null */}
-                {isGiftItem && isSending && gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined && (
-                    <div style={{
-                        padding:'8px 14px',
-                        borderTop:'1px solid rgba(255,255,255,0.06)',
-                        display:'flex', flexDirection:'column', gap:'6px'
-                    }}>
-                        <div style={{ fontSize:'10px', color:'#9ca3af', fontWeight:600, textAlign:'center' }}>
-                            {lang === 'ar' ? '📦 كم هدية عايز تبعت؟' : '📦 How many to send?'}
-                        </div>
-                        <div style={{ display:'flex', gap:'5px', justifyContent:'center' }}>
-                            {[1, 3, 5, 10].map(qty => (
-                                <button
-                                    key={qty}
-                                    onClick={() => setSelectedQty(qty)}
-                                    disabled={currency < gift.cost * qty}
-                                    style={{
-                                        padding:'5px 12px', borderRadius:'8px', fontSize:'12px', fontWeight:800,
-                                        border: selectedQty === qty ? 'none' : '1px solid rgba(255,255,255,0.12)',
-                                        background: selectedQty === qty
-                                            ? 'linear-gradient(135deg,#a78bfa,#7c3aed)'
-                                            : 'rgba(255,255,255,0.05)',
-                                        color: selectedQty === qty ? '#fff' : currency >= gift.cost * qty ? '#e2e8f0' : '#4b5563',
-                                        cursor: currency >= gift.cost * qty ? 'pointer' : 'not-allowed',
-                                        boxShadow: selectedQty === qty ? '0 0 10px rgba(167,139,250,0.5)' : 'none',
-                                        transition: 'all 0.15s',
-                                    }}
-                                >
-                                    ×{qty}
-                                </button>
-                            ))}
-                        </div>
-                        {selectedQty > 1 && (
-                            <div style={{ textAlign:'center', fontSize:'10px', color:'#facc15', fontWeight:700 }}>
-                                💰 {(gift.cost * selectedQty).toLocaleString()} 🧠
-                                {' · '}⭐ +{formatCharisma(gift.charisma * selectedQty)}
+
+                                    {/* XP bar */}
+                                    <div style={{marginBottom:'10px'}}>
+                                        <div style={{display:'flex',justifyContent:'space-between',fontSize:'9px',color:'#7c3aed',fontWeight:700,marginBottom:'5px'}}>
+                                            <span style={{color:'#a78bfa'}}>{(userData?.vip?.xp||0).toLocaleString()} XP</span>
+                                            {vipLevel<10&&<span style={{color:'#6b21a8'}}>{lang==='ar'?`الهدف: `:'Goal: '}{VIP_XP_THRESHOLDS[vipLevel+1]?.toLocaleString()} XP → VIP {vipLevel+1}</span>}
+                                            {vipLevel>=10&&<span style={{color:'#fbbf24',fontWeight:900}}>👑 MAX LEVEL</span>}
+                                        </div>
+                                        <div style={{height:'8px',borderRadius:'4px',background:'rgba(255,255,255,0.06)',overflow:'hidden',boxShadow:'inset 0 1px 3px rgba(0,0,0,0.4)'}}>
+                                            <div style={{
+                                                width:`${vipXpInfo.progress}%`,height:'100%',borderRadius:'4px',
+                                                background:'linear-gradient(90deg,#5b21b6,#7c3aed,#a855f7,#c4b5fd)',
+                                                transition:'width 0.7s ease',
+                                                boxShadow:'0 0 10px rgba(168,85,247,0.7)',
+                                                position:'relative',overflow:'hidden',
+                                            }}>
+                                                <div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)',animation:'shimmer 1.8s infinite'}}/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Feature pills */}
+                                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
+                                        {[
+                                            {icon:'🎨',ar:'اسم ملون مميز',en:'Colored VIP Name'},
+                                            {icon:'⚡',ar:'مضاعف XP ×1.2',en:'1.2× XP Multiplier'},
+                                            {icon:'🏅',ar:'بادج VIP حصري',en:'Exclusive VIP Badge'},
+                                            {icon:'🎁',ar:'هدايا VIP مقفلة',en:'Locked VIP Gifts'},
+                                            {icon:'🔥',ar:'ترقية حتى VIP 10',en:'Rank up to VIP 10'},
+                                            {icon:'💎',ar:'مزايا حصرية للمستوى',en:'Level-exclusive perks'},
+                                        ].map((f,i)=>(
+                                            <div key={i} style={{
+                                                display:'flex',alignItems:'center',gap:'7px',
+                                                fontSize:'10px',color:'#e9d5ff',
+                                                background:'rgba(124,58,237,0.12)',
+                                                border:'1px solid rgba(196,181,253,0.14)',
+                                                borderRadius:'9px',padding:'7px 9px',
+                                            }}>
+                                                <span style={{fontSize:'14px',flexShrink:0}}>{f.icon}</span>
+                                                <span style={{fontWeight:600,lineHeight:1.3}}>{lang==='ar'?f.ar:f.en}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                )}
-                <div className="modal-footer py-2">
-                    {isFromInventory ? (
-                        <div className="flex gap-2">
-                            <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.close}</button>
-                            <button
-                                onClick={handleSendFromInventory}
-                                disabled={!directTarget && sendMode === 'others' && !selectedFriend}
-                                className={`flex-1 py-1.5 rounded text-xs font-bold ${!directTarget && sendMode === 'others' && !selectedFriend ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'btn-gold'}`}
-                            >
-                                {t.sendGift}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <button onClick={onClose} className="btn-ghost flex-1 py-1.5 rounded text-xs">{t.reportCancel}</button>
-                            <button
-                                onClick={handleBuy}
-                                disabled={currency < gift.cost * selectedQty || (!directTarget && sendMode === 'others' && !selectedFriend && isGiftItem)}
-                                className={`flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost * selectedQty ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
-                            >
-                                {isGiftItem && !directTarget && sendMode === 'self'
-                                    ? `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
-                                    : `${isSending || directTarget ? t.sendGift : t.buy}${selectedQty > 1 ? ` ×${selectedQty}` : ''} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
-                                }
-                            </button>
+
+                            {/* ── Status + Action card ── */}
+                            {vipLevel >= 1 ? (
+                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    {vipDaysLeft !== null && (
+                                        <div style={{
+                                            borderRadius:'14px', overflow:'hidden',
+                                            background: vipDaysLeft<=5
+                                                ? 'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(10,5,25,0.96))'
+                                                : 'linear-gradient(135deg,rgba(74,222,128,0.1),rgba(10,5,25,0.96))',
+                                            border: vipDaysLeft<=5 ? '1.5px solid rgba(239,68,68,0.38)' : '1.5px solid rgba(74,222,128,0.28)',
+                                            boxShadow: vipDaysLeft<=5 ? '0 0 20px rgba(239,68,68,0.15)' : '0 0 20px rgba(74,222,128,0.12)',
+                                        }}>
+                                            <div style={{padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                                                    <div style={{
+                                                        width:'38px',height:'38px',borderRadius:'10px',
+                                                        background:vipDaysLeft<=5?'rgba(239,68,68,0.18)':'rgba(74,222,128,0.15)',
+                                                        display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',
+                                                    }}>{vipDaysLeft<=5?'⚠️':'🛡️'}</div>
+                                                    <div>
+                                                        <div style={{fontSize:'12px',color:vipDaysLeft<=5?'#f87171':'#4ade80',fontWeight:800}}>
+                                                            {lang==='ar'?'الوقت المتبقي':'Time Remaining'}
+                                                        </div>
+                                                        <div style={{fontSize:'9px',color:'#6b7280',marginTop:'1px'}}>
+                                                            {vipDaysLeft<=5?(lang==='ar'?'⚡ سينتهي قريباً!':'⚡ Expiring soon!'):(lang==='ar'?'✓ VIP نشط':'✓ VIP Active')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div style={{textAlign:'center'}}>
+                                                    <span style={{
+                                                        fontSize:'34px',fontWeight:900,lineHeight:1,fontFamily:'monospace',
+                                                        color:vipDaysLeft<=5?'#f87171':'#4ade80',
+                                                        textShadow:vipDaysLeft<=5?'0 0 16px rgba(239,68,68,0.6)':'0 0 16px rgba(74,222,128,0.5)',
+                                                    }}>{vipDaysLeft}</span>
+                                                    <div style={{fontSize:'10px',color:'#9ca3af',fontWeight:700}}>{lang==='ar'?'يوم':'days'}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{height:'4px',background:'rgba(255,255,255,0.04)'}}>
+                                                <div style={{height:'100%',width:`${Math.min(100,(vipDaysLeft/30)*100)}%`,background:vipDaysLeft<=5?'linear-gradient(90deg,#dc2626,#f87171)':'linear-gradient(90deg,#16a34a,#4ade80)',transition:'width 0.6s'}}/>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div style={{
+                                        display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',
+                                        padding:'10px',borderRadius:'12px',
+                                        background:(vipDaysLeft!==null&&vipDaysLeft>0)?'rgba(74,222,128,0.07)':'rgba(239,68,68,0.07)',
+                                        border:(vipDaysLeft!==null&&vipDaysLeft>0)?'1px solid rgba(74,222,128,0.25)':'1px solid rgba(239,68,68,0.22)',
+                                    }}>
+                                        <span style={{fontSize:'16px'}}>{(vipDaysLeft!==null&&vipDaysLeft>0)?'✅':'❌'}</span>
+                                        <span style={{fontWeight:900,fontSize:'13px',color:(vipDaysLeft!==null&&vipDaysLeft>0)?'#4ade80':'#f87171'}}>
+                                            {(vipDaysLeft!==null&&vipDaysLeft>0)?(lang==='ar'?'🔥 VIP مفعّل':'🔥 VIP ACTIVE'):(lang==='ar'?'VIP منتهي':'VIP EXPIRED')}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={()=>{ if(currency>=50000) setShowVIPConfirm(true); }}
+                                        disabled={currency<50000}
+                                        style={{
+                                            width:'100%',padding:'13px',borderRadius:'13px',border:'none',
+                                            background:currency>=50000?'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)':'rgba(100,100,100,0.12)',
+                                            color:currency>=50000?'#fff':'#4b5563',fontWeight:900,fontSize:'14px',
+                                            cursor:currency>=50000?'pointer':'not-allowed',
+                                            boxShadow:currency>=50000?'0 6px 24px rgba(124,58,237,0.45)':'none',
+                                            transition:'all 0.2s',letterSpacing:'0.3px',
+                                            position:'relative',overflow:'hidden',
+                                        }}
+                                    >
+                                        {currency>=50000&&<div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)',animation:'shimmer 2s infinite'}}/>}
+                                        <span style={{position:'relative'}}>
+                                            {currency>=50000
+                                                ?`🔄 ${lang==='ar'?'تجديد +30 يوم':'Renew +30 days'} — 50,000 🧠`
+                                                :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠`}
+                                        </span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    <div style={{
+                                        borderRadius:'14px',padding:'14px',
+                                        background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.18)',
+                                        fontSize:'11px',color:'#fca5a5',textAlign:'center',lineHeight:1.6,
+                                    }}>
+                                        🎁 {lang==='ar'
+                                            ?'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!'
+                                            :'Every gift you send earns VIP XP — the more you give, the higher you level!'}
+                                    </div>
+                                    <button
+                                        onClick={()=>{ if(currency>=50000) setShowVIPConfirm(true); }}
+                                        disabled={currency<50000}
+                                        style={{
+                                            width:'100%',padding:'14px',borderRadius:'13px',border:'none',
+                                            background:currency>=50000?'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)':'rgba(100,100,100,0.12)',
+                                            color:currency>=50000?'#fff':'#4b5563',fontWeight:900,fontSize:'15px',
+                                            cursor:currency>=50000?'pointer':'not-allowed',
+                                            boxShadow:currency>=50000?'0 6px 24px rgba(239,68,68,0.4)':'none',
+                                            transition:'all 0.2s',position:'relative',overflow:'hidden',
+                                        }}
+                                    >
+                                        {currency>=50000&&<div style={{position:'absolute',inset:0,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)',animation:'shimmer 2s infinite'}}/>}
+                                        <span style={{position:'relative'}}>
+                                            {currency>=50000
+                                                ?`👑 ${lang==='ar'?'اشترِ VIP 1':'Buy VIP 1'} — 50,000 🧠`
+                                                :`❌ ${lang==='ar'?'تحتاج':'Need'} 50,000 🧠 (${lang==='ar'?'لديك':'Have'}: ${currency.toLocaleString()})`}
+                                        </span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* ── Level table ── */}
+                            <div style={{borderRadius:'16px',overflow:'hidden',border:'1px solid rgba(124,58,237,0.2)',background:'rgba(0,0,0,0.22)'}}>
+                                <div style={{
+                                    padding:'11px 16px',borderBottom:'1px solid rgba(124,58,237,0.15)',
+                                    fontSize:'11px',fontWeight:700,color:'#7c3aed',
+                                    display:'flex',alignItems:'center',gap:'7px',
+                                    background:'rgba(124,58,237,0.06)',
+                                }}>
+                                    📊 {lang==='ar'?'جدول مستويات VIP':'VIP Level Table'}
+                                </div>
+                                {VIP_CONFIG.map(cfg => {
+                                    var isCurrentLevel = vipLevel===cfg.level;
+                                    var isPassed       = vipLevel>cfg.level;
+                                    return (
+                                        <div key={cfg.level} style={{
+                                            display:'flex',alignItems:'center',gap:'10px',
+                                            padding:'9px 16px',
+                                            borderBottom:'1px solid rgba(255,255,255,0.026)',
+                                            background:isCurrentLevel?`${cfg.nameColor}0e`:'transparent',
+                                        }}>
+                                            <span style={{
+                                                minWidth:'46px',fontWeight:900,fontSize:'11px',
+                                                color:isCurrentLevel?cfg.nameColor:isPassed?'#4ade80':'#2d3748',
+                                            }}>
+                                                {isPassed?'✅':isCurrentLevel?'▶':''} VIP {cfg.level}
+                                            </span>
+                                            <div style={{flex:1,height:'5px',borderRadius:'3px',background:'rgba(255,255,255,0.04)',overflow:'hidden'}}>
+                                                <div style={{
+                                                    width:isPassed?'100%':isCurrentLevel?`${vipXpInfo.progress}%`:'0%',
+                                                    height:'100%',background:cfg.nameColor,
+                                                    transition:'width 0.5s',
+                                                    boxShadow:isCurrentLevel?`0 0 6px ${cfg.nameColor}`:'none',
+                                                    borderRadius:'3px',
+                                                }}/>
+                                            </div>
+                                            <span style={{fontSize:'9px',color:'#374151',minWidth:'66px',textAlign:'right'}}>
+                                                {VIP_XP_THRESHOLDS[cfg.level].toLocaleString()} XP
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
-                </div>
+
+                    {/* ════ ITEMS GRID ════ */}
+                    {activeTab !== 'vip' && activeTab !== 'rings' && activeTab !== 'bff_tokens' && activeTab !== 'red_packets' && (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+
+                            {/* Gift filters */}
+                            {activeTab === 'gifts' && (
+                                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                    <div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>
+                                        <button onClick={() => setShowGiftFilter(p=>!p)} style={{
+                                            display:'flex',alignItems:'center',gap:'5px',
+                                            padding:'5px 11px',borderRadius:'8px',fontSize:'10px',fontWeight:700,
+                                            background:showGiftFilter?'rgba(0,242,255,0.09)':'rgba(255,255,255,0.04)',
+                                            border:showGiftFilter?'1px solid rgba(0,242,255,0.28)':'1px solid rgba(255,255,255,0.07)',
+                                            color:showGiftFilter?'#00f2ff':'#4b6070',cursor:'pointer',transition:'all 0.15s',
+                                        }}>
+                                            🔍 {lang==='ar'?'فلتر':'Filter'}
+                                            {(giftRarityFilter!=='all'||giftVIPOnly||giftSort!=='default')&&(
+                                                <span style={{background:'#ef4444',color:'#fff',borderRadius:'50%',width:'14px',height:'14px',fontSize:'8px',fontWeight:900,display:'flex',alignItems:'center',justifyContent:'center'}}>!</span>
+                                            )}
+                                        </button>
+                                        {['default','price_asc','price_desc'].map(s=>(
+                                            <button key={s} onClick={()=>setGiftSort(s)} style={{
+                                                padding:'5px 9px',borderRadius:'7px',fontSize:'9px',fontWeight:700,
+                                                background:giftSort===s?'rgba(251,191,36,0.1)':'rgba(255,255,255,0.04)',
+                                                border:giftSort===s?'1px solid rgba(251,191,36,0.32)':'1px solid rgba(255,255,255,0.06)',
+                                                color:giftSort===s?'#fbbf24':'#4b6070',cursor:'pointer',transition:'all 0.15s',
+                                            }}>
+                                                {s==='default'?(lang==='ar'?'افتراضي':'Default'):s==='price_asc'?'↑ '+(lang==='ar'?'سعر':'Price'):'↓ '+(lang==='ar'?'سعر':'Price')}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {showGiftFilter && (
+                                        <div style={{background:'rgba(0,0,0,0.28)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'12px',display:'flex',flexDirection:'column',gap:'10px'}}>
+                                            <div>
+                                                <div style={{fontSize:'9px',color:'#4b6070',fontWeight:700,marginBottom:'5px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                                                    {lang==='ar'?'🎨 النادرية':'🎨 Rarity'}
+                                                </div>
+                                                <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
+                                                    {['all','Common','Uncommon','Rare','Epic','Legendary','Mythic'].map(r=>{
+                                                        var rc=RARITY_CONFIG[r]||{};
+                                                        return (
+                                                            <button key={r} onClick={()=>setGiftRarityFilter(r)} style={{
+                                                                padding:'3px 9px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',transition:'all 0.12s',
+                                                                background:giftRarityFilter===r?(rc.bg||'rgba(0,242,255,0.13)'):'rgba(255,255,255,0.03)',
+                                                                border:giftRarityFilter===r?`1px solid ${rc.border||'#00f2ff'}`:'1px solid rgba(255,255,255,0.06)',
+                                                                color:giftRarityFilter===r?(rc.color||'#00f2ff'):'#4b6070',
+                                                            }}>
+                                                                {r==='all'?(lang==='ar'?'الكل':'All'):(rc.icon||'')+' '+(lang==='ar'?(RARITY_CONFIG[r]?.name_ar||r):(RARITY_CONFIG[r]?.name_en||r))}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                            <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                                <button onClick={()=>setGiftVIPOnly(p=>!p)} style={{
+                                                    padding:'4px 10px',borderRadius:'7px',fontSize:'10px',fontWeight:700,cursor:'pointer',transition:'all 0.15s',
+                                                    background:giftVIPOnly?'rgba(239,68,68,0.09)':'rgba(255,255,255,0.04)',
+                                                    border:giftVIPOnly?'1px solid rgba(239,68,68,0.3)':'1px solid rgba(255,255,255,0.06)',
+                                                    color:giftVIPOnly?'#ef4444':'#4b6070',
+                                                }}>
+                                                    👑 {lang==='ar'?'هدايا VIP فقط':'VIP Gifts Only'}
+                                                </button>
+                                                {(giftRarityFilter!=='all'||giftVIPOnly||giftSort!=='default')&&(
+                                                    <button onClick={()=>{setGiftRarityFilter('all');setGiftVIPOnly(false);setGiftSort('default');}} style={{
+                                                        padding:'4px 9px',borderRadius:'6px',fontSize:'9px',fontWeight:700,cursor:'pointer',
+                                                        background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.22)',color:'#f87171',
+                                                    }}>
+                                                        ✕ {lang==='ar'?'مسح الفلاتر':'Clear'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Grid */}
+                            <div style={{
+                                display:'grid',
+                                gridTemplateColumns:activeTab==='gifts'?'repeat(auto-fill,minmax(82px,1fr))':'repeat(auto-fill,minmax(106px,1fr))',
+                                gap:'8px',
+                            }}>
+                                {getTabItems(activeTab)?.map(item => {
+                                    var owned        = isOwned(item);
+                                    var equippedItem = isEquipped(item);
+                                    var isEventItem  = item.isEvent;
+                                    var isLimited    = item.limitedTime;
+                                    var isEventOnly  = item.eventOnly;
+
+                                    /* Gift cards */
+                                    if (activeTab === 'gifts') {
+                                        var isVIPGift    = item.type==='gifts_vip';
+                                        var vipRequired  = item.vipMinLevel||0;
+                                        var isVIPLocked  = isVIPGift&&vipLevel<vipRequired;
+                                        var isVIPMaxGift = isVIPGift&&vipRequired>=10;
+                                        var vipGlowType  = item.vipGlowType||null;
+                                        var rKey   = getGiftRarity(item.cost);
+                                        var rarity = RARITY_CONFIG[rKey];
+                                        var vipCfg        = vipRequired>0?VIP_CONFIG[vipRequired-1]:null;
+                                        var vipGlowColor  = vipCfg?vipCfg.nameColor:'#7c3aed';
+                                        var cardBorder    = isVIPGift?`1.5px solid ${vipGlowColor}66`:`1.5px solid ${rarity.border}`;
+                                        var cardBg        = isVIPGift&&!isVIPLocked?`linear-gradient(145deg,${vipGlowColor}0e,rgba(8,10,28,0.98))`:rarity.bg;
+                                        var hasSpecialGlow= !isVIPLocked&&vipGlowType;
+                                        var cardShadow    = hasSpecialGlow?'none'
+                                            :isVIPGift&&!isVIPLocked
+                                                ?(isVIPMaxGift?`0 0 16px ${vipGlowColor}99,0 0 30px ${vipGlowColor}44`:`0 0 9px ${vipGlowColor}55`)
+                                                :(rarity.glow&&rKey==='Mythic'?'0 0 14px rgba(255,0,85,0.6)':rarity.glow?`0 0 8px ${rarity.color}44`:'none');
+                                        var glowClass = hasSpecialGlow?`glow-${vipGlowType}`:'';
+                                        var cardAnim  = !hasSpecialGlow&&(
+                                            (isVIPMaxGift&&!isVIPLocked)?'mythic-pulse 2s ease-in-out infinite'
+                                            :(rKey==='Mythic'?'mythic-pulse 2s ease-in-out infinite':'none')
+                                        );
+                                        return (
+                                            <div key={item.id} className={glowClass}
+                                                onClick={()=>{if(!isEventOnly){setSelectedItem(item);setShowPreview(true);}}}
+                                                style={{
+                                                    position:'relative',cursor:isEventOnly?'default':'pointer',
+                                                    border:cardBorder,background:cardBg,boxShadow:cardShadow,
+                                                    borderRadius:'12px',padding:'10px 6px',
+                                                    display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+                                                    minHeight:'90px',gap:'4px',
+                                                    opacity:(isEventOnly||isVIPLocked)?0.58:1,
+                                                    animation:cardAnim||'none',transition:'transform 0.14s',
+                                                }}
+                                                onMouseEnter={e=>{if(!isEventOnly&&!isVIPLocked)e.currentTarget.style.transform='scale(1.06)';}}
+                                                onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
+                                            >
+                                                <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity.icon}</span>
+                                                {isEventItem&&<span className="shop-event-tag">⚡</span>}
+                                                {isLimited  &&<span className="shop-limited-tag">⏳</span>}
+                                                {/* ✅ FIX 4: Show timer badge for durationDays gifts */}
+                                                {item.durationDays&&!isLimited&&(
+                                                    <span style={{position:'absolute',bottom:'3px',left:'3px',fontSize:'6px',fontWeight:900,background:'rgba(245,158,11,0.85)',color:'#000',padding:'1px 3px',borderRadius:'3px'}}>
+                                                        {item.durationDays}d
+                                                    </span>
+                                                )}
+                                                {isVIPGift&&(
+                                                    <span style={{position:'absolute',top:'3px',right:'3px',fontSize:'7px',fontWeight:900,background:vipGlowColor,color:'#000',padding:'1px 4px',borderRadius:'4px',boxShadow:isVIPMaxGift?`0 0 8px ${vipGlowColor}`:'none',animation:isVIPMaxGift?'mythic-pulse 2s ease-in-out infinite':'none'}}>
+                                                        VIP {vipRequired}
+                                                    </span>
+                                                )}
+                                                {item.imageUrl
+                                                    ?<img src={item.imageUrl} alt="" style={{width:'32px',height:'32px',objectFit:'contain',marginBottom:'2px'}}/>
+                                                    :<span style={{fontSize:'26px',lineHeight:1,marginBottom:'2px'}}>{item.emoji}</span>
+                                                }
+                                                <div style={{fontSize:'9px',fontWeight:800,color:'#fbbf24'}}>{item.cost.toLocaleString()}🧠</div>
+                                                <div style={{fontSize:'8px',color:'#9ca3af'}}>+{formatCharisma(item.charisma)}⭐</div>
+                                                <div style={{fontSize:'7px',color:'#a78bfa',fontWeight:700}}>+{getGiftVIPXP(item)} VXP</div>
+                                                {isVIPLocked&&(
+                                                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.62)',borderRadius:'10px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'2px'}}>
+                                                        <span style={{fontSize:'16px'}}>🔒</span>
+                                                        <span style={{fontSize:'7px',color:vipGlowColor,fontWeight:800}}>VIP {vipRequired}+</span>
+                                                    </div>
+                                                )}
+                                                {isEventOnly&&!isVIPLocked&&(
+                                                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.55)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                                        <span style={{fontSize:'18px'}}>🔒</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+
+                                    /* Non-gift cards */
+                                    var rKey2   = getItemRarity(item);
+                                    var rarity2 = RARITY_CONFIG[rKey2];
+                                    return (
+                                        <div key={item.id}
+                                            onClick={()=>{if(!item.eventOnly){setSelectedItem(item);setShowPreview(true);}}}
+                                            style={{
+                                                position:'relative',cursor:item.eventOnly?'default':'pointer',
+                                                border:`1.5px solid ${equippedItem?'rgba(0,242,255,0.45)':rarity2.border}`,
+                                                background:equippedItem?'linear-gradient(145deg,rgba(0,242,255,0.07),rgba(8,10,28,0.98))':rarity2.bg,
+                                                boxShadow:equippedItem?'0 0 14px rgba(0,242,255,0.22)':(rarity2.glow?`0 0 8px ${rarity2.color}33`:'none'),
+                                                borderRadius:'12px',padding:'10px 8px',
+                                                display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',
+                                                opacity:item.eventOnly?0.58:1,
+                                                transition:'transform 0.14s',
+                                            }}
+                                            onMouseEnter={e=>{if(!item.eventOnly)e.currentTarget.style.transform='scale(1.05)';}}
+                                            onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
+                                        >
+                                            <span style={{position:'absolute',top:'3px',left:'3px',fontSize:'8px'}}>{rarity2.icon}</span>
+                                            {item.isEvent    &&<span className="shop-event-tag">⚡</span>}
+                                            {item.limitedTime&&<span className="shop-limited-tag">⏳</span>}
+                                            {equippedItem&&<div style={{position:'absolute',top:'4px',right:'4px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
+                                            <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
+                                            <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'90px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                {lang==='ar'?item.name_ar:item.name_en}
+                                            </div>
+                                            {item.eventOnly ? (
+                                                <div style={{fontSize:'8px',color:'#7c3aed',fontWeight:700}}>🔒 Event</div>
+                                            ) : owned ? (
+                                                equippedItem
+                                                    ?<button onClick={e=>{e.stopPropagation();onUnequip(item.type,item.id);}} style={{width:'100%',fontSize:'8px',padding:'3px 0',borderRadius:'5px',background:'rgba(239,68,68,0.13)',border:'1px solid rgba(239,68,68,0.32)',color:'#f87171',cursor:'pointer',fontWeight:700,transition:'all 0.12s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.22)';}} onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.13)';}}>{t.unequip}</button>
+                                                    :<button onClick={e=>{e.stopPropagation();onEquip(item);}} style={{width:'100%',fontSize:'8px',padding:'3px 0',borderRadius:'5px',background:'rgba(74,222,128,0.13)',border:'1px solid rgba(74,222,128,0.32)',color:'#4ade80',cursor:'pointer',fontWeight:700,transition:'all 0.12s'}} onMouseEnter={e=>{e.currentTarget.style.background='rgba(74,222,128,0.22)';}} onMouseLeave={e=>{e.currentTarget.style.background='rgba(74,222,128,0.13)';}}>{t.equip}</button>
+                                            ) : (
+                                                <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:800}}>{item.cost.toLocaleString()}🧠</div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>{/* end body */}
             </div>
+        </div>
+
+        {/* ── VIP Confirm Dialog ── */}
+        {showVIPConfirm && ReactDOM.createPortal(
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.76)',backdropFilter:'blur(7px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:(Z.MODAL_HIGH||9000)+10}}
+                onClick={()=>setShowVIPConfirm(false)}>
+                <div style={{background:'linear-gradient(135deg,#1a0533,#0d0d2b)',border:'2px solid #a855f7',borderRadius:'20px',padding:'28px',maxWidth:'300px',width:'90%',textAlign:'center',boxShadow:'0 0 60px rgba(168,85,247,0.28)'}}
+                    onClick={e=>e.stopPropagation()}>
+                    <div style={{fontSize:'44px',marginBottom:'10px'}}>👑</div>
+                    <div style={{color:'#e9d5ff',fontWeight:900,fontSize:'17px',marginBottom:'8px'}}>
+                        {hasVIP?(t.renewVIP||'Renew VIP?'):(t.activateVIP||'Activate VIP?')}
+                    </div>
+                    <div style={{color:'#a78bfa',fontSize:'12px',marginBottom:'14px',lineHeight:1.6}}>
+                        {hasVIP?(t.renewVIPDesc||'Add 30 more days to your VIP status.'):(t.activateVIPDesc||'Get 30 days of VIP perks + 5,000 XP bonus!')}
+                    </div>
+                    <div style={{color:'#fbbf24',fontWeight:900,fontSize:'18px',marginBottom:'22px',textShadow:'0 0 12px rgba(251,191,36,0.38)'}}>50,000 🧠</div>
+                    <div style={{display:'flex',gap:'10px',justifyContent:'center'}}>
+                        <button onClick={()=>setShowVIPConfirm(false)} style={{padding:'10px 20px',borderRadius:'10px',border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.04)',color:'#9ca3af',fontWeight:600,cursor:'pointer'}}>{t.cancel||'Cancel'}</button>
+                        <button onClick={()=>{setShowVIPConfirm(false);onBuyVIP();}} style={{padding:'10px 24px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:800,cursor:'pointer',boxShadow:'0 0 20px rgba(168,85,247,0.45)',fontSize:'14px'}}>{t.confirm||'Confirm'}</button>
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )}
+
+        {/* ── Item Preview / Confirm Modal — for frames, titles, badges, effects ── */}
+        {showPreview && selectedItem && ReactDOM.createPortal(
+            (() => {
+                // للهدايا: نستخدم GiftPreviewModal الأصلي
+                if (selectedItem.type && selectedItem.type.startsWith('gifts')) {
+                    var GPM = getGiftPreviewModal();
+                    if (!GPM) {
+                        console.warn('GiftPreviewModal not yet available in window');
+                        return null;
+                    }
+                    return (
+                        <GPM
+                            show={showPreview}
+                            onClose={()=>setShowPreview(false)}
+                            gift={selectedItem}
+                            lang={lang}
+                            onBuy={(item,target)=>{ if(currency>=item.cost){onPurchase(item,target);setShowPreview(false);} }}
+                            currency={currency}
+                            friendsData={[]}
+                            user={{uid:userData?.uid}}
+                            currentUserData={userData}
+                        />
+                    );
+                }
+                // للأيتمز الأخرى (frames/titles/badges/effects): نافذة شراء مخصصة
+                var item = selectedItem;
+                var canAfford = currency >= item.cost;
+                var owned = (userData?.inventory?.[item.type] || []).includes(item.id);
+                var name = lang === 'ar' ? item.name_ar : item.name_en;
+                var desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
+                return (
+                    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:(Z.MODAL_HIGH||9000)+10,padding:'20px'}}
+                        onClick={()=>setShowPreview(false)}>
+                        <div style={{background:'linear-gradient(160deg,#0a0e1f,#0d1225)',border:'1px solid rgba(0,242,255,0.2)',borderRadius:'22px',width:'100%',maxWidth:'320px',overflow:'hidden',boxShadow:'0 0 80px rgba(0,0,0,0.9)'}}
+                            onClick={e=>e.stopPropagation()} className="animate-pop">
+                            {/* Top accent */}
+                            <div style={{height:'2px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)'}}/>
+                            <div style={{padding:'24px 20px 20px',textAlign:'center'}}>
+                                {/* Preview */}
+                                <div style={{width:'72px',height:'72px',borderRadius:'18px',background:'rgba(0,242,255,0.06)',border:'1px solid rgba(0,242,255,0.18)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',fontSize:'40px'}}>
+                                    {item.type === 'frames'
+                                        ? (item.preview?.startsWith('http')
+                                            ? <img src={item.preview} alt="" style={{width:'52px',height:'52px',borderRadius:'50%',objectFit:'cover'}}/>
+                                            : <div style={{width:'52px',height:'52px',borderRadius:'50%',background:item.preview}}/>)
+                                        : item.imageUrl
+                                            ? <img src={item.imageUrl} alt="" style={{width:'48px',height:'48px',objectFit:'contain'}}/>
+                                            : <span>{item.preview || '🎨'}</span>}
+                                </div>
+                                <div style={{fontSize:'17px',fontWeight:900,color:'#f1f5f9',marginBottom:'4px'}}>{name}</div>
+                                {desc && <div style={{fontSize:'11px',color:'#6b7280',lineHeight:1.6,marginBottom:'12px'}}>{desc}</div>}
+                                {/* Cost */}
+                                <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.05))',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'10px',padding:'6px 16px',marginBottom:'16px'}}>
+                                    <span style={{fontSize:'16px'}}>🧠</span>
+                                    <span style={{fontSize:'16px',fontWeight:900,color:'#fbbf24'}}>{item.cost?.toLocaleString()}</span>
+                                </div>
+                                {/* Owned / Buy */}
+                                {owned ? (
+                                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                        <div style={{padding:'10px',borderRadius:'10px',background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.25)',fontSize:'13px',color:'#4ade80',fontWeight:700}}>
+                                            ✅ {lang==='ar'?'تمتلك هذا العنصر':'You own this item'}
+                                        </div>
+                                        <button onClick={()=>setShowPreview(false)} style={{width:'100%',padding:'11px',borderRadius:'12px',border:'none',background:'rgba(255,255,255,0.06)',color:'#9ca3af',fontSize:'13px',fontWeight:700,cursor:'pointer'}}>
+                                            {lang==='ar'?'إغلاق':'Close'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{display:'flex',gap:'10px'}}>
+                                        <button onClick={()=>setShowPreview(false)} style={{flex:1,padding:'11px',borderRadius:'12px',border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'#6b7280',fontSize:'13px',fontWeight:700,cursor:'pointer'}}>
+                                            {lang==='ar'?'إلغاء':'Cancel'}
+                                        </button>
+                                        <button
+                                            onClick={()=>{ if(canAfford){onPurchase(item);setShowPreview(false);} }}
+                                            disabled={!canAfford}
+                                            style={{flex:1,padding:'11px',borderRadius:'12px',border:'none',background:canAfford?'linear-gradient(135deg,#00f2ff22,#7c3aed44)':'rgba(100,100,100,0.12)',color:canAfford?'#00f2ff':'#4b5563',fontSize:'13px',fontWeight:900,cursor:canAfford?'pointer':'not-allowed',border:canAfford?'1px solid rgba(0,242,255,0.35)':'1px solid rgba(255,255,255,0.05)'}}>
+                                            {canAfford
+                                                ? (lang==='ar'?'🛒 شراء':'🛒 Buy')
+                                                : (lang==='ar'?'❌ رصيد غير كافٍ':'❌ Not enough')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })(),
+            document.body
+        )}
+    </React.Fragment>
+    );
+};
+
+
+// ─── Reclaim Sent Packets Component ───
+var ReclaimSentPackets = ({ user, userData, lang, sentPackets, setSentPackets, loadingSent, setLoadingSent }) => {
+    var [loaded, setLoaded] = React.useState(false);
+
+    var loadSent = async () => {
+        if(!user || loadingSent) return;
+        setLoadingSent(true);
+        try {
+            var snap = await redPacketsCollection
+                .where('senderId','==',user.uid)
+                .where('status','==','active')
+                .limit(10)
+                .get();
+            var packets = snap.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(p => (p.claimedBy||[]).length === 0);
+            setSentPackets(packets);
+            setLoaded(true);
+        } catch(e) {}
+        setLoadingSent(false);
+    };
+
+    if (!loaded) return (
+        <button onClick={loadSent} disabled={loadingSent} style={{padding:'8px 14px',borderRadius:'10px',border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.06)',color:'#f87171',fontSize:'11px',fontWeight:700,cursor:'pointer',textAlign:'center',width:'100%'}}>
+            {loadingSent ? '⏳ ...' : `🔄 ${lang==='ar'?'عرض المغلفات المرسلة (استرداد)':'Show Sent Packets (Reclaim)'}`}
+        </button>
+    );
+
+    if (sentPackets.length === 0) return (
+        <div style={{textAlign:'center',fontSize:'10px',color:'#4b5563',padding:'6px'}}>
+            {lang==='ar'?'لا مغلفات مرسلة بانتظار الاستلام':'No sent packets awaiting claim'}
+        </div>
+    );
+
+    return (
+        <div style={{display:'flex',flexDirection:'column',gap:'6px',marginTop:'4px'}}>
+            <div style={{fontSize:'11px',fontWeight:700,color:'#f87171',marginBottom:'2px'}}>
+                🔄 {lang==='ar'?'مغلفات مرسلة — يمكنك استردادها':'Sent Packets — Reclaim if unclaimed'}
+            </div>
+            {sentPackets.map(sp => {
+                var RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+                var cfg = RPC.find(r => r.id === sp.configId || sp.configId?.startsWith(r.id));
+                var color = cfg?.color || '#ef4444';
+                return (
+                    <div key={sp.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'12px',background:'rgba(239,68,68,0.07)',border:'1px solid rgba(239,68,68,0.2)'}}>
+                        <div style={{fontSize:'22px'}}>🧧</div>
+                        <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:'11px',fontWeight:700,color}}>{sp.amount?.toLocaleString()} 🧠</div>
+                            <div style={{fontSize:'9px',color:'#6b7280',marginTop:'1px'}}>
+                                {lang==='ar'?'لـ:':'To:'} {sp.targetType==='family'?(lang==='ar'?'شات القبيلة':'Family Chat'):sp.targetName||'DM'}
+                            </div>
+                        </div>
+                        <button onClick={async()=>{
+                            try {
+                                // Mark as reclaimed so no one can claim it anymore
+                                await redPacketsCollection.doc(sp.id).update({
+                                    status:'reclaimed',
+                                    remaining: 0,
+                                    maxClaims: 0,
+                                    reclaimedAt: TS()
+                                });
+                                var uniqueId = (sp.configId||'rp_600') + '_' + Date.now();
+                                await usersCollection.doc(user.uid).update({
+                                    'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
+                                });
+                                setSentPackets(prev => prev.filter(p => p.id !== sp.id));
+                            } catch(e){}
+                        }} style={{padding:'5px 12px',borderRadius:'8px',background:'linear-gradient(135deg,rgba(239,68,68,0.2),rgba(185,28,28,0.15))',border:'1px solid rgba(239,68,68,0.35)',color:'#f87171',fontSize:'10px',fontWeight:800,cursor:'pointer',flexShrink:0}}>
+                            ↩ {lang==='ar'?'استرداد':'Reclaim'}
+                        </button>
+                    </div>
+                );
+            })}
         </div>
     );
 };
 
-// 🎁 SEND GIFT MODAL — New Design v3 (All fixes applied)
-var SendGiftModal = ({ show, onClose, targetUser, currentUser, lang, onSendGift, currency, friendsData }) => {
+// ═══════════════════════════════════════════════════════════════
+// 📦  INVENTORY MODAL — Premium Dark Collection Viewer
+// ═══════════════════════════════════════════════════════════════
+var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSendGift, friendsData, isLoggedIn, currentUserData, user, coupleData, onOpenCoupleCard, onPropose }) => {
     var t = TRANSLATIONS[lang];
-
-    // ── ALL HOOKS FIRST — no early returns before hooks ──
-    var [activeTab, setActiveTab]           = useState('gifts');
-    var [selectedGift, setSelectedGift]     = useState(null);
-    var [comboOverlay, setComboOverlay]     = useState(null);
-    var [qty, setQty]                       = useState(1);
-    var [isPublic, setIsPublic]             = useState(true);
-    var [showGiftDetail, setShowGiftDetail] = useState(false);
-    var tabsRef            = useRef(null);
-    var scrollIntervalRef  = useRef(null);
-
-    var scrollTabs = (dir) => {
-        if (!tabsRef.current) return;
-        tabsRef.current.scrollBy({ left: dir * 120, behavior: 'smooth' });
-    };
-    var startScroll = (dir) => { scrollTabs(dir); scrollIntervalRef.current = setInterval(() => scrollTabs(dir), 220); };
-    var stopScroll  = () => clearInterval(scrollIntervalRef.current);
-
-    // fix #1/#6: combo check BEFORE show guard so state is never lost on unmount
-    if (comboOverlay) {
-        return (
-            <PortalModal>
-                <ComboSendOverlay
-                    gift={comboOverlay.gift}
-                    target={comboOverlay.target}
-                    currency={currency}
-                    onSend={(g, tgt, q) => onSendGift(g, tgt, q)}
-                    onClose={() => { setComboOverlay(null); onClose(); }}
-                    lang={lang}
-                />
-            </PortalModal>
-        );
-    }
+    var [activeTab, setActiveTab]       = useState('frames');
+    var [rpSendTarget, setRpSendTarget] = useState(null); // 'self' | 'family' | friendUID
+    var [rpSendModal, setRpSendModal]   = useState(null); // { ...rpConfig, inventoryId }
+    var [sentPackets, setSentPackets]   = useState([]); // reclaim list
+    var [loadingSent, setLoadingSent]   = useState(false);
+    var [selectedGift, setSelectedGift] = useState(null);
+    var [showGiftPreview, setShowGiftPreview] = useState(false);
+    // ✅ FIX 2: item details popup
+    var [detailItem, setDetailItem]     = useState(null);
 
     if (!show) return null;
 
-    var hasDirectTarget = targetUser && targetUser.uid !== 'self';
-    var vipLevel  = currentUser ? (window.getVIPLevel ? window.getVIPLevel(currentUser) : 0) : 0;
-    var inventory = currentUser?.inventory || {};
-    // fix #9: only require familyId — ignore level requirement
-    var hasFamilyId = !!(currentUser?.familyId);
+    var inventory  = userData?.inventory || { frames:[],titles:[],themes:[],badges:[],gifts:[],rings:[] };
+    var equipped   = userData?.equipped  || {};
+    var giftCounts = inventory.giftCounts || {};
+    var myRings    = inventory.rings || [];
+    var expiry     = inventory.expiry || {}; // { itemId: timestampMs }
 
-    var TABS = [
-        { id: 'inventory', icon: '🎒', label_ar: 'انفنتري',      label_en: 'Inventory' },
-        { id: 'gifts',     icon: '🎁', label_ar: 'هدايا',         label_en: 'Gifts'    },
-        { id: 'family',    icon: '🏰', label_ar: 'هدايا القبيلة', label_en: 'Family'   },
-        { id: 'special',   icon: '🎰', label_ar: 'سبيشيال',       label_en: 'Special'  },
-        { id: 'flag',      icon: '🚩', label_ar: 'أعلام',          label_en: 'Flag'     },
-        { id: 'vip',       icon: '👑', label_ar: 'VIP',            label_en: 'VIP'      },
-    ];
-
-    var getGiftsForTab = () => {
-        switch (activeTab) {
-            case 'inventory': {
-                var invGiftIds = inventory.gifts || [];
-                var pool = [
-                    ...(SHOP_ITEMS.gifts||[]), ...(SHOP_ITEMS.gifts_vip||[]),
-                    ...(SHOP_ITEMS.gifts_family||[]), ...(SHOP_ITEMS.gifts_special||[]),
-                ];
-                return invGiftIds.map(gid => {
-                    var g = pool.find(x => x.id === gid);
-                    if (!g) return null;
-                    var expiryTs = inventory.expiry?.[gid];
-                    var daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
-                    return { ...g, fromInventory: true, daysLeft, qty: inventory.giftCounts?.[gid] || 1 };
-                }).filter(Boolean);
-            }
-            case 'gifts':   return (SHOP_ITEMS.gifts||[]).filter(g => !g.hidden && !g.eventOnly);
-            case 'family':  return (SHOP_ITEMS.gifts_family||[]);
-            case 'special': return (SHOP_ITEMS.gifts_special||[]);
-            case 'flag':    return (SHOP_ITEMS.gifts_flag||[]);
-            case 'vip':     return (SHOP_ITEMS.gifts_vip||[]).filter(g => !g.hidden);
-            default:        return [];
+    var getOwnedItems = (type) => {
+        var ownedIds = inventory[type] || [];
+        if (type === 'gifts') {
+            return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id) && (giftCounts[item.id]||0) > 0) || [];
         }
-    };
-    var gifts = getGiftsForTab();
-
-    var getGiftTag = (gift) => {
-        if (gift.specialType === 'lottery' || gift.isEvent)        return { label: lang==='ar'?'يانصيب':'Lottery',           bg:'#8b5cf6' };
-        if (gift.limitedTime)                                       return { label: lang==='ar'?'محدود':'Limited',             bg:'#f97316' };
-        if (gift.type === 'gifts_vip' || gift.vipExclusive)        return { label: 'VIP',                                      bg:'#f59e0b' };
-        if (gift.type === 'gifts_family')                           return { label: lang==='ar'?'قبيلة':'Family',               bg:'#10b981' };
-        if ((gift.charisma||0) >= 400 || (gift.cost||0) >= 2000)   return { label: lang==='ar'?'مفاجأة الذهب':'Golds Surprise', bg:'#ef4444' };
-        return null;
-    };
-
-    var handleSend = (gift, sendQty) => {
-        var target = hasDirectTarget ? targetUser : null;
-        if (!gift) return;
-        onSendGift(gift, target, sendQty || qty, { isPublic });
-        var allowsMulti = gift?.maxSendOptions != null && (sendQty || qty) === 1;
-        if (allowsMulti && target && target.uid !== 'self') {
-            setComboOverlay({ gift, target });
-        } else {
-            onClose();
+        if (type === 'rings') {
+            var uniqueIds = [...new Set(ownedIds)];
+            return (typeof RINGS_DATA !== 'undefined' ? RINGS_DATA : []).filter(r => uniqueIds.includes(r.id));
         }
+        return SHOP_ITEMS[type]?.filter(item => ownedIds.includes(item.id)) || [];
     };
 
-    var charismaForBar = selectedGift ? (selectedGift.charisma||0) * qty : 0;
-    var maxGoldForBar  = selectedGift ? (selectedGift.maxBonus||0) * qty : 0;
-    var showInfoBar    = !!(selectedGift && (charismaForBar > 0 || maxGoldForBar > 0));
+    var isEquipped = (item) => {
+        if (item.type === 'badges') { var eb=equipped.badges||[]; return Array.isArray(eb)?eb.includes(item.id):equipped.badges===item.id; }
+        return equipped[item.type] === item.id;
+    };
+    var getEquippedBadgeCount = () => { var eb=equipped.badges||[]; return Array.isArray(eb)?eb.length:(equipped.badges?1:0); };
 
-    // fix #7: gift detail popup component
-    var GiftDetailPopup = () => {
-        if (!showGiftDetail || !selectedGift) return null;
-        var g = selectedGift;
-        var rKey = getGiftRarity(g.cost || 0);
-        var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
+    // ✅ FIX 2: days remaining helper
+    var getDaysLeft = (itemId) => {
+        var exp = expiry[itemId];
+        if (!exp) return null;
+        var ms = exp - Date.now();
+        if (ms <= 0) return 0;
+        return Math.ceil(ms / 86400000);
+    };
+
+    var renderPreview = (item) => {
+        if (item.type === 'frames') return item.preview.startsWith('http')
+            ?<img src={item.preview} alt={item.name_en} style={{width:'40px',height:'40px',borderRadius:'50%',objectFit:'cover'}}/>
+            :<div style={{width:'40px',height:'40px',borderRadius:'50%',background:item.preview}}/>;
+        if (item.type === 'badges') return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'34px',height:'34px',objectFit:'contain'}}/>:<span style={{fontSize:'26px'}}>{item.preview}</span>;
+        if (item.type === 'titles') return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'30px',height:'30px',objectFit:'contain'}}/>:<span style={{fontSize:'24px'}}>{item.preview}</span>;
+        if (item.type === 'gifts')  return item.imageUrl?<img src={item.imageUrl} alt={item.name_en} style={{width:'34px',height:'34px',objectFit:'contain'}}/>:<span style={{fontSize:'26px'}}>{item.emoji}</span>;
+        if (item.type === 'profileEffects') {
+            var src=typeof item.particles==='string'&&item.particles.startsWith('http')?item.particles:(item.imageUrl||null);
+            return src?<img src={src} alt={item.name_en} style={{width:'38px',height:'38px',objectFit:'contain',borderRadius:'6px'}}/>:<span style={{fontSize:'28px',lineHeight:1}}>{item.preview}</span>;
+        }
+        return <span style={{fontSize:'24px'}}>🎨</span>;
+    };
+
+    // ✅ FIX 2: Item Details Popup Component
+    var ItemDetailPopup = ({ item, onClose: closePopup }) => {
+        if (!item) return null;
+        var daysLeft = getDaysLeft(item.id);
+        var desc = lang === 'ar' ? (item.desc_ar || item.description_ar || '') : (item.desc_en || item.description_en || '');
+        var name = lang === 'ar' ? item.name_ar : item.name_en;
         return (
-            <div style={{ position:'fixed', inset:0, zIndex: Z.TOOLTIP, background:'rgba(0,0,0,0.88)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
-                onClick={() => setShowGiftDetail(false)}>
-                <div onClick={e => e.stopPropagation()} style={{ width:'100%', maxWidth:'300px', background:'linear-gradient(160deg,#0e0e22,#13122a)', border:`1px solid ${rarity.border}`, borderRadius:'18px', padding:'20px', boxShadow:`0 20px 60px rgba(0,0,0,0.9)` }}>
-                    <div style={{ textAlign:'center', marginBottom:'14px' }}>
-                        {g.imageUrl && g.imageUrl.trim() !== ''
-                            ? <img src={g.imageUrl} alt="" style={{ width:'80px', height:'80px', objectFit:'contain', borderRadius:'12px' }} />
-                            : <span style={{ fontSize:'52px', lineHeight:1 }}>{g.emoji||'🎁'}</span>
-                        }
+            <div onClick={closePopup} style={{
+                position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                zIndex:Z.TOOLTIP, padding:'20px',
+            }}>
+                <div onClick={e=>e.stopPropagation()} className="animate-pop" style={{
+                    background:'linear-gradient(160deg,#0d1225,#0a0e1f)',
+                    border:'1px solid rgba(0,242,255,0.18)',
+                    borderRadius:'18px',padding:'18px',
+                    width:'100%',maxWidth:'300px',
+                    boxShadow:'0 20px 60px rgba(0,0,0,0.7)',
+                }}>
+                    {/* Preview */}
+                    <div style={{textAlign:'center',marginBottom:'12px'}}>
+                        {renderPreview(item)}
+                        <div style={{fontSize:'14px',fontWeight:900,color:'#f1f5f9',marginTop:'8px'}}>{name}</div>
                     </div>
-                    <div style={{ fontSize:'15px', fontWeight:900, color:'white', textAlign:'center', marginBottom:'4px' }}>{lang==='ar'?(g.name_ar||g.name_en):g.name_en}</div>
-                    {(g.desc_ar||g.desc_en) && <div style={{ fontSize:'11px', color:'#9ca3af', textAlign:'center', marginBottom:'12px', lineHeight:1.5 }}>{lang==='ar'?(g.desc_ar||g.desc_en):(g.desc_en||g.desc_ar)}</div>}
-                    <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'14px' }}>
-                        {!g.fromInventory && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>💰 {lang==='ar'?'السعر':'Price'}</span><span style={{ color:'#facc15', fontWeight:800 }}>{(g.cost||0).toLocaleString()} 🧠</span></div>}
-                        {(g.charisma||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>⭐ {lang==='ar'?'كاريزما':'Charisma'}</span><span style={{ color:'#fbbf24', fontWeight:800 }}>+{formatCharisma(g.charisma||0)}</span></div>}
-                        {(g.maxBonus||0) > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>🍀 {lang==='ar'?'مردود أقصى':'Max Bonus'}</span><span style={{ color:'#4ade80', fontWeight:800 }}>+{(g.maxBonus||0).toLocaleString()} 🧠</span></div>}
-                        {g.specialType === 'lottery' && (g.possibleRewards||[]).length > 0 && (
-                            <div style={{ padding:'8px 10px', background:'rgba(139,92,246,0.08)', border:'1px solid rgba(139,92,246,0.25)', borderRadius:'8px' }}>
-                                <div style={{ fontSize:'10px', fontWeight:800, color:'#a78bfa', marginBottom:'6px' }}>🎰 {lang==='ar'?'جوائز ممكنة':'Possible Rewards'}</div>
-                                {(g.possibleRewards||[]).map((r, i) => (
-                                    <div key={i} style={{ display:'flex', justifyContent:'space-between', fontSize:'10px', color:'#d1d5db', marginBottom:'3px' }}>
-                                        <span>{lang==='ar'?(r.desc_ar||r.desc_en):(r.desc_en||r.desc_ar)}</span>
-                                        <span style={{ color:'#a78bfa', fontWeight:700 }}>{r.chance}%</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {g.durationDays && <div style={{ display:'flex', justifyContent:'space-between', fontSize:'11px', padding:'6px 10px', background:'rgba(255,255,255,0.04)', borderRadius:'8px' }}><span style={{ color:'#9ca3af' }}>⏳ {lang==='ar'?'تنتهي بعد':'Expires in'}</span><span style={{ color:'#f59e0b', fontWeight:800 }}>{g.durationDays} {lang==='ar'?'يوم':'days'}</span></div>}
-                        {g.isEvent && <div style={{ fontSize:'10px', color:'#a78bfa', textAlign:'center', padding:'4px', background:'rgba(139,92,246,0.08)', borderRadius:'6px' }}>🎉 {lang==='ar'?'هدية إيفنت':'Event Gift'}</div>}
-                        {g.limitedTime && <div style={{ fontSize:'10px', color:'#f97316', textAlign:'center', padding:'4px', background:'rgba(249,115,22,0.08)', borderRadius:'6px' }}>⏰ {lang==='ar'?'لوقت محدود':'Limited Time'}</div>}
-                    </div>
-                    <button onClick={() => setShowGiftDetail(false)} style={{ width:'100%', padding:'10px', borderRadius:'10px', background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', color:'#9ca3af', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>{lang==='ar'?'إغلاق':'Close'}</button>
+                    {/* Description */}
+                    {desc && (
+                        <div style={{
+                            background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',
+                            borderRadius:'10px',padding:'10px 12px',marginBottom:'10px',
+                            fontSize:'11px',color:'#9ca3af',lineHeight:1.6,textAlign:'center',
+                        }}>{desc}</div>
+                    )}
+                    {/* Expiry info */}
+                    {daysLeft !== null && (
+                        <div style={{
+                            display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',
+                            padding:'8px 12px',borderRadius:'9px',marginBottom:'10px',
+                            background: daysLeft <= 3 ? 'rgba(239,68,68,0.1)' : daysLeft <= 7 ? 'rgba(245,158,11,0.1)' : 'rgba(74,222,128,0.08)',
+                            border: daysLeft <= 3 ? '1px solid rgba(239,68,68,0.3)' : daysLeft <= 7 ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(74,222,128,0.22)',
+                        }}>
+                            <span style={{fontSize:'14px'}}>{daysLeft===0?'❌':daysLeft<=3?'⚠️':daysLeft<=7?'⏳':'✅'}</span>
+                            <span style={{fontSize:'11px',fontWeight:700,color:daysLeft===0?'#f87171':daysLeft<=3?'#f87171':daysLeft<=7?'#fbbf24':'#4ade80'}}>
+                                {daysLeft===0
+                                    ?(lang==='ar'?'انتهت الصلاحية':'Expired')
+                                    :lang==='ar'
+                                        ?`تنتهي بعد ${daysLeft} يوم`
+                                        :`Expires in ${daysLeft} day${daysLeft===1?'':'s'}`}
+                            </span>
+                        </div>
+                    )}
+                    {daysLeft === null && (
+                        <div style={{
+                            display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',
+                            padding:'6px 10px',borderRadius:'8px',marginBottom:'10px',
+                            background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',
+                        }}>
+                            <span style={{fontSize:'12px'}}>♾️</span>
+                            <span style={{fontSize:'10px',color:'#a78bfa',fontWeight:600}}>
+                                {lang==='ar'?'دائم — لا ينتهي':'Permanent — never expires'}
+                            </span>
+                        </div>
+                    )}
+                    {/* Close */}
+                    <button onClick={closePopup} style={{
+                        width:'100%',padding:'9px',borderRadius:'10px',border:'none',
+                        background:'rgba(255,255,255,0.06)',color:'#9ca3af',
+                        fontSize:'12px',fontWeight:700,cursor:'pointer',
+                    }}>
+                        {lang==='ar'?'إغلاق':'Close'}
+                    </button>
                 </div>
             </div>
         );
     };
+
+    var TABS = [
+        {id:'red_packets',    icon:'🧧', label_ar:'مغلفاتي',  label_en:'Packets' },
+        {id:'frames',         icon:'🖼️', label_ar:'إطارات',   label_en:'Frames'  },
+        {id:'titles',         icon:'🏷️', label_ar:'ألقاب',    label_en:'Titles'  },
+        {id:'badges',         icon:'🏅', label_ar:'شارات',     label_en:'Badges'  },
+        {id:'profileEffects', icon:'✨', label_ar:'تأثيرات',   label_en:'Effects' },
+        {id:'gifts',          icon:'🎁', label_ar:'هدايا',     label_en:'Gifts'   },
+        {id:'rings',          icon:'💍', label_ar:'خواتم',     label_en:'Rings'   },
+    ];
+    var ownedItems = getOwnedItems(activeTab);
 
     return (
         <>
-        <PortalModal>
-            <div style={{ position:'fixed', inset:0, zIndex: Z.MODAL_HIGH, background:'rgba(0,0,0,0.82)', display:'flex', alignItems:'flex-end', justifyContent:'center' }} onClick={onClose}>
-                <div style={{ width:'100%', maxWidth:'480px', background:'linear-gradient(180deg,#111122 0%,#0a0a18 100%)', borderRadius:'22px 22px 0 0', border:'1px solid rgba(255,255,255,0.1)', borderBottom:'none', overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column', boxShadow:'0 -10px 60px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={onClose} style={{backdropFilter:'blur(6px)'}}>
+            <div onClick={e=>e.stopPropagation()} style={{
+                background:'linear-gradient(160deg,#0a0e1f 0%,#0d1225 55%,#080c1a 100%)',
+                border:'1px solid rgba(0,242,255,0.1)',
+                borderRadius:'20px',
+                width:'96vw',maxWidth:'440px',
+                maxHeight:'90vh',
+                display:'flex',flexDirection:'column',
+                overflow:'hidden',
+                boxShadow:'0 0 70px rgba(0,0,0,0.8),inset 0 1px 0 rgba(255,255,255,0.04)',
+                position:'relative',
+            }}>
+                {/* Top accent line */}
+                <div style={{position:'absolute',top:0,left:'8%',right:'8%',height:'1px',background:'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)',zIndex:2}}/>
 
-                    {/* ── Header ── */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'14px 16px 10px', borderBottom:'1px solid rgba(255,255,255,0.07)', flexShrink:0 }}>
-                        {hasDirectTarget && (
-                            <>
-                                <img src={targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName||'U')}&background=6366f1&color=fff`} alt="" style={{ width:'32px', height:'32px', borderRadius:'50%', objectFit:'cover', border:'2px solid rgba(0,242,255,0.3)', flexShrink:0 }} />
-                                <div style={{ flex:1, minWidth:0 }}>
-                                    <div style={{ fontSize:'11px', color:'#9ca3af' }}>{lang==='ar'?'إرسال إلى':'Send to'}</div>
-                                    <div style={{ fontSize:'14px', fontWeight:800, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{targetUser.displayName}</div>
-                                </div>
-                            </>
-                        )}
-                        {!hasDirectTarget && <div style={{ flex:1, fontSize:'15px', fontWeight:900, color:'white' }}>{lang==='ar'?'إرسال هدية':'Send Gift'}</div>}
-                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'8px', width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#9ca3af', fontSize:'14px', flexShrink:0 }}>✕</button>
-                    </div>
-
-                    {/* ── Tabs with scroll arrows (fix #3) ── */}
-                    <div style={{ display:'flex', alignItems:'center', padding:'8px 0 0', flexShrink:0, gap:0 }}>
-                        <button onMouseDown={() => startScroll(-1)} onMouseUp={stopScroll} onMouseLeave={stopScroll} onTouchStart={() => startScroll(-1)} onTouchEnd={stopScroll}
-                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginLeft:'8px' }}>‹</button>
-                        <div ref={tabsRef} style={{ flex:1, display:'flex', overflowX:'auto', gap:'4px', scrollbarWidth:'none', WebkitOverflowScrolling:'touch', padding:'0 4px' }}>
-                            {TABS.map(tab => (
-                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSelectedGift(null); setQty(1); setShowGiftDetail(false); }}
-                                    style={{ flexShrink:0, padding:'6px 14px', borderRadius:'20px', border:'none', cursor:'pointer', fontSize:'11px', fontWeight:800, whiteSpace:'nowrap', background: activeTab===tab.id?'rgba(0,242,255,0.18)':'rgba(255,255,255,0.06)', color: activeTab===tab.id?'#00f2ff':'#9ca3af', borderBottom: activeTab===tab.id?'2px solid #00f2ff':'2px solid transparent', transition:'all 0.15s' }}
-                                >{tab.icon} {lang==='ar'?tab.label_ar:tab.label_en}</button>
-                            ))}
-                        </div>
-                        <button onMouseDown={() => startScroll(1)} onMouseUp={stopScroll} onMouseLeave={stopScroll} onTouchStart={() => startScroll(1)} onTouchEnd={stopScroll}
-                            style={{ flexShrink:0, width:'28px', height:'28px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)', color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', marginRight:'8px' }}>›</button>
-                    </div>
-
-                    {/* ── Info bar (fix #7: ? opens detail popup) ── */}
-                    <div style={{ padding:'8px 12px 0', flexShrink:0 }}>
-                        {showInfoBar && (
-                            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 14px', margin:'0 0 4px', background:'rgba(255,215,0,0.07)', borderRadius:'10px', border:'1px solid rgba(255,215,0,0.18)', fontSize:'11px' }}>
-                                <span style={{ color:'#d1d5db', flex:1 }}>
-                                    {lang==='ar'?'كاريزما المستلم':"Receiver's Charm"}{' '}
-                                    <span style={{ color:'#facc15', fontWeight:800 }}>+{formatCharisma(charismaForBar)}</span>
-                                    {maxGoldForBar > 0 && <span style={{ color:'#9ca3af', marginLeft:'6px' }}>{lang==='ar'?`حصل على ما يصل إلى ${maxGoldForBar.toLocaleString()} 🧠`:`Gain up to ${maxGoldForBar.toLocaleString()} Intel 🧠`}</span>}
-                                    {selectedGift?.specialType==='lottery' && <span style={{ color:'#a78bfa', marginLeft:'6px' }}>🎰</span>}
-                                </span>
-                                <button onClick={() => setShowGiftDetail(true)} style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'50%', width:'22px', height:'22px', color:'#e2e8f0', fontSize:'12px', fontWeight:800, cursor:'pointer', lineHeight:1, flexShrink:0 }}>?</button>
+                {/* ══ HEADER ══ */}
+                <div style={{
+                    background:'linear-gradient(135deg,rgba(0,242,255,0.05) 0%,rgba(112,0,255,0.05) 100%)',
+                    borderBottom:'1px solid rgba(255,255,255,0.055)',
+                    padding:'14px 16px 12px',
+                    display:'flex',alignItems:'center',justifyContent:'space-between',
+                    flexShrink:0,
+                }}>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                        <div style={{
+                            width:'38px',height:'38px',borderRadius:'11px',
+                            background:'linear-gradient(135deg,rgba(0,242,255,0.11),rgba(112,0,255,0.11))',
+                            border:'1px solid rgba(0,242,255,0.17)',
+                            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'19px',flexShrink:0,
+                        }}>🎒</div>
+                        <div>
+                            <div style={{fontSize:'15px',fontWeight:900,color:'#f1f5f9',letterSpacing:'0.2px'}}>
+                                {t.myInventory||(lang==='ar'?'مخزوني':'My Inventory')}
                             </div>
-                        )}
+                            {activeTab==='badges'&&(
+                                <div style={{fontSize:'9px',color:'#9ca3af',marginTop:'1px'}}>
+                                    <span style={{color:'#00f2ff',fontWeight:700}}>{getEquippedBadgeCount()}</span>
+                                    <span style={{color:'#374151'}}> / {MAX_BADGES} {lang==='ar'?'شارة مفعّلة':'equipped'}</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
+                    <button onClick={onClose}
+                        style={{width:'34px',height:'34px',borderRadius:'10px',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.065)',color:'#6b7280',fontSize:'16px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
+                        onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.13)';e.currentTarget.style.color='#f87171';}}
+                        onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.color='#6b7280';}}
+                    >✕</button>
+                </div>
 
-                    {/* ── Family locked notice (fix #9) ── */}
-                    {activeTab==='family' && !hasFamilyId && (
-                        <div style={{ margin:'8px 12px', padding:'10px 14px', borderRadius:'10px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.25)', fontSize:'11px', color:'#34d399', textAlign:'center', flexShrink:0 }}>
-                            🏰 {lang==='ar'?'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة':'You must be in a family to use Family Gifts'}
+                {/* ══ TAB BAR ══ */}
+                <div style={{display:'flex',overflowX:'auto',gap:'3px',padding:'10px 10px 0',borderBottom:'1px solid rgba(255,255,255,0.048)',scrollbarWidth:'none',flexShrink:0,background:'rgba(0,0,0,0.13)'}}>
+                    {TABS.map(tab=>{
+                        var active=activeTab===tab.id;
+                        var cnt=tab.id==='rings'?myRings.length:getOwnedItems(tab.id).length;
+                        return (
+                            <button key={tab.id} onClick={()=>setActiveTab(tab.id)} style={{
+                                flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',
+                                padding:'5px 10px 7px',borderRadius:'10px 10px 0 0',
+                                fontSize:'9px',fontWeight:active?800:500,cursor:'pointer',border:'none',
+                                background:active?'rgba(0,242,255,0.085)':'transparent',
+                                color:active?'#00f2ff':'#4b6070',
+                                borderBottom:active?'2px solid #00f2ff':'2px solid transparent',
+                                transition:'all 0.18s',minWidth:'44px',
+                            }}>
+                                <span style={{fontSize:'15px',lineHeight:1,position:'relative'}}>
+                                    {tab.icon}
+                                    {cnt>0&&<span style={{position:'absolute',top:'-4px',right:'-6px',background:active?'#00f2ff':'#1f2937',color:active?'#000':'#9ca3af',borderRadius:'8px',fontSize:'7px',fontWeight:900,padding:'0 3px',lineHeight:'12px',minWidth:'12px',textAlign:'center'}}>{cnt}</span>}
+                                </span>
+                                <span>{lang==='ar'?tab.label_ar:tab.label_en}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ══ BODY ══ */}
+                <div style={{flex:1,overflowY:'auto',padding:'12px',scrollbarWidth:'thin',scrollbarColor:'rgba(0,242,255,0.18) transparent'}}>
+
+                    {/* 🧧 Red Packets */}
+                    {activeTab==='red_packets'&&(()=>{
+                        var myPackets = (userData?.inventory?.red_packets || []);
+                        var RPC = typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : [];
+                        // Support both old IDs (rp_600) and new unique IDs (rp_600_1234567890)
+                        var findRpConfig = (rpId) => RPC.find(r => rpId === r.id || rpId.startsWith(r.id + '_'));
+                        var myFamilyId = userData?.familyId || null;
+                        return (
+                            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                                <div style={{fontSize:'11px',color:'#6b7280',textAlign:'center',marginBottom:'4px'}}>
+                                    {lang==='ar'?'مغلفاتك الجاهزة للإرسال':'Your packets ready to send'}
+                                    <span style={{color:'#fbbf24',marginRight:'6px',marginLeft:'6px',fontWeight:700}}>{myPackets.length > 0 ? `(${myPackets.length})` : ''}</span>
+                                </div>
+                                {myPackets.length === 0 && (
+                                    <div style={{textAlign:'center',padding:'32px',color:'#4b5563'}}>
+                                        <div style={{fontSize:'32px',marginBottom:'8px'}}>🧧</div>
+                                        <div style={{fontSize:'12px'}}>{lang==='ar'?'لا مغلفات بعد — اشتري من المتجر':'No packets yet — buy from shop'}</div>
+                                    </div>
+                                )}
+                                {myPackets.map((rpId, idx) => {
+                                    var rp = findRpConfig(rpId);
+                                    if (!rp) return null;
+                                    return (
+                                        <div key={rpId+'-'+idx} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:rp.bg,border:`1px solid ${rp.border}`,boxSizing:'border-box'}}>
+                                            {rp.imageURL
+                                                ? <img src={rp.imageURL} alt="" style={{width:'40px',height:'40px',objectFit:'contain',flexShrink:0}}/>
+                                                : <div style={{width:'40px',height:'40px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>🧧</div>}
+                                            <div style={{flex:1,minWidth:0}}>
+                                                <div style={{fontSize:'12px',fontWeight:800,color:rp.color}}>{lang==='ar'?rp.name_ar:rp.name_en}</div>
+                                                <div style={{fontSize:'10px',color:'#9ca3af',marginTop:'2px'}}>{rp.amount.toLocaleString()} 🧠 · {rp.maxClaims} {lang==='ar'?'استلام':'claims'}</div>
+                                            </div>
+                                            <button onClick={() => setRpSendModal({ ...rp, inventoryId: rpId })}
+                                                style={{padding:'7px 12px',borderRadius:'10px',background:`${rp.color}20`,border:`1px solid ${rp.color}44`,color:rp.color,fontSize:'11px',fontWeight:700,cursor:'pointer',flexShrink:0}}>
+                                                📤 {lang==='ar'?'إرسال':'Send'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* ── Reclaim sent packets ── */}
+                                {user && (
+                                    <ReclaimSentPackets
+                                        user={user} userData={userData} lang={lang}
+                                        sentPackets={sentPackets} setSentPackets={setSentPackets}
+                                        loadingSent={loadingSent} setLoadingSent={setLoadingSent}
+                                    />
+                                )}
+
+                                {/* Send RP popup */}
+                                {rpSendModal && (
+                                    <div style={{position:'fixed',inset:0,zIndex:Z.TOOLTIP,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
+                                        <div style={{background:'linear-gradient(160deg,#0e0e22,#13122a)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'18px',padding:'20px',width:'100%',maxWidth:'340px'}} onClick={e=>e.stopPropagation()}>
+                                            <div style={{fontSize:'14px',fontWeight:800,color:'#ef4444',marginBottom:'14px',textAlign:'center'}}>🧧 {lang==='ar'?'إرسال المغلف لمين؟':'Send Packet To?'}</div>
+                                            <div style={{display:'flex',flexDirection:'column',gap:'8px',maxHeight:'60vh',overflowY:'auto'}}>
+                                                {/* Send to self */}
+                                                <button onClick={async()=>{
+                                                    if(!user) return;
+                                                    try {
+                                                        await usersCollection.doc(user.uid).update({
+                                                            'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId),
+                                                            currency: firebase.firestore.FieldValue.increment(rpSendModal.amount)
+                                                        });
+                                                        setRpSendModal(null);
+                                                    } catch(e) {}
+                                                }} style={{padding:'11px',borderRadius:'12px',background:'rgba(0,242,255,0.1)',border:'1px solid rgba(0,242,255,0.25)',color:'#00f2ff',fontSize:'12px',fontWeight:700,cursor:'pointer'}}>
+                                                    👤 {lang==='ar'?'أرسل لنفسي (استلم الرصيد)':'Send to myself (get coins)'}
+                                                </button>
+                                                {/* Send to family chat */}
+                                                {myFamilyId && (
+                                                    <button onClick={async()=>{
+                                                        if(!user||!myFamilyId) return;
+                                                        try {
+                                                            var famCol = typeof familiesCollection !== 'undefined'
+                                                                ? familiesCollection
+                                                                : db.collection('artifacts').doc(typeof appId!=='undefined'?appId:'prospy').collection('public').doc('data').collection('families');
+                                                            var rpRef = await redPacketsCollection.add({
+                                                                configId:rpSendModal.id, amount:rpSendModal.amount,
+                                                                senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                targetType:'family', targetId:myFamilyId,
+                                                                claimedBy:[], maxClaims:rpSendModal.maxClaims||5,
+                                                                remaining:rpSendModal.amount, createdAt:TS(), status:'active'
+                                                            });
+                                                            await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
+                                                            await famCol.doc(myFamilyId).collection('messages').add({
+                                                                type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
+                                                                rpConfigId:rpSendModal.id, maxClaims:rpSendModal.maxClaims||5,
+                                                                senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                text:'🧧 '+rpSendModal.amount, timestamp:TS()
+                                                            });
+                                                            setRpSendModal(null);
+                                                        } catch(e){ console.error('Family RP send error',e); }
+                                                    }} style={{padding:'11px',borderRadius:'12px',background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24',fontSize:'12px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'8px',justifyContent:'center'}}>
+                                                        🏠 {lang==='ar'?'أرسل لشات القبيلة':'Send to Family Chat'}
+                                                    </button>
+                                                )}
+                                                {/* Send to friends */}
+                                                {(friendsData||[]).slice(0,6).map(friend=>{
+                                                    var fid = friend.id||friend.uid;
+                                                    return (
+                                                        <button key={fid} onClick={async()=>{
+                                                            if(!user||!fid) return;
+                                                            try {
+                                                                var rpRef = await redPacketsCollection.add({
+                                                                    configId:rpSendModal.id, amount:rpSendModal.amount,
+                                                                    senderId:user.uid, senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                    targetType:'dm', targetId:fid, targetName:friend.displayName||'User',
+                                                                    claimedBy:[], maxClaims:1, remaining:rpSendModal.amount,
+                                                                    createdAt:TS(), status:'active'
+                                                                });
+                                                                await usersCollection.doc(user.uid).update({'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId)});
+                                                                var chatId = [user.uid, fid].sort().join('_');
+                                                                await chatsCollection.doc(chatId).collection('messages').add({
+                                                                    type:'red_packet', rpId:rpRef.id, rpAmount:rpSendModal.amount,
+                                                                    rpConfigId:rpSendModal.id, senderId:user.uid,
+                                                                    senderName:userData?.displayName||'User', senderPhoto:userData?.photoURL||null,
+                                                                    text:'🧧 '+rpSendModal.amount, timestamp:TS(), maxClaims:1
+                                                                });
+                                                                setRpSendModal(null);
+                                                            } catch(e) {}
+                                                        }} style={{padding:'9px 12px',borderRadius:'12px',background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa',fontSize:'11px',fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:'8px'}}>
+                                                            {friend.photoURL&&<img src={friend.photoURL} alt="" style={{width:'22px',height:'22px',borderRadius:'50%',objectFit:'cover'}}/>}
+                                                            <span>{friend.displayName}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            <button onClick={()=>setRpSendModal(null)} style={{width:'100%',marginTop:'12px',padding:'9px',borderRadius:'10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#9ca3af',fontSize:'12px',cursor:'pointer'}}>✕ {lang==='ar'?'إلغاء':'Cancel'}</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {/* Rings */}
+                    {activeTab==='rings'&&(
+                        <div>
+                            {myRings.length===0?(
+                                <div style={{textAlign:'center',padding:'40px 20px'}}>
+                                    <div style={{fontSize:'44px',marginBottom:'12px'}}>💍</div>
+                                    <div style={{fontSize:'13px',color:'#374151',fontWeight:600}}>{lang==='ar'?'لا خواتم في مخزونك':'No rings in your inventory'}</div>
+                                    <div style={{fontSize:'11px',color:'#1f2937',marginTop:'4px'}}>{lang==='ar'?'اشتر خواتم من متجر الخواتم':'Buy rings from the Rings shop'}</div>
+                                </div>
+                            ):(
+                                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                                    {[...new Set(myRings)].map(rid=>{
+                                        var rd=typeof RINGS_DATA!=='undefined'?RINGS_DATA.find(r=>r.id===rid):null;
+                                        if(!rd) return null;
+                                        var count=myRings.filter(id=>id===rid).length;
+                                        return (
+                                            <div key={rid} style={{display:'flex',alignItems:'center',gap:'12px',padding:'12px 14px',borderRadius:'14px',background:`linear-gradient(135deg,${rd.color}0f,${rd.color}05)`,border:`1px solid ${rd.color}32`,transition:'all 0.15s'}}
+                                                onMouseEnter={e=>{e.currentTarget.style.background=`linear-gradient(135deg,${rd.color}1a,${rd.color}08)`;}}
+                                                onMouseLeave={e=>{e.currentTarget.style.background=`linear-gradient(135deg,${rd.color}0f,${rd.color}05)`;}}
+                                            >
+                                                <div style={{flexShrink:0,width:'44px',height:'44px',display:'flex',alignItems:'center',justifyContent:'center',background:`${rd.color}10`,borderRadius:'12px',border:`1px solid ${rd.color}22`}}>
+                                                    {rd.imageURL?<img src={rd.imageURL} alt="" style={{width:'34px',height:'34px',objectFit:'contain',filter:`drop-shadow(0 0 6px ${rd.glow})`}}/>:<span style={{fontSize:'26px',filter:`drop-shadow(0 0 6px ${rd.glow})`}}>{rd.emoji}</span>}
+                                                </div>
+                                                <div style={{flex:1,minWidth:0}}>
+                                                    <div style={{fontSize:'13px',fontWeight:800,color:rd.color}}>{lang==='ar'?rd.name_ar:rd.name_en}</div>
+                                                    <div style={{fontSize:'10px',color:'#4b5563',marginTop:'2px'}}>{rd.rarity}</div>
+                                                    {count>1&&<div style={{fontSize:'10px',color:'#fcd34d',marginTop:'2px',fontWeight:700}}>×{count} {lang==='ar'?'نسخ':'copies'}</div>}
+                                                </div>
+                                                <button onClick={()=>{if(coupleData){onOpenCoupleCard&&onOpenCoupleCard();}else{onPropose&&onPropose(rd);}}}
+                                                    style={{padding:'7px 14px',borderRadius:'10px',border:`1px solid ${rd.color}40`,background:`${rd.color}13`,color:rd.color,fontSize:'11px',fontWeight:800,cursor:'pointer',flexShrink:0,transition:'all 0.15s'}}
+                                                    onMouseEnter={e=>{e.currentTarget.style.background=`${rd.color}26`;}}
+                                                    onMouseLeave={e=>{e.currentTarget.style.background=`${rd.color}13`;}}
+                                                >
+                                                    {coupleData?(lang==='ar'?'💍 أهدِ':'💍 Gift'):(lang==='ar'?'📤 استخدم':'📤 Use')}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* ── Gift grid (fix #2 fixed name, fix #4 expiry, fix #8 GIF/img support) ── */}
-                    <div style={{ flex:1, overflowY:'auto', padding:'10px 12px', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'8px', alignContent:'start' }}>
-                        {gifts.length === 0 ? (
-                            <div style={{ gridColumn:'1/-1', textAlign:'center', padding:'40px', color:'#4b5563', fontSize:'12px' }}>
-                                {activeTab==='inventory'?(lang==='ar'?'لا توجد هدايا في الإنفنتري':'No gifts in inventory'):(lang==='ar'?'لا توجد هدايا':'No gifts available')}
+                    {/* Other tabs */}
+                    {activeTab!=='rings'&&(
+                        ownedItems.length===0?(
+                            <div style={{textAlign:'center',padding:'40px 20px'}}>
+                                <div style={{fontSize:'40px',marginBottom:'10px'}}>📦</div>
+                                <div style={{fontSize:'12px',color:'#374151',fontWeight:600}}>{t.owned}: 0</div>
                             </div>
-                        ) : gifts.map(gift => {
-                            var tag        = getGiftTag(gift);
-                            var rKey       = getGiftRarity(gift.cost || 0);
-                            var rarity     = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
-                            var vipRequired = gift.vipMinLevel || 0;
-                            var isVIPLocked = gift.type==='gifts_vip' && vipLevel < vipRequired;
-                            var isFamLocked = gift.type==='gifts_family' && !hasFamilyId; // fix #9
-                            var isSelected  = selectedGift?.id === gift.id;
-                            var canAfford   = gift.fromInventory ? true : (currency >= (gift.cost||0));
-                            return (
-                                <button key={gift.id}
-                                    onClick={() => { if (isVIPLocked||isFamLocked) return; setSelectedGift(isSelected?null:gift); setQty(1); setShowGiftDetail(false); }}
-                                    style={{
-                                        // fix #2: fixed total height — nothing shifts
-                                        display:'flex', flexDirection:'column', alignItems:'center',
-                                        height:'112px', padding:'0',
-                                        borderRadius:'12px',
-                                        cursor: (isVIPLocked||isFamLocked)?'default':'pointer',
-                                        border: isSelected?'2px solid #00f2ff':`1px solid ${canAfford&&!isVIPLocked?rarity.border:'rgba(255,255,255,0.07)'}`,
-                                        background: isSelected?'rgba(0,242,255,0.08)':(canAfford&&!isVIPLocked?rarity.bg:'rgba(255,255,255,0.03)'),
-                                        opacity: (isVIPLocked||isFamLocked||(!canAfford&&!gift.fromInventory))?0.45:1,
-                                        position:'relative', overflow:'hidden',
-                                        transition:'transform 0.12s, border 0.12s',
-                                        boxShadow: isSelected?'0 0 12px rgba(0,242,255,0.3)':'none',
-                                    }}
-                                    onMouseEnter={e => { if (!isVIPLocked&&!isFamLocked) e.currentTarget.style.transform='scale(1.05)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}
-                                >
-                                    {tag && <div style={{ position:'absolute', top:'4px', left:'4px', fontSize:'7px', fontWeight:800, color:'white', background:tag.bg, borderRadius:'6px', padding:'1px 5px', zIndex:2, lineHeight:1.4 }}>{tag.label}</div>}
-                                    {/* fix #8: image area — supports GIF + static + emoji */}
-                                    <div style={{ width:'100%', flex:1, position:'relative', borderRadius:'10px 10px 0 0', overflow:'hidden', background:'rgba(255,255,255,0.03)' }}>
-                                        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                            {gift.imageUrl && gift.imageUrl.trim()!==''
-                                                ? <img src={gift.imageUrl} alt="" style={{ width:'68%', height:'68%', objectFit:'contain' }} />
-                                                : <span style={{ fontSize:'26px', lineHeight:1 }}>{gift.emoji||'🎁'}</span>
-                                            }
-                                        </div>
-                                        {(isVIPLocked||isFamLocked) && (
-                                            <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.65)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px' }}>
-                                                <span style={{ fontSize:'14px' }}>🔒</span>
-                                                <span style={{ fontSize:'7px', color:isVIPLocked?'#f59e0b':'#10b981', fontWeight:800 }}>{isVIPLocked?`VIP${vipRequired}+`:(lang==='ar'?'قبيلة':'Family')}</span>
+                        ):(
+                            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(96px,1fr))',gap:'8px'}}>
+                                {ownedItems.map(item=>{
+                                    var equippedItem=isEquipped(item);
+                                    var daysLeft = getDaysLeft(item.id);
+                                    var isExpired = daysLeft === 0;
+                                    /* Gift items */
+                                    if(activeTab==='gifts'){
+                                        var cnt=giftCounts[item.id]||0;
+                                        return (
+                                            <div key={item.id} style={{position:'relative',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:'12px',padding:'10px 8px',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',transition:'all 0.15s',opacity:isExpired?0.5:1}}
+                                                onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,0.04)';e.currentTarget.style.transform='scale(1.04)';}}
+                                                onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.02)';e.currentTarget.style.transform='scale(1)';}}
+                                            >
+                                                {cnt>0&&<div style={{position:'absolute',top:'4px',right:'4px',background:'linear-gradient(135deg,#7c3aed,#a855f7)',color:'#fff',fontWeight:900,fontSize:'8px',padding:'1px 5px',borderRadius:'8px',boxShadow:'0 0 6px rgba(124,58,237,0.45)',zIndex:1}}>×{cnt}</div>}
+                                                {/* ✅ FIX2: info button */}
+                                                <div onClick={()=>setDetailItem(item)} style={{position:'absolute',top:'4px',left:'4px',width:'14px',height:'14px',borderRadius:'50%',background:'rgba(0,242,255,0.18)',border:'1px solid rgba(0,242,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'8px',color:'#00f2ff',fontWeight:900,zIndex:2}}>i</div>
+                                                {/* ✅ FIX2: expiry badge */}
+                                                {daysLeft!==null&&daysLeft>0&&(
+                                                    <div style={{position:'absolute',bottom:'28px',left:'2px',background:daysLeft<=3?'rgba(239,68,68,0.9)':daysLeft<=7?'rgba(245,158,11,0.9)':'rgba(74,222,128,0.8)',borderRadius:'4px',padding:'1px 4px',fontSize:'7px',fontWeight:800,color:'#fff',zIndex:2}}>
+                                                        {daysLeft}d
+                                                    </div>
+                                                )}
+                                                <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
+                                                <div style={{fontSize:'9px',fontWeight:700,color:'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'84px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lang==='ar'?item.name_ar:item.name_en}</div>
+                                                <button onClick={()=>{setSelectedGift(item);setShowGiftPreview(true);}}
+                                                    disabled={isExpired}
+                                                    style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:isExpired?'rgba(100,100,100,0.1)':'linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))',border:isExpired?'1px solid rgba(100,100,100,0.2)':'1px solid rgba(251,191,36,0.26)',color:isExpired?'#4b5563':'#fbbf24',fontSize:'9px',fontWeight:800,cursor:isExpired?'not-allowed':'pointer',transition:'all 0.12s'}}
+                                                    onMouseEnter={e=>{if(!isExpired)e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.12))';}}
+                                                    onMouseLeave={e=>{if(!isExpired)e.currentTarget.style.background='linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06))';}}
+                                                >{isExpired?(lang==='ar'?'منتهي':'Expired'):t.sendGiftToFriend}</button>
                                             </div>
-                                        )}
-                                    </div>
-                                    {/* fix #2: name ALWAYS fixed 14px height — never displaced */}
-                                    <div style={{ fontSize:'9px', fontWeight:700, color:'white', height:'14px', lineHeight:'14px', textAlign:'center', padding:'0 3px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis', width:'100%', flexShrink:0, marginTop:'3px' }}>
-                                        {lang==='ar'?(gift.name_ar||gift.name_en):gift.name_en}
-                                    </div>
-                                    {/* Price / qty */}
-                                    <div style={{ height:'13px', lineHeight:'13px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', gap:'2px', marginBottom:'3px' }}>
-                                        {gift.fromInventory
-                                            ? <span style={{ fontSize:'8px', color:'#10b981', fontWeight:800 }}>×{gift.qty||1}</span>
-                                            : <span style={{ fontSize:'8px', fontWeight:800, color:canAfford?'#facc15':'#6b7280' }}>🧠{fmtNum(gift.cost||0)}</span>
-                                        }
-                                    </div>
-                                    {/* fix #4: expiry date text below gift in inventory */}
-                                    {gift.fromInventory && gift.daysLeft != null && (
-                                        <div style={{ position:'absolute', bottom:'2px', left:0, right:0, fontSize:'7px', textAlign:'center', color:'rgba(249,115,22,0.55)', fontWeight:700 }}>
-                                            {lang==='ar'?`${gift.daysLeft} يوم`:`${gift.daysLeft} days`}
+                                        );
+                                    }
+                                    /* Equippable items */
+                                    return (
+                                        <div key={item.id} style={{
+                                            position:'relative',
+                                            background:equippedItem?'linear-gradient(145deg,rgba(0,242,255,0.075),rgba(8,10,28,0.98))':'rgba(255,255,255,0.02)',
+                                            border:equippedItem?'1.5px solid rgba(0,242,255,0.38)':'1px solid rgba(255,255,255,0.065)',
+                                            boxShadow:equippedItem?'0 0 12px rgba(0,242,255,0.13)':'none',
+                                            borderRadius:'12px',padding:'10px 8px',
+                                            display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',
+                                            transition:'all 0.15s',
+                                            opacity:isExpired?0.5:1,
+                                        }}
+                                        onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';}}
+                                        onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';}}
+                                        >
+                                            {equippedItem&&<div style={{position:'absolute',top:'5px',right:'5px',width:'7px',height:'7px',borderRadius:'50%',background:'#00f2ff',boxShadow:'0 0 6px #00f2ff'}}/>}
+                                            {/* ✅ FIX2: info button on equippable items */}
+                                            <div onClick={()=>setDetailItem(item)} style={{position:'absolute',top:'4px',left:'4px',width:'14px',height:'14px',borderRadius:'50%',background:'rgba(0,242,255,0.14)',border:'1px solid rgba(0,242,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'8px',color:'#00f2ff',fontWeight:900,zIndex:2}}>i</div>
+                                            {/* ✅ FIX2: expiry badge */}
+                                            {daysLeft!==null&&daysLeft>0&&(
+                                                <div style={{position:'absolute',bottom:'28px',left:'2px',background:daysLeft<=3?'rgba(239,68,68,0.9)':daysLeft<=7?'rgba(245,158,11,0.9)':'rgba(74,222,128,0.8)',borderRadius:'4px',padding:'1px 4px',fontSize:'7px',fontWeight:800,color:'#fff',zIndex:2}}>
+                                                    {daysLeft}d
+                                                </div>
+                                            )}
+                                            <div style={{marginTop:'4px'}}>{renderPreview(item)}</div>
+                                            <div style={{fontSize:'9px',fontWeight:700,color:equippedItem?'#00f2ff':'#d1d5db',textAlign:'center',lineHeight:1.3,maxWidth:'84px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                                                {lang==='ar'?item.name_ar:item.name_en}
+                                            </div>
+                                            {isExpired ? (
+                                                <div style={{fontSize:'8px',color:'#f87171',fontWeight:700,textAlign:'center'}}>
+                                                    ❌ {lang==='ar'?'منتهي':'Expired'}
+                                                </div>
+                                            ) : equippedItem?(
+                                                <button onClick={()=>onUnequip(item.type,item.id)}
+                                                    style={{width:'100%',padding:'4px 0',borderRadius:'6px',background:'rgba(239,68,68,0.11)',border:'1px solid rgba(239,68,68,0.28)',color:'#f87171',fontSize:'8px',fontWeight:800,cursor:'pointer',transition:'all 0.12s'}}
+                                                    onMouseEnter={e=>{e.currentTarget.style.background='rgba(239,68,68,0.2)';}}
+                                                    onMouseLeave={e=>{e.currentTarget.style.background='rgba(239,68,68,0.11)';}}
+                                                >{t.unequip}</button>
+                                            ):(
+                                                <button onClick={()=>onEquip(item)}
+                                                    disabled={activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES}
+                                                    style={{
+                                                        width:'100%',padding:'4px 0',borderRadius:'6px',
+                                                        background:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'rgba(255,255,255,0.03)':'rgba(74,222,128,0.11)',
+                                                        border:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'1px solid rgba(255,255,255,0.055)':'1px solid rgba(74,222,128,0.28)',
+                                                        color:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'#1f2937':'#4ade80',
+                                                        fontSize:'8px',fontWeight:800,
+                                                        cursor:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?'not-allowed':'pointer',
+                                                        opacity:activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES?0.45:1,
+                                                        transition:'all 0.12s',
+                                                    }}
+                                                    onMouseEnter={e=>{if(!(activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES))e.currentTarget.style.background='rgba(74,222,128,0.2)';}}
+                                                    onMouseLeave={e=>{if(!(activeTab==='badges'&&getEquippedBadgeCount()>=MAX_BADGES))e.currentTarget.style.background='rgba(74,222,128,0.11)';}}
+                                                >{t.equip}</button>
+                                            )}
                                         </div>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* ── Bottom bar ── */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', borderTop:'1px solid rgba(255,255,255,0.07)', background:'rgba(0,0,0,0.4)', flexShrink:0 }}>
-                        <div style={{ fontSize:'12px', fontWeight:700, color:'#facc15', flex:1 }}>🧠 {(currency||0).toLocaleString()}</div>
-                        {/* fix #5: real Public/Private toggle */}
-                        <button onClick={() => setIsPublic(v => !v)}
-                            style={{ padding:'7px 12px', borderRadius:'20px', background:isPublic?'rgba(0,242,255,0.12)':'rgba(255,80,80,0.12)', border:`1px solid ${isPublic?'rgba(0,242,255,0.3)':'rgba(255,80,80,0.3)'}`, color:isPublic?'#00f2ff':'#f87171', fontSize:'11px', fontWeight:700, cursor:'pointer', flexShrink:0, transition:'all 0.15s' }}>
-                            {isPublic?(lang==='ar'?'🌐 عام':'🌐 Public'):(lang==='ar'?'🔒 خاص':'🔒 Private')}
-                        </button>
-                        {/* fix #1: qty uses maxSendOptions from selected gift */}
-                        <div style={{ position:'relative', flexShrink:0 }}>
-                            <select value={qty} onChange={e => setQty(Number(e.target.value))}
-                                style={{ padding:'7px 24px 7px 12px', borderRadius:'20px', background:'rgba(15,15,30,0.9)', border:'1px solid rgba(255,255,255,0.15)', color:'white', fontSize:'11px', fontWeight:700, cursor:'pointer', appearance:'none', WebkitAppearance:'none', outline:'none' }}>
-                                {(selectedGift?.maxSendOptions || [1,3,5,10,20,50,99]).map(n => <option key={n} value={n}>{n}</option>)}
-                            </select>
-                            <span style={{ position:'absolute', right:'8px', top:'50%', transform:'translateY(-50%)', fontSize:'8px', color:'#9ca3af', pointerEvents:'none' }}>▼</span>
-                        </div>
-                        <button
-                            onClick={() => {
-                                if (!selectedGift) return;
-                                if (selectedGift.fromInventory) { onSendGift(selectedGift, hasDirectTarget?targetUser:null, qty, { isPublic }); onClose(); }
-                                else { var cost=(selectedGift.cost||0)*qty; if(currency<cost)return; handleSend(selectedGift,qty); }
-                            }}
-                            disabled={!selectedGift}
-                            style={{ padding:'9px 22px', borderRadius:'50px', flexShrink:0, background:selectedGift?'linear-gradient(135deg,#ec4899,#db2777)':'rgba(255,255,255,0.07)', border:'none', color:selectedGift?'white':'#4b5563', fontSize:'13px', fontWeight:900, cursor:selectedGift?'pointer':'default', boxShadow:selectedGift?'0 4px 14px rgba(236,72,153,0.45)':'none', transition:'all 0.2s' }}>
-                            {lang==='ar'?'إرسال':'Send'}{selectedGift&&qty>1?` ×${qty}`:''}
-                        </button>
-                    </div>
-                </div>
+                                    );
+                                })}
+                            </div>
+                        )
+                    )}
+                </div>{/* end body */}
             </div>
-        </PortalModal>
-        {showGiftDetail && selectedGift && <PortalModal><GiftDetailPopup /></PortalModal>}
-        </>
-    );
-}
-
-// ══════════════════════════════════════════════════
-// 🔥 COMBO SEND OVERLAY — bottom-right floating card, no backdrop
-// ══════════════════════════════════════════════════
-var ComboSendOverlay = ({ gift, target, currency, onSend, onClose, lang }) => {
-    var COMBO_DURATION = 3000; // ✅ 3 seconds
-
-    // ─── ALL STATE ───
-    var [comboCount,    setComboCount]    = useState(0);
-    var [ringProgress,  setRingProgress]  = useState(1);
-    var [comboActive,   setComboActive]   = useState(true);
-    var [totalBonus,    setTotalBonus]    = useState(0);
-    var [totalCharisma, setTotalCharisma] = useState(0);
-    var [closing,       setClosing]       = useState(false);
-    var [showFinalLog,  setShowFinalLog]  = useState(false);
-
-    // ─── ALL REFS — never go stale ───
-    var ringIntervalRef  = React.useRef(null);
-    var timerRef         = React.useRef(null);
-    var ringStartRef     = React.useRef(null);
-    var comboCountRef    = React.useRef(0);
-    var isClosedRef      = React.useRef(false);   // ✅ guard: prevent double-close
-    var onCloseRef       = React.useRef(onClose);
-    var currencyRef      = React.useRef(currency);
-    useEffect(() => { onCloseRef.current = onClose; },  [onClose]);
-    useEffect(() => { currencyRef.current = currency; }, [currency]);
-
-    // ─── CLOSE — called only once ───
-    var close = React.useCallback(() => {
-        if (isClosedRef.current) return;      // ✅ prevent double-fire
-        isClosedRef.current = true;
-        clearInterval(ringIntervalRef.current);
-        clearTimeout(timerRef.current);
-        setClosing(true);
-        if (comboCountRef.current > 0) {
-            setShowFinalLog(true);
-            setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 1800);
-        } else {
-            setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 350);
-        }
-    }, []); // ✅ empty deps — never recreated, never stale
-
-    // ─── COUNTDOWN ───
-    var startCountdown = React.useCallback(() => {
-        clearInterval(ringIntervalRef.current);
-        clearTimeout(timerRef.current);
-        ringStartRef.current = Date.now();
-        setRingProgress(1);
-        setComboActive(true);
-        ringIntervalRef.current = setInterval(() => {
-            var elapsed  = Date.now() - ringStartRef.current;
-            var progress = 1 - elapsed / COMBO_DURATION;
-            if (progress <= 0) {
-                clearInterval(ringIntervalRef.current);
-                setRingProgress(0);
-                setComboActive(false);
-            } else {
-                setRingProgress(progress);
-            }
-        }, 40);
-        timerRef.current = setTimeout(() => {
-            clearInterval(ringIntervalRef.current);
-            close();
-        }, COMBO_DURATION + 80);
-    }, [close]);
-
-    // ─── MOUNT / UNMOUNT ───
-    useEffect(() => {
-        isClosedRef.current = false;
-        startCountdown();
-        return () => {
-            clearInterval(ringIntervalRef.current);
-            clearTimeout(timerRef.current);
-        };
-    }, []); // ✅ run only once on mount
-
-    // ─── TAP HANDLER — uses refs, never stale ───
-    var handleTap = React.useCallback((e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (isClosedRef.current) return;
-        if (currencyRef.current < gift.cost) return;
-        onSend(gift, target, 1);
-        var bonus    = generateRandomBonus(gift.minBonus || 1, gift.maxBonus || Math.floor(gift.cost * 0.1), gift.cost);
-        var charisma = gift.charisma || 0;
-        setTotalBonus   (prev => prev + bonus);
-        setTotalCharisma(prev => prev + charisma);
-        comboCountRef.current += 1;
-        setComboCount(comboCountRef.current);
-        startCountdown(); // ✅ reset timer on every tap
-    }, [gift, target, onSend, startCountdown]);
-
-    var RING_R    = 42;
-    var RING_C    = 2 * Math.PI * RING_R;
-    var ringColor = comboCountRef.current >= 10 ? '#f59e0b'
-                    : comboCountRef.current >= 5  ? '#a78bfa'
-                    : '#00d4ff';
-
-    // ─── FINAL LOG CARD ───
-    if (showFinalLog && comboCountRef.current > 0) {
-        return (
-            <div style={{
-                position:'fixed', bottom:'80px', right:'12px', zIndex:Z.OVERLAY,
-                width:'200px',
-                background:'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
-                border:`1px solid ${ringColor}55`,
-                borderRadius:'16px', padding:'14px',
-                boxShadow:`0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${ringColor}22`,
-                animation:'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                pointerEvents:'none',
-            }}>
-                <div style={{textAlign:'center',marginBottom:'10px'}}>
-                    <div style={{fontSize:'28px',marginBottom:'2px'}}>
-                        {gift.imageUrl?<img src={gift.imageUrl} alt="" style={{width:'34px',height:'34px',objectFit:'contain'}}/>:gift.emoji}
-                    </div>
-                    <div style={{fontSize:'15px',fontWeight:900,color:ringColor,textShadow:`0 0 12px ${ringColor}`}}>
-                        ×{comboCount} COMBO! 🎉
-                    </div>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
-                    <div style={{background:'rgba(74,222,128,0.08)',border:'1px solid rgba(74,222,128,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
-                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'بونص':'Bonus'}</div>
-                        <div style={{fontSize:'13px',fontWeight:900,color:'#4ade80'}}>+{fmtNum(totalBonus)}🧠</div>
-                    </div>
-                    <div style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',borderRadius:'8px',padding:'6px',textAlign:'center'}}>
-                        <div style={{fontSize:'8px',color:'#6b7280',fontWeight:700}}>{lang==='ar'?'نجوم':'Stars'}</div>
-                        <div style={{fontSize:'13px',fontWeight:900,color:'#fbbf24'}}>+{formatCharisma(totalCharisma)}⭐</div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // ─── MAIN COMBO CARD ───
-    return (
-        <div
-            style={{
-                position:'fixed', bottom:'80px', right:'12px', zIndex:Z.OVERLAY,
-                width:'160px',
-                background:'linear-gradient(135deg,rgba(15,15,35,0.97),rgba(8,8,22,0.98))',
-                border:`1.5px solid ${ringColor}66`,
-                borderRadius:'18px', padding:'14px 12px',
-                boxShadow:`0 8px 32px rgba(0,0,0,0.65), 0 0 24px ${ringColor}22`,
-                animation: closing
-                    ? 'toast-slide-up 0.35s ease forwards'
-                    : 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-                display:'flex', flexDirection:'column', alignItems:'center', gap:'10px',
-            }}
-            onPointerDown={e => e.stopPropagation()}
-            onClick={e => e.stopPropagation()}
-        >
-            {/* Gift image + name */}
-            <div style={{textAlign:'center'}}>
-                {gift.imageUrl
-                    ? <img src={gift.imageUrl} alt={gift.name_en} style={{width:'48px',height:'48px',objectFit:'contain'}}/>
-                    : <span style={{fontSize:'38px',lineHeight:1}}>{gift.emoji||'🎁'}</span>
-                }
-                <div style={{fontSize:'10px',fontWeight:800,color:'#f1f5f9',marginTop:'3px'}}>
-                    {lang==='ar'?gift.name_ar:gift.name_en}
-                </div>
-                <div style={{fontSize:'9px',color:'#fbbf24',fontWeight:700}}>
-                    {gift.cost} 🧠 {lang==='ar'?'لكل إرسال':'each'}
-                </div>
-            </div>
-
-            {/* Combo counter */}
-            {comboCount > 0 && (
-                <div style={{
-                    fontSize:'16px',fontWeight:900,color:ringColor,
-                    textShadow:`0 0 16px ${ringColor}`,
-                    animation:comboCount>=5?'mythic-pulse 0.6s ease-in-out infinite':'none',
-                }}>
-                    ×{comboCount} COMBO!
-                </div>
-            )}
-
-            {/* ✅ FIX: entire 100×100 area tappable — not just the inner button */}
-            <div
-                onPointerDown={currency >= gift.cost ? handleTap : undefined}
-                style={{
-                    position:'relative', width:'100px', height:'100px',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
-                    userSelect:'none', WebkitUserSelect:'none',
-                    touchAction:'manipulation',
-                    WebkitTapHighlightColor:'transparent',
-                }}
-            >
-                {/* SVG ring — pointer-events none so parent gets all taps */}
-                <svg width="100" height="100" style={{position:'absolute',top:0,left:0,transform:'rotate(-90deg)',pointerEvents:'none'}}>
-                    <circle cx="50" cy="50" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
-                    <circle
-                        cx="50" cy="50" r={RING_R} fill="none"
-                        stroke={comboActive?ringColor:'rgba(255,255,255,0.15)'}
-                        strokeWidth="5"
-                        strokeDasharray={RING_C}
-                        strokeDashoffset={RING_C*(1-ringProgress)}
-                        strokeLinecap="round"
-                        style={{filter:comboActive?`drop-shadow(0 0 6px ${ringColor})`:'none',transition:'stroke 0.3s'}}
-                    />
-                </svg>
-                {/* Inner visual button — pointer-events none */}
-                <div style={{
-                    width:'76px', height:'76px', borderRadius:'50%',
-                    background:comboActive
-                        ?`linear-gradient(135deg,${ringColor}cc,${ringColor}88)`
-                        :'rgba(100,100,100,0.2)',
-                    boxShadow:comboActive?`0 0 24px ${ringColor}88`:'none',
-                    transition:'background 0.15s,box-shadow 0.15s',
-                    pointerEvents:'none',
-                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'2px',
-                }}>
-                    <span style={{fontSize:'20px',lineHeight:1}}>{gift.emoji||'🎁'}</span>
-                    <span style={{fontSize:'9px',fontWeight:800,color:'#fff',opacity:0.9}}>
-                        {lang==='ar'?'اضغط!':'TAP!'}
-                    </span>
-                </div>
-            </div>
-
-            {totalBonus > 0 && (
-                <div style={{fontSize:'10px',fontWeight:800,color:'#4ade80',textAlign:'center'}}>
-                    +{fmtNum(totalBonus)} 🧠
-                </div>
-            )}
         </div>
+
+        {/* ✅ FIX2: Item Detail Popup */}
+        {detailItem && <ItemDetailPopup item={detailItem} onClose={()=>setDetailItem(null)} />}
+
+        {/* Gift Preview Modal — rendered via Portal, using the helper for reliable access */}
+        {showGiftPreview && selectedGift && ReactDOM.createPortal(
+            (() => {
+                var GPM = getGiftPreviewModal();
+                if (!GPM) {
+                    console.warn('GiftPreviewModal not yet available in window');
+                    return null;
+                }
+                return (
+                    <GPM
+                        show={showGiftPreview}
+                        onClose={()=>setShowGiftPreview(false)}
+                        gift={selectedGift}
+                        lang={lang}
+                        onBuy={()=>{}}
+                        currency={userData?.currency||0}
+                        isFromInventory={true}
+                        onSendFromInventory={onSendGift}
+                        friendsData={friendsData}
+                        currentUserData={currentUserData}
+                        user={user}
+                    />
+                );
+            })(),
+            document.body
+        )}
+        </>
     );
 };
 
-window.EmojiPicker = EmojiPicker;
-window.GiftPreviewModal = GiftPreviewModal;
-window.SendGiftModal = SendGiftModal;
-window.ComboSendOverlay = ComboSendOverlay;
+// 👤 USER PROFILE MODAL - WITH GIFT LOG
+// Blocked User Item Component
 
+    // ── Exports ──
+    window.ShopModal = ShopModal;
+    window.InventoryModal = InventoryModal;
+    window.ReclaimSentPackets = ReclaimSentPackets;
 })();
