@@ -70,7 +70,20 @@
                                     : '👨‍👩‍👧'}
                             </div>
                             <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={()=>setShowDetails(true)}>
-                                <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeGroup.name}</div>
+                                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                    <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{activeGroup.name}</div>
+                                    {activeGroup.familyTag && window.FamilySignBadge && (
+                                        <div style={{transform:'scale(0.85)',transformOrigin:'left center',flexShrink:0}}>
+                                            <window.FamilySignBadge 
+                                                tag={activeGroup.familyTag} 
+                                                signLevel={activeGroup.familySignLevel || 1} 
+                                                color={activeGroup.familySignColor || (window.FamilyConstants?.getFamilySignLevelDataByLevel?.(activeGroup.familySignLevel || 1)?.color) || '#00f2ff'}
+                                                imageURL={window.FamilyConstants?.getFamilySignImage?.(0, activeGroup.familySignLevel || 1) || activeGroup.familySignImageURL}
+                                                small={true}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                                 <div style={{fontSize:'10px',color:'#6b7280',display:'flex',alignItems:'center',gap:'6px'}}>
                                     <span>{activeGroup.members?.length||1} {lang==='ar'?'عضو':'members'}</span>
                                     <span style={{color:grpLvl.color,fontWeight:700}}>{grpLvl.icon} Lv.{grpLvl.level}</span>
