@@ -226,7 +226,10 @@
               /* Left: back button (when in game) OR title */
               activeGame
                 ? React.createElement('button', {
-                    onClick: function() { setActiveGame(null); },
+                    onClick: function() { 
+                      setActiveGame(null); 
+                      if (window.LuckyFruitGame && typeof window.LuckyFruitGame.stop === 'function') window.LuckyFruitGame.stop();
+                    },
                     style: {
                       background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
                       borderRadius: '10px', color: '#fff', fontSize: '13px', fontWeight: 800,
