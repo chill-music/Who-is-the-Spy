@@ -70,18 +70,32 @@
 
       /* TOP NAV */
       '<div class="lf-top-nav">',
-        '<button class="lf-nav-btn" id="lf-muteBtn">&#128266;</button>',
-        '<button class="lf-nav-btn" id="lf-rulesBtn">&#9776;</button>',
+        '<button class="lf-nav-btn" id="lf-muteBtn" title="Mute/Unmute">&#128266;</button>',
+        '<button class="lf-nav-btn" id="lf-wheelBtn" title="Lucky Wheel">🎡</button>',
+        '<button class="lf-nav-btn" id="lf-rulesBtn" title="Rules">&#9776;</button>',
         '<div class="lf-coin-display">',
           '<span class="lf-coin-star">🧠</span>',
           '<span id="lf-coins">1000</span>',
         '</div>',
         /* Avatar — photo loaded dynamically via React */
-        '<div id="lf-avatar" style="cursor:pointer;position:relative;width:48px;height:48px;flex-shrink:0;"></div>',
+        '<div id="lf-avatar" style="cursor:pointer;position:relative;width:48px;height:48px;flex-shrink:0;margin-left:4px;"></div>',
+      '</div>',
+      
+      /* WHEEL OVERLAY (NEW) */
+      '<div class="lf-wheel-overlay" id="lf-wheelOverlay" style="display:none;">',
+        '<div class="lf-overlay-title">🎡 ' + (lang==='ar'?'عجلة الحظ':'Lucky Wheel') + '</div>',
+        '<div class="lf-wheel-container">',
+          '<div class="lf-wheel-pointer"></div>',
+          '<div class="lf-wheel-spinner" id="lf-wheelSpinner"></div>',
+          '<div class="lf-wheel-center"></div>',
+        '</div>',
+        '<button class="lf-wheel-btn" id="lf-spinWheelBtn">' + (lang==='ar'?'دوران':'SPIN') + '</button>',
+        '<div class="lf-wheel-timer" id="lf-wheelTimer"></div>',
+        '<button class="lf-nav-btn" style="margin-top:20px;width:auto;padding:0 20px;border-radius:10px" id="lf-closeWheelBtn">' + (lang==='ar'?'إغلاق':'Close') + '</button>',
       '</div>',
 
-      /* FREE SPINS BANNER */
-      '<div class="lf-fs-banner" id="lf-fsBanner">',
+      /* FREE SPINS BANNER (HIDDEN) */
+      '<div class="lf-fs-banner" id="lf-fsBanner" style="display:none;">',
         '&#127808; ' + T('FREE_SPINS') + '! <span id="lf-fsCount">0</span> ' + T('SPINS_LEFT'),
       '</div>',
 
@@ -601,8 +615,13 @@
     sessionSpins++;
 
     spinning = true;
-    $('lf-spinBtn').disabled = true;
-    $('lf-winText').textContent = T('WIN') + ' 0';
+    var sBtn = $('lf-spinBtn');
+    if (sBtn) sBtn.disabled = true;
+    var wText = $('lf-winText');
+    if (wText) {
+      wText.textContent = T('WIN') + ' 0';
+      wText.classList.remove('large-win-glow');
+    }
     clearHighlights(); clearWinLines();
     soundSpinStart(); startReelTicks();
 
@@ -710,8 +729,14 @@
       highlightCells(winningCells); drawWinLines(winningLines); spawnCoins(); updateProgress(totalWin);
       if (totalWin >= cost*lines*20) soundBigWin(); else soundCoinWin();
       var wt = $('lf-winText');
-      wt.textContent = T('WIN') + ' ' + totalWin; wt.classList.add('big-win');
-      setTimeout(function(){ wt.classList.remove('big-win'); }, 600);
+      if (wt) {
+        wt.textContent = T('WIN') + ' ' + totalWin.toLocaleString();
+        wt.classList.add('big-win');
+        if (totalWin >= totalCost * 15) {
+          wt.classList.add('large-win-glow');
+        }
+        setTimeout(function(){ wt.classList.remove('big-win'); }, 600);
+      }
       if (totalWin >= cost*lines*20) {
         var title = totalWin >= cost*lines*50 ? T('MEGA_WIN') : T('BIG_WIN');
         setTimeout(function(){ showWinOverlay(title, totalWin); launchConfetti(50); }, 400);
@@ -934,6 +959,10 @@
       soundOn=!soundOn; $('lf-muteBtn').textContent=soundOn?'\uD83D\uDD0A':'\uD83D\uDD07';
       if(soundOn) soundClick();
     };
+    $('lf-wheelBtn').onclick = openLuckyWheel;
+    $('lf-closeWheelBtn').onclick = function(){ $('lf-wheelOverlay').style.display='none'; };
+    $('lf-spinWheelBtn').onclick = spinLuckyWheel;
+
     $('lf-rulesBtn').onclick  = function(){ soundClick(); $('lf-rulesOverlay').classList.add('show'); };
     $('lf-rulesClose').onclick = function(){ $('lf-rulesOverlay').classList.remove('show'); };
     $('lf-overlayClose').onclick = function(){ $('lf-winOverlay').classList.remove('show'); };
@@ -941,6 +970,133 @@
     window.lfCloseOverlay = function(){ $('lf-winOverlay').classList.remove('show'); };
     window.lfCloseRules   = function(){ $('lf-rulesOverlay').classList.remove('show'); };
     window.addEventListener('resize', resizeCanvas);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     17. LUCKY WHEEL (24H COOLDOWN)
+  ══════════════════════════════════════════════════════════ */
+  var wheelSpinning = false;
+  function openLuckyWheel() {
+    soundClick();
+    var overlay = $('lf-wheelOverlay');
+    overlay.style.display = 'flex';
+    
+    // Build wheel segments if empty
+    var spinner = $('lf-wheelSpinner');
+    if (!spinner.innerHTML) {
+      var rewards = [50, 100, 300, 50, 500, 100, 5000, 50];
+      var colors = ['#4A2B9B', '#6B3FD4', '#4A2B9B', '#6B3FD4', '#4A2B9B', '#6B3FD4', '#FFD700', '#6B3FD4'];
+      rewards.forEach(function(amt, i) {
+        var seg = document.createElement('div');
+        seg.className = 'lf-wheel-segment';
+        seg.style.transform = 'rotate(' + (i * 45) + 'deg) skewY(-45deg)';
+        seg.style.background = colors[i];
+        seg.innerHTML = '<span style="transform: skewY(45deg) rotate(22.5deg) translateY(10px); display:inline-block;">' + amt + '</span>';
+        spinner.appendChild(seg);
+      });
+    }
+
+    updateWheelStatus();
+  }
+
+  function updateWheelStatus() {
+    var last = 0;
+    try {
+      var state = window.lfGameUserData || window.userData || window.currentUserData;
+      last = state?.lastWheelSpin || 0;
+      if (last instanceof firebase.firestore.Timestamp) last = last.toMillis();
+    } catch(e) {}
+
+    var now = Date.now();
+    var cooldown = 24 * 60 * 60 * 1000;
+    var remaining = (last + cooldown) - now;
+
+    var btn = $('lf-spinWheelBtn');
+    var timer = $('lf-wheelTimer');
+
+    if (remaining > 0) {
+      btn.disabled = true;
+      startWheelTimer(remaining);
+    } else {
+      btn.disabled = false;
+      timer.textContent = lang==='ar'?'جاهز للدوران!':'Ready to spin!';
+    }
+  }
+
+  var wheelTimerInt;
+  function startWheelTimer(remain) {
+    if (wheelTimerInt) clearInterval(wheelTimerInt);
+    function fmt() {
+      if (remain <= 0) {
+        clearInterval(wheelTimerInt);
+        updateWheelStatus();
+        return;
+      }
+      var h = Math.floor(remain / 3600000);
+      var m = Math.floor((remain % 3600000) / 60000);
+      var s = Math.floor((remain % 60000) / 1000);
+      $('lf-wheelTimer').textContent = (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+      remain -= 1000;
+    }
+    fmt();
+    wheelTimerInt = setInterval(fmt, 1000);
+  }
+
+  async function spinLuckyWheel() {
+    if (wheelSpinning) return;
+    soundSpinStart();
+    wheelSpinning = true;
+    $('lf-spinWheelBtn').disabled = true;
+
+    var rewards = [50, 100, 300, 50, 500, 100, 5000, 50];
+    // Probabilities (not truly random per segment, but we force a result)
+    // 50: 4/8 (50%), 100: 2/8 (25%), 300: 1/8 (12.5%), 500: 1/16, 5000: very rare
+    var rand = Math.random();
+    var targetIdx = 0;
+    if (rand < 0.01) targetIdx = 6; // 5000 (1%)
+    else if (rand < 0.1) targetIdx = 4; // 500 (9%)
+    else if (rand < 0.25) targetIdx = 2; // 300 (15%)
+    else if (rand < 0.55) targetIdx = 1; // 100 (30%)
+    else targetIdx = (Math.random() > 0.5 ? 0 : (Math.random() > 0.5 ? 3 : 7)); // 50 (45%)
+
+    var extraSpins = 5 + Math.floor(Math.random() * 5);
+    var finalDeg = (extraSpins * 360) + (targetIdx * 45) + 22.5; 
+    // Wheel pointer is at top (0 deg). Segment 0 is at 0-45 deg.
+    // To land on segment I, we need to rotate pointer to I or rotate wheel to -I.
+    // If spinner rotates clockwise, degrees increase. 
+    // 0 deg = segment 0. 45 deg = segment 7. 90 deg = segment 6.
+    // Let's invert targetIdx:
+    var rotation = 3600 + (360 - (targetIdx * 45)) - 22.5;
+
+    $('lf-wheelSpinner').style.transform = 'rotate(' + rotation + 'deg)';
+
+    setTimeout(async function() {
+      wheelSpinning = false;
+      var amt = rewards[targetIdx];
+      soundBigWin();
+      launchConfetti(20);
+      
+      var msg = (lang==='ar'?'ربحت ':'You won ') + amt + ' ' + (lang==='ar'?'كوينز!':'coins!');
+      if (typeof window.showToast === 'function') window.showToast(msg, 'success');
+      else alert(msg);
+
+      // Save to Firebase
+      try {
+        var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
+        if (authUser) {
+          var now = firebase.firestore.FieldValue.serverTimestamp();
+          await window.firebase.firestore().collection('users').doc(authUser.uid).update({
+            currency: firebase.firestore.FieldValue.increment(amt),
+            lastWheelSpin: now
+          });
+          // Update local state if it exists
+          if (window.lfGameUserData) window.lfGameUserData.lastWheelSpin = Date.now();
+          if (window.userData) window.userData.lastWheelSpin = Date.now();
+        }
+      } catch(e) { console.error('[Wheel] Save error:', e); }
+
+      updateWheelStatus();
+    }, 4100);
   }
 
   /* ══════════════════════════════════════════════════════════
