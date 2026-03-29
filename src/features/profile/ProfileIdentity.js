@@ -76,14 +76,23 @@ var ProfileIdentity = ({
                     {/* فاميلي ساين جنب الكاريزما على الشمال */}
                     {targetData?.familyTag && window.FamilySignBadge && (
                         <div style={{transform:'scale(0.9)', transformOrigin:'left center'}}>
-                            <window.FamilySignBadge
-                                tag={targetData.familyTag}
-                                color={targetData.familySignColor || window.FamilyConstants?.getFamilySignLevelDataByLevel?.(targetData.familySignLevel || 1)?.color || '#6b7280'}
-                                signLevel={targetData.familySignLevel || 1}
-                                imageURL={window.FamilyConstants?.getFamilySignImage?.(0, targetData.familySignLevel || 1)}
-                                small={true}
-                                onClick={onOpenFamily ? () => onOpenFamily(targetData?.familyId) : undefined}
-                            />
+                            {(() => {
+                                // Sync with real family level if possible to avoid "stuck at Lv.1" issue
+                                var flvl = targetData.familySignLevel || 1;
+                                if (targetData.tribeFamilySignLevel) flvl = targetData.tribeFamilySignLevel;
+                                var fColor = targetData.familySignColor || window.FamilyConstants?.getFamilySignLevelDataByLevel?.(flvl)?.color || '#6b7280';
+                                var fImg = window.FamilyConstants?.getFamilySignImage?.(0, flvl) || targetData.familySignImageURL;
+                                return (
+                                    <window.FamilySignBadge
+                                        tag={targetData.familyTag}
+                                        color={fColor}
+                                        signLevel={flvl}
+                                        imageURL={fImg}
+                                        small={true}
+                                        onClick={onOpenFamily ? () => onOpenFamily(targetData?.familyId) : undefined}
+                                    />
+                                );
+                            })()}
                         </div>
                     )}
                 </div>
