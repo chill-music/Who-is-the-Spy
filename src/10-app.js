@@ -139,6 +139,14 @@
         
         var { showLoginRewards, setShowLoginRewards, sessionClaimedToday, setSessionClaimedToday, handleClaimLoginReward } = window.useLoginRewards({ user, isLoggedIn, userData, lang, setNotification });
 
+        // Expose setNotification to window for global showToast
+        useEffect(() => {
+            window.setGlobalNotification = (msg) => {
+                if (typeof setNotification === 'function') setNotification(msg);
+            };
+            return () => { delete window.setGlobalNotification; };
+        }, [setNotification]);
+
         // ── Specialized Listeners ──
         usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
         useNotifications({ user, isLoggedIn, userData, notificationBellRef, setNotifications, setUnreadNotifications });
