@@ -57,8 +57,12 @@
         var userRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : (currentUserData?.role || 'user');
 
         return (
-            <div className="admin-panel-overlay" style={{ position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(0,0,0,0.85)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(10px)' }}>
-                <div className="admin-panel-container" style={{ width:'95%', maxWidth:'1000px', height:'90%', background:'#0f172a', borderRadius:'24px', border:'1px solid rgba(255,255,255,0.1)', display:'flex', overflow:'hidden', boxShadow:'0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+            <div className="admin-panel-overlay" 
+                onClick={onClose}
+                style={{ position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(0,0,0,0.85)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(10px)' }}>
+                <div className="admin-panel-container" 
+                    onClick={e => e.stopPropagation()}
+                    style={{ width:'95%', maxWidth:'1000px', height:'90%', background:'#0f172a', borderRadius:'24px', border:'1px solid rgba(255,255,255,0.1)', display:'flex', overflow:'hidden', boxShadow:'0 25px 50px -12px rgba(0,0,0,0.5)' }}>
                     
                     {/* Sidebar */}
                     <div style={{ width:'240px', background:'rgba(255,255,255,0.02)', borderRight:'1px solid rgba(255,255,255,0.05)', display:'flex', flexDirection:'column' }}>
