@@ -398,18 +398,25 @@
                         <div style={{ padding:'0 14px 16px', position:'relative' }}>
                             <div style={{ display:'flex', alignItems:'flex-end', gap:'12px', marginTop:'-36px', marginBottom:'10px' }}>
                                 <div onClick={() => { onClose(); if(onOpenProfile) onOpenProfile(profile.uid); }}
-                                    style={{ position:'relative', width:'76px', height:'76px', borderRadius:'50%',
-                                        border: vipColor ? `3px solid ${vipColor}` : '3px solid #0d0d1f',
+                                    style={{ position:'relative', width:'76px', height:'76px', flexShrink:0, zIndex:2, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                    
+                                    {/* Circular Photo Container */}
+                                    <div style={{
+                                        width:'68px', height:'68px', borderRadius:'50%',
+                                        border: vipColor ? `2px solid ${vipColor}` : '2px solid rgba(255,255,255,0.1)',
                                         overflow:'hidden', background:'#1a1a2e',
-                                        boxShadow: vipColor ? `0 0 16px ${vipColor}88, 0 4px 16px rgba(0,0,0,0.7)` : '0 4px 16px rgba(0,0,0,0.7)',
-                                        flexShrink:0, zIndex:2, cursor:'pointer' }}>
-                                    {profile.photo
-                                        ? <img src={profile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                                        : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px'}}>😎</div>}
+                                        boxShadow: vipColor ? `0 0 16px ${vipColor}44, 0 4px 12px rgba(0,0,0,0.5)` : '0 4px 12px rgba(0,0,0,0.5)',
+                                        position:'relative', zIndex:1
+                                    }}>
+                                        {profile.photo
+                                            ? <img src={profile.photo} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                                            : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px'}}>😎</div>}
+                                    </div>
+
+                                    {/* Frame Overlay (Larger than photo, no overflow hidden) */}
                                     {(() => {
                                         var fSrc = profile.equippedFrame;
                                         if (!fSrc || fSrc === 'none') return null;
-                                        // If it's just an ID like 'frame_img', look it up
                                         if (!fSrc.startsWith('http') && !fSrc.startsWith('/') && !fSrc.startsWith('data:')) {
                                             var found = (window.SHOP_ITEMS?.frames || []).find(f => f.id === fSrc);
                                             if (found) fSrc = found.preview || found.imageUrl;
@@ -420,7 +427,12 @@
                                                 src={fSrc}
                                                 alt=""
                                                 onError={e => { e.target.style.display='none'; }}
-                                                style={{position:'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) scale(1.14)', width:'100%', height:'100%', objectFit:'contain', pointerEvents:'none'}}
+                                                style={{
+                                                    position:'absolute', top: '50%', left: '50%', 
+                                                    transform: 'translate(-50%, -50%)', 
+                                                    width:'124%', height:'124%', 
+                                                    objectFit:'contain', pointerEvents:'none', zIndex:2
+                                                }}
                                             />
                                         );
                                     })()}
