@@ -1,6 +1,11 @@
 (function() {
     var { useState, useEffect, useRef, useCallback, useMemo } = React;
-    // Late-bind helpers from ProfileHelpers.js
+    // Late-bind helpers and sub-components for hybrid architecture safety
+    // NOTE: RingsShopSection and GiftPreviewModal might be loaded AFTER this file, 
+    // so we access them via window during render or as early as possible.
+    var getRingsShopSection = () => window.RingsShopSection;
+    var getGiftPreviewModal = () => window.GiftPreviewModal;
+
     var getGiftRarity = function(cost) {
         if (window.getGiftRarity) return window.getGiftRarity(cost);
         if (cost >= 10000) return 'Mythic';
@@ -9,7 +14,6 @@
         if (cost >= 15)    return 'Uncommon';
         return 'Common';
     };
-    // NOTE: RingsShopSection is loaded AFTER this file, so we must read it late (at render time)
 
 // ═══════════════════════════════════════════════════════════════
 // 🛒  SHOP MODAL — Premium Dark Gaming Store
@@ -229,21 +233,17 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
                 }}>
 
                     {/* ════ RINGS ════ */}
-                    {activeTab === 'rings' && (() => {
-                        var RSS = window.RingsShopSection;
-                        if (!RSS) return (
-                            <div style={{padding:'32px',textAlign:'center',color:'#6b7280',fontSize:'12px'}}>
-                                ⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}
-                            </div>
-                        );
-                        return (
-                            <RSS
-                                userData={userData} lang={lang} currentUID={currentUID}
-                                onPropose={onPropose||(() => {})} coupleData={coupleData}
-                                onOpenCoupleCard={onOpenCoupleCard}
-                            />
-                        );
-                    })()}
+                    {activeTab === 'rings' && (getRingsShopSection() ? (
+                        <window.RingsShopSection
+                            userData={userData} lang={lang} currentUID={currentUID}
+                            onPropose={onPropose||(() => {})} coupleData={coupleData}
+                            onOpenCoupleCard={onOpenCoupleCard}
+                        />
+                    ) : (
+                        <div style={{padding:'32px',textAlign:'center',color:'#6b7280',fontSize:'12px'}}>
+                            ⏳ {lang==='ar'?'جاري التحميل...':'Loading...'}
+                        </div>
+                    ))}
 
                     {/* ════ BFF TOKENS ════ */}
                     {activeTab === 'bff_tokens' && (
@@ -846,8 +846,11 @@ var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip
             (() => {
                 // للهدايا: نستخدم GiftPreviewModal الأصلي
                 if (selectedItem.type === 'gifts' || selectedItem.type === 'gifts_vip') {
-                    var GPM = window.GiftPreviewModal;
-                    if (!GPM) return null;
+                    var GPM = getGiftPreviewModal();
+                    if (!GPM) {
+                        console.warn('GiftPreviewModal not yet available in window');
+                        return null;
+                    }
                     return (
                         <GPM
                             show={showPreview}
@@ -1522,11 +1525,14 @@ var InventoryModal = ({ show, onClose, userData, lang, onEquip, onUnequip, onSen
         {/* ✅ FIX2: Item Detail Popup */}
         {detailItem && <ItemDetailPopup item={detailItem} onClose={()=>setDetailItem(null)} />}
 
-        {/* Gift Preview Modal — rendered via Portal, using window.GiftPreviewModal for late-binding */}
-        {showGiftPreview&&selectedGift&&ReactDOM.createPortal(
+        {/* Gift Preview Modal — rendered via Portal, using the helper for reliable access */}
+        {showGiftPreview && selectedGift && ReactDOM.createPortal(
             (() => {
-                var GPM = window.GiftPreviewModal;
-                if (!GPM) return null;
+                var GPM = getGiftPreviewModal();
+                if (!GPM) {
+                    console.warn('GiftPreviewModal not yet available in window');
+                    return null;
+                }
                 return (
                     <GPM
                         show={showGiftPreview}
