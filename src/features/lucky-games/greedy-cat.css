@@ -1,0 +1,884 @@
+/* ══════════════════════════════════════════════════════════════════
+   GREEDY CAT – Lucky Games Hub
+   Scoped Stylesheet – greedy-cat.css
+   ══════════════════════════════════════════════════════════════════ */
+
+#gc-root-hub {
+  --gc-sky: #29bde8;
+  --gc-sky-dark: #1a9ec7;
+  --gc-sky-light: #5dd2f3;
+  --gc-gold: #f6c94e;
+  --gc-gold-dark: #e0a820;
+  --gc-gold-rim: #c87c1a;
+  --gc-wood: #c0692a;
+  --gc-wood-dark: #8b4513;
+  --gc-cream: #fffde8;
+  --gc-cream2: #fff8c5;
+  --gc-red: #e63946;
+  --gc-green: #2dc653;
+  --gc-shadow: rgba(0,0,0,0.25);
+  --gc-radius: 16px;
+  
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #29bde8 0%, #1a9ec7 60%, #d44b1e 60%, #d44b1e 100%);
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+  color: #fff;
+}
+
+#gc-root-hub * { box-sizing: border-box; }
+
+/* ─── APP WRAPPER DECORATION ──────────────────────────────────────── */
+#gc-root-hub::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 30px,
+    rgba(255,255,255,0.04) 30px,
+    rgba(255,255,255,0.04) 31px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── TOP BAR ────────────────────────────────────────────────────── */
+#gc-topbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 4px;
+}
+
+#gc-ticker {
+  flex: 1;
+  margin: 0 8px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Avatar box — sizing and border handled by the inner React avatar component */
+#gc-avatar-box {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #FFD700, #FFF9C4, #FFA500, #FFD700, #FFFDE7, #FFD700);
+  box-shadow: 0 0 12px rgba(255,200,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
+  cursor: pointer;
+  overflow: visible;
+}
+
+#gc-avatar-mount {
+  position: absolute;
+  inset: 3px;  /* sits inside the golden ring */
+  border-radius: 50%;
+  overflow: hidden;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Remove the yellow LUCKY badge */
+#gc-lucky-badge {
+  display: none;
+}
+
+/* ─── ROUND ID ───────────────────────────────────────────────────── */
+#gc-round-id {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  letter-spacing: 0.5px;
+  padding: 2px 0 4px;
+}
+
+/* ─── INFO BUTTON ───────────────────────────────────────────────── */
+#gc-btn-info {
+  position: absolute;
+  left: 12px;
+  top: 70px;
+  z-index: 20;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #aaa;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 900;
+  color: #4a90d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px var(--gc-shadow);
+}
+
+/* ─── AUDIO TOGGLE BUTTON ───────────────────────────────────────── */
+#gc-btn-audio {
+  position: absolute;
+  right: 12px;
+  top: 70px;
+  z-index: 20;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #aaa;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px var(--gc-shadow);
+}
+
+/* ─── WHEEL SCENE WRAPPER ────────────────────────────────────────── */
+#gc-wheel-scene {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 8px;
+}
+
+#gc-stand {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 90px;
+  background: linear-gradient(180deg, var(--gc-wood) 0%, var(--gc-wood-dark) 100%);
+  clip-path: polygon(30% 0%, 70% 0%, 95% 100%, 5% 100%);
+  border-radius: 0 0 8px 8px;
+  z-index: 1; /* Always behind the wheel */
+}
+
+#gc-wheel {
+  position: relative;
+  z-index: 2; /* Always above the stand */
+  width: 290px;
+  height: 290px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, var(--gc-wood) 38%, transparent 38%),
+    linear-gradient(135deg, #d4832a 0%, #c0692a 50%, #8b4513 100%);
+  box-shadow:
+    0 0 0 8px var(--gc-gold-rim),
+    0 0 0 12px var(--gc-wood-dark),
+    0 8px 24px rgba(0,0,0,0.4);
+  z-index: 2; /* Always above the stand */
+}
+
+#gc-wheel::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    var(--gc-gold) 0deg 4deg,
+    transparent 4deg 45deg
+  );
+  opacity: 0.7;
+}
+
+.gc-spoke {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1; /* behind slots */
+  width: 120px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gc-wood-dark), var(--gc-wood));
+  transform-origin: left center;
+  border-radius: 2px;
+}
+
+.gc-slot {
+  position: absolute;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: var(--gc-cream);
+  border: 4px solid var(--gc-gold-rim);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  overflow: visible; /* allow badge to overflow slightly */
+  z-index: 4;
+}
+
+.gc-slot:hover {
+  transform: scale(1.08) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.gc-slot.selected {
+  border-color: var(--gc-red);
+  box-shadow: 0 0 0 3px var(--gc-red), 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.gc-slot.winner-flash { animation: gc-winner-pulse 0.5s ease 4; }
+@keyframes gc-winner-pulse {
+  0%, 100% { background: var(--gc-cream); }
+  50% { background: #fff176; }
+}
+
+/* -- Emoji: sits above the wooden panel with z-index -- */
+.gc-slot-emoji {
+  font-size: 32px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  margin: 0 0 14px 0; /* push up slightly above the mult badge */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+}
+
+/* -- Wooden score panel: absolutely positioned at the bottom, behind emoji -- */
+.gc-slot-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;          /* below the emoji */
+  background: linear-gradient(180deg, var(--gc-cream2), var(--gc-gold) 60%);
+  border-top: 2px solid var(--gc-gold-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 0;
+}
+/* Multiplier badge overlaid inside the circle */
+.gc-slot-mult-badge {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #6b2d00, #a0401a);
+  color: #fff8e1;
+  font-family: 'Fredoka One', cursive;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  border: 1px solid rgba(255,220,100,0.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  letter-spacing: 0.3px;
+}
+/* Bet amount badge � top-right, shows only when bet placed */
+.gc-slot-bet-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: rgba(230,57,70,0.92);
+  color: #fff;
+  font-size: 7px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 5px;
+  display: none;
+  z-index: 4;
+  line-height: 1.4;
+}
+
+/* Slot circle positions */
+.gc-slot[data-i="0"] { left: 108px; top: 6px; }
+.gc-slot[data-i="1"] { left: 185px; top: 29px; }
+.gc-slot[data-i="2"] { left: 209px; top: 108px; }
+.gc-slot[data-i="3"] { left: 185px; top: 185px; }
+.gc-slot[data-i="4"] { left: 108px; top: 209px; }
+.gc-slot[data-i="5"] { left: 29px; top: 185px; }
+.gc-slot[data-i="6"] { left: 6px; top: 108px; }
+.gc-slot[data-i="7"] { left: 29px; top: 29px; }
+
+#gc-slots-container {
+  position: absolute;
+  inset: 0;
+  z-index: 4; /* above spokes */
+}
+
+#gc-cat {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #f5e6ff, #d4a8ff);
+  border: 4px solid var(--gc-gold-rim);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  z-index: 10;
+  animation: gc-cat-bop 3s ease-in-out infinite;
+}
+@keyframes gc-cat-bop {
+  0%, 100% { transform: translate(-50%, -50%) rotate(-3deg); }
+  50% { transform: translate(-50%, -52%) rotate(3deg); }
+}
+
+#gc-timer-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 30%);
+  z-index: 15;
+  text-align: center;
+  pointer-events: none;
+}
+
+#gc-timer-badge {
+  background: linear-gradient(135deg, #f6a800, #e0600a);
+  border-radius: 12px;
+  padding: 4px 16px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 22px;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  min-width: 60px;
+  text-align: center;
+}
+
+#gc-timer-label {
+  font-size: 10px;
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+/* ─── SPECIAL SIDES ────────────────────────────────────────────── */
+#gc-special-row {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 12px;
+  margin-top: -30px;
+}
+
+.gc-special-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.gc-special-btn:hover { transform: scale(1.05); }
+.gc-special-icon { font-size: 40px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+.gc-special-label {
+  background: #fffde8;
+  border: 2px solid var(--gc-gold-dark);
+  border-radius: 8px;
+  padding: 3px 14px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: var(--gc-wood-dark);
+}
+
+.gc-special-btn.selected .gc-special-label {
+  background: var(--gc-red);
+  color: #fff;
+  border-color: var(--gc-red);
+}
+
+/* ─── BETTING PANEL ────────────────────────────────────────────── */
+#gc-bet-panel {
+  position: relative;
+  z-index: 8;
+  background: linear-gradient(180deg, #f6c94e 0%, #e8aa2a 100%);
+  border-top: 3px solid var(--gc-gold-rim);
+  padding: 8px 10px;
+}
+
+#gc-bet-label { text-align: center; font-size: 11px; font-weight: 800; color: var(--gc-wood-dark); margin-bottom: 6px; }
+#gc-coin-row { display: flex; gap: 6px; justify-content: center; }
+
+.gc-coin-btn {
+  flex: 1;
+  max-width: 80px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff8c5, #f6c94e);
+  border: 3px solid var(--gc-gold-rim);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 3px 0 var(--gc-gold-rim);
+  position: relative;
+}
+
+.gc-coin-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 var(--gc-gold-rim); }
+.gc-coin-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--gc-gold-rim); }
+.gc-coin-btn.active { background: linear-gradient(180deg, #fff176, #fdd835); border-color: var(--gc-red); box-shadow: 0 3px 0 var(--gc-red); }
+.gc-coin-val { font-family: 'Fredoka One', cursive; font-size: 11px; color: var(--gc-wood-dark); }
+
+/* ─── BOTTOM STATS BAR ─────────────────────────────────────────── */
+#gc-bottom-bar {
+  position: relative;
+  z-index: 8;
+  background: #d44b1e;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-top: 2px solid #b33a10;
+}
+
+.gc-stat-pill { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 14px; text-align: center; min-width: 90px; }
+.gc-stat-label { font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 700; }
+.gc-stat-val { font-family: 'Fredoka One', cursive; font-size: 13px; color: #fff; }
+
+#gc-btn-record {
+  background: linear-gradient(135deg, #fff8c5, #f6c94e);
+  border: 2px solid var(--gc-gold-rim);
+  border-radius: 20px;
+  padding: 6px 18px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: var(--gc-wood-dark);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--gc-gold-rim);
+}
+
+/* ─── RESULTS HISTORY STRIP ────────────────────────────────────── */
+#gc-results-strip {
+  position: relative;
+  z-index: 8;
+  background: #b33a10;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  gap: 4px;
+  border-top: 2px solid #8b2a00;
+  overflow-x: hidden;
+}
+
+#gc-results-label { font-family: 'Fredoka One', cursive; font-size: 11px; color: #fff; flex-shrink: 0; }
+#gc-results-list { display: flex; gap: 4px; flex: 1; overflow: hidden; }
+
+.gc-result-chip {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gc-cream);
+  border: 2px solid var(--gc-gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  animation: gc-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes gc-pop-in { from { transform: scale(0); } to { transform: scale(1); } }
+
+.gc-avatar-wrapper {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gc-user-photo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #FFD700;
+}
+.gc-user-frame {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 50px;
+  height: 50px;
+  pointer-events: none;
+  z-index: 2;
+}
+.gc-results-strip {
+  height: 65px; /* Increased from ~40px */
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.gc-result-chip {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.gc-result-chip.new-badge::after {
+  content: 'NEW';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gc-green);
+  border-radius: 6px;
+  padding: 1px 4px;
+  font-size: 7px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* ─── MODAL OVERLAY ────────────────────────────────────────────── */
+#gc-modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#gc-modal-overlay.open { display: flex; }
+
+.gc-modal-box {
+  background: var(--gc-sky);
+  border-radius: 20px;
+  border: 3px solid #fff;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80%;
+  overflow-y: auto;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+/* ─── WIN ANNOUNCEMENT CARD ────────────────────────────────────── */
+/* -- LOSS ANNOUNCEMENT CARD -- */
+#gc-loss-announce {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#gc-loss-announce.show { opacity: 1; }
+
+.gc-loss-card {
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  border-radius: 24px;
+  border: 4px solid #e63946;
+  padding: 24px 36px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(230,57,70,0.4);
+  transform: scale(0.2);
+  transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+}
+#gc-loss-announce.show .gc-loss-card {
+  transform: scale(1);
+}
+.gc-loss-emoji-big { font-size: 48px; display: block; margin-bottom: 6px; }
+.gc-loss-title { font-family: 'Fredoka One', cursive; font-size: 16px; color: #e63946; margin-bottom: 4px; }
+.gc-loss-sub { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+/* -- WINNER STRIP (multi-player) -- */
+#gc-winner-strip {
+  position: absolute;
+  bottom: 162px;
+  left: 0;
+  right: 0;
+  z-index: 199;
+  padding: 4px 10px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.gc-winner-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  pointer-events: all;
+}
+.gc-winner-photo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gc-gold);
+}
+.gc-winner-amount {
+  font-family: 'Fredoka One', cursive;
+  font-size: 9px;
+  color: #4ade80;
+  background: rgba(0,0,0,0.6);
+  border-radius: 6px;
+  padding: 1px 4px;
+}
+#gc-win-announce {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#gc-win-announce.show { opacity: 1; }
+
+.gc-win-card {
+  background: linear-gradient(135deg, #fff176, #f6c94e, #e0a820);
+  border-radius: 24px;
+  border: 4px solid var(--gc-gold-rim);
+  padding: 24px 40px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transform: scale(0.2);
+  transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+}
+#gc-win-announce.show .gc-win-card {
+  transform: scale(1);
+}
+@keyframes gc-bounce-in { to { transform: scale(1); } }
+
+/* ─── SPINNING BORDER INDICATOR ────────────────────────────────── */
+#gc-spin-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 20;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 6px solid transparent;
+  pointer-events: none;
+  opacity: 0;
+}
+#gc-spin-indicator.spinning {
+  border-color: var(--gc-gold) transparent var(--gc-gold) transparent;
+  opacity: 0.6;
+  animation: gc-spin-border 1s linear infinite;
+}
+@keyframes gc-spin-border { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+#gc-phase-banner {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.5);
+  border-radius: 20px;
+  padding: 3px 14px;
+  font-size: 10px;
+  color: #fff;
+  font-weight: 700;
+  z-index: 12;
+}
+
+.gc-confetto {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  animation: gc-fall linear forwards;
+  pointer-events: none;
+  z-index: 201;
+}
+@keyframes gc-fall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+}
+
+/* Avatar image inside mount fills cleanly */
+#gc-avatar-mount img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: block;
+}
+/* ─── RESULTS PANEL (round winners) ──────────────────────────────── */
+#gc-results-panel {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 80px;       /* sits above the bottom bar */
+  z-index: 180;
+  background: linear-gradient(135deg, rgba(15,15,40,0.97), rgba(30,20,60,0.97));
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255,215,0,0.35);
+  border-radius: 20px;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  flex-direction: column;
+  overflow: hidden;
+  display: none;
+  max-height: 240px;
+}
+
+.gc-rp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,215,0,0.08);
+}
+.gc-rp-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 13px;
+  color: #FFD700;
+  letter-spacing: 0.5px;
+}
+.gc-rp-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.gc-rp-close:hover { color: #fff; }
+
+#gc-rp-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px 10px;
+}
+.gc-rp-loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 20px;
+  animation: gc-pulse 1s ease infinite;
+}
+@keyframes gc-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.gc-rp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  background: rgba(255,255,255,0.05);
+  transition: background 0.2s;
+}
+.gc-rp-row:hover { background: rgba(255,255,255,0.09); }
+.gc-rp-row.gc-rp-top {
+  background: rgba(255,215,0,0.12);
+  border: 1px solid rgba(255,215,0,0.25);
+}
+
+.gc-rp-rank {
+  font-family: 'Fredoka One', cursive;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  min-width: 18px;
+  text-align: center;
+}
+.gc-rp-row.gc-rp-top .gc-rp-rank { color: #FFD700; font-size: 16px; }
+
+.gc-rp-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid rgba(255,215,0,0.4);
+  transition: transform 0.15s;
+}
+.gc-rp-avatar:hover { transform: scale(1.1); }
+.gc-rp-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.gc-rp-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.gc-rp-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+.gc-rp-food { font-size: 16px; flex-shrink: 0; }
+
+.gc-rp-win {
+  font-family: 'Fredoka One', cursive;
+  font-size: 14px;
+  color: #4ade80;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.gc-rp-row.gc-rp-top .gc-rp-win { color: #FFD700; font-size: 16px; }

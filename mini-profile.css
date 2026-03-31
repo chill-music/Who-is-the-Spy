@@ -1,0 +1,542 @@
+/* mini-profile.css - Extracted and isolated CSS for the Mini Profile component */
+
+.mp-card {
+  width: 340px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  background: #fff;
+  font-family: 'Nunito', sans-serif;
+  position: relative;
+  /* Reset some inherited from generic project */
+  text-align: left;
+}
+/* Ensure RTL works */
+[dir="rtl"] .mp-card {
+  text-align: right;
+}
+
+/* ── Top banner with avatars ── */
+.mp-banner {
+  width: 100%;
+  height: 140px;
+  background: linear-gradient(135deg, #0a0a2e, #1a1040, #0d1a3a);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mp-banner-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mp-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(13,13,31,0.7) 100%);
+}
+
+/* animated sparkle dots */
+.mp-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle 2px at 20% 30%, rgba(255,255,255,0.9) 0%, transparent 100%),
+    radial-gradient(circle 2px at 55% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 75% 40%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(circle 1px at 35% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(circle 2px at 85% 20%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(circle 1px at 10% 70%, rgba(255,255,255,0.5) 0%, transparent 100%);
+  pointer-events: none;
+  animation: mpTwinkle 3s ease-in-out infinite alternate;
+}
+
+@keyframes mpTwinkle {
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
+}
+
+/* Removed old character animations to make space for custom banner */
+@keyframes mpWave {
+  from { transform: rotate(25deg) translateY(-10px); }
+  to   { transform: rotate(45deg) translateY(-16px); }
+}
+
+/* CP label */
+.mp-cp-label {
+  position: absolute;
+  bottom: 28px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+[dir="rtl"] .mp-cp-label {
+  right: auto;
+  left: 0;
+}
+.mp-cp-pill {
+  background: rgba(70,70,80,0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px 6px 14px;
+  border-radius: 20px 0 0 20px;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+[dir="rtl"] .mp-cp-pill {
+  border-radius: 0 20px 20px 0;
+  padding: 6px 14px 6px 14px;
+}
+.mp-cp-avatar-wrap {
+  position: relative;
+  width: 58px; height: 58px;
+  flex-shrink: 0;
+  margin-right: -20px;
+}
+[dir="rtl"] .mp-cp-avatar-wrap {
+  margin-right: 0;
+  margin-left: -20px;
+}
+.mp-cp-avatar-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #00e5ff 0deg, #0080ff 60deg, #00e5ff 120deg,
+    #004080 160deg, #00e5ff 220deg, #0080ff 280deg,
+    #00e5ff 360deg
+  );
+  animation: spinCP 3s linear infinite;
+}
+@keyframes spinCP {
+  to { transform: rotate(360deg); }
+}
+.mp-cp-avatar-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: #0a0a18;
+  z-index: 1;
+}
+.mp-cp-thumb {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 2;
+  background: linear-gradient(135deg, #1a2a3a, #0a1520);
+}
+.mp-cp-thumb::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: rgba(0,200,255,0.6);
+  top: 0;
+  animation: scanLine 2s linear infinite;
+}
+@keyframes scanLine {
+  from { top: 0; opacity: 1; }
+  to   { top: 100%; opacity: 0; }
+}
+.mp-cp-thumb-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #1a3a5a 0%, #0a2030 40%, #1a3040 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  filter: brightness(0.85) saturate(0.7);
+}
+.mp-cp-thumb-inner img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.mp-cp-hud-dot {
+  position: absolute;
+  width: 5px; height: 5px;
+  background: #00e5ff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #00e5ff, 0 0 12px #0080ff;
+  z-index: 3;
+}
+.mp-cp-hud-dot:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+.mp-cp-hud-dot:nth-child(2) { bottom: 4px; right: 4px; }
+.mp-cp-hud-dot:nth-child(3) { top: 50%; left: -1px; transform: translateY(-50%); }
+
+/* ── Body card ── */
+.mp-body {
+  background: #fff;
+  border-radius: 28px 28px 0 0;
+  margin-top: -20px;
+  position: relative;
+  z-index: 5;
+  padding: 20px 18px 0;
+}
+
+/* badge row top-right */
+.mp-badge-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 4px 10px;
+  position: relative;
+  min-height: 48px;
+  align-items: center;
+}
+.mp-badge-strip {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 224, 128, 0.4), rgba(255, 176, 32, 0.5), rgba(255, 224, 128, 0.4), transparent);
+  border-radius: 4px;
+  z-index: 1;
+}
+[dir="rtl"] .mp-badge-row {
+  justify-content: flex-start !important;
+  flex-direction: row-reverse;
+}
+
+.mp-badge-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  position: relative;
+  z-index: 2;
+}
+.mp-badge-icon img {
+  width: 26px; height: 26px;
+  object-fit: contain;
+}
+
+/* profile row */
+.mp-profile-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* flame avatar */
+.mp-flame-avatar {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.mp-flame-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    #ff6000, #ffd000, #ff8800, #ffdd00,
+    #ff5000, #ffcc00, #ff7000, #ffe000, #ff6000
+  );
+  animation: spinRing 4s linear infinite;
+  padding: 3px;
+}
+
+.mp-flame-ring-inner {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: #0d0d1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.mp-avatar-pic {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+.mp-avatar-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.mp-wings {
+  position: absolute;
+  bottom: -4px; left: 50%;
+  transform: translateX(-50%);
+  width: 110px; height: 22px;
+  background: linear-gradient(90deg, transparent, #ffd000 30%, #ff8800 50%, #ffd000 70%, transparent);
+  clip-path: polygon(10% 100%, 0% 0%, 28% 60%, 50% 0%, 72% 60%, 100% 0%, 90% 100%);
+  opacity: 0.9;
+  animation: glowWings 2s ease-in-out infinite alternate;
+}
+@keyframes glowWings {
+  from { filter: brightness(1); }
+  to   { filter: brightness(1.4) drop-shadow(0 0 4px #ffaa00); }
+}
+
+.mp-user-info { flex: 1; padding-top: 4px; min-width:0; }
+
+.mp-user-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a1a2a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mp-user-name-text {
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mp-rank-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+}
+.mp-gender-icon {
+  font-size: 18px;
+}
+
+.mp-badges-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mp-diamond-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.mp-diamond-badge.has-glow {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.4);
+  color: #00d4ff;
+}
+.mp-diamond-badge span { font-size: 14px; }
+
+.mp-calm-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  color: #00f2ff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border: 1px solid rgba(0, 242, 255, 0.3);
+  border-radius: 6px;
+  letter-spacing: 0.2px;
+}
+
+.mp-user-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #888;
+  font-size: 13px;
+  font-weight: 600;
+}
+.mp-copy-btn {
+  width: 18px; height: 18px;
+  background: #eee;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  color: #888;
+  border: none;
+  transition: background 0.2s;
+}
+.mp-copy-btn:hover { background: #ddd; }
+
+/* ── Stats row ── */
+.mp-stats {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #f0f0f0;
+  margin: 0 -18px;
+  padding: 16px 0 18px;
+}
+
+.mp-stat {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mp-stat + .mp-stat {
+  border-left: 1px solid #f0f0f0;
+}
+[dir="rtl"] .mp-stat + .mp-stat {
+  border-left: none;
+  border-right: 1px solid #f0f0f0;
+}
+
+.mp-stat-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a1a2a;
+  line-height: 1;
+}
+
+.mp-stat-label {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 600;
+}
+
+/* ── Send Gift button ── */
+.mp-gift-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #ff80a0, #ff4477);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 24px rgba(255,70,120,0.45);
+  transition: transform 0.15s, box-shadow 0.15s;
+  margin-bottom: 18px;
+}
+.mp-gift-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(255,70,120,0.55);
+}
+.mp-gift-btn:active { transform: translateY(0); }
+
+.mp-btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.15s;
+}
+
+.mp-btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.mp-multi-btns {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.mp-btn-half {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 50px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.mp-add-btn { background: linear-gradient(135deg, #40c8ff, #0080ff); color: #fff; }
+.mp-friend-btn { background: #e0e0e0; color: #555; }
+.mp-gift-half-btn { background: linear-gradient(135deg, #ff80a0, #ff4477); color: #fff; box-shadow: 0 4px 15px rgba(255,70,120,0.4); }
+
+.mp-menu-trigger {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 20;
+}
+[dir="rtl"] .mp-menu-trigger {
+  right: auto;
+  left: 10px;
+}
+
+.mp-menu-dropdown {
+  position: absolute;
+  top: 45px; right: 10px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  z-index: 21;
+}
+[dir="rtl"] .mp-menu-dropdown {
+  right: auto;
+  left: 10px;
+}
+
+.mp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+.mp-menu-item:hover { background: #f0f0f0; }
+.mp-menu-item.danger { color: #f43f5e; }
+.mp-menu-item.danger:hover { background: #ffe4e6; }

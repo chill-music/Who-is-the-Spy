@@ -1,0 +1,350 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isLoggedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function isOwnerUID() {
+      return request.auth.uid == 'PfZAViU4swQdbBZOfqJDnPZSs9l2';
+    }
+
+    function isStaff() {
+      // Owner is always staff
+      return isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  USERS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/users/{userId} {
+
+      allow read: if true;
+
+      allow create: if isLoggedIn() && (
+        request.auth.uid == userId || isOwnerUID()
+      );
+
+      allow update: if isLoggedIn() && (
+        isOwnerUID() ||
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['staffRole', 'ban'])
+      );
+
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  ROOMS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/rooms/{roomId} {
+      // ✅ Guests (unauthenticated) can play — allow all reads & writes
+      // Delete allowed for anyone so room admin (including guests) can delete room on leave
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  REPORTS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/reports/{reportId} {
+      allow read:   if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  NOTIFICATIONS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/notifications/{notifId} {
+      allow read:   if isLoggedIn() && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn() && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+      allow delete: if isLoggedIn() && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  MOMENTS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/moments/{momentId} {
+      allow read: if true;
+      allow write: if isLoggedIn();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow write: if isLoggedIn();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  STAFF ACTIVITY LOG
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/staff_activity_log/{logId} {
+      allow read:   if isLoggedIn() && isOwnerUID();
+      allow create: if isLoggedIn() && isOwnerUID();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  SUPPORT TICKETS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/support_tickets/{ticketId} {
+      allow read:   if isLoggedIn() && (resource.data.userId == request.auth.uid || isOwnerUID());
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn() && (resource.data.userId == request.auth.uid || isOwnerUID());
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  PRIVATE CHATS + SUBCOLLECTIONS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/private_chats/{chatId} {
+      allow read, write: if isLoggedIn();
+
+      match /messages/{msgId} {
+        allow read, write: if isLoggedIn();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  GROUP CHATS + SUBCOLLECTIONS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/group_chats/{groupId} {
+      allow read, write: if isLoggedIn();
+
+      match /messages/{msgId} {
+        allow read, write: if isLoggedIn();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  FAMILIES + SUBCOLLECTIONS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/families/{tribeId} {
+      allow read, write: if isLoggedIn();
+
+      match /messages/{msgId} {
+        allow read, write: if isLoggedIn();
+      }
+
+      match /news/{newsId} {
+        allow read, write: if isLoggedIn();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  GAME HISTORY
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/game_history/{histId} {
+      // ✅ Guests can save game history
+      allow read, write: if true;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  GIFTS LOG
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/gifts_log/{giftId} {
+      allow read:   if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update: if false;
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  GUESTS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/guests/{guestId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if request.auth == null || request.resource.data.uid == guestId;
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  VIP COLLECTIONS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/vip10_requests/{docId} {
+      allow read, write: if isLoggedIn();
+    }
+
+    match /artifacts/{appId}/public/data/vip10_id_requests/{docId} {
+      allow read, write: if isLoggedIn();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  COUPLES
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/couples/{coupleId} {
+
+      allow read: if isLoggedIn();
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid1 == request.auth.uid;
+
+      allow update: if isLoggedIn()
+        && (resource.data.uid1 == request.auth.uid
+         || resource.data.uid2 == request.auth.uid);
+
+      allow delete: if isLoggedIn()
+        && (resource.data.uid1 == request.auth.uid
+         || resource.data.uid2 == request.auth.uid);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  GUARD LOG
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/guard_log/{logId} {
+      allow read:   if true;
+      allow create: if isLoggedIn();
+      allow update: if false;
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  BFF RELATIONSHIPS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/bff_relationships/{bffId} {
+
+      // أي مستخدم مسجّل يقدر يقرأ (عشان تعرض العلاقات في البروفايل)
+      allow read: if isLoggedIn();
+
+      // الإنشاء: فقط لو uid1 هو المستخدم الحالي
+      allow create: if isLoggedIn()
+        && request.resource.data.uid1 == request.auth.uid;
+
+      // التعديل: طرف 1 أو طرف 2 فقط (قبول الطلب)
+      allow update: if isLoggedIn()
+        && (resource.data.uid1 == request.auth.uid
+         || resource.data.uid2 == request.auth.uid);
+
+      // الحذف: طرف 1 أو طرف 2 (إنهاء العلاقة أو رفض الطلب)
+      allow delete: if isLoggedIn()
+        && (resource.data.uid1 == request.auth.uid
+         || resource.data.uid2 == request.auth.uid);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  BOT CHATS (Official channels: Detective + Love Bot)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/bot_chats/{msgId} {
+
+      // القراءة: المستخدم يقدر يقرأ رسائله هو فقط + الأونر يقرأ الكل
+      allow read: if isLoggedIn()
+        && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+
+      // الإنشاء: أي مستخدم مسجّل يقدر يكتب (السيستم والسيرفر يكتبوا رسائل للمستخدمين)
+      allow create: if isLoggedIn();
+
+      // التعديل: فقط المستخدم اللي الرسالة موجهة له (عشان mark as read)
+      allow update: if isLoggedIn()
+        && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+
+      // الحذف: الأونر فقط
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  🧧 RED PACKETS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/red_packets/{rpId} {
+      allow read:   if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  🌍 PUBLIC CHAT
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/public_chat/{msgId} {
+      allow read:   if true;
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn() && (resource.data.senderId == request.auth.uid || isOwnerUID());
+      allow delete: if isLoggedIn() && (resource.data.senderId == request.auth.uid || isOwnerUID());
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  💬 HELP FAQ (Admin writes, everyone reads)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/help_faq/{faqId} {
+      allow read:   if true;
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  📝 FEEDBACK
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/feedback/{fbId} {
+      allow read:   if isLoggedIn() && (resource.data.userId == request.auth.uid || isOwnerUID());
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn() && isOwnerUID();
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  📰 FAMILY NEWS LOG (tribe feed: donations, level-up, settings)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/family_news_log/{logId} {
+      allow read:   if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update: if false;
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  LUCKY GAMES (Jackpots & Sessions)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/lucky_fruit_jackpot/{docId} {
+      allow read:   if true;
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+      allow delete: if false;
+    }
+
+    match /artifacts/{appId}/public/data/lucky_games_sessions/{sessionId} {
+      allow read:   if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+
+      match /results/{resId} {
+        allow read:   if isLoggedIn();
+        allow create: if isLoggedIn();
+      }
+
+      // round_winners: any logged-in user can add their own win result
+      match /round_winners/{winnerId} {
+        allow read:   if isLoggedIn();
+        allow create: if isLoggedIn() && request.resource.data.uid == request.auth.uid;
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    match /artifacts/{appId}/public/data/gold_transactions/{logId} {
+      allow read:   if isLoggedIn() && (resource.data.uid == request.auth.uid || isOwnerUID());
+      allow create: if isLoggedIn() && (request.resource.data.uid == request.auth.uid || isOwnerUID());
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /artifacts/{appId}/public/data/pending_finances/{transId} {
+      allow read:   if isLoggedIn() && (resource.data.uid == request.auth.uid || isOwnerUID());
+      allow create: if isLoggedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isLoggedIn() && isOwnerUID();
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  Default deny
+    // ══════════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

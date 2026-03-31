@@ -1,0 +1,559 @@
+/* ============================================================
+   lucky-fruit.css  –  Lucky Fruit Slots  (scoped styles)
+   كل الـ styles متحطة جوه .lf-game عشان ما تتعارضش مع باقي الموقع
+   ============================================================ */
+
+/* ── CSS Variables (scoped to the game wrapper only) ───────── */
+.lf-game {
+  --lf-gold:         #FFD700;
+  --lf-gold2:        #FFA500;
+  --lf-orange:       #FF8C00;
+  --lf-purple-dark:  #2D1B6B;
+  --lf-purple-mid:   #4A2B9B;
+  --lf-purple-light: #6B3FD4;
+  --lf-purple-reel:  #1A0A4B;
+  --lf-purple-reel2: #2A1560;
+  --lf-win-green:    #00FF88;
+  --lf-bg-top:       #3A1A8A;
+  --lf-bg-bot:       #1A0A4B;
+  --lf-font-main:    'Nunito', sans-serif;
+  --lf-font-display: 'Fredoka One', cursive;
+  --lf-wheel-bg:     #1E1E3F;
+  --lf-wheel-border: #FFD700;
+}
+
+/* ── Game Wrapper ──────────────────────────────────────────── */
+/* .lf-game هو الـ container الرئيسي اللي بيحتوي اللعبة كلها  */
+/* ممكن تحطه جوه div في أي مكان في الموقع بتاعك               */
+.lf-game {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #3A1A8A 0%, #1A0A4B 100%);
+  font-family: var(--lf-font-main);
+  box-sizing: border-box;
+}
+
+/* منع أي CSS من الموقع العام يأثر على عناصر اللعبة */
+.lf-game *, .lf-game *::before, .lf-game *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── TOP NAV ─────────────────────────────────────────────── */
+.lf-game .lf-top-nav {
+  background: linear-gradient(90deg, #5A2FD4 0%, #3A1A8A 100%);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid rgba(255,215,0,0.3);
+  min-height: 60px;
+}
+
+.lf-game .lf-nav-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.3);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+  font-family: inherit;
+  line-height: 1;
+}
+.lf-game .lf-nav-btn:hover { background: rgba(255,255,255,0.25); }
+
+.lf-game .lf-coin-display {
+  margin-left: auto;
+  background: linear-gradient(90deg, #6B3FD4, #4A2B9B);
+  border: 2px solid var(--lf-gold);
+  border-radius: 20px;
+  padding: 5px 14px 5px 8px;
+  display: flex; align-items: center; gap: 6px;
+  color: white; font-weight: 900; font-size: 16px;
+}
+.lf-game .lf-coin-star { font-size: 20px; }
+.lf-game .lf-coin-plus {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--lf-gold); color: var(--lf-purple-dark);
+  font-size: 18px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; margin-left: 4px;
+  box-shadow: 0 2px 8px rgba(255,215,0,0.5);
+  border: none;
+  font-family: inherit;
+}
+.lf-game .lf-avatar-box {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, #FFD700, #FF8C00);
+  border: 3px solid var(--lf-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 12px rgba(255,215,0,0.6);
+  position: relative;
+  flex-shrink: 0;
+}
+
+#lf-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── FREE SPINS BANNER ───────────────────────────────────── */
+.lf-game .lf-fs-banner {
+  background: linear-gradient(90deg, #00CC66, #00FF88, #00CC66);
+  color: var(--lf-purple-dark);
+  font-family: var(--lf-font-display);
+  font-size: 15px; text-align: center; padding: 6px 8px;
+  /* sit in normal flow, now always visible */
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+}
+/* No longer need .show since it's always visible */
+
+
+/* ── TITLE / JACKPOT ─────────────────────────────────────── */
+.lf-game .lf-title-area {
+  text-align: center;
+  padding: 8px 10px 4px;
+}
+.lf-game .lf-slots-bg {
+  display: inline-block;
+  background: linear-gradient(180deg, #6B3FD4, #4A2B9B);
+  border: 3px solid var(--lf-gold);
+  border-radius: 12px;
+  padding: 2px 24px 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 2px 8px rgba(255,255,255,0.1);
+}
+.lf-game .lf-slots-title {
+  font-family: var(--lf-font-display);
+  font-size: 44px;
+  background: linear-gradient(180deg, #87CEEB 0%, #FFFFFF 40%, #FFD700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+  line-height: 1;
+  letter-spacing: 4px;
+  display: block;
+}
+.lf-game .lf-jackpot-bar {
+  background: linear-gradient(90deg, #7B3FFF, #5A2FD4, #7B3FFF);
+  border: 3px solid var(--lf-gold);
+  border-radius: 30px;
+  padding: 6px 20px;
+  margin: 6px auto;
+  max-width: 320px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 0 20px rgba(255,165,0,0.4);
+}
+.lf-game .lf-jackpot-label {
+  color: var(--lf-gold);
+  font-family: var(--lf-font-display);
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+.lf-game .lf-jackpot-val {
+  color: white;
+  font-family: var(--lf-font-display);
+  font-size: 22px;
+  min-width: 100px;
+  transition: all .3s;
+}
+.lf-game .lf-jackpot-val.pulse { animation: lf-jpulse .3s ease; }
+@keyframes lf-jpulse {
+  0%,100%{ transform: scale(1); }
+  50%{ transform: scale(1.15); color: #FFD700; }
+}
+
+/* ── WIN GLOW ────────────────────────────────────────────── */
+.lf-game .lf-win-text.large-win-glow {
+  color: #fff;
+  text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 40px #FFDA00;
+  animation: lf-winGlowPulse 1.5s infinite alternate;
+}
+@keyframes lf-winGlowPulse {
+  from { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700, 0 0 30px #FF8C00; transform: scale(1); }
+  to   { text-shadow: 0 0 20px #FFF, 0 0 40px #FFD700, 0 0 60px #FFDA00; transform: scale(1.05); }
+}
+
+/* ── PROGRESS BAR ────────────────────────────────────────── */
+.lf-game .lf-progress-row {
+  background: linear-gradient(90deg, #FF8C00, #FFA500, #FF8C00);
+  border-radius: 8px;
+  margin: 0 10px 4px;
+  padding: 4px 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.lf-game .lf-progress-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #333; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.lf-game .lf-progress-bar-wrap {
+  flex: 1; height: 10px;
+  background: rgba(0,0,0,0.3); border-radius: 5px; overflow: hidden;
+}
+.lf-game .lf-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD700, #FF8C00);
+  border-radius: 5px; transition: width .5s; width: 0%;
+}
+.lf-game .lf-progress-text {
+  color: white; font-weight: 900; font-size: 12px; min-width: 44px;
+}
+.lf-game .lf-chest-icon { font-size: 20px; }
+.lf-game .lf-upto-text {
+  color: var(--lf-gold); font-weight: 900; font-size: 12px; white-space: nowrap;
+}
+
+/* ── MACHINE FRAME ───────────────────────────────────────── */
+.lf-game .lf-machine {
+  margin: 0 8px;
+  background: linear-gradient(180deg, #FFC000 0%, #FF8C00 50%, #FF6000 100%);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 2px 8px rgba(255,255,255,0.2);
+  position: relative;
+}
+.lf-game .lf-machine::before {
+  content: '';
+  position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+  width: 60px; height: 6px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+/* ── REEL AREA ───────────────────────────────────────────── */
+.lf-game .lf-reel-container {
+  background: var(--lf-purple-reel);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(255,165,0,0.3);
+  position: relative;
+}
+.lf-game .lf-reels-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px; padding: 2px;
+  position: relative;
+}
+.lf-game .lf-reel {
+  display: flex; flex-direction: column; gap: 2px;
+  position: relative; overflow: hidden;
+}
+.lf-game .lf-cell {
+  aspect-ratio: 1;
+  background: linear-gradient(180deg, var(--lf-purple-reel2) 0%, #130840 100%);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(22px, 8vw, 36px);
+  position: relative;
+  border: 1px solid rgba(255,165,0,0.15);
+  transition: all .15s;
+  overflow: hidden;
+}
+.lf-game .lf-cell.spinning {
+  animation: lf-cellSpin .08s linear infinite;
+}
+.lf-game .lf-cell.highlight {
+  border: 2px solid var(--lf-win-green);
+  box-shadow: 0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.2);
+  animation: lf-cellGlow .6s ease infinite alternate;
+}
+@keyframes lf-cellSpin {
+  0%   { transform: translateY(-6px); opacity: .7; }
+  50%  { transform: translateY(0px);  opacity: 1;  }
+  100% { transform: translateY(6px);  opacity: .7; }
+}
+@keyframes lf-cellGlow {
+  from { box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+  to   { box-shadow: 0 0 20px rgba(0,255,136,0.9); }
+}
+.lf-game .lf-cell-symbol { line-height: 1; text-align: center; z-index: 1; display: block; }
+.lf-game .lf-cell-label {
+  position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%);
+  font-size: 7px; font-weight: 900; color: var(--lf-gold); white-space: nowrap;
+}
+.lf-game .lf-win-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none; z-index: 10; width: 100%; height: 100%;
+}
+
+/* ── WIN DISPLAY ─────────────────────────────────────────── */
+.lf-game .lf-win-display {
+  background: linear-gradient(90deg, #CC5500, #FF8C00, #CC5500);
+  border-radius: 8px; margin: 4px 0 0;
+  padding: 10px; text-align: center;
+  border: 2px solid var(--lf-gold);
+}
+.lf-game .lf-win-text {
+  color: var(--lf-gold);
+  font-family: var(--lf-font-display);
+  font-size: 26px; letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  transition: all .3s;
+}
+.lf-game .lf-win-text.big-win { animation: lf-bigWin .5s ease; color: #FFD700; }
+@keyframes lf-bigWin {
+  0%,100%{ transform: scale(1); }
+  50%{ transform: scale(1.3); text-shadow: 0 0 30px #FFD700; }
+}
+
+/* ── COINS AREA ──────────────────────────────────────────── */
+.lf-game .lf-coins-area {
+  height: 50px; position: relative; overflow: hidden;
+}
+.lf-coin-particle {
+  /* NOTE: دي بتتحط على document.body مش على .lf-game */
+  position: fixed;
+  font-size: 22px;
+  animation: lf-coinFall 1.5s ease-in forwards;
+  pointer-events: none;
+  z-index: 9999;
+}
+@keyframes lf-coinFall {
+  0%   { transform: translateY(-40px) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(40px)  rotate(720deg); opacity: 0; }
+}
+
+/* ── CONTROLS ─────────────────────────────────────────────── */
+.lf-game .lf-controls {
+  background: linear-gradient(180deg, #4A2B9B 0%, #2D1B6B 100%);
+  padding: 10px 12px 14px; margin-top: -2px;
+}
+.lf-game .lf-control-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.lf-game .lf-adj-group {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  display: flex; align-items: center;
+  overflow: hidden; flex: 1;
+}
+.lf-game .lf-adj-btn {
+  background: linear-gradient(180deg, #6B3FD4, #4A2B9B);
+  border: none; color: white; font-size: 22px; font-weight: 900;
+  width: 42px; height: 42px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s; flex-shrink: 0;
+  font-family: inherit;
+}
+.lf-game .lf-adj-btn:hover { background: linear-gradient(180deg, #8B5FD4, #6B3FB9); }
+.lf-game .lf-adj-btn:active { transform: scale(0.92); }
+.lf-game .lf-adj-mid { flex: 1; text-align: center; color: white; }
+.lf-game .lf-adj-val { font-size: 20px; font-weight: 900; display: block; }
+.lf-game .lf-adj-lbl { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 700; letter-spacing: 1px; display: block; }
+.lf-game .lf-spin-area { display: flex; align-items: center; gap: 10px; }
+.lf-game .lf-spin-btn {
+  flex: 1;
+  background: linear-gradient(180deg, #FFB800 0%, #FF8C00 50%, #FF6000 100%);
+  border: 3px solid var(--lf-gold);
+  border-radius: 14px;
+  color: var(--lf-purple-dark);
+  font-family: var(--lf-font-display);
+  font-size: 30px; letter-spacing: 3px;
+  padding: 12px 0 8px; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255,140,0,0.5), inset 0 2px 8px rgba(255,255,255,0.3);
+  transition: all .15s; line-height: 1; display: block; width: 100%;
+}
+.lf-game .lf-spin-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,140,0,0.7); }
+.lf-game .lf-spin-btn:active { transform: scale(0.96) translateY(1px); }
+.lf-game .lf-spin-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.lf-game .lf-spin-sub { font-size: 11px; font-weight: 900; letter-spacing: 0; opacity: .8; display: block; font-family: var(--lf-font-main); }
+.lf-game .lf-opts { display: flex; gap: 14px; align-items: center; margin-top: 6px; padding-left: 4px; }
+.lf-game .lf-opt-btn {
+  display: flex; align-items: center; gap: 5px;
+  color: rgba(255,255,255,0.8); font-weight: 900; font-size: 13px; cursor: pointer;
+  letter-spacing: 1px;
+}
+.lf-game .lf-opt-check {
+  width: 22px; height: 22px; border-radius: 5px;
+  background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.lf-game .lf-opt-check.on { background: var(--lf-gold); border-color: var(--lf-gold); }
+.lf-game .lf-opt-check.on::after { content: '\2713'; color: var(--lf-purple-dark); font-size: 13px; font-weight: 900; }
+
+/* ── WIN OVERLAY ─────────────────────────────────────────── */
+/* هذي overlays بتغطي الشاشة كلها فمحتاجين position:fixed     */
+.lf-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9000;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.lf-overlay.show { opacity: 1; pointer-events: all; }
+.lf-overlay .lf-overlay-box {
+  background: linear-gradient(180deg, #6B3FD4 0%, #3A1A8A 100%);
+  border: 3px solid #FFD700;
+  border-radius: 20px;
+  padding: 30px 24px; text-align: center;
+  max-width: 320px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  transform: scale(0.8); transition: transform .3s;
+  font-family: 'Nunito', sans-serif;
+}
+.lf-overlay.show .lf-overlay-box { transform: scale(1); }
+.lf-overlay .lf-overlay-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 36px; color: #FFD700;
+  text-shadow: 0 0 20px rgba(255,215,0,0.8); margin-bottom: 10px;
+}
+.lf-overlay .lf-overlay-amount {
+  font-family: 'Fredoka One', cursive;
+  font-size: 52px; color: white;
+  animation: lf-floatUp 1s ease infinite alternate;
+}
+@keyframes lf-floatUp { from{ transform: translateY(0); } to{ transform: translateY(-8px); } }
+.lf-overlay .lf-overlay-msg { color: rgba(255,255,255,0.8); font-size: 16px; margin: 10px 0 20px; }
+.lf-overlay .lf-overlay-close {
+  background: linear-gradient(180deg, #FFB800, #FF8C00);
+  border: none; border-radius: 12px;
+  color: #2D1B6B; font-family: 'Fredoka One', cursive;
+  font-size: 20px; padding: 12px 40px; cursor: pointer;
+}
+
+/* ── BONUS OVERLAY ───────────────────────────────────────── */
+.lf-bonus-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+  z-index: 9100; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.lf-bonus-overlay.show { opacity: 1; pointer-events: all; }
+.lf-bonus-overlay .lf-bonus-box {
+  background: linear-gradient(180deg, #FFA500, #FF6000);
+  border: 4px solid #FFD700; border-radius: 20px;
+  padding: 24px; max-width: 340px; width: 90%;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(255,165,0,0.6);
+  font-family: 'Nunito', sans-serif;
+}
+.lf-bonus-overlay h2 { font-family: 'Fredoka One', cursive; font-size: 34px; color: white; margin-bottom: 14px; }
+.lf-bonus-overlay .lf-chests-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 16px 0;
+}
+.lf-bonus-overlay .lf-chest-btn {
+  font-size: 48px;
+  background: rgba(0,0,0,0.2); border: 3px solid #FFD700;
+  border-radius: 12px; padding: 10px; cursor: pointer; transition: all .2s;
+  color: white; font-family: inherit;
+}
+.lf-bonus-overlay .lf-chest-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
+.lf-bonus-overlay .lf-chest-btn.opened { cursor: default; transform: none; }
+.lf-bonus-overlay .lf-chest-prize { font-size: 20px; font-weight: 900; color: white; display: block; margin-top: 4px; }
+.lf-bonus-overlay .lf-bonus-msg { color: white; font-size: 16px; font-weight: 700; margin: 10px 0; }
+
+/* ── RULES OVERLAY ───────────────────────────────────────── */
+/* rendered INSIDE the hub modal so we use flex, not position:fixed */
+.lf-rules-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 9200;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 24px;
+}
+.lf-rules-overlay.show { display: flex; }
+.lf-rules-overlay .lf-rules-box {
+  background: linear-gradient(180deg, #6B3FD4 0%, #3A1A8A 100%);
+  border: 3px solid #FFD700; border-radius: 20px;
+  max-width: 400px; width: 92%;
+  margin: 20px auto; padding: 20px;
+  transform: translateY(40px); transition: transform .3s;
+  font-family: 'Nunito', sans-serif;
+}
+.lf-rules-overlay.show .lf-rules-box { transform: translateY(0); }
+.lf-rules-overlay .lf-rules-title { font-family: 'Fredoka One', cursive; font-size: 32px; color: white; text-align: center; margin-bottom: 14px; }
+.lf-rules-overlay .lf-rules-section { color: #FF69B4; font-size: 18px; font-weight: 900; letter-spacing: 1px; border-left: 4px solid #FF69B4; padding-left: 10px; margin: 16px 0 10px; }
+.lf-rules-overlay .lf-sym-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lf-rules-overlay .lf-sym-row { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; padding: 8px; }
+.lf-rules-overlay .lf-sym-icon { font-size: 32px; width: 42px; text-align: center; }
+.lf-rules-overlay .lf-sym-pays { color: #FFD700; font-size: 12px; font-weight: 800; line-height: 1.6; }
+.lf-rules-overlay .lf-sym-pays span { color: white; }
+.lf-rules-overlay .lf-special-row { display: flex; gap: 10px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; align-items: flex-start; }
+.lf-rules-overlay .lf-special-icon { font-size: 36px; width: 50px; text-align: center; flex-shrink: 0; }
+.lf-rules-overlay .lf-special-info h4 { color: white; font-size: 16px; font-weight: 900; margin-bottom: 4px; }
+.lf-rules-overlay .lf-special-info p { color: rgba(255,255,255,0.75); font-size: 13px; line-height: 1.5; }
+.lf-rules-overlay .lf-rules-body-text { color: rgba(255,255,255,0.8); font-size: 13px; line-height: 1.7; padding: 0 4px; }
+.lf-rules-overlay .lf-rules-close {
+  display: block; width: 100%; margin-top: 20px;
+  background: linear-gradient(180deg, #FFB800, #FF8C00);
+  border: none; border-radius: 12px;
+  color: #2D1B6B; font-family: 'Fredoka One', cursive;
+  font-size: 22px; padding: 12px; cursor: pointer;
+}
+
+/* ── CONFETTI ─────────────────────────────────────────────── */
+.lf-confetti-piece {
+  position: fixed; top: -10px;
+  width: 10px; height: 10px; border-radius: 2px;
+  animation: lf-confettiFall linear forwards;
+  z-index: 9999; pointer-events: none;
+}
+@keyframes lf-confettiFall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── Lucky Games Hub — shimmer animation ──────────────────── */
+@keyframes lg-shimmer {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* ── Lucky Wheel 24h ─────────────────────────────────────── */
+.lf-wheel-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 9500;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; font-family: var(--lf-font-main);
+}
+.lf-wheel-container {
+    position: relative; width: 280px; height: 280px; margin: 20px 0;
+    border: 8px solid var(--lf-wheel-border); border-radius: 50%;
+    box-shadow: 0 0 30px rgba(255,215,0,0.4), inset 0 0 20px rgba(0,0,0,0.5);
+    background: var(--lf-wheel-bg); overflow: hidden;
+}
+.lf-wheel-spinner {
+    width: 100%; height: 100%; position: relative; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+}
+.lf-wheel-segment {
+    position: absolute; width: 50%; height: 50%; left: 50%; top: 0;
+    transform-origin: 0% 100%; display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 20px; color: white; font-weight: 900; font-size: 14px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+}
+.lf-wheel-pointer {
+    position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+    width: 30px; height: 40px; background: #FF3366; clip-path: polygon(50% 100%, 0 0, 100% 0);
+    z-index: 10; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+}
+.lf-wheel-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 50px; height: 50px; background: var(--lf-wheel-border); border-radius: 50%;
+    z-index: 5; border: 4px solid #fff; box-shadow: 0 0 15px rgba(255,215,0,0.8);
+}
+.lf-wheel-btn {
+    background: linear-gradient(180deg, #FFB800, #FF8C00);
+    border: none; border-radius: 12px; color: #2D1B6B; font-family: var(--lf-font-display);
+    font-size: 20px; padding: 12px 40px; cursor: pointer; margin-top: 20px;
+    box-shadow: 0 6px 20px rgba(255,140,0,0.4);
+}
+.lf-wheel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.lf-wheel-timer { color: #FFD700; font-size: 18px; font-weight: 900; margin-top: 10px; }
+

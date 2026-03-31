@@ -1,0 +1,606 @@
+(function () {
+  var { useState, useEffect, useRef } = React;
+
+  class ErrorBoundary extends React.Component {
+    constructor(props) {super(props);this.state = { hasError: false, error: null };}
+    static getDerivedStateFromError(error) {return { hasError: true, error };}
+    componentDidCatch(error, errorInfo) {}
+    render() {
+      if (this.state.hasError) {
+        return (/*#__PURE__*/
+          React.createElement("div", { className: "min-h-screen flex items-center justify-center p-4" }, /*#__PURE__*/
+          React.createElement("div", { className: "glass-panel rounded-xl p-6 text-center max-w-md" }, /*#__PURE__*/
+          React.createElement("div", { className: "text-4xl mb-4" }, "\u26A0\uFE0F"), /*#__PURE__*/
+          React.createElement("h2", { className: "text-xl font-bold mb-2" }, "Something went wrong"), /*#__PURE__*/
+          React.createElement("p", { className: "text-sm text-gray-400 mb-4" }, "Please refresh the page"), /*#__PURE__*/
+          React.createElement("button", { onClick: () => window.location.reload(), className: "btn-neon px-6 py-2 rounded-lg" }, "Refresh")
+          )
+          ));
+
+      }
+      return this.props.children;
+    }
+  }
+
+  // Guest Banner
+  var GuestBanner = ({ lang }) => {
+    var t = TRANSLATIONS[lang];
+    return /*#__PURE__*/React.createElement("div", { className: "guest-banner" }, " ", /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title" }, t.guestTitle), " ", /*#__PURE__*/React.createElement("p", { className: "guest-banner-desc" }, t.guestDesc), " ");
+  };
+
+  // Notification Toast — Modern sliding pill from top
+  var NotificationToast = ({ message, onClose }) => {
+    var [visible, setVisible] = useState(false);
+    var [exiting, setExiting] = useState(false);
+
+    useEffect(() => {
+      if (message) {
+        setExiting(false);
+        setVisible(true);
+        var hideTimer = setTimeout(() => {
+          setExiting(true);
+          setTimeout(() => {setVisible(false);onClose();}, 350);
+        }, 2500);
+        return () => clearTimeout(hideTimer);
+      }
+    }, [message]);
+
+    if (!message || !visible) return null;
+
+    var emoji = message.match(/^(\p{Emoji})/u)?.[1] || '💬';
+    var cleanMsg = message.replace(/^(\p{Emoji}\s?)/u, '');
+
+    return (/*#__PURE__*/
+      React.createElement("div", { className: `modern-notification ${exiting ? 'exiting' : ''}`,
+        onClick: () => {setExiting(true);setTimeout(() => {setVisible(false);onClose();}, 350);} }, /*#__PURE__*/
+      React.createElement("div", { className: "notification-accent" }), /*#__PURE__*/
+      React.createElement("div", { className: "notification-icon" }, emoji), /*#__PURE__*/
+      React.createElement("div", { className: "notification-text" }, cleanMsg), /*#__PURE__*/
+      React.createElement("div", { className: "notification-progress-bar" }, /*#__PURE__*/
+      React.createElement("div", { className: "notification-progress-fill" })
+      )
+      ));
+
+  };
+
+  // Modal Close Button
+  var ModalCloseBtn = ({ onClose }) => /*#__PURE__*/React.createElement("button", { onClick: onClose, className: "modal-close-btn", "aria-label": "Close" }, "\xD7");
+
+  // Charisma Display
+  var CharismaDisplay = ({ charisma, lang, showDetails = true }) => {
+    var t = TRANSLATIONS[lang];
+    var { currentLevel, nextLevel } = getCharismaLevel(charisma || 0);
+    var progress = getCharismaProgress(charisma || 0);
+    var neededForNext = nextLevel ? nextLevel.threshold - (charisma || 0) : 0;
+    var isMaxLevel = currentLevel.isMaxLevel;
+    var hasGlow = currentLevel.hasGlow;
+    var isDivine = currentLevel.isDivine; // ✨ Level 21 — Divine style
+
+    var renderIcon = () => {
+      if (currentLevel.iconType === 'image' && currentLevel.iconUrl) {
+        return /*#__PURE__*/React.createElement("img", { src: currentLevel.iconUrl, alt: "level", className: `w-5 h-5 ${hasGlow ? 'animate-pulse' : ''}`, style: isDivine ? { borderRadius: '50%', objectFit: 'cover', filter: 'drop-shadow(0 0 8px #00d4ff) drop-shadow(0 0 16px rgba(0,212,255,0.5))' } : hasGlow ? { filter: 'drop-shadow(0 0 8px #ff6600)' } : {} });
+      }
+      return /*#__PURE__*/React.createElement("span", { className: "charisma-icon" }, currentLevel.icon);
+    };
+
+    return (/*#__PURE__*/
+      React.createElement("div", { className: `charisma-container ${hasGlow ? 'has-glow' : ''} ${isDivine ? 'has-divine' : ''}`,
+        style: isDivine ? { boxShadow: '0 0 20px rgba(0,212,255,0.25), 0 0 40px rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: '10px', padding: '4px' } : {} }, /*#__PURE__*/
+      React.createElement("div", { className: "charisma-header" }, /*#__PURE__*/
+      React.createElement("span", { className: "charisma-label" }, renderIcon(), t.charisma), /*#__PURE__*/
+      React.createElement("span", {
+        className: `charisma-level-badge ${currentLevel.badge_class} ${hasGlow ? 'glow-badge' : ''}`,
+        style: isDivine ?
+        { boxShadow: '0 0 15px rgba(0,212,255,0.7)', border: '1.5px solid rgba(0,212,255,0.7)', color: '#00d4ff', background: 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' } :
+        hasGlow ? { boxShadow: '0 0 15px ' + currentLevel.color } : {} },
+
+      renderIcon(), " Lv.", currentLevel.level,
+      isDivine && /*#__PURE__*/React.createElement("span", { style: { fontSize: '8px', marginLeft: '2px', animation: 'divine-aura 3s ease-in-out infinite' } }, "\u2726")
+      )
+      ), /*#__PURE__*/
+      React.createElement("div", { className: "charisma-bar-bg" }, /*#__PURE__*/
+      React.createElement("div", { className: "charisma-bar-fill", style: {
+          width: `${progress}%`,
+          background: isDivine ? 'linear-gradient(90deg,#00d4ff,#7c3aed,#00d4ff)' : undefined,
+          backgroundSize: isDivine ? '200% 100%' : undefined,
+          animation: isDivine ? 'divine-bar-flow 3s linear infinite' : undefined
+        } })
+      ), /*#__PURE__*/
+      React.createElement("div", { className: "charisma-info" }, /*#__PURE__*/
+      React.createElement("span", { className: "charisma-current", style: isDivine ? { color: '#00d4ff' } : {} }, formatCharisma(charisma || 0)),
+      isMaxLevel ? /*#__PURE__*/React.createElement("span", { className: "charisma-next", style: isDivine ? { color: '#00d4ff', fontWeight: 'bold', textShadow: '0 0 8px rgba(0,212,255,0.8)' } : { color: '#ffd700', fontWeight: 'bold' } }, isDivine ? '✦ ' : '', t.maxLevel) : nextLevel && showDetails && /*#__PURE__*/React.createElement("span", { className: "charisma-next" }, t.nextLevel, ": ", formatCharisma(neededForNext))
+      )
+      ));
+
+  };
+
+  // Avatar with Frame
+  var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
+    var sizeConfig = {
+      sm: { wrapper: 48, avatar: 42, mask: 42 },
+      md: { wrapper: 68, avatar: 60, mask: 60 },
+      lg: { wrapper: 100, avatar: 88, mask: 88 },
+      xl: { wrapper: 140, avatar: 124, mask: 124 }
+    };
+    var config = sizeConfig[size] || sizeConfig.md;
+    var frameItem = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === equipped?.frames);
+    var showBan = banData?.isBanned && (
+    !banData.expiresAt ||
+    new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
+
+    var isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
+    var avatarStyle = { width: config.avatar + 'px', height: config.avatar + 'px', borderRadius: '50%', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, border: '2px solid rgba(0,0,0,0.5)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none' };
+
+    var renderFrame = () => {
+      if (!frameItem) {
+        // FALLBACK: If frameItem not found by ID (e.g. legacy ref or straight string), try to find it
+        if (typeof equipped?.frames === 'string' && equipped.frames.trim() !== '') {
+          frameItem = (SHOP_ITEMS.frames || []).find((f) => f.id === equipped.frames || f.preview === equipped.frames);
+        }
+      }
+      if (!frameItem) return null;
+
+      var frameUrl = frameItem.preview || frameItem.imageUrl;
+      if (!frameUrl) return null;
+
+      if (frameUrl.startsWith('http') || frameUrl.startsWith('/') || frameUrl.startsWith('data:')) {
+        return (/*#__PURE__*/
+          React.createElement("div", { style: { position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', overflow: 'hidden', zIndex: 1, pointerEvents: 'none' } }, /*#__PURE__*/
+          React.createElement("img", { src: frameUrl, style: { width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.02)' }, alt: "frame",
+            onError: (e) => {e.target.style.display = 'none';} }), /*#__PURE__*/
+          React.createElement("div", { style: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'rgba(13,13,31,0.95)', boxShadow: 'inset 0 0 10px rgba(0,0,0,0.8)' } })
+          ));
+
+      }
+      return (/*#__PURE__*/
+        React.createElement("div", { style: { position: 'absolute', top: 0, left: 0, width: config.wrapper + 'px', height: config.wrapper + 'px', borderRadius: '50%', background: frameUrl, zIndex: 1 } }, /*#__PURE__*/
+        React.createElement("div", { style: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: config.mask + 'px', height: config.mask + 'px', borderRadius: '50%', background: 'var(--bg-dark)' } })
+        ));
+
+    };
+
+    return (/*#__PURE__*/
+      React.createElement("div", { style: { position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }, onClick: onClick },
+      renderFrame(),
+      isImageURL ? /*#__PURE__*/
+      React.createElement("img", { src: photoURL, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar",
+        onError: (e) => {e.target.onerror = null;e.target.src = `https://ui-avatars.com/api/?name=User&background=random`;} }) :
+      photoURL ? /*#__PURE__*/
+      React.createElement("div", { style: { ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(30,30,60,0.85)', fontSize: Math.round(config.avatar * 0.52) + 'px', userSelect: 'none' } },
+      photoURL
+      ) : /*#__PURE__*/
+
+      React.createElement("img", { src: `https://ui-avatars.com/api/?name=User&background=random`, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar" }),
+
+      showBan && /*#__PURE__*/
+      React.createElement("div", { style: {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: config.avatar + 'px', height: config.avatar + 'px',
+          borderRadius: '50%', zIndex: 20,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(220,0,0,0.55)',
+          border: '2px solid rgba(255,50,50,0.9)',
+          flexDirection: 'column', gap: '0px'
+        } }, /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: config.avatar > 35 ? '9px' : '7px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.1, textShadow: '0 1px 3px rgba(0,0,0,0.8)', letterSpacing: '-0.2px' } },
+      lang === 'ar' ? 'محظور' : 'BANNED'
+      )
+      )
+
+      ));
+
+  };
+
+  // Notification Dropdown
+  var NotificationDropdown = ({ show, onClose, notifications, onMarkRead, onClearAll, onNotificationClick, lang }) => {
+    var t = TRANSLATIONS[lang];
+    if (!show) return null;
+    var unreadCount = notifications.filter((n) => !n.read).length;
+    var getNotificationIcon = (type) => {switch (type) {case 'friend_request':return '👥';case 'gift':return '🎁';case 'message':return '💬';case 'friend_request_accepted':return '✅';case 'achievement':return '🏆';default:return '🔔';}};
+
+    return (/*#__PURE__*/
+      React.createElement("div", { className: "notification-dropdown animate-pop" }, /*#__PURE__*/
+      React.createElement("div", { className: "notification-dropdown-header" }, /*#__PURE__*/
+      React.createElement("span", { className: "notification-dropdown-title" }, t.notifications, " ", unreadCount > 0 && `(${unreadCount})`),
+      notifications.length > 0 && /*#__PURE__*/React.createElement("button", { onClick: onClearAll, className: "notification-clear-all" }, t.clearAll)
+      ), /*#__PURE__*/
+      React.createElement("div", { className: "notification-list" },
+      notifications.length === 0 ? /*#__PURE__*/React.createElement("div", { className: "notification-empty" }, /*#__PURE__*/React.createElement("div", { className: "text-3xl mb-2" }, "\uD83D\uDD14"), /*#__PURE__*/React.createElement("p", null, t.noNotifications)) : notifications.map((notif) => /*#__PURE__*/
+      React.createElement("div", { key: notif.id, className: `notification-item ${!notif.read ? 'unread' : ''}`, onClick: () => {onMarkRead(notif.id);onNotificationClick(notif);onClose();} }, /*#__PURE__*/
+      React.createElement("span", { className: "notification-item-icon" }, getNotificationIcon(notif.type)), /*#__PURE__*/
+      React.createElement("div", { className: "notification-item-content" }, /*#__PURE__*/
+      React.createElement("div", { className: "notification-item-title" }, notif.fromName || 'System'), /*#__PURE__*/
+      React.createElement("div", { className: "notification-item-message" }, notif.message), /*#__PURE__*/
+      React.createElement("div", { className: "notification-item-time" }, formatTime(notif.timestamp))
+      )
+      )
+      )
+      )
+      ));
+
+  };
+
+  // MiniProfilePopup
+  var MiniProfilePopup = ({
+    profile,
+    onClose,
+    currentUID,
+    lang,
+    onOpenProfile,
+    onSendGift = null,
+    onReport = null,
+    onBlock = null,
+    onUnblock = null,
+    isBlocked = false,
+    onOpenFamily = null,
+    zIndex = Z.OVERLAY
+  }) => {
+    var [showMenu, setShowMenu] = useState(false);
+    var [bannerErr, setBannerErr] = useState(false);
+    var [reportModal, setReportModal] = useState(false);
+    var [reportReason, setReportReason] = useState('');
+    var [reportNote, setReportNote] = useState('');
+
+    if (!profile) return null;
+
+    var isSelf = profile.uid === currentUID;
+    var hasMenu = onReport || onBlock || onUnblock || onOpenProfile;
+    var vipColor = profile.vipCfg?.nameColor || null;
+
+    var charismaLevel = (() => {
+      if (typeof getCharismaLevel === 'undefined') return null;
+      var { currentLevel: lvl } = getCharismaLevel(profile.charisma || 0);
+      return lvl || null;
+    })();
+
+    var familySignEl = (() => {
+      if (!profile.familyTag) return null;
+      if (window.FamilySignBadge) {
+        // Determine the correct sign level (sync with real family level if possible)
+        var flvl = profile.familySignLevel || 1;
+        // If it's the Tribe Chat or a place where we should show the real tribe level
+        if (profile.tribeFamilySignLevel) {
+          flvl = profile.tribeFamilySignLevel;
+        }
+
+        var fcolor = window.FamilyConstants?.getFamilySignLevelDataByLevel?.(flvl)?.color || profile.familySignColor || '#00f2ff';
+        var imgURL = window.FamilyConstants?.getFamilySignImage?.(0, flvl) || profile.familySignImageURL;
+        return (/*#__PURE__*/
+          React.createElement("div", { style: { transform: 'scale(1)', transformOrigin: 'left center' } }, /*#__PURE__*/
+          React.createElement(window.FamilySignBadge, {
+            tag: profile.familyTag,
+            signLevel: flvl,
+            color: fcolor,
+            imageURL: imgURL,
+            onClick: (onOpenFamily || window.onOpenFamily) ? () => { if (onClose) onClose(); (onOpenFamily || window.onOpenFamily)(profile.familyId); } : undefined }
+          )
+          ));
+
+      }
+      var sc = profile.familySignColor || '#00f2ff';
+      var handleClick = (onOpenFamily || window.onOpenFamily) ? () => { if (onClose) onClose(); (onOpenFamily || window.onOpenFamily)(profile.familyId); } : undefined;
+      return /*#__PURE__*/React.createElement("span", { style: { fontSize: '10px', fontWeight: 800, color: sc, background: `${sc}22`, border: `1px solid ${sc}44`, borderRadius: '6px', padding: '2px 8px', cursor: handleClick ? 'pointer' : 'default' }, onClick: handleClick }, profile.familyTag);
+    })();
+
+    var nameStyle = vipColor ?
+    { background: `linear-gradient(90deg, ${vipColor}, #fff, ${vipColor})`, backgroundSize: '200%', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: 900, fontSize: '17px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '170px', cursor: 'pointer' } :
+    { fontSize: '17px', fontWeight: 900, color: '#00f2ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '170px', cursor: 'pointer', textDecoration: 'underline dotted rgba(0,242,255,0.4)' };
+
+    var hasBanner = profile.bannerUrl && !bannerErr;
+
+    // Report dialog submit
+    var _submitReport = async () => {
+      if (!reportReason) return;
+      if (onReport) await onReport(profile, reportReason, reportNote);else
+      if (typeof reportsCollection !== 'undefined') {
+        try {
+          await reportsCollection.add({
+            type: 'user', reportedUID: profile.uid, reportedName: profile.name,
+            reporterUID: currentUID, reason: reportReason, note: reportNote,
+            createdAt: typeof TS === 'function' ? TS() : new Date(),
+            status: 'pending'
+          });
+        } catch (e) {console.error(e);}
+      }
+      setReportModal(false);setReportReason('');setReportNote('');
+      onClose();
+    };
+
+    return (/*#__PURE__*/
+      React.createElement(PortalModal, null, /*#__PURE__*/
+      React.createElement("div", { style: {
+          position: 'fixed', inset: 0, zIndex,
+          background: 'rgba(0,0,0,0.78)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '16px'
+        }, onClick: () => {setShowMenu(false);onClose();} }, /*#__PURE__*/
+      React.createElement("div", { style: {
+          width: '100%', maxWidth: 'min(400px, calc(100vw - 20px))',
+          borderRadius: '24px', overflow: 'hidden',
+          background: '#0d0d1f',
+          border: `1px solid ${vipColor ? vipColor + '44' : 'rgba(255,255,255,0.1)'}`,
+          boxShadow: `0 28px 70px rgba(0,0,0,0.95)${vipColor ? `, 0 0 30px ${vipColor}22` : ''}`,
+          position: 'relative'
+        }, onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+
+      React.createElement("div", { style: {
+          position: 'relative', height: '130px',
+          background: hasBanner && profile.bannerUrl.includes('linear-gradient') ?
+            profile.bannerUrl :
+            (hasBanner ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)')
+        } },
+      (hasBanner && !profile.bannerUrl.includes('linear-gradient')) && /*#__PURE__*/
+      React.createElement("img", {
+        src: profile.bannerUrl,
+        alt: "",
+        onError: () => setBannerErr(true),
+        style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' } }
+      ), /*#__PURE__*/
+
+      React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,0,0,0.1) 0%,rgba(13,13,31,0.7) 100%)' } }),
+
+      hasMenu && /*#__PURE__*/
+      React.createElement("div", { style: { position: 'absolute', top: '10px', right: '10px', zIndex: 3 } }, /*#__PURE__*/
+      React.createElement("div", { style: { position: 'relative' } }, /*#__PURE__*/
+      React.createElement("button", { onClick: (e) => {e.stopPropagation();setShowMenu((v) => !v);},
+        style: { background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: '17px', fontWeight: 900, lineHeight: 1 } }, "\u22EE"
+
+      ),
+      showMenu && /*#__PURE__*/
+      React.createElement("div", { style: { position: 'absolute', top: '34px', right: 0, background: 'linear-gradient(160deg,#0e0e22,#13122a)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: '12px', padding: '5px', minWidth: '160px', boxShadow: '0 10px 30px rgba(0,0,0,0.9)', zIndex: 5 },
+        onClick: (e) => e.stopPropagation() },
+      onOpenProfile && /*#__PURE__*/
+      React.createElement("button", { onClick: () => {setShowMenu(false);onClose();onOpenProfile(profile.uid);},
+        style: { width: '100%', padding: '9px 12px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: '#00f2ff', textAlign: 'right' },
+        onMouseEnter: (e) => e.currentTarget.style.background = 'rgba(0,242,255,0.08)',
+        onMouseLeave: (e) => e.currentTarget.style.background = 'none' }, "\uD83D\uDC64 ",
+      lang === 'ar' ? 'فتح البروفايل' : 'Open Profile'
+      ),
+
+      onReport && !isSelf && /*#__PURE__*/
+      React.createElement("button", { onClick: () => {setShowMenu(false);setReportModal(true);},
+        style: { width: '100%', padding: '9px 12px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: '#f87171', textAlign: 'right' },
+        onMouseEnter: (e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)',
+        onMouseLeave: (e) => e.currentTarget.style.background = 'none' }, "\uD83D\uDEA8 ",
+      lang === 'ar' ? 'إبلاغ' : 'Report'
+      ),
+
+      (onBlock || onUnblock) && !isSelf && /*#__PURE__*/
+      React.createElement("button", { onClick: async () => {setShowMenu(false);onClose();isBlocked ? await onUnblock?.(profile.uid) : await onBlock?.(profile.uid);},
+        style: { width: '100%', padding: '9px 12px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: isBlocked ? '#4ade80' : '#f59e0b', textAlign: 'right' },
+        onMouseEnter: (e) => e.currentTarget.style.background = isBlocked ? 'rgba(74,222,128,0.1)' : 'rgba(245,158,11,0.1)',
+        onMouseLeave: (e) => e.currentTarget.style.background = 'none' },
+      isBlocked ? `✅ ${lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}` : `🚫 ${lang === 'ar' ? 'حظر' : 'Block'}`
+      )
+
+      )
+
+      )
+      ),
+
+
+      (profile.coupleRingEmoji || profile.coupleRingImageUrl) && /*#__PURE__*/
+      React.createElement("div", { style: { position: 'absolute', bottom: '8px', right: '12px', zIndex: 2 } },
+      profile.coupleRingImageUrl ? /*#__PURE__*/
+      React.createElement("img", { src: profile.coupleRingImageUrl, alt: "", style: { width: '28px', height: '28px', objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(255,80,150,0.7))' } }) : /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '22px', filter: 'drop-shadow(0 0 6px rgba(255,80,150,0.7))' } }, profile.coupleRingEmoji)
+      )
+
+      ),
+
+      (profile.topBadges || []).length > 0 && /*#__PURE__*/
+      React.createElement("div", { style: { position: 'absolute', top: '100px', right: '12px', display: 'flex', gap: '5px', zIndex: 3 } },
+      (profile.topBadges || []).map((badge, i) => /*#__PURE__*/
+      React.createElement("div", { key: i, title: badge.title_en || badge.name_en || '', style: { width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(13,13,31,0.85)', border: '1px solid rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', backdropFilter: 'blur(6px)' } },
+      badge.imageUrl ? /*#__PURE__*/React.createElement("img", { src: badge.imageUrl, alt: "", style: { width: '20px', height: '20px', objectFit: 'contain' } }) : badge.icon || '🏅'
+      )
+      )
+      ), /*#__PURE__*/
+
+
+      React.createElement("div", { style: { padding: '0 14px 16px', position: 'relative' } }, /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'flex-end', gap: '12px', marginTop: '-36px', marginBottom: '10px' } }, /*#__PURE__*/
+      React.createElement("div", { onClick: () => {onClose();if (onOpenProfile) onOpenProfile(profile.uid);},
+        style: {
+          position: 'relative', width: '102px', height: '102px', flexShrink: 0, zIndex: 10, cursor: 'pointer',
+          display: 'grid', placeItems: 'center'
+        } },
+
+
+      (() => {
+        var fSrc = profile.equippedFrame;
+        if (!fSrc || fSrc === 'none') return null;
+        if (!fSrc.startsWith('http') && !fSrc.startsWith('/') && !fSrc.startsWith('data:')) {
+          var found = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === fSrc);
+          if (found) fSrc = found.preview || found.imageUrl;else
+          return null;
+        }
+        return (/*#__PURE__*/
+          React.createElement("img", {
+            src: fSrc,
+            alt: "",
+            onError: (e) => {e.target.style.display = 'none';},
+            style: {
+              position: 'absolute', inset: 0,
+              width: '102px', height: '102px',
+              objectFit: 'contain', pointerEvents: 'none', zIndex: 3,
+              background: 'transparent'
+            } }
+          ));
+
+      })(), /*#__PURE__*/
+
+
+      React.createElement("div", { style: {
+          width: '68px', height: '68px', borderRadius: '50%',
+          border: profile.equippedFrame && profile.equippedFrame !== 'none' ? 'none' : vipColor ? `2px solid ${vipColor}` : '2px solid rgba(255,255,255,0.15)',
+          overflow: 'hidden', background: '#1a1a2e',
+          boxShadow: profile.equippedFrame && profile.equippedFrame !== 'none' ? 'none' : vipColor ? `0 0 16px ${vipColor}44, 0 4px 12px rgba(0,0,0,0.5)` : '0 4px 12px rgba(0,0,0,0.5)',
+          position: 'relative', zIndex: 2
+        } },
+      profile.photo ? /*#__PURE__*/
+      React.createElement("img", { src: profile.photo, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
+      React.createElement("div", { style: { width: '100%', height: '100%', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px' } }, "\uD83D\uDE0E")
+      )
+      ), /*#__PURE__*/
+
+      React.createElement("div", { style: { flex: 1, paddingBottom: '6px', minWidth: 0 } }, /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '4px', flexWrap: 'wrap' },
+        onClick: () => {onClose();if (onOpenProfile) onOpenProfile(profile.uid);} },
+      window.VIPBadge && profile.vipLevel > 0 ? /*#__PURE__*/
+      React.createElement(window.VIPBadge, { userData: profile, size: "sm", onClick: () => {} }) :
+      profile.vipCfg && /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: vipColor, color: '#000', padding: '1px 4px', borderRadius: '3px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '2px', cursor: 'pointer' } },
+      profile.vipCfg.badgeImageUrl && /*#__PURE__*/React.createElement("img", { src: profile.vipCfg.badgeImageUrl, alt: "", style: { height: '10px', objectFit: 'contain' } }), "VIP",
+      profile.vipLevel
+      ),
+
+      window.VIPName ? /*#__PURE__*/
+      React.createElement(window.VIPName, { displayName: profile.name, userData: profile, style: nameStyle }) : /*#__PURE__*/
+      React.createElement("span", { style: nameStyle }, profile.name)
+      ), /*#__PURE__*/
+
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' } },
+      profile.gender && /*#__PURE__*/React.createElement("span", { style: { fontSize: '15px', lineHeight: 1, flexShrink: 0 } }, profile.gender === 'male' ? '♂️' : '♀️'),
+      charismaLevel && /*#__PURE__*/
+      React.createElement("div", { style: { display: 'inline-flex', alignItems: 'center', gap: '3px', borderRadius: '6px', padding: '2px 5px',
+          background: charismaLevel.isDivine ? 'linear-gradient(135deg,rgba(0,212,255,0.15),rgba(10,10,46,0.97))' : charismaLevel.hasGlow ? `${charismaLevel.color}18` : 'rgba(255,255,255,0.06)',
+          border: charismaLevel.isDivine ? '1px solid rgba(0,212,255,0.4)' : charismaLevel.hasGlow ? `1px solid ${charismaLevel.color}55` : '1px solid rgba(255,255,255,0.1)',
+          flexShrink: 0 } },
+      charismaLevel.iconType === 'image' && charismaLevel.iconUrl ? /*#__PURE__*/
+      React.createElement("img", { src: charismaLevel.iconUrl, alt: "", style: { width: '14px', height: '14px', borderRadius: charismaLevel.isDivine ? '50%' : '0', objectFit: 'cover' } }) : /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '12px' } }, charismaLevel.icon), /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '10px', fontWeight: 800, color: charismaLevel.isDivine ? '#00d4ff' : charismaLevel.color } }, "Lv.", charismaLevel.level)
+      ),
+
+      familySignEl
+      ),
+
+      profile.customId && /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#6b7280' } },
+      profile.vipCfg?.idBeforeImageUrl ? /*#__PURE__*/
+      React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", { src: profile.vipCfg.idBeforeImageUrl, alt: "", style: { height: '14px', objectFit: 'contain', flexShrink: 0 } }), /*#__PURE__*/React.createElement("span", null, profile.customId)) :
+      profile.vipCfg?.idBeforeText ? /*#__PURE__*/
+      React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", { style: { color: vipColor || '#a78bfa', fontWeight: 700 } }, profile.vipCfg.idBeforeText), /*#__PURE__*/React.createElement("span", null, profile.customId)) : /*#__PURE__*/
+      React.createElement("span", null, "ID:", profile.customId), /*#__PURE__*/
+      React.createElement("button", { onClick: () => navigator.clipboard?.writeText(profile.customId),
+        style: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#4b5563', padding: '0 2px', lineHeight: 1 } }, "\u2398")
+      ),
+
+      profile.loading && /*#__PURE__*/React.createElement("div", { style: { fontSize: '11px', color: '#4b5563', fontStyle: 'italic' } }, "\u23F3")
+      )
+      ), /*#__PURE__*/
+
+      React.createElement("div", { style: { display: 'flex', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', margin: '0 0 14px', padding: '10px 0', flexWrap: 'wrap', gap: '5px' } }, /*#__PURE__*/
+      React.createElement("div", { style: { flex: 1, textAlign: 'center' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '20px', fontWeight: 900, color: 'white', lineHeight: 1 } }, profile.gamesPlayed ?? 0), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '10px', color: '#6b7280', marginTop: '3px' } }, lang === 'ar' ? 'مباريات' : 'Games')
+      ), /*#__PURE__*/
+      React.createElement("div", { style: { width: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 0' } }), /*#__PURE__*/
+      React.createElement("div", { style: { flex: 1, textAlign: 'center' } },
+      (() => {
+        var r = profile.winRate ?? 0;
+        var c = r >= 70 ? '#10b981' : r >= 50 ? '#facc15' : '#f97316';
+        return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+        React.createElement("div", { style: { fontSize: '20px', fontWeight: 900, color: c, lineHeight: 1 } }, r, "%"), /*#__PURE__*/
+        React.createElement("div", { style: { fontSize: '10px', color: '#6b7280', marginTop: '3px' } }, lang === 'ar' ? 'نسبة الفوز' : 'Win Rate')
+        );
+      })()
+      )
+      ), /*#__PURE__*/
+
+      React.createElement("div", { style: { display: 'flex', gap: '10px', flexWrap: 'wrap' } },
+      !isSelf && !profile.isFriend && /*#__PURE__*/
+      React.createElement("button", { onClick: async () => {
+          try {await usersCollection.doc(profile.uid).update({ friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUID) });} catch (e) {}
+        },
+        style: { flex: 1, padding: '11px', borderRadius: '50px', background: 'linear-gradient(135deg,rgba(0,242,255,0.22),rgba(0,180,255,0.18))', border: '1px solid rgba(0,242,255,0.4)', color: '#00f2ff', fontSize: '13px', fontWeight: 800, cursor: 'pointer' } },
+      lang === 'ar' ? 'إضافة' : 'Add'
+      ),
+
+      !isSelf && profile.isFriend && /*#__PURE__*/
+      React.createElement("div", { style: { flex: 1, padding: '11px', borderRadius: '50px', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '13px', fontWeight: 800, textAlign: 'center' } }, "\u2705 ",
+      lang === 'ar' ? 'صديق' : 'Friends'
+      ),
+
+      !isSelf && onSendGift && /*#__PURE__*/
+      React.createElement("button", { onClick: () => {onClose();onSendGift(profile);},
+        style: { flex: 1, padding: '11px', borderRadius: '50px', background: 'linear-gradient(135deg,rgba(255,80,150,0.26),rgba(236,72,153,0.18))', border: '1px solid rgba(255,80,150,0.4)', color: '#f472b6', fontSize: '13px', fontWeight: 800, cursor: 'pointer' } },
+      lang === 'ar' ? 'إرسال هدية' : 'Send Gift'
+      ),
+
+      isSelf && /*#__PURE__*/
+      React.createElement("button", { onClick: () => {onClose();if (onOpenProfile) onOpenProfile(profile.uid);},
+        style: { flex: 1, padding: '11px', borderRadius: '50px', background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.25)', color: '#00f2ff', fontSize: '13px', fontWeight: 700, cursor: 'pointer', textAlign: 'center' } }, "\uD83D\uDC64 ",
+      lang === 'ar' ? 'بروفايلي' : 'My Profile'
+      )
+
+      )
+      )
+      )
+      ),
+
+
+      reportModal && /*#__PURE__*/
+      React.createElement("div", { style: { position: 'fixed', inset: 0, zIndex: zIndex + 1, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' },
+        onClick: () => setReportModal(false) }, /*#__PURE__*/
+      React.createElement("div", { style: { width: '100%', maxWidth: '340px', background: '#0d0d1f', borderRadius: '20px', padding: '20px', border: '1px solid rgba(239,68,68,0.3)', boxShadow: '0 20px 60px rgba(0,0,0,0.9)' },
+        onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '15px', fontWeight: 800, color: '#f87171', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' } }, "\uD83D\uDEA8 ", lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '12px', color: '#9ca3af', marginBottom: '10px' } }, lang === 'ar' ? 'السبب:' : 'Reason:'),
+      ['spam', 'harassment', 'cheating', 'inappropriate', 'other'].map((r) => /*#__PURE__*/
+      React.createElement("button", { key: r, onClick: () => setReportReason(r),
+        style: { display: 'block', width: '100%', textAlign: 'right', padding: '9px 12px', marginBottom: '6px', borderRadius: '10px', border: reportReason === r ? '1px solid #f87171' : '1px solid rgba(255,255,255,0.08)', background: reportReason === r ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.04)', color: reportReason === r ? '#f87171' : '#d1d5db', fontSize: '12px', fontWeight: reportReason === r ? 800 : 500, cursor: 'pointer' } },
+      lang === 'ar' ? { spam: 'سبام', harassment: 'تحرش', cheating: 'غش', inappropriate: 'محتوى مسيء', other: 'أخرى' }[r] : { spam: 'Spam', harassment: 'Harassment', cheating: 'Cheating', inappropriate: 'Inappropriate Content', other: 'Other' }[r]
+      )
+      ), /*#__PURE__*/
+      React.createElement("textarea", { value: reportNote, onChange: (e) => setReportNote(e.target.value), maxLength: 200, rows: 2,
+        placeholder: lang === 'ar' ? 'تفاصيل إضافية (اختياري)...' : 'Additional details (optional)...',
+        style: { width: '100%', marginTop: '8px', padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '12px', outline: 'none', resize: 'none', boxSizing: 'border-box' } }), /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', gap: '8px', marginTop: '14px' } }, /*#__PURE__*/
+      React.createElement("button", { onClick: () => {setReportModal(false);setReportReason('');setReportNote('');},
+        style: { flex: 1, padding: '11px', borderRadius: '12px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '13px', fontWeight: 700, cursor: 'pointer' } },
+      lang === 'ar' ? 'إلغاء' : 'Cancel'
+      ), /*#__PURE__*/
+      React.createElement("button", { onClick: _submitReport, disabled: !reportReason,
+        style: { flex: 1, padding: '11px', borderRadius: '12px', background: reportReason ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.05)', border: reportReason ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)', color: reportReason ? '#f87171' : '#6b7280', fontSize: '13px', fontWeight: 800, cursor: reportReason ? 'pointer' : 'not-allowed' } },
+      lang === 'ar' ? 'إرسال البلاغ' : 'Send Report'
+      )
+      )
+      )
+      )
+
+      ));
+
+  };
+
+  // Attach to window
+  window.ErrorBoundary = ErrorBoundary;
+  window.GuestBanner = GuestBanner;
+  window.NotificationToast = NotificationToast;
+  window.ModalCloseBtn = ModalCloseBtn;
+  window.CharismaDisplay = CharismaDisplay;
+  window.AvatarWithFrame = AvatarWithFrame;
+  window.AvatarComponent = AvatarWithFrame; // Alias: legacy name for the same component
+  window.NotificationDropdown = NotificationDropdown;
+  window.MiniProfilePopup = MiniProfilePopup;
+
+  // Global showToast helper
+  window.showToast = (msg) => {
+    if (typeof window.setGlobalNotification === 'function') {
+      window.setGlobalNotification(msg);
+    } else {
+      // setGlobalNotification not ready yet — queue and retry once
+      console.warn('[showToast] not ready, queuing:', msg);
+      setTimeout(() => {
+        if (typeof window.setGlobalNotification === 'function') {
+          window.setGlobalNotification(msg);
+        } else {
+          console.warn('[showToast] still not ready, dropped:', msg);
+        }
+      }, 800);
+    }
+  };
+
+})();
