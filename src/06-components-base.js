@@ -486,7 +486,7 @@
               e("div", { className: "mp-user-info" },
                 e("div", { className: "mp-user-name" },
                   window.VIPBadge && profile.vipLevel > 0 && e(window.VIPBadge, { userData: profile, size: 'sm', onClick: () => { } }),
-                  window.VIPName ? e(window.VIPName, { displayName: profile.name, userData: profile, className: (profile.vipLevel === 10 ? "mp-vip-transparent " : "") + "mp-vip-text-only", style: { fontSize: '18px', fontWeight: '900', color: profile.vipCfg?.nameColor || '#ffffff', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }) :
+                  window.VIPName ? e(window.VIPName, { displayName: profile.name, userData: profile, className: (profile.vipLevel === 10 ? "mp-vip-transparent" : "mp-vip-text-only"), style: { fontSize: '18px', fontWeight: '900', color: profile.vipCfg?.nameColor || '#ffffff', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }) :
                     e("div", { className: "mp-user-name-text", style: { color: profile.vipCfg?.nameColor || '#ffffff' } }, profile.name)
                 ),
                 e("div", { className: "mp-badges-line" },
