@@ -420,11 +420,11 @@
               e("div", { 
                 className: "mp-cp-pill", 
                 style: { 
-                  padding: '5px 14px', 
-                  background: 'rgba(0,0,0,0.7)', 
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.15)', 
+                  padding: '6px 14px', 
+                  background: 'rgba(255,255,255,0.06)', 
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255,255,255,0.12)', 
                   borderRadius: '20px', 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -432,7 +432,7 @@
                   color: '#fff',
                   fontSize: '11px',
                   fontWeight: '700',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
                 } 
               },
                 (lang === 'ar' ? 
