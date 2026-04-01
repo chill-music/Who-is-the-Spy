@@ -273,8 +273,8 @@
   {
     level: 10,
     name_en: 'VIP X', name_ar: 'في آي بي 10',
-    nameColor: '#ef4444',
-    glowColor: 'rgba(239,68,68,1)',
+    nameColor: '#ff1a1a',
+    glowColor: 'rgba(255, 26, 26, 1)',
     gradientAnim: true,
     xpMultiplier: 2.0,
     idLength: 6,

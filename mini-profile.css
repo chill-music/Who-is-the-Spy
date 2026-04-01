@@ -569,9 +569,8 @@
 }
 
 .mp-vip-text-only {
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
-  color: transparent !important;
+  background: none !important;
+  color: inherit;
   display: inline-block;
   line-height: 1.2;
 }
@@ -579,14 +578,13 @@
 .vip-level-10.mp-vip-text-only,
 .vip-name-animated.mp-vip-text-only {
   position: relative;
-  background: linear-gradient(90deg, #ff1a1a, #ff4d4d, #ff1a1a) !important;
-  background-size: 200% auto !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  color: transparent !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  color: #ff1a1a !important;
   font-weight: 900 !important;
-  text-shadow: 0 0 15px rgba(255, 0, 0, 0.6), 0 0 30px rgba(255, 0, 0, 0.3) !important;
-  animation: vip10Shimmer 4s linear infinite !important;
+  text-shadow: 0 0 10px rgba(255, 26, 26, 0.8), 0 0 20px rgba(255, 26, 26, 0.4) !important;
+  animation: none !important; /* Shimmer was for background, now unwanted */
   padding: 2px 0;
 }
 
@@ -597,14 +595,14 @@
   position: absolute;
   top: 0;
   left: -100%;
-  width: 50%;
+  width: 60%;
   height: 100%;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.8) 50%,
-    rgba(255, 255, 255, 0) 70%,
+    rgba(255, 60, 60, 0) 20%,
+    rgba(255, 100, 100, 0.7) 50%,
+    rgba(255, 60, 60, 0) 80%,
     transparent 100%
   );
   transform: skewX(-25deg);
