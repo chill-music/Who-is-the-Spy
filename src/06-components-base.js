@@ -404,8 +404,8 @@
               }, 
               style: { 
                 cursor: 'pointer', 
-                bottom: '12px', 
-                right: '12px', 
+                top: '215px', 
+                right: '18px', 
                 position: 'absolute', 
                 transform: 'scale(1.0)', // Reduced scaling mismatch
                 transformOrigin: 'right bottom', 

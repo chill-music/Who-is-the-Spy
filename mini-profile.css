@@ -70,8 +70,8 @@
 /* CP label (Couple Home) */
 .mp-cp-label {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  top: 215px; /* Moved from bottom: 12px to stay near avatar top-right */
+  right: 18px;
   display: flex;
   align-items: center;
   z-index: 10;
