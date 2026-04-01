@@ -306,7 +306,9 @@
     }, [profile?.uid]);
 
     if (!profile) return null;
-
+    
+    // Fix: Define isBlocked (Bug 4)
+    var isBlocked = (window.currentUserData?.blockedUsers || []).includes(profile.uid);
     var isSelf = profile.uid === currentUID;
     var hasMenu = true; // Always show menu for Profile/Block/Report
     var t_add = lang === 'ar' ? 'إضافة' : 'Add';
@@ -374,20 +376,20 @@
             e("div", { className: "mp-menu-item", onClick: () => { setShowMenu(false); onClose(); onOpenProfile ? onOpenProfile(profile.uid) : (window.setShowUserProfile && window.setShowUserProfile(true)); } }, "👤 ", lang === 'ar' ? 'فتح البروفايل' : 'Profile'),
             !isSelf && e("div", { className: "mp-menu-item danger", onClick: () => { setShowMenu(false); setReportModal(true); } }, "🚨 ", lang === 'ar' ? 'إبلاغ' : 'Report'),
             !isSelf && e("div", { className: "mp-menu-item", onClick: async () => { 
-              setShowMenu(false); 
-              onClose(); 
-              if (isBlocked) {
-                if (onUnblock) await onUnblock(profile.uid);
-                else if (window.handleUnblockUser) await window.handleUnblockUser(profile.uid);
-              } else {
-                if (onBlock) await onBlock(profile.uid);
-                else if (window.handleBlockUser) {
-                  await window.handleBlockUser(profile.uid);
-                  if (window.showToast) window.showToast(lang === 'ar' ? 'تم الحظر بنجاح' : 'User blocked successfully', 'success');
-                  onClose();
+                setShowMenu(false); 
+                onClose(); 
+                if (isBlocked) {
+                  if (onUnblock) await onUnblock(profile.uid);
+                  else if (window.handleUnblockUser) await window.handleUnblockUser(profile.uid);
+                } else {
+                  if (onBlock) await onBlock(profile.uid);
+                  else if (window.handleBlockUser) {
+                    await window.handleBlockUser(profile.uid);
+                    if (window.showToast) window.showToast(lang === 'ar' ? 'تم الحظر بنجاح' : 'User blocked successfully', 'success');
+                    onClose();
+                  }
                 }
-              }
-            } }, isBlocked ? `✅ ${lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}` : `🚫 ${lang === 'ar' ? 'حظر' : 'Block'}`)
+              } }, (isBlocked ? "✅ " : "🚫 ") + (lang === 'ar' ? (isBlocked ? 'إلغاء الحظر' : 'حظر') : (isBlocked ? 'Unblock' : 'Block')))
           ),
 
           /* --- Improved "Our Home" Button (Fixes Overflow & Naming) --- */
