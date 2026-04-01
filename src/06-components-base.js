@@ -365,30 +365,33 @@
         e("div", { className: "mp-card", onClick: (ev) => ev.stopPropagation(), style: { background: '#0d0d1f', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 28px 70px rgba(0,0,0,0.95)' } },
           e("div", { className: "mp-banner", style: { background: (profile.bannerUrl || profile.bannerURL) ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)' } },
             (profile.bannerUrl || profile.bannerURL) && e("img", { src: (profile.bannerUrl || profile.bannerURL), className: "mp-banner-img" }),
-            e("div", { className: "mp-banner-overlay" }),
-            hasMenu && e("div", { className: "mp-menu-trigger", onClick: (ev) => { ev.stopPropagation(); setShowMenu((v) => !v); } }, "⋮"),
-            hasMenu && showMenu && e("div", { className: "mp-menu-dropdown", onClick: (ev) => ev.stopPropagation() },
-              e("div", { className: "mp-menu-item", onClick: () => { setShowMenu(false); onClose(); onOpenProfile ? onOpenProfile(profile.uid) : (window.setShowUserProfile && window.setShowUserProfile(true)); } }, "👤 ", lang === 'ar' ? 'فتح البروفايل' : 'Profile'),
-              !isSelf && e("div", { className: "mp-menu-item danger", onClick: () => { setShowMenu(false); setReportModal(true); } }, "🚨 ", lang === 'ar' ? 'إبلاغ' : 'Report'),
-              !isSelf && e("div", { className: "mp-menu-item", onClick: async () => { 
-                setShowMenu(false); 
-                onClose(); 
-                if (isBlocked) {
-                  if (onUnblock) await onUnblock(profile.uid);
-                  else if (window.handleUnblockUser) await window.handleUnblockUser(profile.uid);
-                } else {
-                  if (onBlock) await onBlock(profile.uid);
-                  else if (window.handleBlockUser) {
-                    await window.handleBlockUser(profile.uid);
-                    if (window.showToast) window.showToast(lang === 'ar' ? 'تم الحظر بنجاح' : 'User blocked successfully', 'success');
-                    onClose();
-                  }
-                }
-              } }, isBlocked ? `✅ ${lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}` : `🚫 ${lang === 'ar' ? 'حظر' : 'Block'}`)
-            ),
+            e("div", { className: "mp-banner-overlay" })
+          ),
 
-            /* --- Improved "Our Home" Button (Fixes Overflow & Naming) --- */
-            (coupleDoc && partnerData) && e("div", { 
+          /* --- Move Menu Outside Banner to prevent clipping (Bug 4) --- */
+          hasMenu && e("div", { className: "mp-menu-trigger", onClick: (ev) => { ev.stopPropagation(); setShowMenu((v) => !v); }, style: { zIndex: 2010 } }, "⋮"),
+          hasMenu && showMenu && e("div", { className: "mp-menu-dropdown", onClick: (ev) => ev.stopPropagation(), style: { zIndex: 2011 } },
+            e("div", { className: "mp-menu-item", onClick: () => { setShowMenu(false); onClose(); onOpenProfile ? onOpenProfile(profile.uid) : (window.setShowUserProfile && window.setShowUserProfile(true)); } }, "👤 ", lang === 'ar' ? 'فتح البروفايل' : 'Profile'),
+            !isSelf && e("div", { className: "mp-menu-item danger", onClick: () => { setShowMenu(false); setReportModal(true); } }, "🚨 ", lang === 'ar' ? 'إبلاغ' : 'Report'),
+            !isSelf && e("div", { className: "mp-menu-item", onClick: async () => { 
+              setShowMenu(false); 
+              onClose(); 
+              if (isBlocked) {
+                if (onUnblock) await onUnblock(profile.uid);
+                else if (window.handleUnblockUser) await window.handleUnblockUser(profile.uid);
+              } else {
+                if (onBlock) await onBlock(profile.uid);
+                else if (window.handleBlockUser) {
+                  await window.handleBlockUser(profile.uid);
+                  if (window.showToast) window.showToast(lang === 'ar' ? 'تم الحظر بنجاح' : 'User blocked successfully', 'success');
+                  onClose();
+                }
+              }
+            } }, isBlocked ? `✅ ${lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}` : `🚫 ${lang === 'ar' ? 'حظر' : 'Block'}`)
+          ),
+
+          /* --- Improved "Our Home" Button (Fixes Overflow & Naming) --- */
+          (coupleDoc && partnerData) && e("div", { 
               className: "mp-cp-label", 
               onClick: (ev) => { 
                 ev.stopPropagation();
@@ -444,8 +447,7 @@
                   e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
                 )
               )
-            )
-          ),
+            ),
           e("div", { className: "mp-body", style: { background: '#0d0d1f', color: '#fff' } },
             e("div", { className: "mp-badge-row", style: { height: '48px', margin: '0 -18px 14px', padding: 0 } },
               e("div", { className: "mp-ribbon-right", style: { width: 'auto', minWidth: '40px' } },
