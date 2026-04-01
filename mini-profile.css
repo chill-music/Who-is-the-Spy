@@ -22,7 +22,7 @@
   height: 140px;
   background: linear-gradient(135deg, #0a0a2e, #1a1040, #0d1a3a);
   position: relative;
-  /* overflow: hidden; Removed to allow CP label overlap */
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,11 +70,13 @@
 /* CP label (Couple Home) */
 .mp-cp-label {
   position: absolute;
-  bottom: -24px; /* Exact overlap for VIP look */
-  right: 70px;
+  top: 170px; /* Exact design position relative to card */
+  left: 130px;
+  right: auto;
+  bottom: auto;
   display: flex;
   align-items: center;
-  z-index: 10;
+  z-index: 20;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
