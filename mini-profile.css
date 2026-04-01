@@ -69,11 +69,6 @@
 
 /* CP label (Couple Home) */
 .mp-cp-label {
-  position: absolute;
-  top: 170px; /* Exact design position relative to card */
-  left: 130px;
-  right: auto;
-  bottom: auto;
   display: flex;
   align-items: center;
   z-index: 20;

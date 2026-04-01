@@ -392,66 +392,66 @@
               } }, (isBlocked ? "✅ " : "🚫 ") + (lang === 'ar' ? (isBlocked ? 'إلغاء الحظر' : 'حظر') : (isBlocked ? 'Unblock' : 'Block')))
           ),
 
-          /* --- Exact Position relative to card (Bug 3) --- */
-          (coupleDoc && partnerData) && e("div", { 
-              className: "mp-cp-label", 
-              onClick: (ev) => { 
-                ev.stopPropagation();
-                onClose(); 
-                if (onOpenCoupleCard) onOpenCoupleCard(coupleDoc);
-                else if (window.openCoupleCard) window.openCoupleCard(coupleDoc);
-                else if (window.setShowCoupleCard) window.setShowCoupleCard(true);
-              }, 
-              style: { 
-                cursor: 'pointer', 
-                top: '170px', 
-                left: '130px', 
-                position: 'absolute', 
-                transform: 'scale(1.0)', 
-                transformOrigin: 'left top', 
-                zIndex: 20, 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                maxWidth: 'calc(100% - 24px)', 
-                justifyContent: 'flex-start'
-              } 
-            },
-              e("div", { 
-                className: "mp-cp-pill", 
+          e("div", { className: "mp-body", style: { background: '#0d0d1f', color: '#fff' } },
+            /* --- Couple Ring Label Above Badges (Bug 3 Refined) --- */
+            (coupleDoc && partnerData) && e("div", { 
+                className: "mp-cp-label", 
+                onClick: (ev) => { 
+                  ev.stopPropagation();
+                  onClose(); 
+                  if (onOpenCoupleCard) onOpenCoupleCard(coupleDoc);
+                  else if (window.openCoupleCard) window.openCoupleCard(coupleDoc);
+                  else if (window.setShowCoupleCard) window.setShowCoupleCard(true);
+                }, 
                 style: { 
-                  padding: '5px 14px', 
-                  background: 'rgba(0,0,0,0.7)', 
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.15)', 
-                  borderRadius: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  color: '#fff',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                  cursor: 'pointer', 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  margin: '10px -18px 12px',
+                  padding: '0 18px',
+                  justifyContent: 'flex-start',
+                  zIndex: 20
                 } 
               },
-                (lang === 'ar' ? 
-                  ((profile.gender || 'male') === 'female' ? 'بيتها 🏠' : 'بيته 🏠') : 
-                  ((profile.gender || 'male') === 'female' ? 'Her Home 🏠' : 'His Home 🏠'))
-              ),
-              (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '40px', height: '40px', marginLeft: '-10px' } },
-                e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
-                  e("div", { className: "mp-cp-thumb", style: { inset: '2px' } },
-                    e("div", { className: "mp-cp-thumb-inner" },
-                      e("img", { src: partnerData.photo || partnerData.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerData.name)}` })
-                    )
-                  ),
-                  e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
+                e("div", { 
+                  className: "mp-cp-pill", 
+                  style: { 
+                    padding: '5px 14px', 
+                    background: 'rgba(0,0,0,0.7)', 
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.15)', 
+                    borderRadius: '20px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    color: '#fff',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                  } 
+                },
+                  (lang === 'ar' ? 
+                    ((profile.gender || 'male') === 'female' ? 'بيتها' : 'بيته') : 
+                    ((profile.gender || 'male') === 'female' ? 'Her Home' : 'His Home')),
+                  /* Real Ring Asset Integration */
+                  profile.coupleRingImageUrl ? 
+                    e("img", { src: profile.coupleRingImageUrl, style: { width: '20px', height: '20px', objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.8))' } }) :
+                    e("span", { style: { fontSize: '16px', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.8))' } }, profile.coupleRingEmoji || '💍')
+                ),
+                (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '36px', height: '36px', marginLeft: '-10px' } },
+                  e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
+                    e("div", { className: "mp-cp-thumb", style: { inset: '2px' } },
+                      e("div", { className: "mp-cp-thumb-inner" },
+                        e("img", { src: partnerData.photo || partnerData.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerData.name)}` })
+                      )
+                    ),
+                    e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
+                  )
                 )
-              )
-            ),
+              ),
 
-          e("div", { className: "mp-body", style: { background: '#0d0d1f', color: '#fff' } },
             e("div", { className: "mp-badge-row", style: { height: '48px', margin: '0 -18px 14px', padding: 0 } },
               e("div", { className: "mp-ribbon-right", style: { width: 'auto', minWidth: '40px' } },
                 (profile.topBadges || []).slice(0, 5).map((badge, i) =>
