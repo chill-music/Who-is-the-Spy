@@ -524,8 +524,8 @@
   background: rgba(255, 255, 255, 0.08); /* Subtle hover instead of stark white */
   transform: translateX(2px);
 }
-.mp-menu-item.danger { color: #ff4d4d; }
-.mp-menu-item.danger:hover { background: rgba(255, 77, 77, 0.15); }
+.mp-menu-item.danger { color: #e63946; }
+.mp-menu-item.danger:hover { background: rgba(230, 57, 70, 0.15); }
 
 /* ── New Refactoring Styles (T003) ── */
 .mp-badge-square {
