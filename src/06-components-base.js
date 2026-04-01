@@ -367,7 +367,66 @@
         e("div", { className: "mp-card", onClick: (ev) => ev.stopPropagation(), style: { background: '#0d0d1f', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 28px 70px rgba(0,0,0,0.95)' } },
           e("div", { className: "mp-banner", style: { background: (profile.bannerUrl || profile.bannerURL) ? 'transparent' : 'linear-gradient(135deg,#0a0a2e,#1a1040,#0d1a3a)' } },
             (profile.bannerUrl || profile.bannerURL) && e("img", { src: (profile.bannerUrl || profile.bannerURL), className: "mp-banner-img" }),
-            e("div", { className: "mp-banner-overlay" })
+            e("div", { className: "mp-banner-overlay" }),
+
+            /* --- Improved "Our Home" Button (Fixes Overflow & Naming) --- */
+            (coupleDoc && partnerData) && e("div", { 
+                className: "mp-cp-label", 
+                onClick: (ev) => { 
+                  ev.stopPropagation();
+                  onClose(); 
+                  if (onOpenCoupleCard) onOpenCoupleCard(coupleDoc);
+                  else if (window.openCoupleCard) window.openCoupleCard(coupleDoc);
+                  else if (window.setShowCoupleCard) window.setShowCoupleCard(true);
+                }, 
+                style: { 
+                  cursor: 'pointer', 
+                  bottom: '-24px', 
+                  right: '70px', 
+                  position: 'absolute', 
+                  transform: 'scale(1.0)', // Reduced scaling mismatch
+                  transformOrigin: 'right bottom', 
+                  zIndex: 2005, // High z-index to stay above banner
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  maxWidth: 'calc(100% - 24px)', // Fix desktop overflow
+                  justifyContent: 'flex-end'
+                } 
+              },
+                e("div", { 
+                  className: "mp-cp-pill", 
+                  style: { 
+                    padding: '5px 14px', 
+                    background: 'rgba(0,0,0,0.7)', 
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.15)', 
+                    borderRadius: '20px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    color: '#fff',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                  } 
+                },
+                  (lang === 'ar' ? 
+                    ((profile.gender || 'male') === 'female' ? 'بيتها 🏠' : 'بيته 🏠') : 
+                    ((profile.gender || 'male') === 'female' ? 'Her Home 🏠' : 'His Home 🏠'))
+                ),
+                (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '40px', height: '40px', marginLeft: '-10px' } },
+                  e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
+                    e("div", { className: "mp-cp-thumb", style: { inset: '2px' } },
+                      e("div", { className: "mp-cp-thumb-inner" },
+                        e("img", { src: partnerData.photo || partnerData.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerData.name)}` })
+                      )
+                    ),
+                    e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
+                  )
+                )
+              )
           ),
 
           /* --- Move Menu Outside Banner to prevent clipping (Bug 4) --- */
@@ -392,64 +451,6 @@
               } }, (isBlocked ? "✅ " : "🚫 ") + (lang === 'ar' ? (isBlocked ? 'إلغاء الحظر' : 'حظر') : (isBlocked ? 'Unblock' : 'Block')))
           ),
 
-          /* --- Improved "Our Home" Button (Fixes Overflow & Naming) --- */
-          (coupleDoc && partnerData) && e("div", { 
-              className: "mp-cp-label", 
-              onClick: (ev) => { 
-                ev.stopPropagation();
-                onClose(); 
-                if (onOpenCoupleCard) onOpenCoupleCard(coupleDoc);
-                else if (window.openCoupleCard) window.openCoupleCard(coupleDoc);
-                else if (window.setShowCoupleCard) window.setShowCoupleCard(true);
-              }, 
-              style: { 
-                cursor: 'pointer', 
-                top: '215px', 
-                right: '18px', 
-                position: 'absolute', 
-                transform: 'scale(1.0)', // Reduced scaling mismatch
-                transformOrigin: 'right bottom', 
-                zIndex: 10,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                maxWidth: 'calc(100% - 24px)', // Fix desktop overflow
-                justifyContent: 'flex-end'
-              } 
-            },
-              e("div", { 
-                className: "mp-cp-pill", 
-                style: { 
-                  padding: '5px 14px', 
-                  background: 'rgba(0,0,0,0.7)', 
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.15)', 
-                  borderRadius: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  color: '#fff',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                } 
-              },
-                (lang === 'ar' ? 
-                  ((profile.gender || 'male') === 'female' ? 'بيتها 🏠' : 'بيته 🏠') : 
-                  ((profile.gender || 'male') === 'female' ? 'Her Home 🏠' : 'His Home 🏠'))
-              ),
-              (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '40px', height: '40px', marginLeft: '-10px' } },
-                e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
-                  e("div", { className: "mp-cp-thumb", style: { inset: '2px' } },
-                    e("div", { className: "mp-cp-thumb-inner" },
-                      e("img", { src: partnerData.photo || partnerData.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerData.name)}` })
-                    )
-                  ),
-                  e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
-                )
-              )
-            ),
           e("div", { className: "mp-body", style: { background: '#0d0d1f', color: '#fff' } },
             e("div", { className: "mp-badge-row", style: { height: '48px', margin: '0 -18px 14px', padding: 0 } },
               e("div", { className: "mp-ribbon-right", style: { width: 'auto', minWidth: '40px' } },

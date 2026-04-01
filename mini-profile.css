@@ -22,7 +22,7 @@
   height: 140px;
   background: linear-gradient(135deg, #0a0a2e, #1a1040, #0d1a3a);
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; Removed to allow CP label overlap */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,8 +70,8 @@
 /* CP label (Couple Home) */
 .mp-cp-label {
   position: absolute;
-  top: 215px; /* Moved from bottom: 12px to stay near avatar top-right */
-  right: 18px;
+  bottom: -24px; /* Exact overlap for VIP look */
+  right: 70px;
   display: flex;
   align-items: center;
   z-index: 10;
