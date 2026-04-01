@@ -575,8 +575,14 @@
   line-height: 1.2;
 }
 
-.vip-level-10.mp-vip-text-only,
-.vip-name-animated.mp-vip-text-only {
+.mp-vip-transparent.vip-name-animated {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.vip-level-10.mp-vip-transparent,
+.vip-name-animated.mp-vip-transparent {
   position: relative;
   background: none !important;
   -webkit-background-clip: initial !important;
@@ -584,13 +590,13 @@
   color: #ff1a1a !important;
   font-weight: 900 !important;
   text-shadow: 0 0 10px rgba(255, 26, 26, 0.8), 0 0 20px rgba(255, 26, 26, 0.4) !important;
-  animation: none !important; /* Shimmer was for background, now unwanted */
+  animation: none !important;
   padding: 2px 0;
 }
 
-/* The moving light streak effect */
-.vip-level-10.mp-vip-text-only::after,
-.vip-name-animated.mp-vip-text-only::after {
+/* The moving red light streak effect */
+.vip-level-10.mp-vip-transparent::after,
+.vip-name-animated.mp-vip-transparent::after {
   content: '';
   position: absolute;
   top: 0;
