@@ -89,6 +89,7 @@ var ProfileIdentity = ({
           signLevel: flvl,
           imageURL: fImg,
           small: true,
+          isLarge: true,
           onClick: (onOpenFamily || window.onOpenFamily) ? () => (onOpenFamily || window.onOpenFamily)(targetData?.familyId) : undefined }
         ));
 

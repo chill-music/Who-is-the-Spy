@@ -106,7 +106,8 @@ function _extends() {return _extends = Object.assign ? Object.assign.bind() : fu
       detectiveBotUnread, setDetectiveBotUnread, loveBotUnread, setLoveBotUnread,
       showVIPCenter, setShowVIPCenter, showHelpCenter, setShowHelpCenter, showPublicChat, setShowPublicChat,
       showGuestMenu, setShowGuestMenu, gameChatInput, setGameChatInput,
-      showGameChat, setShowGameChat, gameChatRef
+      showGameChat, setShowGameChat, gameChatRef,
+      showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget
     } = uiState;
 
     // ── Auth & Logic Hooks ──
@@ -154,11 +155,42 @@ function _extends() {return _extends = Object.assign ? Object.assign.bind() : fu
         setViewFamilyId((typeof fid === 'string' && fid) ? fid : null);
         setShowFamilyModal(true);
       };
+      window.openGiftModal = (target) => {
+        if (typeof setSendGiftTarget === 'function') setSendGiftTarget(target);
+        if (typeof setShowSendGiftModal === 'function') setShowSendGiftModal(true);
+      };
+      window.handleBlockUser = async (targetUID) => {
+        if (!currentUID || !targetUID || isGuest) return;
+        if (targetUID === currentUID) return;
+        try {
+          await usersCollection.doc(currentUID).update({
+            blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetUID)
+          });
+          setNotification(lang === 'ar' ? 'تم حظر المستخدم' : 'User blocked');
+        } catch (e) {
+          console.error('[PRO SPY] Block error:', e);
+          setNotification(lang === 'ar' ? 'حدث خطأ أثناء الحظر' : 'Block failed');
+        }
+      };
+      window.handleUnblockUser = async (targetUID) => {
+        if (!currentUID || !targetUID || isGuest) return;
+        try {
+          await usersCollection.doc(currentUID).update({
+            blockedUsers: firebase.firestore.FieldValue.arrayRemove(targetUID)
+          });
+          setNotification(lang === 'ar' ? 'تم إلغاء الحظر' : 'User unblocked');
+        } catch (e) {
+          console.error('[PRO SPY] Unblock error:', e);
+        }
+      };
       return () => {
         delete window.setGlobalNotification;
         delete window.onOpenFamily;
+        delete window.openGiftModal;
+        delete window.handleBlockUser;
+        delete window.handleUnblockUser;
       };
-    }, [setNotification, setViewFamilyId, setShowFamilyModal, setShowMyAccount, setShowUserProfile, setShowFamilyChat]);
+    }, [setNotification, setViewFamilyId, setShowFamilyModal, setShowMyAccount, setShowUserProfile, setShowFamilyChat, currentUID, isGuest, lang]);
 
     // ── Specialized Listeners ──
     usePresence({ user, isLoggedIn, userData, isGuest: !!guestData });
@@ -198,6 +230,17 @@ function _extends() {return _extends = Object.assign ? Object.assign.bind() : fu
       checkAndUnlockAchievements: gameActions.checkAndUnlockAchievements
     });
 
+    // 🔔 [UI] Close notifications on click-outside
+    useEffect(() => {
+      var handleClickOutside = (event) => {
+        if (showNotifications && notificationBellRef.current && !notificationBellRef.current.contains(event.target)) {
+          setShowNotifications(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showNotifications]);
+
     useGameAutomation({
       room, roomId, currentUID, setTurnTimer, setVotingTimer, setWordSelTimer,
       handleSkipTurn: gameActions.handleSkipTurn,
@@ -208,6 +251,19 @@ function _extends() {return _extends = Object.assign ? Object.assign.bind() : fu
       room, roomId, currentUID, OWNER_UID, lang,
       nextTurn: (r) => window.GameService.nextTurn(r)
     });
+
+    // ── Click Outside to Close Notifications ──
+    useEffect(() => {
+      if (showNotifications) {
+        var handleClickOutside = (event) => {
+          if (notificationBellRef.current && !notificationBellRef.current.contains(event.target)) {
+            setShowNotifications(false);
+          }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+      }
+    }, [showNotifications, notificationBellRef, setShowNotifications]);
 
     // Background Animation
     useEffect(() => {
@@ -273,6 +329,8 @@ function _extends() {return _extends = Object.assign ? Object.assign.bind() : fu
         friendsData: friendsData, coupleData: coupleData, partnerData: partnerData, userFamily: userFamily,
         sessionClaimedToday: sessionClaimedToday,
         setNotification: setNotification,
+        showSendGiftModal: showSendGiftModal, setShowSendGiftModal: setShowSendGiftModal,
+        sendGiftTarget: sendGiftTarget, setSendGiftTarget: setSendGiftTarget,
         openProfile: gameActions.openProfile,
         showOnboarding: showOnboarding, setShowOnboarding: setShowOnboarding,
         onboardingGoogleUser: onboardingGoogleUser, handleOnboardingComplete: handleOnboardingComplete,
@@ -428,11 +486,13 @@ function _extends() {return _extends = Object.assign ? Object.assign.bind() : fu
         setShowBrowseRooms: setShowBrowseRooms,
         setShowMyAccount: setShowMyAccount,
         setShowPublicChat: setShowPublicChat,
+        setShowLuckyGames: setShowLuckyGames,
         setNotification: setNotification,
         currentUID: currentUID,
         sessionClaimedToday: sessionClaimedToday,
         requireLogin: () => setShowLoginAlert(true) }
       ),
+
 
 
 

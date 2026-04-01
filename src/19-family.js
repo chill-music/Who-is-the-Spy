@@ -304,7 +304,6 @@
       var fid = viewFamilyId || currentUserData?.familyId;
       if (!fid) {setFamily(null);setLoadingFamily(false);return;}
       var unsub = familiesCollection.doc(fid).onSnapshot((snap) => {
-        if (snap.metadata.hasPendingWrites) return; /* Prevent loop on local estimate */
         if (snap.exists) {
           var d = { id: snap.id, ...snap.data() };
           setFamily(d);
@@ -599,8 +598,14 @@
     { id: 'manage', label_en: 'Manage', label_ar: 'إدارة', icon: '⚙️' }];
 
 
-    var fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
-    var fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
+    var { getFamilyLevelConfig = () => ({}) } = window.FamilyConstants || {};
+    var fLvl = family ? getFamilyLevelConfig(family.level || 1) : null;
+    var fProg = 0;
+    if (family && fLvl) {
+      var nextLv = FAMILY_LEVEL_CONFIG.find((c) => c.level === fLvl.level + 1);
+      if (!nextLv) fProg = 100;
+      else fProg = Math.max(0, Math.min(100, Math.round(((family.activeness || 0) - fLvl.activeness) / (nextLv.activeness - fLvl.activeness) * 100)));
+    }
     var myRole = family ? getFamilyRole(family, currentUID) : null;
     var canManage = family ? canManageFamily(family, currentUID) : false;
     var weeklyAct = family ? family.weeklyActiveness || 0 : 0;

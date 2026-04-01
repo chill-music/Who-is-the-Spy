@@ -150,11 +150,11 @@
           }
         }
       });
-    } catch (e) {}
+    } catch (e) { console.error('[PRO SPY ERROR] subscribeUserCurrency failed:', e); }
   }
 
   function unsubscribeUserCurrency() {
-    if (currencyUnsub) { try { currencyUnsub(); } catch (e) {} currencyUnsub = null; }
+    if (currencyUnsub) { try { currencyUnsub(); } catch (e) { console.error('[PRO SPY ERROR] unsubscribeUserCurrency failed:', e); } currencyUnsub = null; }
   }
 
   async function incrementUserCurrency(amount) {
@@ -166,8 +166,6 @@
 
       if (uid && window.SecurityService) {
         await window.SecurityService.applyCurrencyTransaction(uid, amount, 'Super 777: Win', { round: roundNum });
-      } else if (uid && window.usersCollection) {
-        await window.usersCollection.doc(uid).update({ currency: window.firebase.firestore.FieldValue.increment(amount) });
       } else {
         coins += amount;
         if (window.AppState && typeof window.AppState.setCoins === 'function') {
@@ -175,18 +173,18 @@
         }
         updateBalanceDisplay();
       }
-    } catch (e) {}
+    } catch (e) { console.error('[PRO SPY ERROR] incrementUserCurrency failed:', e); }
   }
 
   /* ══════════════════════════════════════════════════════════
      6. SESSION LOG
   ══════════════════════════════════════════════════════════ */
-  function logSession() {
+  async function logSession() {
     try {
       var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
       var uid = authUser ? authUser.uid : null;
       if (!uid || !window.db || !window.appId) return;
-      window.db.collection('artifacts').doc(window.appId)
+      await window.db.collection('artifacts').doc(window.appId)
         .collection('public').doc('data')
         .collection('lucky_games_sessions').add({
           uid:        uid,
@@ -197,8 +195,8 @@
           timestamp:  (window.firebase && window.firebase.firestore)
                         ? window.firebase.firestore.FieldValue.serverTimestamp()
                         : null
-        }).catch(function () {});
-    } catch (e) {}
+        });
+    } catch (e) { console.error('[PRO SPY ERROR] logSession:', e); }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -545,9 +543,16 @@
   /* ══════════════════════════════════════════════════════════
      11. SPIN LOGIC
   ══════════════════════════════════════════════════════════ */
-  function spin() {
+  async function spin() {
     initAudio();
     if (isSpinning) return;
+
+    if (window._firestoreOnline === false) {
+      showInGameToast(typeof lang !== 'undefined' && lang === 'ar' ? '⚠️ لا يوجد اتصال' : '⚠️ No connection');
+      if (typeof isAuto !== 'undefined' && isAuto) stopAutoSpin();
+      return;
+    }
+
     if (coins < bet) {
       showInGameToast(T('notEnough'));
       if (isAuto) stopAutoSpin();
@@ -565,24 +570,22 @@
     sessionCoinsSpent += bet;
 
     /* 🛡️ SECURITY: Use centralized service for spin deduction */
-    (function () {
+    await (async function () {
       try {
         var sObj = window.s7GameUserData || window.userData || window.currentUserData;
         var aUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
         var uid_ = (sObj && sObj.uid) ? sObj.uid : (aUser ? aUser.uid : null);
         if (uid_ && window.SecurityService) {
-          window.SecurityService.applyCurrencyTransaction(uid_, -bet, 'Super 777: Spin Cost', { round: roundNum }).catch(function() {
+          try {
+            await window.SecurityService.applyCurrencyTransaction(uid_, -bet, 'Super 777: Spin Cost', { round: roundNum });
+          } catch (e) {
+            console.error('[PRO SPY ERROR] spin deduction (SecurityService):', e);
             /* Rollback on critical failure */
             coins += bet;
             updateBalanceDisplay();
-          });
-        } else if (uid_ && window.usersCollection) {
-          window.usersCollection.doc(uid_).update({ currency: window.firebase.firestore.FieldValue.increment(-bet) }).catch(function() {
-            coins += bet;
-            updateBalanceDisplay();
-          });
+          }
         }
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR] spin logic wrapper:', e); }
     })();
 
     updateUI();

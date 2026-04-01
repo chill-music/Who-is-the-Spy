@@ -20,6 +20,7 @@
       // Account & Profile
       showMyAccount, setShowMyAccount,
       showUserProfile, setShowUserProfile, targetProfileUID, setTargetProfileUID,
+      showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
 
       // Social
       showFriendsMoments, setShowFriendsMoments,
@@ -78,6 +79,8 @@
     window.setShowUserProfile = setShowUserProfile;
     window.setAlertMessage = setAlertMessage;
     window.setNotification = setNotification;
+    // Allow non-React game code (e.g. SoccerStarGame exitBtn) to close the hub
+    window.closeLuckyGamesHub = function () { if (setShowLuckyGames) setShowLuckyGames(false); };
 
     return (/*#__PURE__*/
       React.createElement("div", { className: "global-modals-container", style: { position: 'relative', zIndex: 9999 } },
@@ -627,6 +630,19 @@
         lang: lang,
         userData: currentUserData,
         currentUID: currentUID }
+      ),
+
+
+      showSendGiftModal && window.SendGiftModal && /*#__PURE__*/
+      React.createElement(window.SendGiftModal, {
+        show: showSendGiftModal,
+        onClose: () => setShowSendGiftModal(false),
+        targetUser: sendGiftTarget,
+        currentUser: currentUserData,
+        lang: lang,
+        onSendGift: handleSendGiftToUser,
+        currency: currentUserData?.currency || 0,
+        friendsData: friendsData }
       )
 
 

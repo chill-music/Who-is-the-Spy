@@ -1,6 +1,16 @@
 // ==========================================
+window.PRO_SPY_VERSION = "2.4";
+window._activeListeners = 0;
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// 🛡️ [STABILITY] Initialize GameService early to prevent getMyRole crash in 10-app.js
+window.GameService = window.GameService || {
+    getMyRole: function() { return null; },
+    isGameActive: function() { return false; },
+    getCurrentRoom: function() { return null; }
+};
+
 // 🎯 Z-INDEX CONSTANTS - Layer Management
 var Z = {
     MODAL: 10000,  // Standard modals
@@ -45,6 +55,17 @@ var firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
+
+// Enable offline persistence — queues writes (including refunds) across sessions via IndexedDB
+db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+  if (err.code === 'failed-precondition') {
+    // Multiple tabs open — persistence only works in one tab at a time
+    console.warn('[PRO SPY] Firestore persistence limited to one tab');
+  } else if (err.code === 'unimplemented') {
+    console.warn('[PRO SPY] Firestore persistence not available in this browser');
+  }
+});
+
 var storage = firebase.storage();
 var appId = 'pro_spy_v25_final_fix_complete';
 
@@ -477,6 +498,7 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
             loading: false,
         };
     } catch (e) {
+        console.error('[PRO SPY ERROR] fetchMiniProfileData:', e);
         return null;
     }
 };
@@ -752,6 +774,13 @@ window.SecurityService = {
     applyCurrencyTransaction: async function(uid, amount, reason, meta = {}) {
         if (!uid || typeof amount !== 'number' || amount === 0) return { success: false };
         
+        // UID validation: abort if window global UID diverges from authenticated user
+        var authUID = firebase.auth().currentUser && firebase.auth().currentUser.uid;
+        if (authUID && uid !== authUID) {
+            console.error('[SEC] UID mismatch — write aborted. Supplied:', uid, '| Auth:', authUID);
+            return { success: false, error: 'UID mismatch' };
+        }
+
         // 🛡️ CLEANING: Remove undefined values from meta to prevent Firestore crashes
         var cleanMeta = {};
         if (meta && typeof meta === 'object') {

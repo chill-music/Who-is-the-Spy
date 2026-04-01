@@ -28,6 +28,15 @@
     0%   { background-position: 200% center; }
     100% { background-position: -200% center; }
 }
+/* ── VIP Special Variants ── */
+.mp-vip-transparent {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.mp-vip-text-only .vip-name-gradient-overlay {
+    display: none !important;
+}
 
 /* ── VIP Badge Icon ── */
 .vip-badge-icon {

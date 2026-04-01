@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PRO SPY | Covert Arena</title>
 
     <!-- ═══════════════════════════════════════════════
@@ -23,21 +25,21 @@
     <!-- ⚡ ULTIMATE CACHE-BUSTING INTERCEPTOR ⚡ -->
     <script>
         /* Change this version number whenever you update the site to force all mobile caches to flush! */
-        window.PRO_SPY_VERSION = "2.1"; 
-        
-        // Intercept XMLHttpRequest (used by Babel standalone)
+        window.PRO_SPY_VERSION = "2.4";
+
+        // Intercept XMLHttpRequest (legacy compatibility)
         var originalXHROpen = XMLHttpRequest.prototype.open;
-        XMLHttpRequest.prototype.open = function(method, url) {
+        XMLHttpRequest.prototype.open = function (method, url) {
             if (typeof url === 'string' && url.startsWith('src/') && !url.includes('?v=')) {
                 var sep = url.includes('?') ? '&' : '?';
                 url = url + sep + 'v=' + window.PRO_SPY_VERSION;
             }
             return originalXHROpen.apply(this, arguments);
         };
-        
+
         // Intercept Fetch API (for regular assets)
         var originalFetch = window.fetch;
-        window.fetch = function(url, options) {
+        window.fetch = function (url, options) {
             if (typeof url === 'string' && url.startsWith('src/') && !url.includes('?v=')) {
                 var sep = url.includes('?') ? '&' : '?';
                 url = url + sep + 'v=' + window.PRO_SPY_VERSION;
@@ -83,17 +85,20 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap"
+        rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css"><!-- minified -->
+    <link rel="stylesheet" href="style.css?v=2.4"><!-- minified -->
 
     <!-- 👑 VIP System CSS -->
-    <link rel="stylesheet" href="vip.css">
+    <link rel="stylesheet" href="vip.css?v=2.4">
 
     <!-- 🟢 Mini Profile New Style CSS -->
-    <link rel="stylesheet" href="mini-profile.css">
+    <link rel="stylesheet" href="mini-profile.css?v=2.4">
 </head>
+
 <body>
     <!-- ⚡ Instant loading screen — appears before ANY JS loads, hidden when React mounts -->
     <div id="app-boot-screen" style="
@@ -106,27 +111,46 @@
         <div style="color:#c084fc;font-size:22px;font-weight:700;letter-spacing:2px;margin-bottom:8px;">PRO SPY</div>
         <div style="color:#6366f1;font-size:13px;margin-bottom:32px;opacity:.8;">Covert Arena</div>
         <div style="width:180px;height:3px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;">
-            <div id="boot-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#06b6d4);border-radius:4px;transition:width .3s ease;"></div>
+            <div id="boot-progress"
+                style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#06b6d4);border-radius:4px;transition:width .3s ease;">
+            </div>
         </div>
     </div>
     <style>
-        @keyframes boot-pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.08);opacity:1}}
-        #app-boot-screen.hidden{opacity:0;pointer-events:none;transition:opacity .4s ease .1s;}
+        @keyframes boot-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: .9
+            }
+
+            50% {
+                transform: scale(1.08);
+                opacity: 1
+            }
+        }
+
+        #app-boot-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .4s ease .1s;
+        }
     </style>
     <script>
         /* Animate the progress bar while scripts load */
-        var _bp=document.getElementById('boot-progress'),_bv=0;
-        var _bi=setInterval(function(){
-            _bv=Math.min(_bv+(Math.random()*3+0.5),88);
-            if(_bp)_bp.style.width=_bv+'%';
-        },200);
-        window.__hideBootScreen=function(){
+        var _bp = document.getElementById('boot-progress'), _bv = 0;
+        var _bi = setInterval(function () {
+            _bv = Math.min(_bv + (Math.random() * 3 + 0.5), 88);
+            if (_bp) _bp.style.width = _bv + '%';
+        }, 200);
+        window.__hideBootScreen = function () {
             clearInterval(_bi);
-            if(_bp)_bp.style.width='100%';
-            setTimeout(function(){
-                var el=document.getElementById('app-boot-screen');
-                if(el){el.classList.add('hidden');setTimeout(function(){el.remove();},500);}
-            },150);
+            if (_bp) _bp.style.width = '100%';
+            setTimeout(function () {
+                var el = document.getElementById('app-boot-screen');
+                if (el) { el.classList.add('hidden'); setTimeout(function () { el.remove(); }, 500); }
+            }, 150);
         };
     </script>
 
@@ -147,186 +171,190 @@
     -->
 
     <!-- 01 · Constants, Firebase, Collections -->
-    <script defer src="src/01-config.js"></script>
-    <script defer src="src/features/profile/ProfileHelpers.js"></script>
-    <script defer src="src/features/pwa/PWAHandler.js"></script>
+    <script defer src="src/01-config.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileHelpers.js?v=2.4"></script>
+    <script defer src="src/features/pwa/PWAHandler.js?v=2.4"></script>
 
     <!-- 02 · Audio System -->
-    <script defer src="src/02-audio.js"></script>
+    <script defer src="src/02-audio.js?v=2.4"></script>
 
     <!-- 03 · Data: FunPass, Login Rewards -->
-    <script defer src="src/03-data-funpass.js"></script>
+    <script defer src="src/03-data-funpass.js?v=2.4"></script>
 
     <!-- 04 · Data: Shop, Achievements, Scenarios, Helpers -->
-    <script defer src="src/04-data-game.js"></script>
+    <script defer src="src/04-data-game.js?v=2.4"></script>
 
     <!-- 05 · Translations (AR / EN) -->
-    <script defer src="src/05-translations.js"></script>
+    <script defer src="src/05-translations.js?v=2.4"></script>
 
     <!-- 06 · Base UI Components -->
-    <script defer src="src/06-components-base.js"></script>
+    <script defer src="src/06-components-base.js?v=2.4"></script>
 
     <!-- 07 · Gift Components -->
-    <script defer src="src/07-components-gifts.js"></script>
+    <script defer src="src/07-components-gifts.js?v=2.4"></script>
 
     <!-- 👑 17 · VIP System -->
-    <script defer src="src/17-vip.js"></script>
+    <script defer src="src/17-vip.js?v=2.4"></script>
 
     <!-- 08 · Shop & Inventory -->
-    <script defer src="src/08-components-shop.js"></script>
+    <script defer src="src/08-components-shop.js?v=2.4"></script>
 
     <!-- Family System Core -->
-    <script defer src="src/features/family/FamilyConstants.js"></script>
+    <script defer src="src/features/family/FamilyConstants.js?v=2.4"></script>
 
     <!-- 09 · User Components -->
-    <script defer src="src/features/onboarding/OnboardingFlow.js"></script>
-    <script defer src="src/features/tasks/DailyTasksPanel.js"></script>
-    <script defer src="src/features/groups/GroupConfig.js"></script>
-    <script defer src="src/features/groups/GroupChatModal.js"></script>
-    <script defer src="src/features/groups/GroupDetailsModal.js"></script>
-    <script defer src="src/features/groups/GroupsList.js"></script>
-    <script defer src="src/features/groups/GroupsSection.js"></script>
-    <script defer src="src/09-components-user.js"></script>
+    <script defer src="src/features/onboarding/OnboardingFlow.js?v=2.4"></script>
+    <script defer src="src/features/tasks/DailyTasksPanel.js?v=2.4"></script>
+    <script defer src="src/features/groups/GroupConfig.js?v=2.4"></script>
+    <script defer src="src/features/groups/GroupChatModal.js?v=2.4"></script>
+    <script defer src="src/features/groups/GroupDetailsModal.js?v=2.4"></script>
+    <script defer src="src/features/groups/GroupsList.js?v=2.4"></script>
+    <script defer src="src/features/groups/GroupsSection.js?v=2.4"></script>
+    <script defer src="src/09-components-user.js?v=2.4"></script>
 
     <!-- Core App Logic -->
-    <script defer src="src/app/useAuthState.js"></script>
-    <script defer src="src/app/useAppUIState.js"></script>
-    <script defer src="src/app/usePresence.js"></script>
-    <script defer src="src/app/useBanningLogic.js"></script>
-    <script defer src="src/app/useOnboarding.js"></script>
-    <script defer src="src/app/useNotifications.js"></script>
-    <script defer src="src/app/useRoom.js"></script>
-    <script defer src="src/app/useLeaderboards.js"></script>
-    <script defer src="src/app/useSocial.js"></script>
-    <script defer src="src/app/useLoginRewards.js"></script>
-    <script defer src="src/app/useGameAutomation.js"></script>
-    <script defer src="src/app/useBots.js"></script>
-    <script defer src="src/app/utils/bgAnimation.js"></script>
-    <script defer src="src/app/hooks/useUserListeners.js"></script>
-    <script defer src="src/app/hooks/useGameActions.js"></script>
+    <script defer src="src/app/useAuthState.js?v=2.4"></script>
+    <script defer src="src/app/useAppUIState.js?v=2.4"></script>
+    <script defer src="src/app/usePresence.js?v=2.4"></script>
+    <script defer src="src/app/useBanningLogic.js?v=2.4"></script>
+    <script defer src="src/app/useOnboarding.js?v=2.4"></script>
+    <script defer src="src/app/useNotifications.js?v=2.4"></script>
+    <script defer src="src/app/useRoom.js?v=2.4"></script>
+    <script defer src="src/app/useLeaderboards.js?v=2.4"></script>
+    <script defer src="src/app/useSocial.js?v=2.4"></script>
+    <script defer src="src/app/useLoginRewards.js?v=2.4"></script>
+    <script defer src="src/app/useGameAutomation.js?v=2.4"></script>
+    <script defer src="src/app/useBots.js?v=2.4"></script>
+    <script defer src="src/app/utils/bgAnimation.js?v=2.4"></script>
+    <script defer src="src/app/hooks/useUserListeners.js?v=2.4"></script>
+    <script defer src="src/app/hooks/useGameActions.js?v=2.4"></script>
     <!-- Hooks Registry: consolidates all useXxx hooks + sets window.__hooksReady -->
-    <script defer src="src/app/AppHooks.js"></script>
+    <script defer src="src/app/AppHooks.js?v=2.4"></script>
 
     <!-- App Feature Modules -->
-    <script defer src="src/features/room/RoomState.js"></script>
-    <script defer src="src/features/game/GameLogic.js"></script>
-    <script defer src="src/features/chat/ChatManager.js"></script>
+    <script defer src="src/features/room/RoomState.js?v=2.4"></script>
+    <script defer src="src/features/game/GameLogic.js?v=2.4"></script>
+    <script defer src="src/features/chat/ChatManager.js?v=2.4"></script>
 
-    <script defer src="src/features/app/components/BannedScreen.js"></script>
-    <script defer src="src/features/app/components/RankingView.js"></script>
-    <script defer src="src/features/app/components/LobbyView.js"></script>
-    <script defer src="src/features/app/components/RoomView.js"></script>
-    <script defer src="src/features/app/components/GlobalModals.js"></script>
-    <script defer src="src/10-app.js"></script>
+    <script defer src="src/features/app/components/BannedScreen.js?v=2.4"></script>
+    <script defer src="src/features/app/components/RankingView.js?v=2.4"></script>
+    <script defer src="src/features/app/components/LobbyView.js?v=2.4"></script>
+    <script defer src="src/features/app/components/RoomView.js?v=2.4"></script>
 
     <!-- 11 · Self Chat Modal -->
-    <script defer src="src/11-modal-selfchat.js"></script>
+    <script defer src="src/11-modal-selfchat.js?v=2.4"></script>
 
     <!-- 12 · FunPass Modal -->
-    <script defer src="src/12-modal-funpass.js"></script>
+    <script defer src="src/12-modal-funpass.js?v=2.4"></script>
 
     <!-- 13 · Private Chat Modal -->
-    <script defer src="src/13-modal-chat.js"></script>
+    <script defer src="src/13-modal-chat.js?v=2.4"></script>
 
     <!-- 14 · Specialized Modals -->
-    <script defer src="src/components/modals/LoginRewards.js"></script>
-    <script defer src="src/components/modals/BrowseRoomsModal.js"></script>
-    <script defer src="src/components/modals/TutorialModal.js"></script>
-    <script defer src="src/components/modals/SettingsModal.js"></script>
-    <script defer src="src/components/modals/SupportTicketSection.js"></script>
-    <script defer src="src/components/lobby/LobbyPublicChatBox.js"></script>
-    <script defer src="src/components/modals/VIPCenterModal.js"></script>
-    <script defer src="src/components/modals/HelpCenterModal.js"></script>
-    <script defer src="src/components/modals/PublicChatModal.js"></script>
+    <script defer src="src/components/modals/LoginRewards.js?v=2.4"></script>
+    <script defer src="src/components/modals/BrowseRoomsModal.js?v=2.4"></script>
+    <script defer src="src/components/modals/TutorialModal.js?v=2.4"></script>
+    <script defer src="src/components/modals/SettingsModal.js?v=2.4"></script>
+    <script defer src="src/components/modals/SupportTicketSection.js?v=2.4"></script>
+    <script defer src="src/components/lobby/LobbyPublicChatBox.js?v=2.4"></script>
+    <script defer src="src/components/modals/VIPCenterModal.js?v=2.4"></script>
+    <script defer src="src/components/modals/HelpCenterModal.js?v=2.4"></script>
+    <script defer src="src/components/modals/PublicChatModal.js?v=2.4"></script>
 
     <!-- 15 · Profile System -->
-    <script defer src="src/features/profile/ProfileFamilySignBadge.js"></script>
-    <script defer src="src/features/profile/WinRateCircle.js"></script>
-    <script defer src="src/features/profile/GiftWallDetailModal.js"></script>
-    <script defer src="src/features/profile/GiftWall.js"></script>
-    <script defer src="src/features/profile/ProfileStats.js"></script>
-    <script defer src="src/features/profile/ProfileTabs.js"></script>
-    <script defer src="src/features/profile/AchievementsDisplay.js"></script>
-    <script defer src="src/features/profile/ProfileEffects.js"></script>
-    <script defer src="src/features/profile/ProfileIdentityElements.js"></script>
-    <script defer src="src/features/profile/MomentsSystem.js"></script>
-    <script defer src="src/features/profile/ProfileFriendsSection.js"></script>
-    <script defer src="src/features/profile/ProfileAdmin.js"></script>
-    <script defer src="src/features/profile/ProfileHeader.js"></script>
-    <script defer src="src/features/profile/ProfileIdentity.js"></script>
-    <script defer src="src/features/profile/ProfileV11.js"></script>
+    <script defer src="src/features/profile/ProfileFamilySignBadge.js?v=2.4"></script>
+    <script defer src="src/features/profile/WinRateCircle.js?v=2.4"></script>
+    <script defer src="src/features/profile/GiftWallDetailModal.js?v=2.4"></script>
+    <script defer src="src/features/profile/GiftWall.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileStats.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileTabs.js?v=2.4"></script>
+    <script defer src="src/features/profile/AchievementsDisplay.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileEffects.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileIdentityElements.js?v=2.4"></script>
+    <script defer src="src/features/profile/MomentsSystem.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileFriendsSection.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileAdmin.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileHeader.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileIdentity.js?v=2.4"></script>
+    <script defer src="src/features/profile/ProfileV11.js?v=2.4"></script>
 
     <!-- 18 · Admin Panel -->
-    <script defer src="src/components/admin/AdminUtils.js"></script>
-    <script defer src="src/components/admin/AdminStatCard.js"></script>
-    <script defer src="src/components/admin/AdminOverview.js"></script>
-    <script defer src="src/components/admin/StaffManagementSection.js"></script>
-    <script defer src="src/components/admin/UserManagementSection.js"></script>
-    <script defer src="src/components/admin/BroadcastSection.js"></script>
-    <script defer src="src/components/admin/ActivityLogSection.js"></script>
-    <script defer src="src/components/admin/BanPanelInline.js"></script>
-    <script defer src="src/components/admin/ReportsSection.js"></script>
-    <script defer src="src/components/admin/TicketsSection.js"></script>
-    <script defer src="src/components/admin/MomentsModerationSection.js"></script>
-    <script defer src="src/components/admin/FinancialLogSection.js"></script>
-    <script defer src="src/components/admin/FAQManagementSection.js"></script>
-    <script defer src="src/components/admin/FeedbackInboxSection.js"></script>
-    <script defer src="src/components/admin/FakeProfilesSection.js"></script>
-    <script defer src="src/18-admin-panel.js"></script>
+    <script defer src="src/components/admin/AdminUtils.js?v=2.4"></script>
+    <script defer src="src/components/admin/AdminStatCard.js?v=2.4"></script>
+    <script defer src="src/components/admin/AdminOverview.js?v=2.4"></script>
+    <script defer src="src/components/admin/StaffManagementSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/UserManagementSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/BroadcastSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/ActivityLogSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/BanPanelInline.js?v=2.4"></script>
+    <script defer src="src/components/admin/ReportsSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/TicketsSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/MomentsModerationSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/FinancialLogSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/FAQManagementSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/FeedbackInboxSection.js?v=2.4"></script>
+    <script defer src="src/components/admin/FakeProfilesSection.js?v=2.4"></script>
+    <script defer src="src/18-admin-panel.js?v=2.4"></script>
 
     <!-- Family System Modules -->
-    <script defer src="src/features/family/FamilyUtils.js"></script>
-    <script defer src="src/features/family/FamilyService.js"></script>
-    <script defer src="src/features/family/components/FamilySignBadge.js"></script>
-    <script defer src="src/features/family/components/FamilyRoleBadge.js"></script>
-    <script defer src="src/features/family/components/FamilyShared.js"></script>
-    <script defer src="src/features/family/components/RedPacketCard.js"></script>
-    <script defer src="src/features/family/components/FamilyChatModal.js"></script>
-    <script defer src="src/features/family/components/FamilyTreasury.js"></script>
-    <script defer src="src/features/family/components/FamilyGacha.js"></script>
-    <script defer src="src/features/family/components/FamilyMembers.js"></script>
-    <script defer src="src/features/family/components/FamilySearch.js"></script>
-    <script defer src="src/features/family/components/FamilyProfile.js"></script>
-    <script defer src="src/features/family/components/FamilyRanking.js"></script>
-    <script defer src="src/features/family/components/FamilyTasks.js"></script>
-    <script defer src="src/features/family/components/FamilyShop.js"></script>
-    <script defer src="src/features/family/components/FamilyManagement.js"></script>
-    <script defer src="src/features/family/components/FamilyRankingInline.js"></script>
-    <script defer src="src/features/family/components/FamilyNews.js"></script>
-    <script defer src="src/features/family/components/FriendsMomentsModal.js"></script>
-    <script defer src="src/features/family/components/FamilyMemberQuickCard.js"></script>
+    <script defer src="src/features/family/FamilyUtils.js?v=2.4"></script>
+    <script defer src="src/features/family/FamilyService.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilySignBadge.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyRoleBadge.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyShared.js?v=2.4"></script>
+    <script defer src="src/features/family/components/RedPacketCard.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyChatModal.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyTreasury.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyGacha.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyMembers.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilySearch.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyProfile.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyRanking.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyTasks.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyShop.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyManagement.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyRankingInline.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyNews.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FriendsMomentsModal.js?v=2.4"></script>
+    <script defer src="src/features/family/components/FamilyMemberQuickCard.js?v=2.4"></script>
 
     <!-- 19 · Family System & Friends Moments -->
-    <script defer src="src/19-family.js"></script>
+    <script defer src="src/19-family.js?v=2.4"></script>
 
     <!-- 20 · Couples / Marriage System -->
-    <script defer src="src/features/couples/CoupleConfig.js"></script>
-    <script defer src="src/features/couples/CoupleService.js"></script>
-    <script defer src="src/features/couples/CoupleUIComponents.js"></script>
-    <script defer src="src/features/couples/ProposalModal.js"></script>
-    <script defer src="src/features/couples/IncomingProposalModal.js"></script>
-    <script defer src="src/features/couples/RingsShopSection.js"></script>
-    <script defer src="src/features/couples/CoupleCardModal.js"></script>
-    <script defer src="src/features/couples/WeddingHallModal.js"></script>
+    <script defer src="src/features/couples/CoupleConfig.js?v=2.4"></script>
+    <script defer src="src/features/couples/CoupleService.js?v=2.4"></script>
+    <script defer src="src/features/couples/CoupleUIComponents.js?v=2.4"></script>
+    <script defer src="src/features/couples/ProposalModal.js?v=2.4"></script>
+    <script defer src="src/features/couples/IncomingProposalModal.js?v=2.4"></script>
+    <script defer src="src/features/couples/RingsShopSection.js?v=2.4"></script>
+    <script defer src="src/features/couples/CoupleCardModal.js?v=2.4"></script>
+    <script defer src="src/features/couples/WeddingHallModal.js?v=2.4"></script>
 
     <!-- 21 · BFF System + Bot Chats -->
-    <script defer src="src/features/bff/BFFService.js"></script>
-    <script defer src="src/features/bff/BFFCardModal.js"></script>
-    <script defer src="src/features/bff/BFFRequestItem.js"></script>
-    <script defer src="src/features/bff/BFFProfileListModal.js"></script>
-    <script defer src="src/features/bff/BFFModal.js"></script>
-    <script defer src="src/features/bff/BFFStripProfile.js"></script>
-    <script defer src="src/features/bff/BotChatModal.js"></script>
+    <script defer src="src/features/bff/BFFService.js?v=2.4"></script>
+    <script defer src="src/features/bff/BFFCardModal.js?v=2.4"></script>
+    <script defer src="src/features/bff/BFFRequestItem.js?v=2.4"></script>
+    <script defer src="src/features/bff/BFFProfileListModal.js?v=2.4"></script>
+    <script defer src="src/features/bff/BFFModal.js?v=2.4"></script>
+    <script defer src="src/features/bff/BFFStripProfile.js?v=2.4"></script>
+    <script defer src="src/features/bff/BotChatModal.js?v=2.4"></script>
+    <link rel="stylesheet" href="src/features/lucky-games/soccer-star.css?v=2.4">
+    <link rel="stylesheet" href="src/features/lucky-games/lucky-fruit.css?v=2.4">
+    <link rel="stylesheet" href="src/features/lucky-games/greedy-cat.css?v=2.4">
+    <script defer src="src/features/lucky-games/LuckyFruitGame.js?v=2.4"></script>
+    <script defer src="src/features/lucky-games/Super777Game.js?v=2.4"></script>
+    <script defer src="src/features/lucky-games/GreedyCatGame.js?v=2.4"></script>
+    <script defer src="src/features/lucky-games/SoccerStarGame.js?v=2.4"></script>
+    <script defer src="src/features/lucky-games/LuckyGamesHub.js?v=2.4"></script>
 
-    <link rel="stylesheet" href="src/features/lucky-games/lucky-fruit.css">
-    <link rel="stylesheet" href="src/features/lucky-games/greedy-cat.css">
-    <script defer src="src/features/lucky-games/LuckyFruitGame.js"></script>
-    <script defer src="src/features/lucky-games/Super777Game.js"></script>
-    <script defer src="src/features/lucky-games/GreedyCatGame.js"></script>
-    <script defer src="src/features/lucky-games/LuckyGamesHub.js"></script>
+    <!-- App Shell: GlobalModals + App (must come AFTER all feature scripts) -->
+    <script defer src="src/features/app/components/GlobalModals.js?v=2.4"></script>
+    <script defer src="src/10-app.js?v=2.4"></script>
 
     <!-- 16 · Entry Point — render app (always last) -->
-    <script defer src="src/16-main.js"></script>
+    <script defer src="src/16-main.js?v=2.4"></script>
 
 </body>
+
 </html>

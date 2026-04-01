@@ -110,11 +110,13 @@
               setTargetData(null);
             }
             setLoading(false);
-          }).catch(() => {
+          }).catch((e) => {
+            console.error('[PRO SPY ERROR] Guest fetch failed:', e);
             if (isMounted) {setTargetData(null);setLoading(false);}
           });
         }
-      }).catch(() => {
+      }).catch((e) => {
+        console.error('[PRO SPY ERROR] User fetch failed:', e);
         if (isMounted) {setLoading(false);setTargetData(null);}
         clearTimeout(safetyTimer);
       });
@@ -144,17 +146,17 @@
         unsubPartner = usersCollection.doc(partnerUID).
         onSnapshot((doc) => {
           if (doc.exists) setProfilePartnerData({ id: doc.id, ...doc.data() });
-        }, () => {});
+        }, (e) => console.error('[PRO SPY ERROR] Partner listener failed:', e));
       };
 
       // Query both directions simultaneously — first match wins
       var p1 = couplesCollection.
       where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1).
-      get().catch(() => null);
+      get().catch((e) => { console.error('[PRO SPY ERROR] Couple P1 query failed:', e); return null; });
 
       var p2 = couplesCollection.
       where('uid2', '==', targetUID).where('status', '==', 'accepted').limit(1).
-      get().catch(() => null);
+      get().catch((e) => { console.error('[PRO SPY ERROR] Couple P2 query failed:', e); return null; });
 
       Promise.all([p1, p2]).then(([snap1, snap2]) => {
         var snap = snap1 && !snap1.empty ? snap1 : snap2 && !snap2.empty ? snap2 : null;
@@ -218,7 +220,8 @@
         var users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
         var userRank = users.find((u) => u.id === targetUID);
         setCharismaRank(userRank ? userRank.rank : '--');
-      }).catch(() => {
+      }).catch((e) => {
+        console.error('[PRO SPY ERROR] Charisma rank fetch failed:', e);
         setCharismaRank('--');
       });
     }, [show, targetUID, targetData]);
@@ -243,7 +246,7 @@
         // Sort descending, cap at 100
         var sorted = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 100);
         setGuardData(sorted);
-      }, () => {});
+      }, (e) => console.error('[PRO SPY ERROR] Guard listener failed:', e));
       return () => unsub();
     }, [show, targetUID, currentUserUID]);
 
@@ -288,7 +291,7 @@
           var max = Math.min(friends.length, 70);
           amount = max > 0 ? Math.floor(Math.random() * max) + 1 : 1;
         }
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR]', e); }
       try {
         await guardCollection.add({
           receiverId: targetUID,
@@ -306,7 +309,7 @@
         midnight.setDate(midnight.getDate() + 1);
         midnight.setHours(0, 0, 0, 0);
         setGuardLockedUntil(midnight);
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR]', e); }
     }, [currentUserUID, targetUID, guardGiven, isLoggedInProp, userData, currentUserFriends]);
 
     if (!show) return null;
@@ -383,7 +386,7 @@
             reportId: reportRef.id,
             timestamp: TS(),
             read: false
-          }).catch(() => {});
+          }).catch((e) => console.error('[PRO SPY ERROR] Detective bot report message failed:', e));
         }
         setShowReportModal(false);
         setReportReason('');

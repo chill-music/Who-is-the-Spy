@@ -106,6 +106,8 @@
         var [showGameChat, setShowGameChat] = useState(true);
         var gameChatRef = useRef(null);
         var [showLuckyGames, setShowLuckyGames] = useState(false);
+        var [showSendGiftModal, setShowSendGiftModal] = useState(false);
+        var [sendGiftTarget, setSendGiftTarget] = useState(null);
 
         return {
             lang, setLang,
@@ -192,6 +194,8 @@
             showGameChat, setShowGameChat,
             gameChatRef,
             showLuckyGames, setShowLuckyGames,
+            showSendGiftModal, setShowSendGiftModal,
+            sendGiftTarget, setSendGiftTarget
         };
     };
 })();

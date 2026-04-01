@@ -67,8 +67,9 @@
       React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '32px', height: '32px', objectFit: 'contain' } }) : /*#__PURE__*/
       React.createElement("span", { style: { fontSize: '26px' } }, item.preview);
       if (item.type === 'titles') return item.imageUrl ? /*#__PURE__*/
-      React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '28px', height: '28px', objectFit: 'contain' } }) : /*#__PURE__*/
+      React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '28px', height: '28px', objectFit: 'contain', background: 'transparent !important', border: 'none' } }) : /*#__PURE__*/
       React.createElement("span", { style: { fontSize: '22px' } }, item.preview);
+
       if (item.type === 'gifts' || item.type === 'gifts_vip') return item.imageUrl ? /*#__PURE__*/
       React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '32px', height: '32px', objectFit: 'contain' } }) : /*#__PURE__*/
       React.createElement("span", { style: { fontSize: '26px' } }, item.emoji);
@@ -827,9 +828,11 @@
             onClick: () => {if (!item.eventOnly) {setSelectedItem(item);setShowPreview(true);}},
             style: {
               position: 'relative', cursor: item.eventOnly ? 'default' : 'pointer',
-              border: `1.5px solid ${equippedItem ? 'rgba(0,242,255,0.45)' : rarity2.border}`,
-              background: equippedItem ? 'linear-gradient(145deg,rgba(0,242,255,0.07),rgba(8,10,28,0.98))' : rarity2.bg,
-              boxShadow: equippedItem ? '0 0 14px rgba(0,242,255,0.22)' : rarity2.glow ? `0 0 8px ${rarity2.color}33` : 'none',
+               border: `1.5px solid ${equippedItem ? 'rgba(0,242,255,0.45)' : rarity2.border}`,
+               background: equippedItem ? 'linear-gradient(145deg,rgba(0,242,255,0.07),rgba(8,10,28,0.98))' : 
+                          (item.type === 'titles' && item.imageUrl) ? 'transparent' : rarity2.bg,
+               boxShadow: equippedItem ? '0 0 14px rgba(0,242,255,0.22)' : rarity2.glow ? `0 0 8px ${rarity2.color}33` : 'none',
+
               borderRadius: '12px', padding: '10px 8px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
               opacity: item.eventOnly ? 0.58 : 1,
@@ -927,7 +930,11 @@
             React.createElement("div", { style: { height: '2px', background: 'linear-gradient(90deg,transparent,#00f2ff,#7c3aed,transparent)' } }), /*#__PURE__*/
             React.createElement("div", { style: { padding: '24px 20px 20px', textAlign: 'center' } }, /*#__PURE__*/
 
-            React.createElement("div", { style: { width: '72px', height: '72px', borderRadius: '18px', background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '40px' } },
+            React.createElement("div", { style: { width: '72px', height: '72px', borderRadius: '18px', 
+              background: (item.type === 'titles' && item.imageUrl) ? 'transparent' : 'rgba(0,242,255,0.06)', 
+              border: (item.type === 'titles' && item.imageUrl) ? 'none' : '1px solid rgba(0,242,255,0.18)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '40px' } },
+
             item.type === 'frames' ?
             item.preview?.startsWith('http') ? /*#__PURE__*/
             React.createElement("img", { src: item.preview, alt: "", style: { width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover' } }) : /*#__PURE__*/
@@ -1112,7 +1119,7 @@
       React.createElement("img", { src: item.preview, alt: item.name_en, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : /*#__PURE__*/
       React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: item.preview } });
       if (item.type === 'badges') return item.imageUrl ? /*#__PURE__*/React.createElement("img", { src: item.imageUrl, alt: item.name_en, style: { width: '34px', height: '34px', objectFit: 'contain' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '26px' } }, item.preview);
-      if (item.type === 'titles') return item.imageUrl ? /*#__PURE__*/React.createElement("img", { src: item.imageUrl, alt: item.name_en, style: { width: '30px', height: '30px', objectFit: 'contain' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '24px' } }, item.preview);
+      if (item.type === 'titles') return item.imageUrl ? /*#__PURE__*/React.createElement("img", { src: item.imageUrl, alt: item.name_en, style: { width: '30px', height: '30px', objectFit: 'contain', background: 'transparent !important', border: 'none' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '24px' } }, item.preview);
       if (item.type === 'gifts') return item.imageUrl ? /*#__PURE__*/React.createElement("img", { src: item.imageUrl, alt: item.name_en, style: { width: '34px', height: '34px', objectFit: 'contain' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '26px' } }, item.emoji);
       if (item.type === 'profileEffects') {
         var src = typeof item.particles === 'string' && item.particles.startsWith('http') ? item.particles : item.imageUrl || null;

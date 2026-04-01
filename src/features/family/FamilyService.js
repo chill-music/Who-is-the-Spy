@@ -428,9 +428,9 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
     }
 
     var today = new Date().toDateString();
-    var HARD_COST_CAP = 200;
-    var costPerSpin = Math.min(Number(currentGachaConfig.paidCostPerSpin) || 200, HARD_COST_CAP);
-    var maxPaid = Number(currentGachaConfig.maxPaidSpinsDaily) || 50;
+    var userTodayKey = `${currentUID}_${today}`;
+    var costPerSpin = 600; // Fixed cost as per requirement
+    var maxPaid = 50;      // Fixed limit as per requirement
 
     if (mode === 'free') {
         var lastFree = family.gachaFreeLastUsed;
@@ -442,16 +442,22 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
             }
         }
     } else {
-        if ((currentUserData?.currency || 0) < costPerSpin) {
-            onNotification(lang === 'ar' ? `❌ تحتاج ${costPerSpin} إنتل` : `❌ Need ${costPerSpin} Intel`);
+        // 🔄 RE-FETCH user to ensure currency is fresh
+        var userDoc = await usersCollection.doc(currentUID).get();
+        var userData = userDoc.data() || {};
+        var userCurrency = userData.currency || 0;
+        
+        if (userCurrency < costPerSpin) {
+            onNotification(lang === 'ar' ? `❌ تحتاج ${costPerSpin} 💰` : `❌ Need ${costPerSpin} Coins 💰`);
             return null;
         }
-        var spinsToday = family.gachaPaidSpins?.[today] || 0;
+        var spinsToday = family.gachaPaidSpins?.[userTodayKey] || 0;
         if (spinsToday >= maxPaid) {
             onNotification(lang === 'ar' ? `❌ وصلت الحد اليومي (${maxPaid} سحبة)` : `❌ Daily limit reached (${maxPaid} spins)`);
             return null;
         }
     }
+
 
     try {
         var total = rewards.reduce((s, r) => s + (r.weight || 0), 0);
@@ -470,7 +476,7 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
         if (mode === 'free') {
             rewardUpdates.gachaFreeLastUsed = TS();
         } else {
-            rewardUpdates[`gachaPaidSpins.${today}`] = firebase.firestore.FieldValue.increment(1);
+            rewardUpdates[`gachaPaidSpins.${userTodayKey}`] = firebase.firestore.FieldValue.increment(1);
         }
 
         var userRewardUpdate = {};

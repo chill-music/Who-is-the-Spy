@@ -40,8 +40,12 @@
                         }
 
                         setShowSummary(true);
-                        historyCollection.add({ ...data, finishedAt: TS() });
-                        roomsCollection.doc(roomId).update({ summaryShown: true });
+                        try {
+                            await historyCollection.add({ ...data, finishedAt: TS() });
+                        } catch (e) { console.error('[PRO SPY ERROR] historyCollection.add:', e); }
+                        try {
+                            await roomsCollection.doc(roomId).update({ summaryShown: true });
+                        } catch (e) { console.error('[PRO SPY ERROR] roomsCollection.update summaryShown:', e); }
 
                         // ✅ Update stats, missions, achievements when game ends
                         if (isLoggedIn && user) {

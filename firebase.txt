@@ -341,6 +341,19 @@ service cloud.firestore {
     }
 
     // ══════════════════════════════════════════════════════════
+    //  Football / Soccer Star (Root collections for direct DB access)
+    // ══════════════════════════════════════════════════════════
+    match /lucky_games_sessions/{sessionId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      
+      match /recent_winners/{winnerId} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════
     //  Default deny
     // ══════════════════════════════════════════════════════════
     match /{document=**} {

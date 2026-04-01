@@ -61,7 +61,13 @@
         setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       });
-      groupsCollection.doc(activeGroup.id).update({ [`readBy.${currentUID}`]: TS() }).catch(() => {});
+      (async () => {
+        try {
+          await groupsCollection.doc(activeGroup.id).update({ [`readBy.${currentUID}`]: TS() });
+        } catch (e) {
+          console.error('[PRO SPY ERROR] update readBy status:', e);
+        }
+      })();
       return () => unsub();
     }, [activeGroup?.id, currentUID]);
 
@@ -118,7 +124,7 @@
           lastMessageAtMs: Date.now(), xp: firebase.firestore.FieldValue.increment(1),
           level: window.getGroupLevel(newXP).level, [`readBy.${currentUID}`]: TS()
         });
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR] sendMessage:', e); }
     };
 
     var handleImageSelect = async (e) => {
@@ -130,7 +136,7 @@
           text: '📷', senderId: currentUID, type: 'image', imageData: base64, createdAt: TS()
         });
         await groupsCollection.doc(activeGroup.id).update({ lastMessage: '📷 Photo', lastMessageAt: TS(), lastMessageAtMs: Date.now() });
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR] handleImageSelect:', e); }
       setUploadingImg(false);
     };
 
@@ -140,7 +146,7 @@
         await groupsCollection.doc(activeGroup.id).update({ members: firebase.firestore.FieldValue.arrayUnion(friendId) });
         onNotification(lang === 'ar' ? '✅ تمت الدعوة' : '✅ Invited');
         setShowInvite(false);
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR] inviteFriend:', e); }
     };
 
     var handleTransferOwnership = async () => {
@@ -150,14 +156,14 @@
         await groupsCollection.doc(activeGroup.id).update({ createdBy: target.id, admins: firebase.firestore.FieldValue.arrayUnion(target.id) });
         onNotification(lang === 'ar' ? '✅ تم النقل' : '✅ Transferred');
         setShowTransferConfirm(false);setTransferToId('');
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR] handleTransferOwnership:', e); }
     };
 
     var saveGroupNotice = async () => {
       try {
         await groupsCollection.doc(activeGroup.id).update({ notice: groupNotice });
         setEditingNotice(false);onNotification(lang === 'ar' ? '✅ تم الحفظ' : '✅ Saved');
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR] saveGroupNotice:', e); }
     };
 
     var claimRedPacket = async (rpId) => {
@@ -233,7 +239,7 @@
               var base64 = await compressImageToBase64(file);
               await groupsCollection.doc(activeGroup.id).update({ photoURL: base64 });
               onNotification(lang === 'ar' ? '✅ تم التحديث' : '✅ Updated');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] handleGroupPhotoUpload:', e); }
           }, uploadingImg, showDetails, setShowDetails,
           membersData, loadingMembers, setSettingsView, settingsView, groupNotice, setGroupNotice,
           editingNotice, setEditingNotice, groupMuted, setGroupMuted, showReportGroup, setShowReportGroup,
@@ -248,14 +254,14 @@
               });
               onNotification(lang === 'ar' ? '✅ تم التبليغ' : '✅ Reported');
               setShowReportGroup(false);setReportGroupReason('');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] handleSubmitGroupReport:', e); }
             setSendingGroupReport(false);
           }, groupInviteType, setGroupInviteType,
           groupIsPublic, setGroupIsPublic, saveGroupManageSettings: async () => {
             try {
               await groupsCollection.doc(activeGroup.id).update({ isPublic: groupIsPublic, inviteType: groupInviteType });
               onNotification(lang === 'ar' ? '✅ تم الحفظ' : '✅ Saved');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] saveGroupManageSettings:', e); }
           },
           saveGroupNotice, transferToId, setTransferToId, showTransferConfirm, setShowTransferConfirm,
           handleTransferOwnership, handleLeaveGroup: async () => {
@@ -266,14 +272,14 @@
                 admins: firebase.firestore.FieldValue.arrayRemove(currentUID)
               });
               setActiveGroup(null);onNotification(lang === 'ar' ? '🚪 غادرت الجروب' : '🚪 Left group');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] handleLeaveGroup:', e); }
           }, handleDeleteGroup: async () => {
             if (!activeGroup) return;
             if (!confirm(lang === 'ar' ? 'هل أنت متأكد من حذف الجروب؟' : 'Delete group?')) return;
             try {
               await groupsCollection.doc(activeGroup.id).delete();
               setActiveGroup(null);onNotification(lang === 'ar' ? '🗑️ تم الحذف' : '🗑️ Deleted');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] handleDeleteGroup:', e); }
           }, showRedPacketModal, setShowRedPacketModal,
           sendingRedPacket, sendGroupRedPacket: async (rp) => {
             if (!activeGroup || (currentUserData?.currency || 0) < rp.amount) return;
@@ -305,12 +311,12 @@
             try {
               await usersCollection.doc(currentUID).update({ blockedUsers: firebase.firestore.FieldValue.arrayUnion(id) });
               onNotification(lang === 'ar' ? '🚫 تم الحظر' : '🚫 Blocked');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] handleBlock:', e); }
           }, handleUnblock: async (id) => {
             try {
               await usersCollection.doc(currentUID).update({ blockedUsers: firebase.firestore.FieldValue.arrayRemove(id) });
               onNotification(lang === 'ar' ? '✅ تم إلغاء الحظر' : '✅ Unblocked');
-            } catch (e) {}
+            } catch (e) { console.error('[PRO SPY ERROR] handleUnblock:', e); }
           },
           fmtTime, messagesEndRef, chatInputRef, fileInputRef, groupImgInputRef, showEmojiPicker, setShowEmojiPicker }
         ));

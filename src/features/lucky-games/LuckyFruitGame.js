@@ -335,14 +335,14 @@
         }
       });
 
-    } catch(e){}
+    } catch(e){ console.error('[PRO SPY ERROR] subscribeUserCurrency failed:', e); }
   }
 
   function unsubscribeUserCurrency() {
-    if (currencyUnsub) { try { currencyUnsub(); }catch(e){} currencyUnsub=null; }
+    if (currencyUnsub) { try { currencyUnsub(); } catch(e){ console.error('[PRO SPY ERROR] unsubscribeUserCurrency failed:', e); } currencyUnsub=null; }
   }
 
-  function incrementUserCurrency(amount) {
+  async function incrementUserCurrency(amount) {
     if (amount === 0) return;
     try {
       var stateObj = window.lfGameUserData || window.userData || window.currentUserData;
@@ -350,7 +350,7 @@
       var uid = stateObj?.uid || authUser?.uid;
       
       if (uid && window.SecurityService) {
-        window.SecurityService.applyCurrencyTransaction(uid, amount, 'Lucky Fruit: Win');
+        await window.SecurityService.applyCurrencyTransaction(uid, amount, 'Lucky Fruit: Win');
       } else {
         /* Fallback if service unavailable */
         coins += amount;
@@ -359,7 +359,7 @@
         }
         updateCoinsDisplay();
       }
-    } catch (e) {}
+    } catch (e) { console.error('[PRO SPY ERROR] incrementUserCurrency failed:', e); }
   }
 
   /* ══ JACKPOT FIRESTORE SYNC ══════════════════════════════════ */
@@ -369,7 +369,7 @@
         return window.db.collection('artifacts').doc(window.appId)
           .collection('public').doc('data').collection('lucky_fruit_jackpot').doc('jackpot');
       }
-    } catch(e){}
+    } catch(e){ console.error('[PRO SPY ERROR] getJpRef failed:', e); }
     return null;
   }
 
@@ -382,13 +382,13 @@
         if (typeof d.value === 'number') { jackpot = d.value; updateJackpot(); }
       } else {
         /* initialise doc with a starting value */
-        ref.set({ value: 1033921 }).catch(function(){});
+        ref.set({ value: 1033921 }).catch(function(e) { console.error('[PRO SPY ERROR] set jackpot failed:', e); });
       }
-    }, function() {});
+    }, function(err) { console.error('[PRO SPY ERROR] subscribeJackpot failed:', err); });
   }
 
   function unsubscribeJackpot() {
-    if (jackpotUnsub) { try { jackpotUnsub(); } catch(e){} jackpotUnsub = null; }
+    if (jackpotUnsub) { try { jackpotUnsub(); } catch(e){ console.error('[PRO SPY ERROR] unsubscribeJackpot failed:', e); } jackpotUnsub = null; }
   }
 
   /* increment jackpot in Firestore (called per spin + wins) */
@@ -400,14 +400,15 @@
       if (window.firebase && window.firebase.firestore) FieldValue = window.firebase.firestore.FieldValue;
     } catch(e){}
     if (FieldValue) {
-      ref.update({ value: FieldValue.increment(amount) }).catch(function(){
+      ref.update({ value: FieldValue.increment(amount) }).catch(function(e){
+        console.error('[PRO SPY ERROR] update jackpot failed:', e);
         jackpot += amount; updateJackpot();
       });
     } else {
       ref.get().then(function(snap){
         var cur = snap.exists ? (snap.data().value || 1033921) : 1033921;
-        ref.set({ value: cur + amount }).catch(function(){});
-      }).catch(function(){});
+        ref.set({ value: cur + amount }).catch(function(e) { console.error('[PRO SPY ERROR] increment jackpot set failed:', e); });
+      }).catch(function(e) { console.error('[PRO SPY ERROR] increment jackpot get failed:', e); });
     }
   }
 
@@ -415,7 +416,7 @@
   function resetJackpotFirestore() {
     jackpot = 1000000;
     var ref = getJpRef();
-    if (ref) ref.set({ value: 1000000 }).catch(function(){});
+    if (ref) ref.set({ value: 1000000 }).catch(function(e){ console.error('[PRO SPY ERROR] reset jackpot failed:', e); });
     updateJackpot();
   }
 
@@ -424,13 +425,13 @@
   /* ══════════════════════════════════════════════════════════
      7. SESSION LOG — writes to lucky_games_sessions on stop
   ══════════════════════════════════════════════════════════ */
-  function logSession() {
+  async function logSession() {
     try {
       var uid = null;
       var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
       uid = authUser ? authUser.uid : null;
       if (!uid || !window.db || !window.appId) return;
-      window.db.collection('artifacts').doc(window.appId)
+      await window.db.collection('artifacts').doc(window.appId)
         .collection('public').doc('data')
         .collection('lucky_games_sessions').add({
           uid:          uid,
@@ -440,8 +441,8 @@
           spinCount:    sessionSpins,
           jackpotHit:   false,
           timestamp:    window.firebase && window.firebase.firestore ? window.firebase.firestore.FieldValue.serverTimestamp() : null
-        }).catch(function() {});
-    } catch (e) {}
+        });
+    } catch (e) { console.error('[PRO SPY ERROR] logSession failed:', e); }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -572,6 +573,15 @@
   async function spin() {
     if (spinning) return;
     
+    if (window._firestoreOnline === false) {
+      if (window.showToast) window.showToast(
+        typeof lang !== 'undefined' && lang === 'ar'
+          ? '⚠️ لا يوجد اتصال — يرجى المحاولة لاحقاً'
+          : '⚠️ No connection — please try again'
+      );
+      return;
+    }
+
     var totalCost = cost * lines;
     if (freeSpins > 0) totalCost = 0;
 
@@ -598,6 +608,7 @@
 
     if (freeSpins <= 0) {
       /* Deduct locally FIRST for UI responsiveness */
+      var prevBalance = coins;
       coins -= totalCost;
       updateCoinsDisplay();
       
@@ -609,7 +620,12 @@
         
         if (uid_ && window.SecurityService) {
           try {
-            await window.SecurityService.applyCurrencyTransaction(uid_, -totalCost, 'Lucky Fruit: Spin Cost');
+            var result = await window.SecurityService.applyCurrencyTransaction(uid_, -totalCost, 'Lucky Fruit: Spin Cost');
+            if (result && result.success === false) {
+              coins = prevBalance; updateCoinsDisplay();
+              if (window.showToast) window.showToast('⚠️ Transaction failed');
+              return;
+            }
           } catch(err) {
             console.error('[LF] SecurityService failed, using fallback:', err);
             /* Fallback deduction */
@@ -627,7 +643,9 @@
         }
       } catch(e) {
         console.error('[LF] Critical deduction error:', e);
-        /* If EVERYTHING fails, we might want to stop the spin or allow it (current logic: allow to avoid stuck UI) */
+        coins = prevBalance; updateCoinsDisplay();
+        if (window.showToast) window.showToast('⚠️ Transaction failed');
+        return;
       }
       sessionCoinsSpent += totalCost;
     } else { 
@@ -677,6 +695,7 @@
         grid[col] = newCol;
         for (var row = 0; row < 3; row++) {
           var cell = $('lf-cell' + col + '_' + row); var s = getSymbol(newCol[row]);
+          if (!cell) continue;
           cell.className = 'lf-cell' + (s.cls ? ' ' + s.cls : '') + ' stopped';
           cell.innerHTML = '<span class="lf-cell-symbol">' + s.emoji + '</span>';
           if (s.label) cell.innerHTML += '<span class="lf-cell-label">' + s.label + '</span>';
@@ -783,8 +802,11 @@
         var title = totalWin >= cost*lines*50 ? T('MEGA_WIN') : T('BIG_WIN');
         setTimeout(function(){ showWinOverlay(title, totalWin); launchConfetti(50); }, 400);
       }
-      $('lf-jackpotVal').classList.add('pulse');
-      setTimeout(function(){ $('lf-jackpotVal').classList.remove('pulse'); }, 400);
+      var jp = $('lf-jackpotVal');
+      if (jp) {
+        jp.classList.add('pulse');
+        setTimeout(function(){ var jp2=$('lf-jackpotVal'); if(jp2) jp2.classList.remove('pulse'); }, 400);
+      }
     }
   }
 
@@ -816,6 +838,7 @@
   ══════════════════════════════════════════════════════════ */
   function startBonus() {
     var gridEl=$('lf-chestsGrid'); var res=$('lf-bonusResult');
+    if (!gridEl || !res) return;
     gridEl.innerHTML=''; res.textContent='';
     var prizes=[];
     for(var i=0;i<6;i++) prizes.push(Math.floor((Math.random()*500+50)*cost));
@@ -939,6 +962,7 @@
   }
   function showMsg(txt) { console.log('[LuckyFruit]', txt); }
   function showWinOverlay(title, amount, msg) {
+    if (!$('lf-overlayTitle') || !$('lf-winOverlay')) return;
     $('lf-overlayTitle').textContent=title;
     $('lf-overlayAmount').textContent='+'+amount.toLocaleString();
     $('lf-overlayMsg').textContent=msg||'';
@@ -950,9 +974,11 @@
     for(var i=0;i<8;i++){
       (function(idx){
         setTimeout(function(){
+          var currentArea = $('lf-coinsArea');
+          if (!currentArea) return;
           var c=document.createElement('div'); c.className='lf-coin-particle'; c.textContent='\uD83E\uDE99';
           c.style.left=Math.random()*90+'%'; c.style.animationDuration=(0.8+Math.random()*0.8)+'s';
-          area.appendChild(c); setTimeout(function(){ c.remove(); }, 1600);
+          currentArea.appendChild(c); setTimeout(function(){ c.remove(); }, 1600);
         }, idx*80);
       })(i);
     }
@@ -1163,9 +1189,7 @@
         var nowSrv = firebase.firestore.FieldValue.serverTimestamp();
         // 🛡️ SECURITY: Wheel Win Payout
         if (window.SecurityService) {
-           await window.SecurityService.applyCurrencyTransaction(authUser.uid, amt, `LuckyFruitGame Win: ${targetIdx}`);
-        } else {
-           await usersCollection.doc(authUser.uid).update({ currency: firebase.firestore.FieldValue.increment(amt) });
+           await window.SecurityService.applyCurrencyTransaction(authUser.uid, amt, `LuckyFruitGame Wheel Win: ${targetIdx}`);
         }
         await usersCollection.doc(authUser.uid).update({
           lastWheelSpin: nowSrv

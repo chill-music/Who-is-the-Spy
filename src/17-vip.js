@@ -1191,8 +1191,13 @@
       var desiredIdToApply = pendingRequest.desiredId;
       if (!desiredIdToApply || userData?.customId === desiredIdToApply) return;
       // Apply the approved ID
-      usersCollection.doc(user.uid).update({ customId: desiredIdToApply, 'vip.customIdEnabled': true }).
-      catch((e) => console.warn('Auto-apply ID failed:', e));
+      (async () => {
+        try {
+          await usersCollection.doc(user.uid).update({ customId: desiredIdToApply, 'vip.customIdEnabled': true });
+        } catch (e) {
+          console.error('[PRO SPY ERROR] Auto-apply ID failed:', e);
+        }
+      })();
     }, [pendingRequest?.status, pendingRequest?.desiredId, user?.uid]);
 
     // For VIP 6-9: random toggle (keep as before)

@@ -84,15 +84,6 @@
                 setShowOnboarding(false);
                 setOnboardingGoogleUser(null);
                 setPendingNewUserRef(null);
-                
-                // Start listening to user doc (inline sync)
-                pendingNewUserRef.onSnapshot(snap => {
-                    if (snap.exists) { 
-                        var d = snap.data();
-                        setUserData(d); 
-                        if (d.displayName) setNickname(d.displayName); 
-                    }
-                });
 
                 if (typeof playSound === 'function') playSound('success');
                 setNotification(lang === 'ar' ? '🎉 مرحباً بك!' : '🎉 Welcome aboard!');

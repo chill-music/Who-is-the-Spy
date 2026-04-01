@@ -145,11 +145,12 @@ var FamilyProfile = ({
     try {
       var firebase = window.firebase;
       var familiesCollection = window.familiesCollection;
-      var newLevel = (fLvl.level || 1) + 1;
+      var newLevel = parseInt(fLvl.level || 1, 10) + 1;
       // Build update object — only deduct cost if > 0
       var updateData = { level: newLevel };
-      if ((nextLevelCfg.upgradeCost || 0) > 0) {
-        updateData.treasury = firebase.firestore.FieldValue.increment(-(nextLevelCfg.upgradeCost));
+      var cost = parseInt(nextLevelCfg.upgradeCost || 0, 10);
+      if (cost > 0) {
+        updateData.treasury = firebase.firestore.FieldValue.increment(-cost);
       }
       await familiesCollection.doc(family.id).update(updateData);
       if (window.FamilyService?.postNews) {

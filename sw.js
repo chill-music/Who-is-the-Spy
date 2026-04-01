@@ -7,8 +7,8 @@
    SW install timing out while caching 100+ files.
 ═══════════════════════════════════════════════════════════════════ */
 
-var CACHE_V       = 'pro-spy-v9';
-var CACHE_LAZY_V  = 'pro-spy-lazy-v9';
+var CACHE_V       = 'pro-spy-v10';
+var CACHE_LAZY_V  = 'pro-spy-lazy-v10';
 
 /* ── Critical files (must cache on install) ───────────────────── */
 var CRITICAL = [
@@ -153,6 +153,13 @@ var LAZY = [
   './src/features/lucky-games/LuckyFruitGame.js',
   './src/features/lucky-games/Super777Game.js',
   './src/features/lucky-games/LuckyGamesHub.js',
+  './src/features/lucky-games/GreedyCatGame.js',
+  './src/features/lucky-games/greedy-cat.css',
+  './src/features/lucky-games/SoccerStarGame.js',
+  './src/features/lucky-games/soccer-star.css',
+  './src/features/lucky-games/super777.css',
+  './src/app/AppHooks.js',
+  './src/features/game/GameLogic.js',
   './icos/icon-48.png',
   './icos/icon-72.png',
   './icos/icon-96.png',

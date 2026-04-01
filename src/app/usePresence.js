@@ -13,21 +13,27 @@
             if (!user || isGuest) return;
 
             // Set online immediately on login
-            usersCollection.doc(user.uid).update({
-                lastActive: TS(),
-                onlineStatus: 'online'
-            }).catch(() => {});
+            (async () => {
+                try {
+                    await usersCollection.doc(user.uid).update({
+                        lastActive: TS(),
+                        onlineStatus: 'online'
+                    });
+                } catch (e) { console.error('[PRO SPY ERROR] usePresence initial online:', e); }
+            })();
 
             // Heartbeat every 3 minutes
-            var interval = setInterval(() => {
-                usersCollection.doc(user.uid).update({
-                    lastActive: TS(),
-                    onlineStatus: 'online'
-                }).catch(() => {});
+            var interval = setInterval(async () => {
+                try {
+                    await usersCollection.doc(user.uid).update({
+                        lastActive: TS(),
+                        onlineStatus: 'online'
+                    });
+                } catch (e) { console.error('[PRO SPY ERROR] usePresence heartbeat:', e); }
             }, 180000);
 
             // Set offline immediately when page closes
-            var handleOffline = () => {
+            var handleOffline = async () => {
                 try {
                     if (navigator.sendBeacon && user.uid && window.appId) {
                         var url = `https://firestore.googleapis.com/v1/projects/who-is-the-spy-919b9/databases/(default)/documents:commit`;
@@ -42,23 +48,27 @@
                         });
                         navigator.sendBeacon(url, data);
                     }
-                } catch (e) {}
-                usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
+                } catch (e) { console.error('[PRO SPY ERROR] handleOffline beacon:', e); }
+                try {
+                    await usersCollection.doc(user.uid).update({ onlineStatus: 'offline' });
+                } catch (e) { console.error('[PRO SPY ERROR] handleOffline update:', e); }
             };
 
             // Set "away" when page hidden (user switched tab)
-            var handleVisibility = () => {
-                if (document.visibilityState === 'hidden') {
-                    usersCollection.doc(user.uid).update({
-                        onlineStatus: 'away',
-                        lastActive: TS()
-                    }).catch(() => {});
-                } else {
-                    usersCollection.doc(user.uid).update({
-                        onlineStatus: 'online',
-                        lastActive: TS()
-                    }).catch(() => {});
-                }
+            var handleVisibility = async () => {
+                try {
+                    if (document.visibilityState === 'hidden') {
+                        await usersCollection.doc(user.uid).update({
+                            onlineStatus: 'away',
+                            lastActive: TS()
+                        });
+                    } else {
+                        await usersCollection.doc(user.uid).update({
+                            onlineStatus: 'online',
+                            lastActive: TS()
+                        });
+                    }
+                } catch (e) { console.error('[PRO SPY ERROR] handleVisibility:', e); }
             };
 
             window.addEventListener('beforeunload', handleOffline);
@@ -69,7 +79,11 @@
                 window.removeEventListener('beforeunload', handleOffline);
                 document.removeEventListener('visibilitychange', handleVisibility);
                 // Set offline on component unmount (logout)
-                usersCollection.doc(user.uid).update({ onlineStatus: 'offline' }).catch(() => {});
+                (async () => {
+                    try {
+                        await usersCollection.doc(user.uid).update({ onlineStatus: 'offline' });
+                    } catch (e) { console.error('[PRO SPY ERROR] usePresence unmount:', e); }
+                })();
             };
         }, [user?.uid, isGuest]);
 
@@ -84,10 +98,14 @@
 
             if (sessionDay !== today) {
                 // New day - reset boxes and set session start
-                usersCollection.doc(user.uid).update({
-                    'dailyTasks.sessionStartTime': TS(),
-                    'dailyTasks.boxes': Array(8).fill(null).map(() => ({ status: 'unclaimed' }))
-                }).catch(() => {});
+                (async () => {
+                    try {
+                        await usersCollection.doc(user.uid).update({
+                            'dailyTasks.sessionStartTime': TS(),
+                            'dailyTasks.boxes': Array(8).fill(null).map(() => ({ status: 'unclaimed' }))
+                        });
+                    } catch (e) { console.error('[PRO SPY ERROR] daily session reset:', e); }
+                })();
             }
         }, [isLoggedIn, user?.uid, userData?.uid]);
     };
