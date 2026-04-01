@@ -3,12 +3,11 @@
 .mp-card {
   width: 340px;
   border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  background: #fff;
-  font-family: 'Nunito', sans-serif;
+  overflow: visible; /* Changed from hidden to allow UI elements to breathe */
+  box-shadow: 0 28px 70px rgba(0,0,0,0.95);
+  background: #0d0d1f; /* Dark premium style */
+  font-family: inherit;
   position: relative;
-  /* Reset some inherited from generic project */
   text-align: left;
 }
 /* Ensure RTL works */
@@ -69,9 +68,12 @@
 
 /* CP label (Couple Home) */
 .mp-cp-label {
+  position: absolute;
+  top: 90px; /* Positioned on the banner right side as requested */
+  right: 18px;
   display: flex;
   align-items: center;
-  z-index: 20;
+  z-index: 25;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
