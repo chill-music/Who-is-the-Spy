@@ -146,7 +146,7 @@ var SHOP_ITEMS = {
         { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles', preview: '👻', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '⭐', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
-        { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '', imageUrl: 'https://i.ibb.co/xqk8md71/122222.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
+        { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '', imageUrl: 'icos/Titles/Titles%20Shehab.png' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         // ════ UNCOMMON TITLES ════
         { id: 'title_rookie', name_en: "Rookie", name_ar: "مبتدئ", cost: 80, type: 'titles', rarity: 'Uncommon', preview: '🌱', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
         { id: 'title_scout', name_en: "Scout", name_ar: "كشاف", cost: 120, type: 'titles', rarity: 'Uncommon', preview: '🔭', imageUrl: '' , hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
