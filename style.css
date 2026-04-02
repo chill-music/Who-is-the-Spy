@@ -2234,6 +2234,8 @@ body {
     min-height: 20px;
 }
 .profile-user-title.has-image {
+    position: relative;
+    display: inline-block;
     padding: 0;
 }
 .profile-user-title.is-text {
@@ -2243,19 +2245,18 @@ body {
     color: #facc15;
 }
 .profile-user-title .title-bg-image {
-    position: absolute;
-    inset: 0;
+    display: block;
     width: 100%;
-    height: 100%;
-    object-fit: fill; /* Stretches as requested to provide breathing room */
+    height: auto;
+    object-fit: fill; /* Allows the image to scale to fit text width */
     z-index: 1;
     pointer-events: none;
 }
 .profile-user-title .title-overlay-name {
     position: absolute;
+    bottom: 25%;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     z-index: 2;
     padding: 0;
     text-shadow: 

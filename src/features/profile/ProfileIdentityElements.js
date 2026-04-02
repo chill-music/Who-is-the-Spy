@@ -30,7 +30,7 @@ var UserTitleV11 = ({ equipped, lang }) => {
     return (/*#__PURE__*/
       React.createElement("div", { 
         className: "profile-user-title has-image", 
-        style: { width: `${dynamicWidth}px`, height: '22px' } 
+        style: { width: `${dynamicWidth}px` } 
       }, /*#__PURE__*/
         React.createElement("img", { src: title.imageUrl, alt: "", className: "title-bg-image" }), /*#__PURE__*/
         React.createElement("span", { className: "title-overlay-name" }, title.preview, " ", displayName)
