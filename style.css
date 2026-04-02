@@ -2254,9 +2254,10 @@ body {
 }
 .profile-user-title .title-overlay-name {
     position: absolute;
-    bottom: 25%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: var(--title-text-top, 50%);
+    left: var(--title-text-left, 50%);
+    transform: translate(-50%, -50%);
+    font-size: var(--title-font-size, 13px);
     z-index: 2;
     padding: 0;
     text-shadow: 
@@ -2265,6 +2266,7 @@ body {
         1px 1px 0 rgba(0,0,0,1),
         -1px -1px 0 rgba(0,0,0,1);
     white-space: nowrap;
+    text-align: center;
 }
 /* Badges Row */
 .profile-badges-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; justify-content: center; }
