@@ -30,7 +30,7 @@ var UserTitleV11 = ({ equipped, lang }) => {
 
   // Otherwise show text with emoji/preview
   return (/*#__PURE__*/
-    React.createElement("span", { className: "profile-user-title" },
+    React.createElement("span", { className: "profile-user-title is-text" },
     title.preview, " ", lang === 'ar' ? title.name_ar : title.name_en
     ));
 

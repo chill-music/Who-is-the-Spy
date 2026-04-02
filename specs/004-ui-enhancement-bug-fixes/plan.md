@@ -1,70 +1,56 @@
 # Implementation Plan - 004 UI Enhancement & Bug Fixes
 
-**Branch**: `004-ui-enhancement-bug-fixes` | **Date**: 2026-04-01 | **Spec**: [spec.md](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/specs/004-ui-enhancement-bug-fixes/spec.md)
+**Branch**: `004-ui-enhancement-bug-fixes` | **Date**: 2026-04-02 | **Spec**: [spec.md](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/specs/004-ui-enhancement-bug-fixes/spec.md)
 
 ## Summary
-Comprehensive UI enhancement and bug fix package across the PWA. Technical approach involves refactoring the Mini Profile for responsiveness, implementing a global percentage-based Avatar Frame system, linking the Gift Wall to the central game data, and adding persistent Tribe Box counters.
+Comprehensive UI enhancement and bug fix package targeting transparency artifacts, VIP visual parity across all levels (1-10), and profile title rendering logic. This sprint ensures the "Cyber-Luxury" aesthetic is consistent across both Full and Mini profiles.
 
-## Technical Context
-**Language/Version**: Javascript (ES6+) / React 18+
-**Primary Dependencies**: React, Firebase Firestore
-**Storage**: Firebase Firestore (Persistent Tribe Box counters, Gift Log entries)
-**Testing**: Manual verification on mobile/desktop
-**Target Platform**: Web PWA (Mobile/Desktop)
-**Project Type**: Web Application
-**Performance Goals**: Instant UI updates via Firestore snapshots, smooth animations
+## User Review Required
 
-## Constitution Check
-*GATE: Passes. Adheres to "Dead Code Prevention" and "Structural Discipline".*
+> [!IMPORTANT]
+> **VIP Parity (Levels 1-10)**: I will verify and synchronize the `VIPName` rendering in the Mini Profile to match the Main Profile exactly for all 10 levels, ensuring colors and animations (like the VIP 9-10 red streak) are consistent.
 
-## Project Structure
-
-### Documentation (this feature)
-```text
-specs/004-ui-enhancement-bug-fixes/
-├── plan.md              # This file
-├── spec.md              # Feature specification
-└── tasks.md             # Task breakdown (to be generated)
-```
-
-### Source Code
-```text
-src/
-├── 06-components-base.js    # MiniProfilePopup, AvatarWithFrame
-├── 17-vip.js                # VIPBadge, VIPName
-├── 01-config.js             # Global styles and constants
-├── 04-data-game.js          # Gift definitions
-└── features/
-    ├── profile/
-    │   └── GiftWall.js       # Gift Wall implementation
-    └── family/
-        └── components/
-            ├── FamilyChatModal.js  # Tribe Box counter
-            ├── FamilySignBadge.js # Family Sign size
-            └── FamilySignBadge.js
-```
+> [!NOTE]
+> **Title Backgrounds**: The "yellow box" background will be removed for **image-based** titles but preserved for **text-based** titles to maintain readability and premium feel.
 
 ## Proposed Changes
 
-### 1. Mini Profile Overhaul
+### 1. Avatar & Frame Transparency
 - **File**: `src/06-components-base.js`
-- **Changes**: 
-    - Update `MiniProfilePopup` CSS to use flexbox for responsiveness.
-    - Rename "His CP" to "Our Home 🏠" and ensure it opens the marriage modal.
-    - Replace text ID with `VIPBadge` images.
-    - Unify gender icons.
+    - Update `AvatarWithFrame` and `AvatarWithFrameV11` to ensure containers have `background: transparent`.
+- **File**: `mini-profile.css`
+    - Remove `background: #0d0d1f` from `.mp-avatar-pic`.
+- **File**: `src/10-app.js`
+    - Verify "My Chat" section transparency.
 
-### 2. Global Avatar Frame
+### 2. VIP Visual Parity (1-10)
 - **File**: `src/06-components-base.js`
-- **Changes**: Update `AvatarWithFrame` to use `width: 100%`, `height: 100%` and `object-fit: contain` for the frame image.
+    - Refactor `MiniProfilePopup` to use the global `window.VIPName` component correctly for the user's name.
+    - Ensure `VIPBadge` images are correctly scaled.
+- **File**: `src/17-vip.js`
+    - Audit `VIPName` component to ensure it handles all `VIP_CONFIG` levels consistently for both large and small contexts.
+- **File**: `style.css` / `mini-profile.css`
+    - Ensure `.vip-name-animated` and `.vip-name-gradient-overlay` styles are globally accessible and identical.
 
-### 3. Dynamic Gift Wall
-- **File**: `src/features/profile/GiftWall.js`
-- **Changes**: 
-    - Update `GiftWallV11` to pull from all gift keys in `window.SHOP_ITEMS`.
-    - Implement `isPrivate` check to hide gifts from public view.
+### 3. Mini Profile Layout & Social
+- **File**: `mini-profile.css`
+    - Reposition `.mp-cp-label` ("His Home") by adjusting the `right` property to move it slightly towards the right edge.
+- **File**: `src/06-components-base.js`
+    - In `MiniProfilePopup`, replace the house emoji with the actual `coupleRingImageUrl` or asset from the profile data.
 
-### 4. Social & Family Enhancements
-- **Files**: 
-    - `src/features/family/components/FamilyChatModal.js`: Add `treasuryInventory.length` counter.
-    - `src/features/family/components/FamilySignBadge.js`: Increase base size by 1.7x.
+### 4. Profile Title Refinement
+- **File**: `src/features/profile/ProfileIdentityElements.js`
+    - Update `UserTitleV11` to add an `is-text` class for text titles and ensure `has-image` titles are transparent.
+- **File**: `style.css` (or relevant profile CSS)
+    - Update `.profile-user-title` to be transparent.
+    - Add `.profile-user-title.is-text` to apply the yellow background box.
+
+## Verification Plan
+
+### Automated Verification
+- Manual CSS audit of transparency artifacts in "My Chat" and "Mini-Profile".
+- Visual comparison of Name styling for experimental VIP 1, 6, and 10 users in both Full and Mini views.
+
+### Manual Verification
+- Confirm "His Home" label positioning on iPhone SE (mobile) and Desktop.
+- Check title rendering for both image-based and text-based titles in the main profile.

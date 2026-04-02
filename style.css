@@ -155,6 +155,29 @@ body {
     animation: red-line-sweep 3s linear infinite !important;
     display: inline-block;
 }
+
+/* 👑 VIP 9-10: Animated Name Styles */
+.vip-name-animated {
+    position: relative;
+    display: inline-block;
+    z-index: 1;
+}
+
+.vip-name-gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 0, 0, 0.8) 50%, transparent 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: red-line-sweep 3s linear infinite;
+    pointer-events: none;
+    z-index: 2;
+}
 .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
 .btn-neon { 
@@ -2113,11 +2136,11 @@ body {
     height: 65px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid rgba(15, 23, 42, 0.95);
+    border: 3px solid rgba(15, 23, 42, 0.3);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 10;
-    background: #0f172a;
+    background: transparent;
 }
 /* Avatar frame - AROUND the avatar (larger) - OUTER RING */
 .profile-avatar-frame {
@@ -2197,14 +2220,19 @@ body {
 .profile-user-title {
     display: inline-flex;
     align-items: center;
-    background: rgba(250, 204, 21, 0.1);
-    border: 1px solid rgba(250, 204, 21, 0.3);
-    padding: 2px 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
     border-radius: 6px;
     font-size: 9px;
     font-weight: 800;
     text-transform: uppercase;
     color: #facc15;
+}
+.profile-user-title.is-text {
+    background: rgba(250, 204, 21, 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    padding: 2px 8px;
 }
 .profile-user-title img { max-width: 60px; max-height: 20px; object-fit: contain; }
 /* Badges Row */

@@ -199,7 +199,7 @@
             onError: (e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=User&background=random`; }
           }) :
           photoURL ? /*#__PURE__*/
-            React.createElement("div", { style: { ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(30,30,60,0.85)', fontSize: Math.round(config.avatar * 0.52) + 'px', userSelect: 'none' } },
+            React.createElement("div", { style: { ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', fontSize: Math.round(config.avatar * 0.52) + 'px', userSelect: 'none' } },
               photoURL
             ) : /*#__PURE__*/
 
@@ -479,15 +479,15 @@
                   }
                   return null;
                 })(),
-                e("div", { className: "mp-avatar-pic", style: { width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)', background: '#0d0d1f' } },
+                e("div", { className: "mp-avatar-pic", style: { width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)', background: 'transparent' } },
                   profile.photo ? e("img", { src: profile.photo, style: { width: '100%', height: '100%', objectFit: 'cover' } }) : "🧑"
                 )
               ),
               e("div", { className: "mp-user-info" },
                 e("div", { className: "mp-user-name" },
                   window.VIPBadge && profile.vipLevel > 0 && e(window.VIPBadge, { userData: profile, size: 'sm', onClick: () => { } }),
-                  window.VIPName ? e(window.VIPName, { displayName: profile.name, userData: profile, className: (profile.vipLevel === 10 ? "mp-vip-transparent" : "mp-vip-text-only"), style: { fontSize: '18px', fontWeight: '900', color: profile.vipCfg?.nameColor || '#ffffff', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }) :
-                    e("div", { className: "mp-user-name-text", style: { color: profile.vipCfg?.nameColor || '#ffffff' } }, profile.name)
+                  window.VIPName ? e(window.VIPName, { displayName: name, userData: profile, style: { fontSize: '18px', fontWeight: '900', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }) :
+                    e("div", { className: "mp-user-name-text", style: { color: profile.vipCfg?.nameColor || '#ffffff' } }, name)
                 ),
                 e("div", { className: "mp-badges-line" },
                   e("span", { className: `gender-icon ${profile.gender === 'male' ? 'gender-icon-male' : 'gender-icon-female'}` }, profile.gender === 'male' ? '♂️' : '♀️'),
