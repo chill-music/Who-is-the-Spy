@@ -2226,12 +2226,12 @@ body {
     border: none;
     padding: 0;
     border-radius: 6px;
-    font-size: 11px; /* Slightly bigger as requested */
+    font-size: 8px; /* Further reduced for better fit inside graphics */
     font-weight: 900;
     text-transform: uppercase;
     color: #fff;
-    min-width: 80px;
-    min-height: 24px;
+    min-width: 60px;
+    min-height: 20px;
 }
 .profile-user-title.has-image {
     padding: 0;
@@ -2254,7 +2254,7 @@ body {
 .profile-user-title .title-overlay-name {
     position: relative;
     z-index: 2;
-    padding: 0 10px;
+    padding: 0 4px;
     text-shadow: 
         0 0 4px rgba(0,0,0,1),
         0 0 8px rgba(0,0,0,0.8),
