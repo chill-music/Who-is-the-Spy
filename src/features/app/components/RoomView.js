@@ -88,7 +88,7 @@
         React.createElement("div", { className: "flex items-center gap-4" },
           React.createElement("div", { className: "text-center" },
             React.createElement("div", { className: "text-[10px] text-gray-500 font-bold uppercase mb-0.5" }, t.players),
-            React.createElement("div", { className: "text-sm font-black text-primary" }, room.players.length, "/", room.maxPlayers)
+            React.createElement("div", { className: "text-sm font-black text-primary" }, (room.players || []).length, "/", room.maxPlayers || 8)
           ),
           room.password && React.createElement("div", { className: "relative group cursor-help", onClick: () => setShowLobbyPassword(!showLobbyPassword) },
             React.createElement("span", { className: "text-xl" }, "🔐"),
@@ -124,6 +124,7 @@
         ),
 
         // Player Grid
+        React.createElement("div", { className: "arena-chat-header" }, "💬 ", t.tabChat || 'Chat'),
         React.createElement("div", { className: "arena-grid" },
           room.players.map((p, i) => renderPlayer(p, i)),
           isWaiting && Array.from({ length: Math.max(0, room.maxPlayers - room.players.length) }).map((_, i) =>
@@ -136,14 +137,8 @@
         ),
 
         // Lobby Actions
-        isWaiting && currentUID === OWNER_UID && React.createElement("div", { className: "arena-actions" },
-          React.createElement("button", { 
-            onClick: startGame, 
-            disabled: room.players.length < 3, 
-            className: "btn-neon flex-1 py-4 rounded-xl font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/20 disabled:opacity-50 disabled:grayscale" 
-          },
-            room.players.length < 3 ? (lang === 'ar' ? 'تحتاج 3 لاعبين' : 'Need 3 Players') : t.start
-          ),
+        isWaiting && (room.admin === currentUID) && React.createElement("div", { className: "arena-actions" },
+          React.createElement("button", { onClick: startGame, className: "btn-neon flex-1 py-3 rounded-xl text-sm font-black uppercase tracking-widest" }, t.startGame),
           React.createElement("button", { 
             onClick: addBotToRoom, 
             className: "btn-ghost px-5 py-4 rounded-xl font-bold text-lg", 
@@ -156,7 +151,7 @@
       React.createElement("div", { className: "arena-footer mt-6" },
         React.createElement("div", { className: "flex-1" },
           React.createElement("div", { className: "flex items-center gap-2 mb-2" },
-            React.createElement("span", { className: "text-[10px] font-black text-primary uppercase tracking-widest" }, "💬 " + t.chat)
+            React.createElement("span", { className: "text-[10px] font-black text-primary uppercase tracking-widest" }, "💬 " + (t.tabChat || 'Chat'))
           ),
           React.createElement("div", { className: "glass-panel rounded-xl border-white/10 p-2" },
             React.createElement("div", { className: "flex gap-2" },

@@ -5341,17 +5341,31 @@ body, #root, .main-wrapper {
     border-color: var(--primary);
 }
 
-.arena-footer {
-    display: flex;
-    gap: var(--spacing-md);
-    align-items: center;
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--border);
-}
-
-.arena-actions {
+旋.arena-actions {
     display: flex;
     gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.arena-footer {
+    position: relative;
+    z-index: 100;
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-md);
+    background: rgba(13, 13, 31, 0.4);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+@media (max-width: 360px) {
+    .arena-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: var(--spacing-xs);
+    }
+    .arena-pcard {
+        padding: var(--spacing-xs);
+    }
 }
 
 /* ════════════ Game Over Summary Styling ════════════ */

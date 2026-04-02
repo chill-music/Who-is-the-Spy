@@ -89,6 +89,7 @@
                     mode: setupMode, 
                     isPrivate: isPrivate, 
                     password: isPrivate ? password : null, 
+                    maxPlayers: 8, 
                     startedAt: null, 
                     summaryShown: false 
                 });
