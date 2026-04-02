@@ -13,7 +13,7 @@
       startGame, handleLeaveRoom, submitWordVote, handleSkipTurn,
       requestVoting, triggerVoting, submitVote, resetGame,
       submitSpyWordGuess, submitMrWhiteLocationGuess, spyVoluntaryDeclare,
-      addBotToRoom, removeBotFromRoom, openProfile, sendGameMessage
+      addBotToRoom, removeBotFromRoom, openProfile, openMiniProfile, sendGameMessage
     } = props;
 
     if (!room) return null;
@@ -33,7 +33,7 @@
       return React.createElement("div", { 
         key: p.uid || index, 
         className: `arena-pcard ${isSpeaking ? 'active' : ''} ${isEliminated ? 'eliminated' : ''}`,
-        onClick: () => openProfile(p.uid)
+        onClick: () => openMiniProfile ? openMiniProfile(p.uid) : openProfile(p.uid)
       }, 
         // King Crown for Room Owner
         p.uid === OWNER_UID && React.createElement("span", { className: "absolute -top-2 -right-1 text-base drop-shadow-md z-10" }, "👑"),
@@ -74,7 +74,14 @@
       /* --- Arena Header --- */
       React.createElement("div", { className: "arena-header glass-panel" },
         React.createElement("div", { className: "flex items-center gap-3" },
-          React.createElement("button", { onClick: handleLeaveRoom, className: "p-2 hover:bg-white/10 rounded-lg transition-colors", title: t.leave }, "🚪"),
+          React.createElement("button", { 
+            onClick: handleLeaveRoom, 
+            className: "btn-danger-soft px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95", 
+            title: t.leaveRoom 
+          }, 
+            React.createElement("span", null, "🚪"),
+            React.createElement("span", null, lang === 'ar' ? 'خروج' : 'Leave')
+          ),
           React.createElement("div", null,
             React.createElement("div", { className: "text-[10px] text-primary font-bold tracking-widest uppercase mb-0.5" }, isWaiting ? t.waiting : t.inGame),
             React.createElement("div", { className: "flex items-center gap-2" },
@@ -124,7 +131,6 @@
         ),
 
         // Player Grid
-        React.createElement("div", { className: "arena-chat-header" }, "💬 ", t.tabChat || 'Chat'),
         React.createElement("div", { className: "arena-grid" },
           room.players.map((p, i) => renderPlayer(p, i)),
           isWaiting && Array.from({ length: Math.max(0, room.maxPlayers - room.players.length) }).map((_, i) =>
@@ -152,6 +158,14 @@
         React.createElement("div", { className: "flex-1" },
           React.createElement("div", { className: "flex items-center gap-2 mb-2" },
             React.createElement("span", { className: "text-[10px] font-black text-primary uppercase tracking-widest" }, "💬 " + (t.tabChat || 'Chat'))
+          ),
+          React.createElement("div", { className: "arena-chat-list mb-3" },
+            (room.messages || []).map((m, idx) => 
+              React.createElement("div", { key: idx, className: "arena-msg-row" },
+                React.createElement("span", { className: "arena-msg-name" }, m.senderName, ": "),
+                React.createElement("span", { className: "arena-msg-text" }, m.text)
+              )
+            )
           ),
           React.createElement("div", { className: "glass-panel rounded-xl border-white/10 p-2" },
             React.createElement("div", { className: "flex gap-2" },

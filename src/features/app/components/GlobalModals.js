@@ -21,6 +21,7 @@
       showMyAccount, setShowMyAccount,
       showUserProfile, setShowUserProfile, targetProfileUID, setTargetProfileUID,
       showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
+      showMiniProfile, setShowMiniProfile, miniProfileUID, miniProfileData,
 
       // Social
       showFriendsMoments, setShowFriendsMoments,
@@ -484,7 +485,7 @@
 
 
 
-      window.ProfileV11 && /*#__PURE__*/
+      showUserProfile && window.ProfileV11 && /*#__PURE__*/
       React.createElement(window.ProfileV11, {
         show: showUserProfile,
         onClose: () => setShowUserProfile(false),
@@ -503,6 +504,28 @@
         onOpenFamily: (fid) => {setShowUserProfile(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
         onNotification: setNotification,
         onOpenChat: (friendData) => {openPrivateChat && openPrivateChat(friendData);setShowUserProfile(false);} }
+      ),
+
+
+
+      showMiniProfile && window.MiniProfilePopup && /*#__PURE__*/
+      React.createElement(window.MiniProfilePopup, {
+        show: showMiniProfile,
+        onClose: () => setShowMiniProfile(false),
+        uid: miniProfileUID,
+        data: miniProfileData,
+        lang: lang,
+        t: t,
+        currentUID: currentUID,
+        currentUserData: currentUserData,
+        onNotification: setNotification,
+        onOpenFullProfile: (uid) => {
+          setShowMiniProfile(false);
+          setTargetProfileUID(uid);
+          setShowUserProfile(true);
+        },
+        onOpenChat: openPrivateChat,
+        onSendGift: handleSendGiftToUser }
       ),
 
 

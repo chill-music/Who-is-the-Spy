@@ -12,7 +12,7 @@
     window.useAppUIState = function () {
         // ── Global States ──
         var [lang, setLang] = useState(localStorage.getItem('pro_spy_lang') || 'en');
-        
+
         useEffect(() => {
             document.documentElement.lang = lang;
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';

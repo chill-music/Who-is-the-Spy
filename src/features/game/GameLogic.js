@@ -511,7 +511,7 @@
             var setAlertMessage = context.setAlertMessage;
             var playSound = context.playSound;
 
-            if (!room || currentUID !== OWNER_UID) return;
+            if (!room || currentUID !== room.admin) return;
             
             var bots = room.players.filter(function(p) { return p.isBot; });
             if (bots.length >= 5) { 
@@ -560,7 +560,7 @@
             var OWNER_UID = context.OWNER_UID;
             var playSound = context.playSound;
 
-            if (!room || currentUID !== OWNER_UID) return;
+            if (!room || currentUID !== room.admin) return;
             
             try {
                 await roomsCollection.doc(roomId).update({ 
