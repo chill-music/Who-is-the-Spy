@@ -309,6 +309,7 @@
     
     // Fix: Define isBlocked (Bug 4)
     var isBlocked = (window.currentUserData?.blockedUsers || []).includes(profile.uid);
+    var displayName = profile.name || profile.displayName || '—';
     var isSelf = profile.uid === currentUID;
     var hasMenu = true; // Always show menu for Profile/Block/Report
     var t_add = lang === 'ar' ? 'إضافة' : 'Add';
@@ -486,8 +487,8 @@
               e("div", { className: "mp-user-info" },
                 e("div", { className: "mp-user-name" },
                   window.VIPBadge && profile.vipLevel > 0 && e(window.VIPBadge, { userData: profile, size: 'sm', onClick: () => { } }),
-                  window.VIPName ? e(window.VIPName, { displayName: name, userData: profile, style: { fontSize: '18px', fontWeight: '900', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }) :
-                    e("div", { className: "mp-user-name-text", style: { color: profile.vipCfg?.nameColor || '#ffffff' } }, name)
+                  window.VIPName ? e(window.VIPName, { displayName: displayName, userData: profile, style: { fontSize: '18px', fontWeight: '900', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }) :
+                    e("div", { className: "mp-user-name-text", style: { color: profile.vipCfg?.nameColor || '#ffffff' } }, displayName)
                 ),
                 e("div", { className: "mp-badges-line" },
                   e("span", { className: `gender-icon ${profile.gender === 'male' ? 'gender-icon-male' : 'gender-icon-female'}` }, profile.gender === 'male' ? '♂️' : '♀️'),

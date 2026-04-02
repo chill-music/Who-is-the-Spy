@@ -25,6 +25,9 @@
 - [x] **T014**: Verify Name color/glow/streak for Levels 9-10 (Red Animated).
 - [x] **T015**: Final visual parity check between Mini and Full profile names.
 
-## Phase 6: Polish & Verification
-- [x] **T016**: Manual verification on mobile (SE) layout.
-- [x] **T017**: Final cleanup and documentation.
+## Phase 6: Sprint 004 Extension - UI Refinements
+- [x] **T018**: Fix missing name regression in `MiniProfilePopup` (`06-components-base.js`).
+- [x] **T019**: Reposition `.mp-cp-label` further right in `mini-profile.css`.
+- [x] **T020**: Overhaul `UserTitleV11` in `ProfileIdentityElements.js` with Image+Name patterns.
+- [x] **T021**: Refactor `style.css` to support transparent titles and overlay typography.
+- [x] **T022**: Final verification of name visibility and title overlay.

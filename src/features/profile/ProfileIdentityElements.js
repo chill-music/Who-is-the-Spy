@@ -19,19 +19,21 @@ var UserTitleV11 = ({ equipped, lang }) => {
   var title = window.SHOP_ITEMS.titles.find((t) => t.id === titleId);
   if (!title) return null;
 
-  // If title has an image URL, show the image
-  if (title.imageUrl && title.imageUrl.trim() !== '') {
+  var displayName = lang === 'ar' ? (title.name_ar || title.name_en) : title.name_en;
+  var hasImage = title.imageUrl && title.imageUrl.trim() !== '';
+
+  if (hasImage) {
     return (/*#__PURE__*/
       React.createElement("div", { className: "profile-user-title has-image" }, /*#__PURE__*/
-      React.createElement("img", { src: title.imageUrl, alt: title.name_en })
+        React.createElement("img", { src: title.imageUrl, alt: "", className: "title-bg-image" }), /*#__PURE__*/
+        React.createElement("span", { className: "title-overlay-name" }, title.preview, " ", displayName)
       ));
-
   }
 
   // Otherwise show text with emoji/preview
   return (/*#__PURE__*/
     React.createElement("span", { className: "profile-user-title is-text" },
-    title.preview, " ", lang === 'ar' ? title.name_ar : title.name_en
+      title.preview, " ", displayName
     ));
 
 };

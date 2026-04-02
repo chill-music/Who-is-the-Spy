@@ -2220,21 +2220,48 @@ body {
 .profile-user-title {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    position: relative;
     background: transparent;
     border: none;
     padding: 0;
     border-radius: 6px;
-    font-size: 9px;
-    font-weight: 800;
+    font-size: 11px; /* Slightly bigger as requested */
+    font-weight: 900;
     text-transform: uppercase;
-    color: #facc15;
+    color: #fff;
+    min-width: 80px;
+    min-height: 24px;
+}
+.profile-user-title.has-image {
+    padding: 0;
 }
 .profile-user-title.is-text {
-    background: rgba(250, 204, 21, 0.1);
-    border: 1px solid rgba(250, 204, 21, 0.3);
-    padding: 2px 8px;
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+    color: #facc15;
 }
-.profile-user-title img { max-width: 60px; max-height: 20px; object-fit: contain; }
+.profile-user-title .title-bg-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+    pointer-events: none;
+}
+.profile-user-title .title-overlay-name {
+    position: relative;
+    z-index: 2;
+    padding: 0 10px;
+    text-shadow: 
+        0 0 4px rgba(0,0,0,1),
+        0 0 8px rgba(0,0,0,0.8),
+        1px 1px 0 rgba(0,0,0,1),
+        -1px -1px 0 rgba(0,0,0,1);
+    white-space: nowrap;
+}
 /* Badges Row */
 .profile-badges-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; justify-content: center; }
 .profile-badge-chip {

@@ -75,7 +75,7 @@
 .mp-cp-label {
   position: absolute;
   top: 90px; /* Positioned on the banner right side as requested */
-  right: 10px;
+  right: 6px;
   display: flex;
   align-items: center;
   z-index: 25;
