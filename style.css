@@ -226,7 +226,9 @@ body {
 /* ==========================================
    HEADER & LOGO
    ========================================== */
-.site-header {
+.site/* Potentially Redundant: Legacy Shell & Header (v1). Consolidating into New Shell System. */
+/*
+.main-header {
     width: 100%;
     display: flex;
     align-items: center;
@@ -289,17 +291,11 @@ body {
     align-items: center;
     gap: var(--spacing-sm);
 }
-/* ==========================================
-   CURRENCY DISPLAY
-   ========================================== */
 .currency-display:hover {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 136, 0, 0.2));
     transform: scale(1.02);
 }
 .currency-value { font-size: 13px; font-weight: 700; color: var(--gold); }
-/* ==========================================
-   CARD CONTAINER
-   ========================================== */
 .card-container {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
@@ -310,9 +306,6 @@ body {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
     width: 100%;
 }
-/* ==========================================
-   PLAYER CARD
-   ========================================== */
 .player-card { 
     transition: all 0.3s; 
     position: relative; 
@@ -341,9 +334,6 @@ body {
     opacity: 0.6; 
     filter: grayscale(80%); 
 }
-/* ==========================================
-   AVATAR WITH FRAME
-   ========================================== */
 .avatar-wrapper {
     position: relative;
     display: inline-flex;
@@ -363,9 +353,6 @@ body {
 .avatar-wrapper.size-md .avatar-frame-mask { width: 42px; height: 42px; }
 .avatar-wrapper.size-lg .avatar-frame-mask { width: 62px; height: 62px; }
 .avatar-wrapper.size-xl .avatar-frame-mask { width: 82px; height: 82px; }
-/* ==========================================
-   TIMER
-   ========================================== */
 .timer-bar-container { 
     width: 60px; 
     height: 6px; 
@@ -378,6 +365,7 @@ body {
     background: var(--primary); 
     transition: width 1s linear; 
 }
+*/
 /* ==========================================
    IDENTITY SQUARE
    ========================================== */
@@ -3880,9 +3868,11 @@ body {
     display: flex;
     gap: 8px;
     padding: 0 16px 4px;
-    overflow-x: auto;
+    overflow-x: auto; /* Audit Fix: Enable horizontal scroll for small screens */
+    -webkit-overflow-scrolling: touch; /* Audit Fix: Smooth touch scroll */
+    scrollbar-width: none; /* Audit Fix: Hide scrollbar Firefox */
 }
-.stats-strip-new::-webkit-scrollbar { display: none; }
+.stats-strip-new::-webkit-scrollbar { display: none; } /* Audit Fix: Hide scrollbar Safari/Chrome */
 .stat-pill-new {
     flex-shrink: 0;
     background: var(--new-surface);
@@ -4595,6 +4585,10 @@ body {
     .sec-title-new { font-size: 11px; }
 
     .room-card-new { width: 130px; }
+}
+/* ── Ultra small screens (≤ 360px) ── */
+@media (max-width: 360px) {
+    .lobby-hero-new { margin: 6px 12px 0; } /* Audit Fix: Tuning margin for iPhone SE */
 }
 /* ── Mobile (≤ 480px) ── */
 @media (max-width: 480px) {
