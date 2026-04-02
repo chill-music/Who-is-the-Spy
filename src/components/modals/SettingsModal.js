@@ -105,12 +105,12 @@
       React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', marginBottom: '14px' } },
       lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'
       ), /*#__PURE__*/
-      React.createElement("button", { onClick: onLoginGoogle, style: {
+      React.createElement("button", { onClick: onLoginGoogle, className: "btn-google", style: {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          width: '100%', padding: '10px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-          background: 'white', color: '#333', fontSize: '13px', fontWeight: 700
+          width: '100%', padding: '12px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+          fontSize: '13px'
         } }, /*#__PURE__*/
-      React.createElement("img", { src: "https://www.google.com/favicon.ico", alt: "G", style: { width: '16px', height: '16px' } }),
+      React.createElement("img", { src: "https://www.google.com/favicon.ico", alt: "G", style: { width: '18px', height: '18px' } }),
       lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'
       )
       )

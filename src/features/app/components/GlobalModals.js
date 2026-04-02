@@ -141,30 +141,42 @@
 
       showSummary && room && /*#__PURE__*/
       React.createElement("div", { className: "modal-overlay", onClick: () => setShowSummary(false) }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+      React.createElement("div", { className: "modal-content animate-pop relative overflow-hidden", onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+      
+      // Master Reveal Sweep Animation
+      React.createElement("div", { className: "winning-team-sweep" }),
+
       React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
       React.createElement("h2", { className: "modal-title" }, t.summaryTitle),
       window.ModalCloseBtn && /*#__PURE__*/React.createElement(window.ModalCloseBtn, { onClose: () => setShowSummary(false) })
       ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-body text-center" }, /*#__PURE__*/
-      React.createElement("div", { className: "text-4xl mb-3" }, room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'), /*#__PURE__*/
-      React.createElement("h2", { className: "text-xl font-bold mb-3" }, room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin),
-      room.chosenWord && /*#__PURE__*/React.createElement("div", { className: "text-xs text-cyan-400 mb-3" }, "\uD83D\uDD11 ", t.selectedWord, ": ", /*#__PURE__*/React.createElement("strong", null, room.chosenWord)), /*#__PURE__*/
-      React.createElement("div", { style: { background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px', marginBottom: '8px', textAlign: 'left' } }, /*#__PURE__*/
-      React.createElement("div", { className: "text-xs font-bold text-gray-300 mb-2" }, "\uD83D\uDCCB ", t.rolesRevealTitle),
+      React.createElement("div", { className: "modal-body text-center z-10" }, /*#__PURE__*/
+      React.createElement("div", { className: "text-5xl mb-4 drop-shadow-lg" }, room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'), /*#__PURE__*/
+      React.createElement("h2", { className: `summary-title ${room.status === 'finished_spy_caught' ? 'winner-glow-agent' : room.status === 'finished_mrwhite_wins' ? 'winner-glow-white' : 'winner-glow-spy'}` }, 
+        room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin
+      ),
+      room.chosenWord && /*#__PURE__*/React.createElement("div", { className: "text-sm text-primary/70 mb-4 font-tech uppercase tracking-widest" }, 
+        t.selectedWord, ": ", /*#__PURE__*/React.createElement("span", { className: "text-white font-bold" }, room.chosenWord)
+      ), /*#__PURE__*/
+      
+      React.createElement("div", { className: "summary-roles-panel" }, /*#__PURE__*/
+      React.createElement("div", { className: "text-xs font-black text-white/40 uppercase tracking-widest mb-3" }, "📋 " + t.rolesRevealTitle),
       room.players.filter((p) => p.role).map((p) => /*#__PURE__*/
-      React.createElement("div", { key: p.uid, className: "flex items-center justify-between gap-2 mb-1", style: { fontSize: '11px' } }, /*#__PURE__*/
-      React.createElement("span", { className: "text-gray-300 truncate" }, p.name, p.uid === currentUID ? ' (You)' : ''), /*#__PURE__*/
-      React.createElement("span", { style: { color: p.role === 'spy' ? '#ef4444' : p.role === 'mrwhite' ? '#8b5cf6' : p.role === 'informant' ? '#a78bfa' : '#10b981', fontWeight: 700, flexShrink: 0 } },
-      p.role === 'spy' ? '🕵️ ' + t.statusSpy : p.role === 'mrwhite' ? '👻 ' + t.statusMrWhite : p.role === 'informant' ? '👁️ ' + t.statusInformant : '🤵 ' + t.statusAgent
+      React.createElement("div", { key: p.uid, className: "flex items-center justify-between gap-2 mb-2 p-1.5 rounded-lg border border-white/5 bg-white/5" }, /*#__PURE__*/
+      React.createElement("span", { className: "text-[11px] font-bold text-white/80 truncate" }, p.name, p.uid === currentUID ? ' (You)' : ''), /*#__PURE__*/
+      React.createElement("span", { 
+        className: "text-[11px] font-black uppercase flex items-center gap-1",
+        style: { color: p.role === 'spy' ? '#ff0055' : p.role === 'mrwhite' ? '#ffd700' : p.role === 'informant' ? '#a78bfa' : '#00f2ff' } 
+      },
+        p.role === 'spy' ? '🕵️ ' + t.statusSpy : p.role === 'mrwhite' ? '👻 ' + t.statusMrWhite : p.role === 'informant' ? '👁️ ' + t.statusInformant : '🤵 ' + t.statusAgent
       )
       )
       )
       )
       ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-footer" },
-      room.admin === currentUID && /*#__PURE__*/React.createElement("button", { onClick: resetGame, className: "btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2" }, t.playAgain), /*#__PURE__*/
-      React.createElement("button", { onClick: handleLeaveRoom, className: "btn-ghost w-full py-2 rounded-lg text-sm" }, t.leaveRoom)
+      React.createElement("div", { className: "modal-footer flex-col gap-2" },
+      room.admin === currentUID && /*#__PURE__*/React.createElement("button", { onClick: resetGame, className: "btn-neon w-full py-3 rounded-xl text-sm font-black uppercase tracking-wider" }, t.playAgain), /*#__PURE__*/
+      React.createElement("button", { onClick: handleLeaveRoom, className: "btn-ghost w-full py-3 rounded-xl text-sm font-bold text-white/60" }, t.leaveRoom)
       )
       )
       ),

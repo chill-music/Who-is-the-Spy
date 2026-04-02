@@ -69,10 +69,10 @@
     );
     */
 
-    return React.createElement("div", { className: "room-view-container animate-fade-in relative z-10 p-4" },
+    return React.createElement("div", { className: "arena-pwa-view animate-fade-in relative z-10 p-4" },
       
       /* --- Arena Header --- */
-      React.createElement("div", { className: "flex items-center justify-between mb-4 glass-panel p-3 rounded-xl border-primary/20" },
+      React.createElement("div", { className: "arena-header glass-panel" },
         React.createElement("div", { className: "flex items-center gap-3" },
           React.createElement("button", { onClick: handleLeaveRoom, className: "p-2 hover:bg-white/10 rounded-lg transition-colors", title: t.leave }, "🚪"),
           React.createElement("div", null,
@@ -101,10 +101,10 @@
       ),
 
       /* --- Arena Main Content --- */
-      React.createElement("main", { className: "game-main-content" },
+      React.createElement("main", { className: "arena-main" },
 
         // Status Bar
-        !isWaiting && React.createElement("div", { className: "game-status-bar p-4 mb-4 rounded-2xl flex items-center justify-between text-center" },
+        !isWaiting && React.createElement("div", { className: "arena-status-bar neon-sweep-container" },
           React.createElement("div", { className: "flex-1" },
             React.createElement("div", { className: "text-[10px] text-primary font-black tracking-widest uppercase mb-1" }, 
               room.status === 'wordSelection' ? t.wordSel : room.status === 'voting' ? t.voting : t.discussion
@@ -116,7 +116,7 @@
         ),
 
         // Word Card
-        (!isWaiting && myRole) && React.createElement("div", { className: "word-card-container" },
+        (!isWaiting && myRole) && React.createElement("div", { className: "word-card-container mb-6" },
           React.createElement("div", { className: `word-card-v2 ${myRole.role}` },
             React.createElement("div", { className: "wc-role" }, myRole.roleName),
             React.createElement("div", { className: "wc-word font-bold text-white text-xl" }, myRole.word)
@@ -124,7 +124,7 @@
         ),
 
         // Player Grid
-        React.createElement("div", { className: "arena-grid mb-6" },
+        React.createElement("div", { className: "arena-grid" },
           room.players.map((p, i) => renderPlayer(p, i)),
           isWaiting && Array.from({ length: Math.max(0, room.maxPlayers - room.players.length) }).map((_, i) =>
             React.createElement("div", { key: 'empty-' + i, className: "arena-pcard border-dashed opacity-25" },
@@ -136,7 +136,7 @@
         ),
 
         // Lobby Actions
-        isWaiting && currentUID === OWNER_UID && React.createElement("div", { className: "flex gap-2" },
+        isWaiting && currentUID === OWNER_UID && React.createElement("div", { className: "arena-actions" },
           React.createElement("button", { 
             onClick: startGame, 
             disabled: room.players.length < 3, 
@@ -153,21 +153,23 @@
       ),
 
       /* --- Arena Footer --- */
-      React.createElement("div", { className: "game-chat-dock mt-6" },
-        React.createElement("div", { className: "flex items-center gap-2 mb-2" },
-          React.createElement("span", { className: "text-[10px] font-black text-primary uppercase tracking-widest" }, "💬 " + t.chat)
-        ),
-        React.createElement("div", { className: "glass-panel rounded-xl border-white/10 p-2" },
-          React.createElement("div", { className: "flex gap-2" },
-            React.createElement("input", {
-              className: "input-dark flex-1 px-4 py-2 border-none rounded-lg text-sm bg-black/40 focus:bg-black/60 transition-all",
-              value: gameChatInput,
-              onChange: (e) => setGameChatInput(e.target.value),
-              onKeyPress: (e) => e.key === 'Enter' && sendGameMessage(),
-              placeholder: lang === 'ar' ? 'اكتب رسالة...' : 'Type message...'
-            }),
-            React.createElement("button", { onClick: sendGameMessage, className: "btn-neon px-5 py-2 rounded-lg font-bold text-sm" },
-              lang === 'ar' ? 'إرسال' : 'Send'
+      React.createElement("div", { className: "arena-footer mt-6" },
+        React.createElement("div", { className: "flex-1" },
+          React.createElement("div", { className: "flex items-center gap-2 mb-2" },
+            React.createElement("span", { className: "text-[10px] font-black text-primary uppercase tracking-widest" }, "💬 " + t.chat)
+          ),
+          React.createElement("div", { className: "glass-panel rounded-xl border-white/10 p-2" },
+            React.createElement("div", { className: "flex gap-2" },
+              React.createElement("input", {
+                className: "input-dark flex-1 px-4 py-2 border-none rounded-lg text-sm bg-black/40 focus:bg-black/60 transition-all",
+                value: gameChatInput,
+                onChange: (e) => setGameChatInput(e.target.value),
+                onKeyPress: (e) => e.key === 'Enter' && sendGameMessage(),
+                placeholder: lang === 'ar' ? 'اكتب رسالة...' : 'Type message...'
+              }),
+              React.createElement("button", { onClick: sendGameMessage, className: "btn-neon px-5 py-2 rounded-lg font-bold text-sm" },
+                lang === 'ar' ? 'إرسال' : 'Send'
+              )
             )
           )
         )
