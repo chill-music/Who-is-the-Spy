@@ -34,3 +34,11 @@
 - [x] **T023**: Refactor `UserTitleV11` in `ProfileIdentityElements.js` with dynamic width and absolute centering.
 - [x] **T024**: Update `style.css` to support absolute centering and `object-fit: fill` for titles.
 - [x] **T025**: Final visual verification of precision centering.
+
+## Phase 7: VIP Center Migration Verification
+- [x] **V001**: Verify `VIPCenterSection` in `17-vip.js` contains all XP logic and level data.
+- [x] **V002**: Verify `VIPBuySection` handles currency checks and Firestore updates correctly.
+- [x] **V003**: Verify `Custom ID` and `VIP 10 Form` status logic is functional in the new UI.
+- [x] **V004**: Confirm `08-components-shop.js` is cleaned of all legacy VIP code.
+- [x] **V005**: Final audit of `GlobalModals.js` and `10-app.js` for proper modal connectivity.
+- [x] **V006**: Record and document all migrated features and logic for final handover.
