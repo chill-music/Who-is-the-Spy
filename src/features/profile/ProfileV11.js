@@ -30,6 +30,7 @@
     onOpenMarriage, // opens the marriage/wedding hall page
     onOpenFamily, // opens family modal (pass familyId to view any family)
     onOpenBFFModal, // opens BFF modal for own profile
+    onOpenVIPCenter, // opens the VIP Center modal
     onNotification = () => {} // optional notification callback
   }) => {
     var t = TRANSLATIONS[lang] || {};
@@ -441,6 +442,7 @@
         setShowProfileCoupleCard: setShowProfileCoupleCard,
         currentViewerData: currentViewerData,
         onOpenMarriage: onOpenMarriage,
+        onOpenVIPCenter: onOpenVIPCenter,
         onOpenSettings: onOpenSettings,
         onOpenProfile: onOpenProfile }
       ),
@@ -482,6 +484,7 @@
         lang: lang,
         onOpenFamily: onOpenFamily,
         onOpenProfile: onOpenProfile,
+        onOpenVIPCenter: onOpenVIPCenter,
         setShowRoleInfoPopup: setShowRoleInfoPopup,
         copiedId: copiedId,
         setCopiedId: setCopiedId,

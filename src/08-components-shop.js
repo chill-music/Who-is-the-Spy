@@ -18,7 +18,7 @@
   // ═══════════════════════════════════════════════════════════════
   // 🛒  SHOP MODAL — Premium Dark Gaming Store
   // ═══════════════════════════════════════════════════════════════
-  var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onBuyVIP, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
+  var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
     var t = TRANSLATIONS[lang];
     var [activeTab, setActiveTab] = useState('frames');
     var [activeGiftSubTab, setActiveGiftSubTab] = useState('all'); // ✅ New gift sub-tab state
@@ -29,26 +29,12 @@
     var [giftRarityFilter, setGiftRarityFilter] = useState('all');
     var [giftVIPOnly, setGiftVIPOnly] = useState(false);
     var [showGiftFilter, setShowGiftFilter] = useState(false);
-    // ✅ VIP confirmation dialog
-    var [showVIPConfirm, setShowVIPConfirm] = useState(false);
 
     if (!show) return null;
 
     var currency = userData?.currency || 0;
     var inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     var equipped = userData?.equipped || {};
-    var vipLevel = typeof window.getVIPLevel === 'function' ? window.getVIPLevel(userData) : 0;
-    var vipXpInfo = typeof window.getVIPXPProgress === 'function' ? window.getVIPXPProgress(userData?.vip?.xp || 0) : null;
-    var hasVIP = vipLevel >= 1;
-
-    var vipExpiresAt = userData?.vip?.expiresAt;
-    var vipDaysLeft = (() => {
-      if (!vipExpiresAt) return null;
-      var expDate = vipExpiresAt.toDate ? vipExpiresAt.toDate() : new Date(vipExpiresAt);
-      var now = new Date();
-      var diff = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-      return diff > 0 ? diff : 0;
-    })();
 
     var isOwned = (item) => inventory[item.type]?.includes(item.id);
     var isEquipped = (item) => {
@@ -187,13 +173,7 @@
       React.createElement("div", null, /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '15px', fontWeight: 900, color: '#f1f5f9', letterSpacing: '0.2px' } },
       t.shop || (lang === 'ar' ? 'المتجر' : 'Store')
-      ),
-      vipLevel > 0 && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '9px', color: '#a78bfa', fontWeight: 700, marginTop: '1px', display: 'flex', alignItems: 'center', gap: '4px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { background: 'rgba(124,58,237,0.22)', borderRadius: '4px', padding: '0 5px', lineHeight: '14px' } }, "VIP ", vipLevel), /*#__PURE__*/
-      React.createElement("span", { style: { color: '#4b5563' } }, vipXpInfo.progress, "% \u2192 VIP ", vipLevel + 1)
       )
-
       )
       ), /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '7px' } }, /*#__PURE__*/
@@ -386,248 +366,7 @@
 
 
 
-      activeTab === 'vip' && /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '16px' } }, /*#__PURE__*/
-
-
-      React.createElement("div", { style: {
-          borderRadius: '20px', overflow: 'hidden', position: 'relative',
-          background: 'linear-gradient(135deg,#1a0035 0%,#2d0060 40%,#1a0035 100%)',
-          border: '1.5px solid rgba(168,85,247,0.45)',
-          boxShadow: '0 0 60px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
-          padding: '22px 18px 18px'
-        } }, /*#__PURE__*/
-
-      React.createElement("div", { style: { position: 'absolute', top: '-30px', right: '-20px', width: '140px', height: '140px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(168,85,247,0.35),transparent 70%)', pointerEvents: 'none' } }), /*#__PURE__*/
-      React.createElement("div", { style: { position: 'absolute', bottom: '-20px', left: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(124,58,237,0.28),transparent 70%)', pointerEvents: 'none' } }), /*#__PURE__*/
-
-      React.createElement("div", { style: { position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: 'linear-gradient(90deg,transparent,#c4b5fd,#a855f7,#c4b5fd,transparent)' } }), /*#__PURE__*/
-
-      React.createElement("div", { style: { position: 'relative', zIndex: 1 } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          width: '52px', height: '52px', borderRadius: '16px',
-          background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '28px', boxShadow: '0 4px 20px rgba(124,58,237,0.55)',
-          border: '2px solid rgba(196,181,253,0.3)'
-        } }, "\uD83D\uDC51"), /*#__PURE__*/
-      React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '18px', fontWeight: 900, color: '#f5f3ff', letterSpacing: '0.5px' } }, "VIP"), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 600, marginTop: '1px' } },
-      lang === 'ar' ? 'نظام التميز الحصري' : 'Exclusive Premium System'
-      )
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { style: {
-          background: 'linear-gradient(135deg,rgba(124,58,237,0.5),rgba(168,85,247,0.3))',
-          border: '1.5px solid rgba(196,181,253,0.4)',
-          borderRadius: '14px', padding: '6px 14px',
-          fontSize: '16px', fontWeight: 900, color: '#e9d5ff',
-          boxShadow: '0 0 18px rgba(124,58,237,0.4)'
-        } }, "VIP ", vipLevel)
-      ), /*#__PURE__*/
-
-
-      React.createElement("div", { style: { marginBottom: '10px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#7c3aed', fontWeight: 700, marginBottom: '5px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { color: '#a78bfa' } }, (userData?.vip?.xp || 0).toLocaleString(), " XP"),
-      vipLevel < 10 && /*#__PURE__*/React.createElement("span", { style: { color: '#6b21a8' } }, lang === 'ar' ? `الهدف: ` : 'Goal: ', VIP_XP_THRESHOLDS[vipLevel + 1]?.toLocaleString(), " XP \u2192 VIP ", vipLevel + 1),
-      vipLevel >= 10 && /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 900 } }, "\uD83D\uDC51 MAX LEVEL")
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)' } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          width: `${vipXpInfo.progress}%`, height: '100%', borderRadius: '4px',
-          background: 'linear-gradient(90deg,#5b21b6,#7c3aed,#a855f7,#c4b5fd)',
-          transition: 'width 0.7s ease',
-          boxShadow: '0 0 10px rgba(168,85,247,0.7)',
-          position: 'relative', overflow: 'hidden'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)', animation: 'shimmer 1.8s infinite' } })
-      )
-      )
-      ), /*#__PURE__*/
-
-
-      React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' } },
-      [
-      { icon: '🎨', ar: 'اسم ملون مميز', en: 'Colored VIP Name' },
-      { icon: '⚡', ar: 'مضاعف XP ×1.2', en: '1.2× XP Multiplier' },
-      { icon: '🏅', ar: 'بادج VIP حصري', en: 'Exclusive VIP Badge' },
-      { icon: '🎁', ar: 'هدايا VIP مقفلة', en: 'Locked VIP Gifts' },
-      { icon: '🔥', ar: 'ترقية حتى VIP 10', en: 'Rank up to VIP 10' },
-      { icon: '💎', ar: 'مزايا حصرية للمستوى', en: 'Level-exclusive perks' }].
-      map((f, i) => /*#__PURE__*/
-      React.createElement("div", { key: i, style: {
-          display: 'flex', alignItems: 'center', gap: '7px',
-          fontSize: '10px', color: '#e9d5ff',
-          background: 'rgba(124,58,237,0.12)',
-          border: '1px solid rgba(196,181,253,0.14)',
-          borderRadius: '9px', padding: '7px 9px'
-        } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '14px', flexShrink: 0 } }, f.icon), /*#__PURE__*/
-      React.createElement("span", { style: { fontWeight: 600, lineHeight: 1.3 } }, lang === 'ar' ? f.ar : f.en)
-      )
-      )
-      )
-      )
-      ),
-
-
-      vipLevel >= 1 ? /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '10px' } },
-      vipDaysLeft !== null && /*#__PURE__*/
-      React.createElement("div", { style: {
-          borderRadius: '14px', overflow: 'hidden',
-          background: vipDaysLeft <= 5 ?
-          'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(10,5,25,0.96))' :
-          'linear-gradient(135deg,rgba(74,222,128,0.1),rgba(10,5,25,0.96))',
-          border: vipDaysLeft <= 5 ? '1.5px solid rgba(239,68,68,0.38)' : '1.5px solid rgba(74,222,128,0.28)',
-          boxShadow: vipDaysLeft <= 5 ? '0 0 20px rgba(239,68,68,0.15)' : '0 0 20px rgba(74,222,128,0.12)'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          width: '38px', height: '38px', borderRadius: '10px',
-          background: vipDaysLeft <= 5 ? 'rgba(239,68,68,0.18)' : 'rgba(74,222,128,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px'
-        } }, vipDaysLeft <= 5 ? '⚠️' : '🛡️'), /*#__PURE__*/
-      React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '12px', color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80', fontWeight: 800 } },
-      lang === 'ar' ? 'الوقت المتبقي' : 'Time Remaining'
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', marginTop: '1px' } },
-      vipDaysLeft <= 5 ? lang === 'ar' ? '⚡ سينتهي قريباً!' : '⚡ Expiring soon!' : lang === 'ar' ? '✓ VIP نشط' : '✓ VIP Active'
-      )
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { textAlign: 'center' } }, /*#__PURE__*/
-      React.createElement("span", { style: {
-          fontSize: '34px', fontWeight: 900, lineHeight: 1, fontFamily: 'monospace',
-          color: vipDaysLeft <= 5 ? '#f87171' : '#4ade80',
-          textShadow: vipDaysLeft <= 5 ? '0 0 16px rgba(239,68,68,0.6)' : '0 0 16px rgba(74,222,128,0.5)'
-        } }, vipDaysLeft), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', fontWeight: 700 } }, lang === 'ar' ? 'يوم' : 'days')
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { height: '4px', background: 'rgba(255,255,255,0.04)' } }, /*#__PURE__*/
-      React.createElement("div", { style: { height: '100%', width: `${Math.min(100, vipDaysLeft / 30 * 100)}%`, background: vipDaysLeft <= 5 ? 'linear-gradient(90deg,#dc2626,#f87171)' : 'linear-gradient(90deg,#16a34a,#4ade80)', transition: 'width 0.6s' } })
-      )
-      ), /*#__PURE__*/
-
-      React.createElement("div", { style: {
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          padding: '10px', borderRadius: '12px',
-          background: vipDaysLeft !== null && vipDaysLeft > 0 ? 'rgba(74,222,128,0.07)' : 'rgba(239,68,68,0.07)',
-          border: vipDaysLeft !== null && vipDaysLeft > 0 ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(239,68,68,0.22)'
-        } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '16px' } }, vipDaysLeft !== null && vipDaysLeft > 0 ? '✅' : '❌'), /*#__PURE__*/
-      React.createElement("span", { style: { fontWeight: 900, fontSize: '13px', color: vipDaysLeft !== null && vipDaysLeft > 0 ? '#4ade80' : '#f87171' } },
-      vipDaysLeft !== null && vipDaysLeft > 0 ? lang === 'ar' ? '🔥 VIP مفعّل' : '🔥 VIP ACTIVE' : lang === 'ar' ? 'VIP منتهي' : 'VIP EXPIRED'
-      )
-      ), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => {if (currency >= 50000) setShowVIPConfirm(true);},
-        disabled: currency < 50000,
-        style: {
-          width: '100%', padding: '13px', borderRadius: '13px', border: 'none',
-          background: currency >= 50000 ? 'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)' : 'rgba(100,100,100,0.12)',
-          color: currency >= 50000 ? '#fff' : '#4b5563', fontWeight: 900, fontSize: '14px',
-          cursor: currency >= 50000 ? 'pointer' : 'not-allowed',
-          boxShadow: currency >= 50000 ? '0 6px 24px rgba(124,58,237,0.45)' : 'none',
-          transition: 'all 0.2s', letterSpacing: '0.3px',
-          position: 'relative', overflow: 'hidden'
-        } },
-
-      currency >= 50000 && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
-      React.createElement("span", { style: { position: 'relative' } },
-      currency >= 50000 ?
-      `🔄 ${lang === 'ar' ? 'تجديد +30 يوم' : 'Renew +30 days'} — 50,000 🧠` :
-      `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`
-      )
-      )
-      ) : /*#__PURE__*/
-
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '10px' } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          borderRadius: '14px', padding: '14px',
-          background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)',
-          fontSize: '11px', color: '#fca5a5', textAlign: 'center', lineHeight: 1.6
-        } }, "\uD83C\uDF81 ",
-      lang === 'ar' ?
-      'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!' :
-      'Every gift you send earns VIP XP — the more you give, the higher you level!'
-      ), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => {if (currency >= 50000) setShowVIPConfirm(true);},
-        disabled: currency < 50000,
-        style: {
-          width: '100%', padding: '14px', borderRadius: '13px', border: 'none',
-          background: currency >= 50000 ? 'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)' : 'rgba(100,100,100,0.12)',
-          color: currency >= 50000 ? '#fff' : '#4b5563', fontWeight: 900, fontSize: '15px',
-          cursor: currency >= 50000 ? 'pointer' : 'not-allowed',
-          boxShadow: currency >= 50000 ? '0 6px 24px rgba(239,68,68,0.4)' : 'none',
-          transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
-        } },
-
-      currency >= 50000 && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
-      React.createElement("span", { style: { position: 'relative' } },
-      currency >= 50000 ?
-      `👑 ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} — 50,000 🧠` :
-      `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠 (${lang === 'ar' ? 'لديك' : 'Have'}: ${currency.toLocaleString()})`
-      )
-      )
-      ), /*#__PURE__*/
-
-
-
-      React.createElement("div", { style: { borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(0,0,0,0.22)' } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          padding: '11px 16px', borderBottom: '1px solid rgba(124,58,237,0.15)',
-          fontSize: '11px', fontWeight: 700, color: '#7c3aed',
-          display: 'flex', alignItems: 'center', gap: '7px',
-          background: 'rgba(124,58,237,0.06)'
-        } }, "\uD83D\uDCCA ",
-      lang === 'ar' ? 'جدول مستويات VIP' : 'VIP Level Table'
-      ),
-      VIP_CONFIG.map((cfg) => {
-        var isCurrentLevel = vipLevel === cfg.level;
-        var isPassed = vipLevel > cfg.level;
-        return (/*#__PURE__*/
-          React.createElement("div", { key: cfg.level, style: {
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '9px 16px',
-              borderBottom: '1px solid rgba(255,255,255,0.026)',
-              background: isCurrentLevel ? `${cfg.nameColor}0e` : 'transparent'
-            } }, /*#__PURE__*/
-          React.createElement("span", { style: {
-              minWidth: '46px', fontWeight: 900, fontSize: '11px',
-              color: isCurrentLevel ? cfg.nameColor : isPassed ? '#4ade80' : '#2d3748'
-            } },
-          isPassed ? '✅' : isCurrentLevel ? '▶' : '', " VIP ", cfg.level
-          ), /*#__PURE__*/
-          React.createElement("div", { style: { flex: 1, height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' } }, /*#__PURE__*/
-          React.createElement("div", { style: {
-              width: isPassed ? '100%' : isCurrentLevel ? `${vipXpInfo.progress}%` : '0%',
-              height: '100%', background: cfg.nameColor,
-              transition: 'width 0.5s',
-              boxShadow: isCurrentLevel ? `0 0 6px ${cfg.nameColor}` : 'none',
-              borderRadius: '3px'
-            } })
-          ), /*#__PURE__*/
-          React.createElement("span", { style: { fontSize: '9px', color: '#374151', minWidth: '66px', textAlign: 'right' } },
-          VIP_XP_THRESHOLDS[cfg.level].toLocaleString(), " XP"
-          )
-          ));
-
-      })
-      )
-      ),
-
-
-
-      activeTab !== 'vip' && activeTab !== 'rings' && activeTab !== 'bff_tokens' && activeTab !== 'red_packets' && /*#__PURE__*/
+      activeTab !== 'rings' && activeTab !== 'bff_tokens' && activeTab !== 'red_packets' && /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '10px' } },
 
 
@@ -869,27 +608,7 @@
       ),
 
 
-      showVIPConfirm && ReactDOM.createPortal(/*#__PURE__*/
-        React.createElement("div", { style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.76)', backdropFilter: 'blur(7px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: (Z.MODAL_HIGH || 9000) + 10 },
-          onClick: () => setShowVIPConfirm(false) }, /*#__PURE__*/
-        React.createElement("div", { style: { background: 'linear-gradient(135deg,#1a0533,#0d0d2b)', border: '2px solid #a855f7', borderRadius: '20px', padding: '28px', maxWidth: '300px', width: '90%', textAlign: 'center', boxShadow: '0 0 60px rgba(168,85,247,0.28)' },
-          onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '44px', marginBottom: '10px' } }, "\uD83D\uDC51"), /*#__PURE__*/
-        React.createElement("div", { style: { color: '#e9d5ff', fontWeight: 900, fontSize: '17px', marginBottom: '8px' } },
-        hasVIP ? t.renewVIP || 'Renew VIP?' : t.activateVIP || 'Activate VIP?'
-        ), /*#__PURE__*/
-        React.createElement("div", { style: { color: '#a78bfa', fontSize: '12px', marginBottom: '14px', lineHeight: 1.6 } },
-        hasVIP ? t.renewVIPDesc || 'Add 30 more days to your VIP status.' : t.activateVIPDesc || 'Get 30 days of VIP perks + 5,000 XP bonus!'
-        ), /*#__PURE__*/
-        React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '18px', marginBottom: '22px', textShadow: '0 0 12px rgba(251,191,36,0.38)' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
-        React.createElement("div", { style: { display: 'flex', gap: '10px', justifyContent: 'center' } }, /*#__PURE__*/
-        React.createElement("button", { onClick: () => setShowVIPConfirm(false), style: { padding: '10px 20px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer' } }, t.cancel || 'Cancel'), /*#__PURE__*/
-        React.createElement("button", { onClick: () => {setShowVIPConfirm(false);onBuyVIP();}, style: { padding: '10px 24px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 0 20px rgba(168,85,247,0.45)', fontSize: '14px' } }, t.confirm || 'Confirm')
-        )
-        )
-        ),
-        document.body
-      ),
+
 
 
       showPreview && selectedItem && ReactDOM.createPortal(

@@ -193,7 +193,6 @@
         onPurchase: handlePurchase,
         onEquip: handleEquip,
         onUnequip: handleUnequip,
-        onBuyVIP: handleBuyVIP,
         onOpenInventory: () => {setShowShop(false);setShowInventory(true);},
         currentUID: currentUID,
         onPropose: (ring) => {if (setProposalRing) setProposalRing(ring);setShowShop(false);if (setShowProposalModal) setShowProposalModal(true);},
@@ -475,6 +474,7 @@
         onOpenMarriage: () => {setShowMyAccount(false);if (setShowWeddingHall) setShowWeddingHall(true);},
         onOpenFamily: (fid) => {setShowMyAccount(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
         onOpenBFFModal: () => {setShowMyAccount(false);setShowBFFModal(true);},
+        onOpenVIPCenter: () => {setShowMyAccount(false);setShowVIPCenter(true);},
         onNotification: setNotification,
         onOpenChat: (target) => {
           setShowMyAccount(false);
@@ -502,6 +502,7 @@
         currentViewerData: userData,
         onOpenProfile: (uid) => {if (setTargetProfileUID) setTargetProfileUID(uid);setShowUserProfile(true);},
         onOpenFamily: (fid) => {setShowUserProfile(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
+        onOpenVIPCenter: () => {setShowUserProfile(false);setShowVIPCenter(true);},
         onNotification: setNotification,
         onOpenChat: (friendData) => {openPrivateChat && openPrivateChat(friendData);setShowUserProfile(false);} }
       ),
