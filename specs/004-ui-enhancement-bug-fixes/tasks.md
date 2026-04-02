@@ -31,3 +31,6 @@
 - [x] **T020**: Overhaul `UserTitleV11` in `ProfileIdentityElements.js` with Image+Name patterns.
 - [x] **T021**: Refactor `style.css` to support transparent titles and overlay typography.
 - [x] **T022**: Final verification of name visibility and title overlay.
+- [x] **T023**: Refactor `UserTitleV11` in `ProfileIdentityElements.js` with dynamic width and absolute centering.
+- [x] **T024**: Update `style.css` to support absolute centering and `object-fit: fill` for titles.
+- [x] **T025**: Final visual verification of precision centering.

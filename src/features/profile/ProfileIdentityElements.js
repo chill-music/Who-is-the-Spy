@@ -23,8 +23,15 @@ var UserTitleV11 = ({ equipped, lang }) => {
   var hasImage = title.imageUrl && title.imageUrl.trim() !== '';
 
   if (hasImage) {
+    // Dynamic width calculation matching FamilySignBadge logic for breathing room
+    var charCount = displayName.length + (title.preview ? 2 : 0);
+    var dynamicWidth = 45 + (charCount * 8); 
+    
     return (/*#__PURE__*/
-      React.createElement("div", { className: "profile-user-title has-image" }, /*#__PURE__*/
+      React.createElement("div", { 
+        className: "profile-user-title has-image", 
+        style: { width: `${dynamicWidth}px`, height: '22px' } 
+      }, /*#__PURE__*/
         React.createElement("img", { src: title.imageUrl, alt: "", className: "title-bg-image" }), /*#__PURE__*/
         React.createElement("span", { className: "title-overlay-name" }, title.preview, " ", displayName)
       ));
