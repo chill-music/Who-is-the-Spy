@@ -133,8 +133,8 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    max-width: 380px;
-    width: 90vw;
+    width: 90%;          /* Improved Responsive Width (Audit Fix) */
+    max-width: 350px;    /* Improved Max Width for iPhone SE (Audit Fix) */
     justify-content: center;
     pointer-events: none;
     animation: slide-down-fade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -785,6 +785,8 @@ body {
    NOTIFICATION SYSTEM
    ========================================== */
 /* ═══ NOTIFICATION SYSTEM — Modern Glassmorphism ═══ */
+/* Potentially Redundant: Duplicate of L117. Consolidating into centralized Notification system. */
+/*
 .modern-notification {
     position: fixed;
     top: 20px;
@@ -808,6 +810,7 @@ body {
     overflow: hidden;
     pointer-events: auto;
 }
+*/
 
 .modern-notification.exiting {
     animation: slide-down-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1) reverse forwards;
@@ -3452,9 +3455,12 @@ body {
    NOTIFICATION TOAST — CENTERED + RESPONSIVE
    ========================================== */
 /* Force notification toast to always center regardless of RTL */
+/* Potentially Redundant: Redundant toast centering block (Location 3). */
+/*
 [dir="rtl"] div[style*="translateX(-50%)"] {
     right: auto !important;
 }
+*/
 /* ==========================================
    MOBILE-FIRST COMPREHENSIVE RESPONSIVE FIXES
    ========================================== */
@@ -3529,13 +3535,15 @@ body {
         text-overflow: ellipsis;
     }
 
-    /* Notification dropdown */
+    /* Potentially Redundant: Duplicate mobile override. Location 1 already handles this at L1628. */
+    /*
     .notification-dropdown {
         width: calc(100vw - 16px) !important;
         right: -8px !important;
         left: auto !important;
         max-height: 70vh;
     }
+    */
 
     /* Friends section */
     .friends-list-item {
@@ -3636,11 +3644,13 @@ body {
         border-radius: 10px;
     }
 }
-/* Ensure the notification dropdown doesn't escape viewport in RTL */
+/* Potentially Redundant: Duplicate RTL override. Location 1 already handles this. */
+/*
 [dir="rtl"] .notification-dropdown {
     right: 0 !important;
     left: auto !important;
 }
+*/
 /* ==========================================
    🚫 BAN SYSTEM STYLES
    ========================================== */
