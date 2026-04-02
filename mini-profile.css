@@ -353,7 +353,7 @@
 }
 .mp-copy-btn {
   width: 18px; height: 18px;
-  background: #eee;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
@@ -363,8 +363,17 @@
   color: #888;
   border: none;
   transition: background 0.2s;
+  position: relative; /* For hit area */
 }
-.mp-copy-btn:hover { background: #ddd; }
+.mp-copy-btn::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  bottom: -12px;
+}
+.mp-copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
 /* ── Stats row ── */
 .mp-stats {
@@ -404,6 +413,15 @@
   font-size: 11px;
   color: #aaa;
   font-weight: 600;
+}
+@media (max-width: 360px) {
+  .mp-stats {
+    padding: 12px 0 14px;
+    gap: 4px;
+  }
+  .mp-stat-value {
+    font-size: 20px;
+  }
 }
 
 /* ── Send Gift button ── */
@@ -491,6 +509,14 @@
   font-size: 20px;
   cursor: pointer;
   z-index: 1000;
+}
+.mp-menu-trigger::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
 }
 [dir="rtl"] .mp-menu-trigger {
   right: auto;

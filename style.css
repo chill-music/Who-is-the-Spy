@@ -1018,7 +1018,16 @@ body {
 /* ==========================================
    INVENTORY & SHOP
    ========================================== */
-.inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); }
+.inventory-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: var(--spacing-sm); 
+}
+@media (max-width: 360px) {
+    .inventory-grid {
+        grid-template-columns: 1fr;
+    }
+}
 .inventory-item {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--border);
@@ -1044,6 +1053,12 @@ body {
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing-md);
     overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    -webkit-overflow-scrolling: touch;
+}
+.shop-tabs-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 .shop-tab {
     flex: 1;
@@ -2147,6 +2162,18 @@ body {
     margin-top: var(--spacing-xs);
     font-weight: 700;
 }
+.profile-id-display {
+    position: relative;
+}
+.profile-id-display::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    cursor: pointer;
+}
 .profile-id-display:hover { color: #00f2ff; background: rgba(255, 255, 255, 0.1); }
 .profile-id-display.copied { color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); }
 /* User Title */
@@ -2200,6 +2227,20 @@ body {
     padding: 0 12px;
     margin: 14px 0;
 }
+@media (max-width: 360px) {
+    .profile-stats-dashboard {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        justify-items: center;
+    }
+    .profile-stats-grid {
+        order: 2;
+        width: 100%;
+    }
+    .profile-winrate-circle {
+        order: 1;
+    }
+}
 .profile-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .profile-stat-box {
     flex: 1;
@@ -2211,6 +2252,7 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 10px;
     gap: 3px;
+    position: relative; /* For hit area */
 }
 .profile-stat-value.wins { color: #10b981; }
 .profile-stat-value.losses { color: #f87171; }
