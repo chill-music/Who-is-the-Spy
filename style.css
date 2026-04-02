@@ -767,8 +767,11 @@ body {
 }
 .profile-account-type.guest { background: rgba(107, 114, 128, 0.3); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.3); }
 .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-sm); padding: var(--spacing-md); }
+/* Potentially Redundant: Legacy Profile Stats (v1). Consolidating into Profile V11 system. */
+/*
 .profile-stat-value { font-size: 16px; font-weight: 800; }
 .profile-stat-label { font-size: 8px; color: #64748b; text-transform: uppercase; margin-top: 2px; }
+*/
 /* ==========================================
    NOTIFICATION SYSTEM
    ========================================== */
@@ -798,6 +801,44 @@ body {
     overflow: hidden;
     pointer-events: auto;
 }
+
+/* ── VIP System — Global Enhancements ── */
+/* Base VIP 10 Animation: Moving red light streak */
+@keyframes vip10Streak {
+  0% { left: -100%; opacity: 0; }
+  20% { left: 100%; opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+.vip-glow-10 {
+    position: relative;
+    color: #ff1a1a !important;
+    font-weight: 900 !important;
+    text-shadow: 0 0 10px rgba(255, 26, 26, 0.8), 0 0 20px rgba(255, 26, 26, 0.4) !important;
+    overflow: hidden;
+}
+
+.vip-glow-10::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 60, 60, 0) 20%,
+        rgba(255, 100, 100, 0.7) 50%,
+        rgba(255, 60, 60, 0) 80%,
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    animation: vip10Streak 3s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+    pointer-events: none;
+    z-index: 10;
+}
+
 */
 
 .modern-notification.exiting {
@@ -1810,6 +1851,10 @@ body {
     border: 1px solid rgba(0, 242, 255, 0.15);
     border-radius: 20px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 242, 255, 0.1);
+    background: rgba(15, 23, 42, 0.85); /* Frosted Glass Start */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
@@ -1963,6 +2008,8 @@ body {
         gap: 3px;
     }
 }
+/* Potentially Redundant: Redundant mobile overrides already handled by master responsive section at L4573. */
+/*
 @media (max-width: 380px) {
     .header-actions {
         gap: 3px;
@@ -1991,6 +2038,7 @@ body {
         font-size: 14px !important;
     }
 }
+*/
 .profile-couple-badge:hover { transform: scale(1.05); }
 .profile-couple-badge .cb-avatar {
     width: clamp(22px, 4vw, 28px);

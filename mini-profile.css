@@ -1,13 +1,18 @@
 /* mini-profile.css - Extracted and isolated CSS for the Mini Profile component */
 
 .mp-card {
-  width: 340px;
+  width: 90%;
+  max-width: 340px;
   border-radius: 28px;
   overflow: visible; /* Changed from hidden to allow UI elements to breathe */
-  box-shadow: 0 28px 70px rgba(0,0,0,0.95);
-  background: #0d0d1f; /* Dark premium style */
+  box-shadow: 0 28px 70px rgba(0,0,0,0.95), 0 0 40px rgba(0, 242, 255, 0.05);
+  background: rgba(13, 13, 31, 0.82); /* Dark premium glass base */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   font-family: inherit;
   position: relative;
+  margin: 0 auto;
   text-align: left;
 }
 /* Ensure RTL works */
@@ -184,12 +189,13 @@
 
 /* ── Body card ── */
 .mp-body {
-  background: #fff;
+  background: rgba(15, 23, 42, 0.4); /* Transparent glass transition */
   border-radius: 28px 28px 0 0;
   margin-top: -20px;
   position: relative;
   z-index: 5;
   padding: 20px 18px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* badge row top-right */
@@ -390,7 +396,7 @@
 .mp-stat-value {
   font-size: 24px;
   font-weight: 900;
-  color: #1a1a2a;
+  color: #f1f5f9; /* White for dark mode */
   line-height: 1;
 }
 
@@ -561,70 +567,45 @@
   border-radius: 4px 0 0 4px;
 }
 
-/* VIP 10 Special: Professional Red Glow + Light Streak on Transparent Background */
-.mp-vip-transparent {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
+/* VIP 10 Special: Consolidated to global .vip-glow-10 in style.css */
+/* Legacy local styles below commented out per Zero-Deletion policy */
+/*
+.mp-vip-transparent { ... }
+...
+*/
+
+/* ── Social Buttons (Half Style) ── */
+.mp-btn-half {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 50px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transition: all 0.2s;
 }
 
-.mp-vip-text-only {
-  background: none !important;
-  color: inherit;
-  display: inline-block;
-  line-height: 1.2;
+.mp-add-btn { 
+  background: linear-gradient(135deg, rgba(64, 200, 255, 0.2), rgba(0, 128, 255, 0.4)); 
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  color: #fff; 
+}
+.mp-friend-btn { 
+  background: rgba(255, 255, 255, 0.05); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1; 
+}
+.mp-gift-half-btn { 
+  background: linear-gradient(135deg, rgba(255, 128, 160, 0.2), rgba(255, 68, 119, 0.4)); 
+  border: 1px solid rgba(255, 68, 119, 0.4);
+  color: #fff; 
+  box-shadow: 0 4px 15px rgba(255,70,120,0.2); 
 }
 
-.mp-vip-transparent.vip-name-animated {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.vip-level-10.mp-vip-transparent,
-.vip-name-animated.mp-vip-transparent {
-  position: relative;
-  background: none !important;
-  -webkit-background-clip: initial !important;
-  background-clip: initial !important;
-  color: #ff1a1a !important;
-  font-weight: 900 !important;
-  text-shadow: 0 0 10px rgba(255, 26, 26, 0.8), 0 0 20px rgba(255, 26, 26, 0.4) !important;
-  animation: none !important;
-  padding: 2px 0;
-}
-
-/* The moving red light streak effect */
-.vip-level-10.mp-vip-transparent::after,
-.vip-name-animated.mp-vip-transparent::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 60, 60, 0) 20%,
-    rgba(255, 100, 100, 0.7) 50%,
-    rgba(255, 60, 60, 0) 80%,
-    transparent 100%
-  );
-  transform: skewX(-25deg);
-  animation: vip10Streak 3s cubic-bezier(0.19, 1, 0.22, 1) infinite;
-  pointer-events: none;
-  z-index: 10;
-}
-
-@keyframes vip10Shimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
-}
-
-@keyframes vip10Streak {
-  0% { left: -100%; opacity: 0; }
-  20% { left: 100%; opacity: 1; }
-  100% { left: 100%; opacity: 0; }
-}
 
