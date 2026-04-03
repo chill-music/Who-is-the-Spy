@@ -53,7 +53,8 @@
     };
 
     var renderPreview = (item) => {
-      if (item.type === 'frames') return item.preview?.startsWith('http') ? /*#__PURE__*/
+      var isPath = item.preview && (item.preview.startsWith('http') || item.preview.includes('/'));
+      if (item.type === 'frames') return isPath ? /*#__PURE__*/
       React.createElement("img", { src: item.preview, alt: "", style: { width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' } }) : /*#__PURE__*/
       React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: item.preview } });
       if (item.type === 'badges') return item.imageUrl ? /*#__PURE__*/
@@ -662,7 +663,7 @@
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '40px' } },
 
             item.type === 'frames' ?
-            item.preview?.startsWith('http') ? /*#__PURE__*/
+            (item.preview && (item.preview.startsWith('http') || item.preview.includes('/'))) ? /*#__PURE__*/
             React.createElement("img", { src: item.preview, alt: "", style: { width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover' } }) : /*#__PURE__*/
             React.createElement("div", { style: { width: '52px', height: '52px', borderRadius: '50%', background: item.preview } }) :
             item.imageUrl ? /*#__PURE__*/
@@ -841,7 +842,8 @@
     };
 
     var renderPreview = (item) => {
-      if (item.type === 'frames') return item.preview.startsWith('http') ? /*#__PURE__*/
+      var isPath = item.preview && (typeof item.preview === 'string') && (item.preview.startsWith('http') || item.preview.includes('/'));
+      if (item.type === 'frames') return isPath ? /*#__PURE__*/
       React.createElement("img", { src: item.preview, alt: item.name_en, style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : /*#__PURE__*/
       React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: item.preview } });
       if (item.type === 'badges') return item.imageUrl ? /*#__PURE__*/React.createElement("img", { src: item.imageUrl, alt: item.name_en, style: { width: '34px', height: '34px', objectFit: 'contain' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '26px' } }, item.preview);

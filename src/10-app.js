@@ -622,20 +622,21 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
                   isLoggedIn && currentUserData && /*#__PURE__*/
                   React.createElement("div", { onClick: () => setShowSelfChat(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: '1px solid var(--new-border)', cursor: 'pointer' }, className: "me-friend-row" }, /*#__PURE__*/
-                    React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
-                      React.createElement(window.AvatarWithFrame, {
-                        photoURL: currentUserData?.photoURL,
-                        equipped: currentUserData?.equipped,
-                        size: "sm",
-                        lang: lang,
-                        status: 'online'
-                      }),
-                      React.createElement("div", { style: { position: 'absolute', bottom: '0px', right: '0px', width: '9px', height: '9px', borderRadius: '50%', background: '#4ade80', border: '1.5px solid #0a0a14', zIndex: 11 } })
-                    ),
                     React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                       window.PlayerNameTag ? /*#__PURE__*/
-                        React.createElement(window.PlayerNameTag, { player: currentUserData, lang: lang, size: "sm" }) : /*#__PURE__*/
-                        React.createElement("span", { style: { fontSize: '13px', fontWeight: 700, color: '#e2e8f0' } }, currentUserData.displayName)
+                        React.createElement(window.PlayerNameTag, { player: currentUserData, lang: lang, size: "sm", showStatus: '#4ade80' }) : /*#__PURE__*/
+                        React.createElement(React.Fragment, null,
+                          React.createElement("div", { style: { position: 'relative', flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', marginRight: '10px' } }, /*#__PURE__*/
+                            React.createElement(window.AvatarWithFrame, {
+                              photoURL: currentUserData?.photoURL,
+                              equipped: currentUserData?.equipped,
+                              size: "sm",
+                              lang: lang
+                            }),
+                            React.createElement("div", { style: { position: 'absolute', bottom: '0px', right: '0px', width: '9px', height: '9px', borderRadius: '50%', background: '#4ade80', border: '1.5px solid #0a0a14', zIndex: 11 } })
+                          ),
+                          React.createElement("span", { style: { fontSize: '13px', fontWeight: 700, color: '#e2e8f0', verticalAlign: 'middle' } }, currentUserData.displayName)
+                        )
                     ), /*#__PURE__*/
                     React.createElement("div", { style: { fontSize: '9px', fontWeight: 700, color: 'var(--primary)', background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.25)', borderRadius: '6px', padding: '2px 7px', flexShrink: 0 } }, "\uD83D\uDCAC ", lang === 'ar' ? 'شاتي' : 'My Chat')
                   ),

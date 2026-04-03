@@ -99,7 +99,7 @@ var UserBadgesV11 = ({ equipped, lang }) => {
 var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
   var sizeMap = {
     sm: { wrapper: 64, avatar: 36, frameSize: 56 },
-    md: { wrapper: 80, avatar: 48, frameSize: 72 },
+    md: { wrapper: 86, avatar: 60, frameSize: 86 },
     lg: { wrapper: 96, avatar: 58, frameSize: 90 },
     xl: { wrapper: 150, avatar: 90, frameSize: 140 }
   };

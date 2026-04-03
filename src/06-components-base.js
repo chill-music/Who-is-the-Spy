@@ -527,7 +527,7 @@
             ),
             e("div", { className: "mp-profile-row" },
               e("div", { className: "mp-avatar-container", style: { cursor: 'pointer', position: 'relative' } },
-                e(AvatarWithFrame, {
+                e((window.AvatarWithFrameV11 || AvatarWithFrame), {
                   photoURL: profile.photo || profile.photoURL,
                   equipped: profile.equipped || { 
                     frames: profile.equippedFrame,
