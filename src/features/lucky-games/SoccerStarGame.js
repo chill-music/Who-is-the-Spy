@@ -286,7 +286,9 @@
     sessionUnsub: null,
     start: function (container, options = {}) {
       containerEl = container;
-      authUser = options.user || window.auth?.currentUser;
+      const stateObj = window.s7GameUserData || window.userData || window.currentUserData;
+      const firebaseAuth = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
+      authUser = options.user || firebaseAuth || stateObj;
       lang = options.lang || 'en';
 
       if (!containerEl) return;
@@ -360,19 +362,25 @@
 
       // MVP / Winner Profile
       const openUser = () => {
-        if (!authUser) return;
-        const uid = authUser.uid;
+        const currentUid = (authUser && authUser.uid) ? authUser.uid : null;
+        if (!currentUid) {
+          console.warn("[SoccerStar] Cannot open Mini-Profile: No UID detected.", authUser);
+          return;
+        }
         if (typeof window.openLuckyGamesMiniProfile === 'function') {
-          window.openLuckyGamesMiniProfile(uid);
+          window.openLuckyGamesMiniProfile(currentUid);
         } else if (typeof window.openMiniProfile === 'function') {
-          window.openMiniProfile(uid);
+          window.openMiniProfile(currentUid);
         } else if (typeof window.setMiniProfileUID !== 'undefined') {
-          window.setMiniProfileUID(uid);
+          window.setMiniProfileUID(currentUid);
           if (window.setShowMiniProfile) window.setShowMiniProfile(true);
         }
       };
       const avatarContainer = document.getElementById('userAvatarContainer');
-      if (avatarContainer) avatarContainer.onclick = openUser;
+      if (avatarContainer) {
+        avatarContainer.onclick = openUser;
+        console.log("[SoccerStar] Avatar click-to-profile enabled for:", authUser ? authUser.uid : "unknown");
+      }
 
       document.getElementById('resultWinnerPhoto').onclick = () => {
         const winnerId = document.getElementById('resultWinnerPhoto').dataset.uid;
