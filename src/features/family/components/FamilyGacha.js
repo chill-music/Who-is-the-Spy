@@ -10,6 +10,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
   var [spinning, setSpinning] = React.useState(false);
   var [result, setResult] = React.useState(null);
   var [spinMode, setSpinMode] = React.useState('free'); // 'free' or 'paid'
+  var [showAllRewards, setShowAllRewards] = React.useState(false);
 
   // Use modern CSS from newly created gacha-modern.css
   React.useEffect(() => {
@@ -183,7 +184,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
               React.createElement("span", { style: { fontSize: '9px', color: 'rgba(255,255,255,0.3)' } }, 'Service Fee: 1800/d')
             ),
             React.createElement("div", { className: "gacha-reward-grid" },
-              rewards.map((r, i) => {
+              rewards.slice(0, showAllRewards ? undefined : 8).map((r, i) => {
                 const totalW = rewards.reduce((s, x) => s + (x.weight || 0), 0);
                 const prob = totalW > 0 ? ((r.weight || 0) / totalW * 100).toFixed(1) : '0';
                 return React.createElement("div", { key: i, className: `gacha-reward-item ${getRarityClass(r.rarity)}` },
@@ -194,6 +195,17 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
                   React.createElement("span", { className: "gacha-item-label" }, lang === 'ar' ? r.label_ar : r.label_en)
                 );
               })
+            ),
+            /* Toggle Button */
+            rewards.length > 8 && React.createElement("button", { 
+              className: `gacha-toggle-btn ${showAllRewards ? 'expanded' : ''}`, 
+              onClick: () => setShowAllRewards(!showAllRewards) 
+            },
+              React.createElement("span", null, showAllRewards ? 
+                (lang === 'ar' ? 'عرض أقل' : 'SHOW LESS') : 
+                (lang === 'ar' ? 'عرض الكل' : 'SHOW ALL')
+              ),
+              React.createElement("span", { className: "gacha-toggle-icon" }, "▼")
             )
           ),
 
