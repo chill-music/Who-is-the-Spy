@@ -616,6 +616,17 @@ var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, current
         lastActivity: TS(),
     });
 
+    // 🛡️ SECURITY: Family Cooldown check
+    if (currentUserData?.leftFamilyAt) {
+        var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+        var diff = Date.now() - leftAt;
+        var cooldown = 24 * 60 * 60 * 1000;
+        if (diff < cooldown) {
+            var hoursLeft = Math.ceil((cooldown - diff) / (60 * 60 * 1000));
+            throw new Error(`COOLDOWN:${hoursLeft}`);
+        }
+    }
+
     // 🛡️ SECURITY: Family Creation Cost
     if (window.SecurityService) {
         await window.SecurityService.applyCurrencyTransaction(currentUID, -FAMILY_CREATE_COST, 'Family Creation');
@@ -626,6 +637,7 @@ var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, current
     await usersCollection.doc(currentUID).update({
         familyId: ref.id, familyName: cleanName, familyTag: cleanTag,
         familySignLevel: null, familySignColor: null, familySignImageURL: null,
+        leftFamilyAt: null, // Clear cooldown on successful join/create
     });
 
     await postSystemMessage(ref.id, lang === 'ar' ? `🏠 تم إنشاء العائلة! مرحباً ${currentUserData?.displayName}` : `🏠 Family created! Welcome ${currentUserData?.displayName}`);
@@ -640,6 +652,20 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
     var snap = await familiesCollection.doc(familyId).get();
     if (!snap.exists) throw new Error('Family not found');
     var fd = snap.data();
+
+    // 🛡️ SECURITY: Family Cooldown check
+    var userDoc = await usersCollection.doc(currentUID).get();
+    var userData = userDoc.data() || {};
+    if (userData.leftFamilyAt) {
+        var leftAt = userData.leftFamilyAt.toDate ? userData.leftFamilyAt.toDate().getTime() : userData.leftFamilyAt;
+        var diff = Date.now() - leftAt;
+        var cooldown = 24 * 60 * 60 * 1000;
+        if (diff < cooldown) {
+            var hoursLeft = Math.ceil((cooldown - diff) / (60 * 60 * 1000));
+            throw new Error(`COOLDOWN:${hoursLeft}`);
+        }
+    }
+
     var lvl = getFamilyLevelConfig(fd.level || 1);
     if ((fd.members || []).length >= lvl.maxMembers) throw new Error('Family is full');
 
@@ -663,6 +689,7 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
         familySignLevel: signData?.level || null,
         familySignColor: signData?.color || null,
         familySignImageURL: fd.signImageURL || null,
+        leftFamilyAt: null, // Clear cooldown on successful join
     });
 
     await postSystemMessage(familyId, lang === 'ar' ? `🎉 ${currentUserData?.displayName} انضم للعائلة!` : `🎉 ${currentUserData?.displayName} joined the family!`);
@@ -693,6 +720,7 @@ var leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
     await usersCollection.doc(currentUID).update({
         familyId: null, familyName: null, familyTag: null,
         familySignLevel: null, familySignColor: null, familySignImageURL: null,
+        leftFamilyAt: TS(), // Start 24h cooldown on voluntary leave
     });
 };
 
@@ -834,6 +862,7 @@ var kickMember = async ({ family, targetUID, currentUID, lang }) => {
     await usersCollection.doc(targetUID).update({
         familyId: null, familyName: null, familyTag: null,
         familySignLevel: null, familySignColor: null, familySignImageURL: null,
+        leftFamilyAt: null, // Exempt from cooldown if kicked
     });
     
     await postSystemMessage(family.id, lang === 'ar' ? `🚪 تم طرد أحد الأعضاء` : `🚪 A member was kicked`);
@@ -876,6 +905,7 @@ var handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
             familySignLevel: signData?.level || null,
             familySignColor: signData?.color || null,
             familySignImageURL: family.signImageURL || null,
+            leftFamilyAt: null, // Clear cooldown on join
         });
         
         await postSystemMessage(family.id, lang === 'ar' ? `🎉 عضو جديد انضم!` : `🎉 A new member joined!`);

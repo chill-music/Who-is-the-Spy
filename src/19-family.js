@@ -817,9 +817,17 @@
             } else if (res?.status === 'joined') {
               onNotification(lang === 'ar' ? '🎉 تم الانضمام للقبيلة' : '🎉 Joined the family');
             }
-          } catch (e) {
-            onNotification(e.message || (lang === 'ar' ? '❌ فشل الانضمام' : '❌ Failed to join'));
-          }
+            } catch (e) {
+              var msg = e.message || "";
+              if (msg.startsWith('COOLDOWN:')) {
+                var hours = msg.split(':')[1];
+                onNotification(lang === 'ar' 
+                  ? `⏳ يجب الانتظار ${hours} ساعة قبل الانضمام لقبيلة أخرى` 
+                  : `⏳ You must wait ${hours} hours before joining another family`);
+              } else {
+                onNotification(msg || (lang === 'ar' ? '❌ فشل الانضمام' : '❌ Failed to join'));
+              }
+            }
         },
         style: {
           width: '100%', padding: '12px', borderRadius: '14px', border: 'none',

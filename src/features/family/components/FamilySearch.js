@@ -107,10 +107,16 @@ var FamilySearch = ({
       }
     } catch (e) {
       console.error(e);
+      var msg = e.message || "";
       var errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
-      if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';else
-      if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';else
-      if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة' : 'This family no longer exists';
+      if (msg.startsWith('COOLDOWN:')) {
+        var hours = msg.split(':')[1];
+        errorMsg = lang === 'ar' 
+          ? `⏳ يجب الانتظار ${hours} ساعة قبل الانضمام لقبيلة أخرى` 
+          : `⏳ You must wait ${hours} hours before joining another family`;
+      } else if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
+      else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
+      else if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة' : 'This family no longer exists';
 
       _alert({
         icon: 'error',
@@ -154,7 +160,15 @@ var FamilySearch = ({
       // and naturally close this view.
     } catch (e) {
       console.error(e);
-      onNotification(e.message);
+      var msg = e.message || "";
+      if (msg.startsWith('COOLDOWN:')) {
+        var hours = msg.split(':')[1];
+        onNotification(lang === 'ar' 
+          ? `⏳ يجب الانتظار ${hours} ساعة قبل تأسيس قبيلة جديدة` 
+          : `⏳ You must wait ${hours} hours before establishing a new family`);
+      } else {
+        onNotification(msg);
+      }
     }
     setCreating(false);
   };
