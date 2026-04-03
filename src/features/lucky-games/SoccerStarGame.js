@@ -359,12 +359,32 @@
       document.getElementById('nextPageBtn').onclick = () => { recordsPage++; this.renderRecords(); };
 
       // MVP / Winner Profile
-      const openUser = () => { if (authUser) window.openLuckyGamesMiniProfile?.(authUser.uid); };
+      const openUser = () => {
+        if (!authUser) return;
+        const uid = authUser.uid;
+        if (typeof window.openLuckyGamesMiniProfile === 'function') {
+          window.openLuckyGamesMiniProfile(uid);
+        } else if (typeof window.openMiniProfile === 'function') {
+          window.openMiniProfile(uid);
+        } else if (typeof window.setMiniProfileUID !== 'undefined') {
+          window.setMiniProfileUID(uid);
+          if (window.setShowMiniProfile) window.setShowMiniProfile(true);
+        }
+      };
       const avatarContainer = document.getElementById('userAvatarContainer');
       if (avatarContainer) avatarContainer.onclick = openUser;
+
       document.getElementById('resultWinnerPhoto').onclick = () => {
         const winnerId = document.getElementById('resultWinnerPhoto').dataset.uid;
-        if (winnerId) window.openLuckyGamesMiniProfile?.(winnerId);
+        if (!winnerId) return;
+        if (typeof window.openLuckyGamesMiniProfile === 'function') {
+          window.openLuckyGamesMiniProfile(winnerId);
+        } else if (typeof window.openMiniProfile === 'function') {
+          window.openMiniProfile(winnerId);
+        } else if (typeof window.setMiniProfileUID !== 'undefined') {
+          window.setMiniProfileUID(winnerId);
+          if (window.setShowMiniProfile) window.setShowMiniProfile(true);
+        }
       };
 
       // Result close
