@@ -624,8 +624,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                   React.createElement("div", { onClick: () => setShowSelfChat(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: '1px solid var(--new-border)', cursor: 'pointer' }, className: "me-friend-row" }, /*#__PURE__*/
                     React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
                       React.createElement(window.AvatarWithFrame, {
-                        photoURL: currentUser?.photoURL,
-                        equipped: currentUser?.equipped,
+                        photoURL: currentUserData?.photoURL,
+                        equipped: currentUserData?.equipped,
                         size: "sm",
                         lang: lang,
                         status: 'online'
