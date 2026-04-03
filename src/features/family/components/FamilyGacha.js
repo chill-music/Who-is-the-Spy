@@ -28,11 +28,47 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
 
   var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || window.GACHA_CONFIG || {};
   var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG || {};
-  var currentGachaConfig = family?.level >= 5 ? cPrem : cBasic;
+  var cMax = window.FamilyConstants?.GACHA_CONFIG_MAX || window.GACHA_CONFIG_MAX || {};
+
+  var currentGachaConfig = cBasic;
+  if (family?.level >= 10) currentGachaConfig = cMax;
+  else if (family?.level >= 5) currentGachaConfig = cPrem;
+
   var rewards = currentGachaConfig.rewards || [];
 
   var gachaCost = currentGachaConfig.paidCostPerSpin || 600;
   var gachaMax = currentGachaConfig.maxPaidSpinsDaily || 50;
+
+  // 🔍 Helper to get metadata from SHOP_ITEMS in 04-data-game.js
+  const getGachaItemMetadata = (reward) => {
+    if (!reward || reward.type === 'currency' || reward.type === 'charisma' || reward.type === 'coins' || reward.type === 'chest') {
+      return {
+        label_ar: reward.label_ar || (reward.type === 'currency' ? `${reward.amount} إنتل` : (reward.type === 'charisma' ? `${reward.amount} كاريزما` : (reward.type === 'coins' ? `${reward.amount} عملة` : (reward.type === 'chest' ? (reward.chestType === 'bronze' ? 'صندوق برونزي' : 'صندوق') : 'جائزة')))),
+        label_en: reward.label_en || (reward.type === 'currency' ? `${reward.amount} Intel` : (reward.type === 'charisma' ? `${reward.amount} Charisma` : (reward.type === 'coins' ? `${reward.amount} Coins` : (reward.type === 'chest' ? 'Chest' : 'Reward')))),
+        icon: reward.icon || (reward.type === 'currency' ? '💰' : (reward.type === 'charisma' ? '⭐' : (reward.type === 'coins' ? '🏅' : '📦'))),
+        imageUrl: null
+      };
+    }
+
+    const shop = window.SHOP_ITEMS || {};
+    const categories = ['frames', 'badges', 'titles', 'rings', 'profileEffects', 'gifts', 'gifts_vip', 'gifts_family', 'gifts_special'];
+    
+    for (const cat of categories) {
+      if (shop[cat]) {
+        const found = shop[cat].find(item => item.id === reward.id);
+        if (found) {
+          const img = found.preview?.startsWith('http') ? found.preview : (found.imageUrl || null);
+          return {
+            label_ar: found.name_ar,
+            label_en: found.name_en,
+            icon: !img ? (found.preview || found.emoji || '🎁') : null,
+            imageUrl: img
+          };
+        }
+      }
+    }
+    return { label_ar: '؟؟؟', label_en: '???', icon: '❓', imageUrl: null };
+  };
 
   var handleSpin = async (mode) => {
     if (spinning) return;
@@ -91,11 +127,11 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
   return (
     React.createElement(PortalModal, null,
       React.createElement("div", { 
-        className: "modal-overlay", 
+        className: `modal-overlay ${family?.level >= 10 ? 'is-max-gacha' : ''}`, 
         onClick: onClose, 
         style: { 
           zIndex: Z.MODAL_HIGH + 10, 
-          background: 'rgba(0,0,0,0.85)', 
+          background: family?.level >= 10 ? 'rgba(10, 2, 20, 0.92)' : 'rgba(0,0,0,0.85)', 
           backdropFilter: 'blur(8px)',
           display: 'flex',
           justifyContent: 'center',
@@ -104,7 +140,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
           overflowY: 'auto'
         } 
       },
-        React.createElement("div", { className: "gacha-terminal-modal", onClick: (e) => e.stopPropagation() },
+        React.createElement("div", { className: `gacha-terminal-modal ${family?.level >= 10 ? 'is-max-gacha' : ''}`, onClick: (e) => e.stopPropagation() },
           
           /* ── Header Stats ── */
           React.createElement("div", { className: "gacha-header-stats" },
@@ -129,10 +165,12 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
             React.createElement("div", { className: "gacha-machine-frame" },
               
               /* Gacha Header / Type Badge */
-              React.createElement("div", { className: "gacha-tier-badge" }, 
-                family?.level >= 5 
-                  ? (lang === 'ar' ? '🎰 الجاتشه المميزة' : '🎰 PREMIUM GACHA') 
-                  : (lang === 'ar' ? '🎰 الجاتشه العادية' : '🎰 BASIC GACHA')
+              React.createElement("div", { className: `gacha-tier-badge ${family?.level >= 10 ? 'max' : (family?.level >= 5 ? 'premium' : 'basic')}` }, 
+                family?.level >= 10
+                  ? (lang === 'ar' ? '🌌 ماكس جاتشه' : '🌌 MAX GACHA')
+                  : (family?.level >= 5 
+                    ? (lang === 'ar' ? '🎰 الجاتشه المميزة' : '🎰 PREMIUM GACHA') 
+                    : (lang === 'ar' ? '🎰 الجاتشه العادية' : '🎰 BASIC GACHA'))
               ),
 
               /* Upper Chamber (Floating Gems) */
@@ -157,10 +195,17 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
                 ) : result ? (
                   /* Result Reveal Area */
                   React.createElement("div", { className: "gacha-win-overlay", style: { textAlign: 'center' } },
-                    React.createElement("div", { style: { fontSize: '70px', filter: 'drop-shadow(0 0 25px var(--gacha-cyan))', marginBottom: '10px' } }, result.icon || '🎁'),
-                    React.createElement("div", { style: { fontSize: '18px', fontWeight: 900, color: '#fff', textTransform: 'uppercase' } }, 
-                      lang === 'ar' ? result.name_ar : result.name_en
-                    )
+                    (() => {
+                      const meta = getGachaItemMetadata(result);
+                      return React.Fragment ? React.createElement(React.Fragment, null,
+                        meta.imageUrl ? 
+                          React.createElement("img", { src: meta.imageUrl, style: { width: '80px', height: '80px', objectFit: 'contain', filter: 'drop-shadow(0 0 15px var(--gacha-cyan))', marginBottom: '10px' } }) :
+                          React.createElement("div", { style: { fontSize: '70px', filter: 'drop-shadow(0 0 25px var(--gacha-cyan))', marginBottom: '10px' } }, meta.icon),
+                        React.createElement("div", { style: { fontSize: '18px', fontWeight: 900, color: '#fff', textTransform: 'uppercase' } }, 
+                          lang === 'ar' ? meta.label_ar : meta.label_en
+                        )
+                      ) : null;
+                    })()
                   )
                 ) : (
                   /* Idle State (One giant gem) */
@@ -210,12 +255,13 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
               rewards.slice(0, showAllRewards ? undefined : 8).map((r, i) => {
                 const totalW = rewards.reduce((s, x) => s + (x.weight || 0), 0);
                 const prob = totalW > 0 ? ((r.weight || 0) / totalW * 100).toFixed(1) : '0';
+                const meta = getGachaItemMetadata(r);
                 return React.createElement("div", { key: i, className: `gacha-reward-item ${getRarityClass(r.rarity)}` },
                   React.createElement("span", { className: "gacha-item-prob" }, prob, "%"),
-                  r.imageUrl ? 
-                    React.createElement("img", { src: r.imageUrl, style: { width: '32px', height: '32px', objectFit: 'contain' } }) :
-                    React.createElement("span", { className: "gacha-item-icon" }, r.icon || '🎁'),
-                  React.createElement("span", { className: "gacha-item-label" }, lang === 'ar' ? r.label_ar : r.label_en)
+                  meta.imageUrl ? 
+                    React.createElement("img", { src: meta.imageUrl, style: { width: '32px', height: '32px', objectFit: 'contain' } }) :
+                    React.createElement("span", { className: "gacha-item-icon" }, meta.icon),
+                  React.createElement("span", { className: "gacha-item-label" }, lang === 'ar' ? meta.label_ar : meta.label_en)
                 );
               })
             ),

@@ -420,7 +420,11 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
 
     var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || window.GACHA_CONFIG || {};
     var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG || {};
-    var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
+    var cMax = window.FamilyConstants?.GACHA_CONFIG_MAX || window.GACHA_CONFIG_MAX || {};
+
+    var currentGachaConfig = cBasic;
+    if (family?.level >= 10) currentGachaConfig = cMax;
+    else if (family?.level >= 5) currentGachaConfig = cPrem;
     var rewards = currentGachaConfig.rewards || [];
     if (!rewards.length) {
         if (onNotification) onNotification(lang === 'ar' ? '❌ إعدادات الجاتشه غير جاهزة' : '❌ Gacha not configured');
@@ -500,16 +504,32 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
             userRewardUpdate.charisma = firebase.firestore.FieldValue.increment(picked.amount || 0);
         } else if (picked.type === 'coins') {
             rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(picked.amount || 0);
-        } else if (picked.type === 'frame' || picked.type === 'frame_anim') {
+        } else if (picked.type === 'frame') {
             var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
-            userRewardUpdate['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(picked.frameId);
-            userRewardUpdate[`inventory.expiry.${picked.frameId}`] = expiresAt;
-        } else if (picked.type === 'gift') {
-            userRewardUpdate['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(picked.giftId);
-            userRewardUpdate[`inventory.giftCounts.${picked.giftId}`] = firebase.firestore.FieldValue.increment(picked.qty || 1);
-            if (picked.giftId !== 'gift_ring') {
-                userRewardUpdate[`inventory.expiry.${picked.giftId}`] = Date.now() + 30 * 86400000;
+            userRewardUpdate['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'badge') {
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            userRewardUpdate['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'title') {
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            userRewardUpdate['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'ring') {
+            userRewardUpdate['inventory.rings'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            // Rings are permanent usually, or follow duration if provided
+            if (picked.duration) {
+                userRewardUpdate[`inventory.expiry.${picked.id}`] = Date.now() + picked.duration * 86400000;
             }
+        } else if (picked.type === 'effect') {
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            userRewardUpdate['inventory.profileEffects'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'gift') {
+            userRewardUpdate['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.giftCounts.${picked.id}`] = firebase.firestore.FieldValue.increment(picked.qty || 1);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = Date.now() + 30 * 86400000;
         } else if (picked.type === 'chest') {
             var chestItem = {
                 chestId: makeChestId('gacha'),

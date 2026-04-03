@@ -10,6 +10,11 @@
   --gacha-purple: #a78bfa;
   --gacha-glass: rgba(13, 13, 31, 0.82);
   --gacha-glass-border: rgba(212, 175, 55, 0.25);
+  
+  /* Max Gacha Tier */
+  --gacha-max-pink: #ff00ff;
+  --gacha-max-glow: rgba(255, 0, 255, 0.5);
+  --gacha-max-bg: linear-gradient(135deg, #1a0033 0%, #0d001a 100%);
 }
 
 /* --- Main Terminal Wrapper --- */
@@ -26,6 +31,16 @@
   font-family: 'Cairo', sans-serif;
   position: relative;
   scrollbar-width: none;
+  transition: all 0.5s ease;
+}
+
+.gacha-terminal-modal.is-max-gacha {
+  background: var(--gacha-max-bg);
+  background-image: url('../../../gatcha/Max Gatcha.png');
+  background-size: cover;
+  background-position: center;
+  border-color: var(--gacha-max-pink);
+  box-shadow: 0 0 60px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1);
 }
 
 .gacha-terminal-modal::-webkit-scrollbar {
@@ -117,12 +132,23 @@
   pointer-events: none;
 }
 
-/* Style for Premium Tier (Gold) */
-.gacha-machine-frame:has(.gacha-tier-badge:contains("PREMIUM")) .gacha-tier-badge,
-.gacha-machine-frame:has(.gacha-tier-badge:contains("المميزة")) .gacha-tier-badge {
-    border-color: var(--gacha-gold);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+.gacha-tier-badge.premium {
+  border-color: var(--gacha-gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
 }
+
+.gacha-tier-badge.max {
+  border-color: var(--gacha-max-pink);
+  text-shadow: 0 0 8px var(--gacha-max-pink);
+  box-shadow: 0 0 20px var(--gacha-max-glow);
+  animation: max-tier-pulse 2s infinite ease-in-out;
+}
+
+@keyframes max-tier-pulse {
+  0%, 100% { box-shadow: 0 0 15px var(--gacha-max-glow); transform: translateX(-50%) scale(1); }
+  50% { box-shadow: 0 0 30px var(--gacha-max-pink); transform: translateX(-50%) scale(1.05); }
+}
+
 
 /* Glass Chamber */
 .gacha-chamber {

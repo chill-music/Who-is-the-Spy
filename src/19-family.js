@@ -86,39 +86,56 @@
     paidCostPerSpin: 600,
     maxPaidSpinsDaily: 50,
     rewards: [
-      { weight: 400, type: 'frame', frameId: 'frame_temp_1d', duration: 1, rarity: 'rare', icon: '🖼️', imageURL: null, label_en: 'Frame 1 Day', label_ar: 'إطار يوم واحد' },
-      { weight: 300, type: 'frame', frameId: 'frame_temp_3d', duration: 3, rarity: 'rare', icon: '🖼️', imageURL: null, label_en: 'Frame 3 Days', label_ar: 'إطار 3 أيام' },
-      { weight: 1000, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'uncommon', icon: '🎂', imageURL: null, label_en: 'Gift 200 Intel', label_ar: 'هدية 200 إنتل' },
-      { weight: 1500, type: 'gift', giftId: 'gift_teddy', qty: 1, rarity: 'common', icon: '🧸', imageURL: null, label_en: 'Gift 50 Intel', label_ar: 'هدية 50 إنتل' },
-      { weight: 2000, type: 'currency', amount: 30, rarity: 'common', icon: '🧠', imageURL: null, label_en: '+30 Intel', label_ar: '+30 إنتل' },
-      { weight: 1000, type: 'currency', amount: 555, rarity: 'uncommon', icon: '🧠', imageURL: null, label_en: '+555 Intel', label_ar: '+555 إنتل' },
-      { weight: 1500, type: 'coins', amount: 30, rarity: 'common', icon: '🏅', imageURL: null, label_en: '+30 Coins', label_ar: '+30 عملة قبيلة' },
-      { weight: 800, type: 'coins', amount: 50, rarity: 'uncommon', icon: '🏅', imageURL: null, label_en: '+50 Coins', label_ar: '+50 عملة قبيلة' }
+      { id: 'intel_100', type: 'currency', amount: 100, weight: 400 },
+      { id: 'intel_250', type: 'currency', amount: 250, weight: 200 },
+      { id: 'intel_500', type: 'currency', amount: 500, weight: 100 },
+      { id: 'charisma_50', type: 'charisma', amount: 50, weight: 150 },
+      { id: 'gift_rose', type: 'gift', weight: 80 },
+      { id: 'gift_candy', type: 'gift', weight: 40 },
+      { id: 'frame_gold', type: 'frame', weight: 20, duration: 1 },
+      { id: 'title_scout', type: 'title', weight: 10, duration: 1 }
     ]
   };
 
-  // ── GACHA CONFIG PREMIUM (Clans Level 5+) ──
+  // ── GACHA CONFIG PREMIUM (Clans Level 5-9) ──
   var GACHA_CONFIG_PREMIUM = {
     paidCostPerSpin: 600,
     maxPaidSpinsDaily: 50,
     rewards: [
-      { weight: 20, type: 'charisma', amount: 20000, rarity: 'legendary', icon: '💍', label_en: '+20K Charisma Ring', label_ar: 'خاتم كاريزما 20K' },
-      { weight: 300, type: 'frame', frameId: 'frame_temp_1d', duration: 1, rarity: 'rare', icon: '🖼️', label_en: 'Frame 1 Day', label_ar: 'إطار يوم واحد' },
-      { weight: 150, type: 'frame', frameId: 'frame_temp_7d', duration: 7, rarity: 'epic', icon: '🖼️', label_en: 'Frame 7 Days', label_ar: 'إطار 7 أيام' },
-      { weight: 100, type: 'frame_anim', frameId: 'frame_anim_7d', duration: 7, rarity: 'legendary', icon: '✨', label_en: 'Animated Frame 7 Days', label_ar: 'إطار متحرك 7 أيام' },
-      { weight: 200, type: 'gift', giftId: 'gift_racecar', qty: 1, rarity: 'epic', icon: '🏎️', label_en: 'Gift 2000 Intel', label_ar: 'هدية 2000 إنتل' },
-      { weight: 500, type: 'gift', giftId: 'gift_crown', qty: 1, rarity: 'rare', icon: '👑', label_en: 'Gift 520 Intel', label_ar: 'هدية 520 إنتل' },
-      { weight: 1500, type: 'gift', giftId: 'gift_teddy', qty: 1, rarity: 'common', icon: '🧸', label_en: 'Gift 50 Intel', label_ar: 'هدية 50 إنتل' },
-      { weight: 1500, type: 'currency', amount: 30, rarity: 'common', icon: '🧠', label_en: '+30 Intel', label_ar: '+30 إنتل' },
-      { weight: 300, type: 'currency', amount: 1688, rarity: 'rare', icon: '🧠', label_en: '+1688 Intel', label_ar: '+1688 إنتل' },
-      { weight: 100, type: 'coins', amount: 1688, rarity: 'legendary', icon: '🏅', label_en: '+1688 Coins', label_ar: '+1688 عملة قبيلة' },
-      { weight: 33, type: 'chest', chestType: 'normal', rarity: 'legendary', icon: '📦', label_en: 'Normal Chest', label_ar: 'صندوق عادي' },
-      { weight: 34, type: 'chest', chestType: 'rare', rarity: 'legendary', icon: '💠', label_en: 'Rare Chest', label_ar: 'صندوق نادر' }
+      { id: 'intel_300', type: 'currency', amount: 300, weight: 300 },
+      { id: 'intel_600', type: 'currency', amount: 600, weight: 150 },
+      { id: 'intel_1200', type: 'currency', amount: 1200, weight: 50 },
+      { id: 'charisma_200', type: 'charisma', amount: 200, weight: 100 },
+      { id: 'gift_heart', type: 'gift', weight: 100 },
+      { id: 'gift_crown', type: 'gift', weight: 100 },
+      { id: 'badge_pro', type: 'badge', weight: 80, duration: 7 },
+      { id: 'frame_shehab', type: 'frame', weight: 50, duration: 3 },
+      { id: 'title_legend', type: 'title', weight: 40, duration: 7 },
+      { id: 'chest_bronze', type: 'chest', chestType: 'bronze', weight: 30 }
+    ]
+  };
+
+  // ── GACHA CONFIG MAX (Clans Level 10+) ──
+  var GACHA_CONFIG_MAX = {
+    paidCostPerSpin: 600,
+    maxPaidSpinsDaily: 50,
+    rewards: [
+      { id: 'intel_1000', type: 'currency', amount: 1000, weight: 200 },
+      { id: 'intel_2500', type: 'currency', amount: 2500, weight: 100 },
+      { id: 'charisma_500', type: 'charisma', amount: 500, weight: 150 },
+      { id: 'gift_universe', type: 'gift', weight: 100 },
+      { id: 'ring_diamond', type: 'ring', weight: 50 },
+      { id: 'ring_eternal', type: 'ring', weight: 50 },
+      { id: 'badge_legend', type: 'badge', weight: 100, duration: 30 },
+      { id: 'frame_s1_celestial', type: 'frame', weight: 100, duration: 7 },
+      { id: 'title_s1_pioneer', type: 'title', weight: 100, duration: 7 },
+      { id: 'effect_gif2', type: 'effect', weight: 50, duration: 3 }
     ]
   };
 
   window.GACHA_CONFIG_BASIC = GACHA_CONFIG_BASIC;
   window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG_PREMIUM;
+  window.GACHA_CONFIG_MAX = GACHA_CONFIG_MAX;
   window.GACHA_CONFIG = GACHA_CONFIG_BASIC; // Fallback
 
 
