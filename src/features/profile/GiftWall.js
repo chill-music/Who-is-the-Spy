@@ -56,12 +56,23 @@ var GiftWallV11 = ({ gifts, lang, onSendGiftToSelf, isOwnProfile, userData, onOp
       if (SHOP_ITEMS[cat]) combined = combined.concat(SHOP_ITEMS[cat]);
     });
 
-    // Remove duplicates if any (by id)
+    // 3️⃣ Sort by rarity: Mythic > Legendary > Epic > Rare > Uncommon > Common
+    var rarityWeights = { 'Mythic': 100, 'Legendary': 80, 'Epic': 60, 'Rare': 40, 'Uncommon': 20, 'Common': 10 };
+
+    // Remove duplicates and Sort
     var seen = new Set();
     return combined.filter(g => {
       if (seen.has(g.id)) return false;
       seen.add(g.id);
       return true;
+    }).sort((a, b) => {
+      var rA = window.getGiftRarity ? window.getGiftRarity(a.cost || 0) : (a.rarity || 'Common');
+      var rB = window.getGiftRarity ? window.getGiftRarity(b.cost || 0) : (b.rarity || 'Common');
+      var wA = rarityWeights[rA] || 0;
+      var wB = rarityWeights[rB] || 0;
+
+      if (wA !== wB) return wB - wA; // Sort by weight
+      return (b.cost || 0) - (a.cost || 0); // Then by cost
     });
   }, [SHOP_ITEMS]);
 

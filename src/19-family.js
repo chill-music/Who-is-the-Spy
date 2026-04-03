@@ -615,6 +615,23 @@
     var lastWeekAct = family ? family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : weeklyAct : 0;
     var signData = (family ? getFamilySignLevelData(lastWeekAct) : null) || SIGN_FALLBACK;
     var signProg = family ? getFamilySignProgress(lastWeekAct) : 0;
+    var onSetRole = async (targetUID, newRole) => {
+      try {
+        await window.FamilyService.setMemberRole({ family, targetUID, newRole, currentUID, lang });
+        onNotification(lang === 'ar' ? '✅ تم تحديث الرتبة' : '✅ Role updated');
+      } catch (e) {
+        onNotification(e.message || (lang === 'ar' ? '❌ فشل التحديث' : '❌ Update failed'));
+      }
+    };
+
+    var onKick = async (targetUID) => {
+      try {
+        await window.FamilyService.kickMember({ family, targetUID, currentUID, lang });
+        onNotification(lang === 'ar' ? '✅ تم طرد العضو' : '✅ Member kicked');
+      } catch (e) {
+        onNotification(e.message || (lang === 'ar' ? '❌ فشل الطرد' : '❌ Kick failed'));
+      }
+    };
 
     // ─────────────────────────────────────────────
     // TAB: PROFILE (redesigned to match reference image)
@@ -630,7 +647,7 @@
     // TAB: MEMBERS
     // ─────────────────────────────────────────────
     var renderMembers = () => {
-      if (window.FamilyMembers) return /*#__PURE__*/React.createElement(window.FamilyMembers, { family: family, members: familyMembers, currentUID: currentUID, lang: lang, onNotification: onNotification, S: S, myRole: myRole, activeTab: activeTab, setActiveTab: setActiveTab, setFamily: setFamily, view: view, setView: setView });
+      if (window.FamilyMembers) return /*#__PURE__*/React.createElement(window.FamilyMembers, { family: family, members: familyMembers, currentUID: currentUID, lang: lang, onNotification: onNotification, S: S, myRole: myRole, activeTab: activeTab, setActiveTab: setActiveTab, setFamily: setFamily, view: view, setView: setView, onSetRole: onSetRole, onKick: onKick });
       return /*#__PURE__*/React.createElement("div", { style: { padding: '20px', color: 'white', textAlign: 'center' } }, lang === 'ar' ? 'جاري التحميل...' : 'Loading...');
     };
 
@@ -770,23 +787,50 @@
 
 
       family && activeTab === 'profile' && /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 16px', background: 'rgba(255,255,255,0.04)', borderTop: '1px solid #e5e7eb', flexShrink: 0 } }, /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0, width: '100%', boxSizing: 'border-box' } },
 
-      React.createElement("button", { onClick: () => onOpenChat ? onOpenChat() : setShowChatModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(107,114,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "\uD83D\uDCAC"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#6b7280', fontWeight: 600 } }, lang === 'ar' ? 'شات' : 'Chat')
-      ), /*#__PURE__*/
+      !isReadOnly ? /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-around', width: '100%' } }, /*#__PURE__*/
+        React.createElement("button", { onClick: () => onOpenChat ? onOpenChat() : setShowChatModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(107,114,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "💬"), /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#6b7280', fontWeight: 600 } }, lang === 'ar' ? 'شات' : 'Chat')
+        ), /*#__PURE__*/
 
+        React.createElement("button", { onClick: () => setShowGachaModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "🎰"), /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#a78bfa', fontWeight: 600 } }, lang === 'ar' ? 'جاتشه' : 'Gacha')
+        ),
 
-      React.createElement("button", { onClick: () => setShowGachaModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "\uD83C\uDFB0"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#a78bfa', fontWeight: 600 } }, lang === 'ar' ? 'جاتشه' : 'Gacha')
-      ),
+        React.createElement("button", { onClick: () => setShowDonatePanel((v) => !v), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 900, color: '#10b981' } }, "+"), /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#10b981', fontWeight: 600 } }, lang === 'ar' ? 'تبرع' : 'Donate')
+        )
+      ) : /*#__PURE__*/
 
-      !(!!viewFamilyId && viewFamilyId !== currentUserData?.familyId) && /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowDonatePanel((v) => !v), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 900, color: '#10b981' } }, "+"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#10b981', fontWeight: 600 } }, lang === 'ar' ? 'تبرع' : 'Donate')
+      React.createElement("button", {
+        onClick: async () => {
+          if (!window.FamilyService?.joinFamily) return;
+          try {
+            var res = await window.FamilyService.joinFamily({ familyId: family.id, currentUID, currentUserData, lang });
+            if (res?.status === 'pending') {
+              onNotification(lang === 'ar' ? '✅ تم إرسال طلب الانضمام' : '✅ Join request sent');
+            } else if (res?.status === 'joined') {
+              onNotification(lang === 'ar' ? '🎉 تم الانضمام للقبيلة' : '🎉 Joined the family');
+            }
+          } catch (e) {
+            onNotification(e.message || (lang === 'ar' ? '❌ فشل الانضمام' : '❌ Failed to join'));
+          }
+        },
+        style: {
+          width: '100%', padding: '12px', borderRadius: '14px', border: 'none',
+          background: family.joinType === 'open' ? 'linear-gradient(135deg, #00dbde, #0057ff)' : 'linear-gradient(135deg, #fc00ff, #7000ff)',
+          color: 'white', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)', transition: 'all 0.2s'
+        }
+      },
+        family.joinType === 'open' ?
+          (lang === 'ar' ? '🚀 انضم الآن' : '🚀 Join Now') :
+          (lang === 'ar' ? '📩 طلب انضمام' : '📩 Request to Join')
       )
 
       )

@@ -461,14 +461,6 @@ var FamilyProfile = ({
 
 
 
-    isReadOnly && !currentUserData?.familyId && /*#__PURE__*/
-    React.createElement("div", { style: { margin: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '16px', padding: '18px', textAlign: 'center' } }, /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '32px', marginBottom: '8px' } }, "\uD83C\uDFE0"), /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#e2e8f0', marginBottom: '12px' } }, lang === 'ar' ? 'انضم لهذه العائلة' : 'Join this Family'), /*#__PURE__*/
-    React.createElement("button", { style: { padding: '10px 28px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg,#00f2ff,#7000ff)', color: 'white', fontSize: '13px', fontWeight: 800, cursor: 'pointer' } }, "\u2795 ",
-    lang === 'ar' ? 'انضم الآن' : 'Join Now'
-    )
-    ), /*#__PURE__*/
 
 
     React.createElement("div", { style: { height: '12px' } }),
