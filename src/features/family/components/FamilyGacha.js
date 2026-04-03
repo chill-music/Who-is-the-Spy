@@ -226,7 +226,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
           /* ── Roll Actions ── */
           React.createElement("div", { className: "gacha-actions" },
             React.createElement("button", { 
-              className: "gacha-btn", 
+              className: `gacha-btn free ${family?.level >= 10 ? 'max' : ''}`, 
               onClick: () => handleSpin('free'),
               disabled: spinning,
               style: { opacity: spinning ? 0.3 : 1 }
@@ -235,7 +235,7 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
               React.createElement("span", { className: "gacha-btn-sub" }, lang === 'ar' ? 'مرة يومياً' : 'Daily Reset')
             ),
             React.createElement("button", { 
-              className: "gacha-btn gold", 
+              className: `gacha-btn gold ${family?.level >= 10 ? 'max' : ''}`, 
               onClick: () => handleSpin('paid'),
               disabled: spinning || spinsToday >= gachaMax,
               style: { opacity: (spinning || spinsToday >= gachaMax) ? 0.3 : 1 }
@@ -256,12 +256,12 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
                 const totalW = rewards.reduce((s, x) => s + (x.weight || 0), 0);
                 const prob = totalW > 0 ? ((r.weight || 0) / totalW * 100).toFixed(1) : '0';
                 const meta = getGachaItemMetadata(r);
-                return React.createElement("div", { key: i, className: `gacha-reward-item ${getRarityClass(r.rarity)}` },
-                  React.createElement("span", { className: "gacha-item-prob" }, prob, "%"),
+                return React.createElement("div", { key: i, className: `gacha-reward-item tier-${family?.level >= 10 ? 'max' : 'normal'} ${getRarityClass(r.rarity)}` },
+                  React.createElement("div", { className: "gacha-item-prob" }, prob, "%"),
                   meta.imageUrl ? 
-                    React.createElement("img", { src: meta.imageUrl, style: { width: '32px', height: '32px', objectFit: 'contain' } }) :
-                    React.createElement("span", { className: "gacha-item-icon" }, meta.icon),
-                  React.createElement("span", { className: "gacha-item-label" }, lang === 'ar' ? meta.label_ar : meta.label_en)
+                    React.createElement("img", { src: meta.imageUrl, className: "gacha-item-img", style: { width: '40px', height: '40px', objectFit: 'contain' } }) :
+                    React.createElement("div", { className: "gacha-item-icon" }, meta.icon),
+                  React.createElement("div", { className: "gacha-item-label" }, lang === 'ar' ? meta.label_ar : meta.label_en)
                 );
               })
             ),
