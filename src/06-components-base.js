@@ -138,6 +138,9 @@
 
     var isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
     
+    // Detect if this is an effect (GIF or specified via data)
+    var isEffect = photoURL && (photoURL.toLowerCase().endsWith('.gif') || photoURL.toLowerCase().endsWith('.webp')) || equipped?.isEffect;
+    
     // Standardized Avatar Style (Matches Big Profile precision)
     var avatarStyle = { 
       width: config.avatar + 'px', 
@@ -148,11 +151,12 @@
       left: '50%', 
       transform: 'translate(-50%, -50%)', 
       zIndex: 2, 
-      border: '2px solid rgba(255,255,255,0.08)', // Faint border for glass look
-      boxShadow: '0 4px 12px rgba(0,0,0,0.3)', 
+      border: isEffect ? 'none' : '2px solid rgba(255,255,255,0.08)', // No border for screen-blended effects
+      boxShadow: isEffect ? 'none' : '0 4px 12px rgba(0,0,0,0.3)', 
       filter: showBan ? 'grayscale(80%) brightness(0.4)' : 'none',
       overflow: 'hidden',
-      background: 'transparent' // Force transparency
+      background: 'transparent',
+      mixBlendMode: isEffect ? 'screen' : 'normal' // 🔥 This removes the black background!
     };
 
     var renderFrame = () => {
@@ -471,7 +475,10 @@
               e("div", { className: "mp-avatar-container", style: { cursor: 'pointer', position: 'relative' } },
                 e(AvatarWithFrame, {
                   photoURL: profile.photo || profile.photoURL,
-                  equipped: profile.equipped || { frames: profile.equippedFrame },
+                  equipped: profile.equipped || { 
+                    frames: profile.equippedFrame,
+                    isEffect: profile.photo && (profile.photo.includes('.gif') || profile.photo.includes('effect')) 
+                  },
                   size: 'md',
                   lang: lang,
                   onClick: () => { onClose(); if (onOpenProfile) onOpenProfile(profile.uid); }
