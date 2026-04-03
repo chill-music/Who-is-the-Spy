@@ -441,9 +441,9 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                 },
                 title: lang === 'ar' ? 'ملفي الشخصي' : 'My Profile'
               },
-                (isLoggedIn || isGuest) && (currentUserData?.photoURL || currentUserData?.photo) ? /*#__PURE__*/
-                  React.createElement("img", { src: currentUserData.photoURL || currentUserData.photo, style: { width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }, alt: "" }) : /*#__PURE__*/
-                  React.createElement("span", { style: { fontSize: '16px' } }, "\uD83D\uDE0E")
+                (isLoggedIn || isGuest) ? /*#__PURE__*/
+                  React.createElement(window.AvatarWithFrame, { photoURL: currentUserData?.photoURL || currentUserData?.photo, equipped: currentUserData?.equipped, size: "xs", lang: lang }) : /*#__PURE__*/
+                  React.createElement("span", { style: { fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' } }, "\uD83D\uDE0E")
 
               )
             )

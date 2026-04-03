@@ -118,13 +118,7 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
   new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
 
   var isGradientFrame = frameStyle && frameStyle.preview && (frameStyle.preview.includes('linear-gradient') || frameStyle.preview.includes('radial-gradient'));
-  var frameNeedsScreenBlendV11 = frameStyle && !isGradientFrame && (
-    frameStyle.preview.toLowerCase().includes('.gif') || 
-    frameStyle.preview.toLowerCase().includes('fickle') || 
-    frameStyle.preview.toLowerCase().includes('pure') || 
-    frameStyle.preview.toLowerCase().includes('effect') || 
-    frameStyle.preview.toLowerCase().includes('animate')
-  );
+  var frameNeedsScreenBlendV11 = frameStyle && !isGradientFrame;
 
   var displayPhotoURL = photoURL;
   if (photoURL && frameStyle && photoURL === frameStyle.preview) {

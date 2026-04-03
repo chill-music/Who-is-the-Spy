@@ -1,4 +1,4 @@
-(function() {
+(function () {
   "use strict";
 
   /**
@@ -7,14 +7,14 @@
    */
 
   const TEAMS = {
-    barcelona:     { id: 'barcelona',     name: 'Barcelona',        mult: 45, bg: 'radial-gradient(circle,#A50044,#003DA5)', logo: 'icos/FootballClubLogo/Fc_barcelona.png' },
-    realmadrid:    { id: 'realmadrid',    name: 'Real Madrid',      mult: 25, bg: 'radial-gradient(circle,#fff,#00529F)',    logo: 'icos/FootballClubLogo/Real_Madrid_CF.png' },
-    psg:           { id: 'psg',           name: 'PSG',              mult: 15, bg: 'radial-gradient(circle,#004170,#DA291C)', logo: 'icos/FootballClubLogo/Paris_Saint-Germain_FC.png' },
-    liverpool:     { id: 'liverpool',     name: 'Liverpool',        mult: 10, bg: 'radial-gradient(circle,#C8102E,#00B2A9)', logo: 'icos/FootballClubLogo/Liverpool_FC.png' },
-    manchester:    { id: 'manchester',    name: 'Man United',       mult: 5,  bg: 'radial-gradient(circle,#DA291C,#FBE122)', logo: 'icos/FootballClubLogo/Manchester_United_FC-Logo.png' },
-    acmilan:       { id: 'acmilan',       name: 'AC Milan',         mult: 5,  bg: 'radial-gradient(circle,#E32221,#111)',    logo: 'icos/FootballClubLogo/AC_Milan.png' },
-    bayernmunich:  { id: 'bayernmunich',  name: 'Bayern Munich',    mult: 5,  bg: 'radial-gradient(circle,#DC052D,#0066B2)', logo: 'icos/FootballClubLogo/FC_Bayern_München.png' },
-    juventus:      { id: 'juventus',      name: 'Juventus',         mult: 5,  bg: 'radial-gradient(circle,#232323,#555)',    logo: 'icos/FootballClubLogo/Juventus_FC_2017.png' }
+    barcelona: { id: 'barcelona', name: 'Barcelona', mult: 45, bg: 'radial-gradient(circle,#A50044,#003DA5)', logo: 'icos/FootballClubLogo/Fc_barcelona.png' },
+    realmadrid: { id: 'realmadrid', name: 'Real Madrid', mult: 25, bg: 'radial-gradient(circle,#fff,#00529F)', logo: 'icos/FootballClubLogo/Real_Madrid_CF.png' },
+    psg: { id: 'psg', name: 'PSG', mult: 15, bg: 'radial-gradient(circle,#004170,#DA291C)', logo: 'icos/FootballClubLogo/Paris_Saint-Germain_FC.png' },
+    liverpool: { id: 'liverpool', name: 'Liverpool', mult: 10, bg: 'radial-gradient(circle,#C8102E,#00B2A9)', logo: 'icos/FootballClubLogo/Liverpool_FC.png' },
+    manchester: { id: 'manchester', name: 'Man United', mult: 5, bg: 'radial-gradient(circle,#DA291C,#FBE122)', logo: 'icos/FootballClubLogo/Manchester_United_FC-Logo.png' },
+    acmilan: { id: 'acmilan', name: 'AC Milan', mult: 5, bg: 'radial-gradient(circle,#E32221,#111)', logo: 'icos/FootballClubLogo/AC_Milan.png' },
+    bayernmunich: { id: 'bayernmunich', name: 'Bayern Munich', mult: 5, bg: 'radial-gradient(circle,#DC052D,#0066B2)', logo: 'icos/FootballClubLogo/FC_Bayern_München.png' },
+    juventus: { id: 'juventus', name: 'Juventus', mult: 5, bg: 'radial-gradient(circle,#232323,#555)', logo: 'icos/FootballClubLogo/Juventus_FC_2017.png' }
   };
 
   const CHIPS = [100, 1000, 10000, 100000];
@@ -40,7 +40,7 @@
 
   // Local Records
   let recordsPage = 0;
-  
+
   // Local timer loop
   let timerInterval = null;
 
@@ -64,12 +64,7 @@
           <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
         </button>
       </div>
-      <div class="mvp-frame" id="mvpFrame">
-        <div class="mvp-crown">👑</div>
-        <div class="mvp-avatar" id="userAvatar">
-           <img src="icos/idon.png" alt="pfp" id="userAvatarImg" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-        </div>
-      </div>
+      <div id="userAvatarContainer" style="position: absolute; right: 16px; top: 12px; width: 44px; height: 44px; cursor: pointer; border-radius: 50%; border: 2px solid #FFD700; background: linear-gradient(135deg, #FFD700, #FF8C00); box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);"></div>
     </div>
 
     <div class="game-title">SOCCER STAR</div>
@@ -289,11 +284,11 @@
   const SoccerStarGame = {
     gameHistory: [],
     sessionUnsub: null,
-    start: function(container, options = {}) {
+    start: function (container, options = {}) {
       containerEl = container;
       authUser = options.user || window.auth?.currentUser;
       lang = options.lang || 'en';
-      
+
       if (!containerEl) return;
       containerEl.innerHTML = HTML_TEMPLATE;
 
@@ -301,32 +296,43 @@
       this.subscribeAll();
       this.updateUIStrings();
       this.loadLocalRecords();
-      
+
       if (authUser) {
-        const avatarImg = document.getElementById('userAvatarImg');
-        if (avatarImg) avatarImg.src = authUser.photoURL || 'icos/idon.png';
+        const avatarContainer = document.getElementById('userAvatarContainer');
+        if (avatarContainer && window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+          window.ReactDOM.render(
+            window.React.createElement(window.AvatarWithFrameV11, {
+              photoURL: authUser.photoURL || 'icos/idon.png',
+              equipped: authUser.equipped,
+              size: 'sm',
+              lang: lang,
+              banData: authUser.banData
+            }),
+            avatarContainer
+          );
+        }
       }
       console.log("[SoccerStar] Game started for:", authUser ? authUser.uid : "Guest");
     },
 
-    stop: function() {
+    stop: function () {
       this.unsubscribeAll();
       containerEl = null;
     },
 
-    setLanguage: function(newLang) {
+    setLanguage: function (newLang) {
       lang = newLang;
       this.updateUIStrings();
     },
 
-    initEventListeners: function() {
+    initEventListeners: function () {
       // Exit
       document.getElementById('exitBtn').onclick = () => window.closeLuckyGamesHub?.();
-      
+
       // Modals
       document.getElementById('rulesBtn').onclick = () => openModal('howToPlay');
       document.getElementById('recordsBtn').onclick = () => { recordsPage = 0; this.renderRecords(); openModal('gameRecords'); };
-      
+
       document.querySelectorAll('.ss-modal-back').forEach(btn => {
         btn.onclick = () => closeModal(btn.dataset.close);
       });
@@ -349,12 +355,13 @@
       document.getElementById('clearBetsBtn').onclick = () => this.clearAllBets();
 
       // Pagination
-      document.getElementById('prevPageBtn').onclick = () => { if (recordsPage > 0) { recordsPage--; this.renderRecords(); }};
+      document.getElementById('prevPageBtn').onclick = () => { if (recordsPage > 0) { recordsPage--; this.renderRecords(); } };
       document.getElementById('nextPageBtn').onclick = () => { recordsPage++; this.renderRecords(); };
 
       // MVP / Winner Profile
       const openUser = () => { if (authUser) window.openLuckyGamesMiniProfile?.(authUser.uid); };
-      document.getElementById('mvpFrame').onclick = openUser;
+      const avatarContainer = document.getElementById('userAvatarContainer');
+      if (avatarContainer) avatarContainer.onclick = openUser;
       document.getElementById('resultWinnerPhoto').onclick = () => {
         const winnerId = document.getElementById('resultWinnerPhoto').dataset.uid;
         if (winnerId) window.openLuckyGamesMiniProfile?.(winnerId);
@@ -364,11 +371,11 @@
       document.getElementById('resultCloseBtn').onclick = () => document.getElementById('resultPopup').classList.remove('show');
     },
 
-    subscribeAll: function() {
+    subscribeAll: function () {
       const sessionRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
-      
+
       console.log("[SoccerStar] Connecting to VERIFIED root path: lucky_games_sessions/soccer_star");
-      
+
       sessionUnsub = sessionRef.onSnapshot(doc => {
         if (!doc.exists) {
           console.warn("[SoccerStar] Session document not found even at root path.");
@@ -392,18 +399,18 @@
       }
     },
 
-    unsubscribeAll: function() {
+    unsubscribeAll: function () {
       if (sessionUnsub) sessionUnsub();
       if (winnersUnsub) winnersUnsub();
       if (currencyUnsub) currencyUnsub();
       if (timerInterval) clearInterval(timerInterval);
     },
 
-    handleSessionUpdate: function(data) {
+    handleSessionUpdate: function (data) {
       status = data.status || 'betting';
       const newTime = data.timer !== undefined ? data.timer : (data.timeLeft !== undefined ? data.timeLeft : data.time);
       if (newTime !== undefined) timeLeft = newTime;
-      
+
       const timerDisp = document.getElementById('timerDisplay');
       const updateTimerUI = () => {
         if (timerDisp) {
@@ -421,82 +428,82 @@
       // Betting vs Reveal
       const area = document.querySelector('.betting-area');
       if (status === 'betting') {
-         if (this._rescueTimeout) {
-           clearTimeout(this._rescueTimeout);
-           this._rescueTimeout = null;
-         }
-         hasRevealed = false; // Reset lock for new round
-         if (area) area.classList.remove('disabled');
-         // Start local countdown
-         if (timeLeft > 0) {
-           timerInterval = setInterval(() => {
-             timeLeft--;
-             updateTimerUI();
-             if (timeLeft <= 0) {
-               clearInterval(timerInterval);
-               status = 'reveal';
-               if (area) area.classList.add('disabled');
-               
-               // Frontend Auto-Drive: Sync round results to everybody if backend is absent
-               if (!data.lastWinnerId || data.status === 'betting') {
-                 const teamsArr = Object.keys(TEAMS);
-                 const rw = teamsArr[Math.floor(Math.random() * teamsArr.length)];
-                 data.lastWinnerId = rw; // local fallback
-                 
-                 const hist = data.history || [];
-                 if (hist.length > 20) hist.shift();
-                 hist.push(rw);
+        if (this._rescueTimeout) {
+          clearTimeout(this._rescueTimeout);
+          this._rescueTimeout = null;
+        }
+        hasRevealed = false; // Reset lock for new round
+        if (area) area.classList.remove('disabled');
+        // Start local countdown
+        if (timeLeft > 0) {
+          timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+            if (timeLeft <= 0) {
+              clearInterval(timerInterval);
+              status = 'reveal';
+              if (area) area.classList.add('disabled');
 
-                 const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
-                 sessRef.get().then(snap => {
-                   if (snap.exists && snap.data().status === 'betting') {
-                     sessRef.update({
-                       status: 'reveal',
-                       lastWinnerId: rw,
-                       timer: 0,
-                       history: hist
-                     });
-                     // Reset back to betting round after 8s
-                     setTimeout(() => {
-                       sessRef.update({ status: 'betting', timer: 30, lastWinnerId: null });
-                     }, 8000);
-                   }
-                 }).catch(err => console.log(err));
-               }
+              // Frontend Auto-Drive: Sync round results to everybody if backend is absent
+              if (!data.lastWinnerId || data.status === 'betting') {
+                const teamsArr = Object.keys(TEAMS);
+                const rw = teamsArr[Math.floor(Math.random() * teamsArr.length)];
+                data.lastWinnerId = rw; // local fallback
 
-               this.revealResult(data);
-             }
-           }, 1000);
-         }
-      } else {
-         if (area) area.classList.add('disabled');
-         if (timeLeft <= 0 || status === 'reveal') {
-            this.revealResult(data);
-            
-            // Rescue Mechanism: In case client gets stuck at 0 due to an aborted process
-            if (!this._rescueTimeout) {
-               this._rescueTimeout = setTimeout(() => {
-                 const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
-                 sessRef.get().then(snap => {
-                   if (snap.exists && snap.data().status === 'reveal') {
-                     sessRef.update({ status: 'betting', timer: 30, lastWinnerId: null });
-                   }
-                 }).catch(err => console.log('Rescue Error:', err));
-                 this._rescueTimeout = null;
-               }, 10000);
+                const hist = data.history || [];
+                if (hist.length > 20) hist.shift();
+                hist.push(rw);
+
+                const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+                sessRef.get().then(snap => {
+                  if (snap.exists && snap.data().status === 'betting') {
+                    sessRef.update({
+                      status: 'reveal',
+                      lastWinnerId: rw,
+                      timer: 0,
+                      history: hist
+                    });
+                    // Reset back to betting round after 8s
+                    setTimeout(() => {
+                      sessRef.update({ status: 'betting', timer: 30, lastWinnerId: null });
+                    }, 8000);
+                  }
+                }).catch(err => console.log(err));
+              }
+
+              this.revealResult(data);
             }
-         }
+          }, 1000);
+        }
+      } else {
+        if (area) area.classList.add('disabled');
+        if (timeLeft <= 0 || status === 'reveal') {
+          this.revealResult(data);
+
+          // Rescue Mechanism: In case client gets stuck at 0 due to an aborted process
+          if (!this._rescueTimeout) {
+            this._rescueTimeout = setTimeout(() => {
+              const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+              sessRef.get().then(snap => {
+                if (snap.exists && snap.data().status === 'reveal') {
+                  sessRef.update({ status: 'betting', timer: 30, lastWinnerId: null });
+                }
+              }).catch(err => console.log('Rescue Error:', err));
+              this._rescueTimeout = null;
+            }, 10000);
+          }
+        }
       }
     },
 
-    placeBet: function(teamId) {
+    placeBet: function (teamId) {
       if (window._firestoreOnline === false) return this.showToast(lang === 'ar' ? '⚠️ لا يوجد اتصال' : '⚠️ No connection');
       if (status !== 'betting') return this.showToast(lang === 'ar' ? 'انتظر الجولة القادمة' : 'Wait for next round');
       if (userCoins < currentChip) return this.showToast(lang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient Intel');
 
       myBets[teamId] = (myBets[teamId] || 0) + currentChip;
       userCoins -= currentChip;
-      
+
       document.getElementById(`me-${teamId}`).textContent = `me: ${myBets[teamId].toLocaleString()}`;
       document.getElementById('coinDisplay').textContent = userCoins.toLocaleString();
 
@@ -505,7 +512,7 @@
         .catch(err => console.error(err));
     },
 
-    clearAllBets: function() {
+    clearAllBets: function () {
       // Logic for clearing is tricky with real currency. Usually you can't "clear" after the TX is sent.
       // For this build, we'll keep the OG 'Clear' button but maybe notify user it's for the current session's visual?
       // Actually, if it's already deducted, Clear won't refund. 
@@ -513,9 +520,9 @@
       this.showToast(lang === 'ar' ? 'لا يمكن استرداد الرهان المرسل' : 'Cannot refund sent bets');
     },
 
-    revealResult: function(sessionData) {
+    revealResult: function (sessionData) {
       if (hasRevealed) return; // Prevent double trigger
-      
+
       const winnerId = sessionData.lastWinnerId;
       if (!winnerId) return; // No winner yet
 
@@ -526,7 +533,7 @@
 
       const myInput = myBets[winnerId] || 0;
       const bonus = myInput * winnerTeam.mult;
-      
+
       // 🛡️ SECURITY: Apply win payout via SecurityService
       if (bonus > 0 && authUser && window.SecurityService) {
         (async () => {
@@ -537,7 +544,7 @@
           }
         })();
       }
-      
+
       // Save local transaction records
       if (Object.keys(myBets).length > 0) {
         this.addLocalRecord(winnerId, myBets, bonus);
@@ -549,34 +556,34 @@
       if (bonus > 0 && authUser) {
         window.db.collection('lucky_games_sessions').doc('soccer_star')
           .collection('recent_winners').doc(authUser.uid).set({
-             name: authUser.displayName || 'Player',
-             photo: authUser.photoURL || 'icos/idon.png',
-             amount: bonus,
-             input: myInput,
-             uid: authUser.uid,
-             timestamp: new Date().getTime()
+            name: authUser.displayName || 'Player',
+            photo: authUser.photoURL || 'icos/idon.png',
+            amount: bonus,
+            input: myInput,
+            uid: authUser.uid,
+            timestamp: new Date().getTime()
           }).catch(err => console.error(err));
       }
 
       // Show Popup
       this.showWinPopup(sessionData, bonus, myInput);
-      
+
       // Confetti if won
       if (bonus > 0) this.spawnConfetti();
     },
 
-    showWinPopup: function(session, myBonus, myInput = 0) {
+    showWinPopup: function (session, myBonus, myInput = 0) {
       const winnerId = session.lastWinnerId;
       const team = TEAMS[winnerId];
       const popup = document.getElementById('resultPopup');
-      
+
       // Temporary fallback until DB load finishes
       document.getElementById('resultWinnerImg').src = session.winnerPhoto || (authUser ? authUser.photoURL : 'icos/idon.png');
       document.getElementById('resultWinnerPhoto').dataset.uid = session.winnerUid || (authUser ? authUser.uid : '');
-      
+
       document.getElementById('resClubLogo').src = team.logo;
       document.getElementById('resClubName').textContent = team.name;
-      
+
       // Total bet on this specific winning team
       const myInputOnTeam = myBonus > 0 ? (myBonus / team.mult) : 0;
       document.getElementById('resBetAmt').textContent = myInputOnTeam.toLocaleString();
@@ -587,7 +594,7 @@
       this.fetchRoundWinners(session.id || 'current', myBonus, myInput);
 
       popup.classList.add('show');
-      
+
       let cd = 5;
       const btn = document.getElementById('resultCloseBtn');
       btn.textContent = `${cd}s ✕`;
@@ -601,29 +608,29 @@
       }, 1000);
     },
 
-    fetchRoundWinners: async function(roundId, myBonus = 0, myInput = 0) {
+    fetchRoundWinners: async function (roundId, myBonus = 0, myInput = 0) {
       const listEl = document.getElementById('topRoundWinnersList');
       // Fetch up to 5 to easily find MVP + runners up
       const snap = await window.db.collection('lucky_games_sessions').doc('soccer_star').collection('recent_winners')
         .orderBy('timestamp', 'desc').limit(5).get();
-      
+
       let winners = [];
       if (!snap.empty) {
         winners = snap.docs.map(doc => doc.data());
       }
-      
+
       // Ensure the current user's locally committed win is included just in case the query was slightly too fast
       if (myBonus > 0 && authUser) {
-         if (!winners.find(w => w.uid === authUser.uid)) {
-            winners.push({
-               name: authUser.displayName || 'Player',
-               photo: authUser.photoURL || 'icos/idon.png',
-               amount: myBonus,
-               input: myInput,
-               uid: authUser.uid,
-               timestamp: new Date().getTime()
-            });
-         }
+        if (!winners.find(w => w.uid === authUser.uid)) {
+          winners.push({
+            name: authUser.displayName || 'Player',
+            photo: authUser.photoURL || 'icos/idon.png',
+            amount: myBonus,
+            input: myInput,
+            uid: authUser.uid,
+            timestamp: new Date().getTime()
+          });
+        }
       }
 
       if (winners.length === 0) {
@@ -632,21 +639,21 @@
       }
 
       // Sort globally by highest amount won
-      winners.sort((a,b) => b.amount - a.amount);
-      
+      winners.sort((a, b) => b.amount - a.amount);
+
       // Set the absolute #1 MVP in the winner circle photo
       const mvp = winners[0];
       if (mvp) {
-         document.getElementById('resultWinnerImg').src = mvp.photo || 'icos/idon.png';
-         if (mvp.uid) document.getElementById('resultWinnerPhoto').dataset.uid = mvp.uid;
+        document.getElementById('resultWinnerImg').src = mvp.photo || 'icos/idon.png';
+        if (mvp.uid) document.getElementById('resultWinnerPhoto').dataset.uid = mvp.uid;
       }
 
       // The rest of the winners go into the Top 3 list below
       const runnersUp = winners.slice(1, 4);
-      
+
       if (runnersUp.length === 0) {
-         listEl.innerHTML = `<div class="empty-state" style="padding:10px">No Other Winners This Round</div>`;
-         return;
+        listEl.innerHTML = `<div class="empty-state" style="padding:10px">No Other Winners This Round</div>`;
+        return;
       }
 
       listEl.innerHTML = runnersUp.map(d => `
@@ -663,10 +670,11 @@
       `).join('');
     },
 
-    renderResultsStrip: function(history) {
+    renderResultsStrip: function (history) {
       const strip = document.getElementById('resultsStrip');
+      if (!strip) return;
       strip.innerHTML = '';
-      
+
       // Clone array and reverse it so the newest elements rendering first (on the left side next to 'New')
       const reversedHistory = [...history].reverse();
 
@@ -684,18 +692,18 @@
     /**
      * RECORDS LOGIC (localStorage + 10-item pagination)
      */
-    loadLocalRecords: function() {
+    loadLocalRecords: function () {
       if (!authUser) return;
       const key = `soccer_star_records_${authUser.uid}`;
       this.gameHistory = JSON.parse(localStorage.getItem(key) || '[]');
     },
 
-    addLocalRecord: function(winnerId, bets, bonus) {
+    addLocalRecord: function (winnerId, bets, bonus) {
       if (!authUser) return;
       const now = new Date();
       const rec = {
-        time: now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0'),
-        input: Object.values(bets).reduce((a,b) => a+b, 0),
+        time: now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'),
+        input: Object.values(bets).reduce((a, b) => a + b, 0),
         result: winnerId,
         bonus: bonus,
         timestamp: now.getTime()
@@ -706,10 +714,10 @@
       localStorage.setItem(`soccer_star_records_${authUser.uid}`, JSON.stringify(this.gameHistory));
     },
 
-    renderRecords: function() {
+    renderRecords: function () {
       const body = document.getElementById('recordsBody');
       if (!body) return;
-      
+
       const history = this.gameHistory || [];
       const start = recordsPage * RECORDS_PER_PAGE;
       const end = start + RECORDS_PER_PAGE;
@@ -734,31 +742,31 @@
       document.getElementById('nextPageBtn').disabled = (end >= this.gameHistory.length);
     },
 
-    updateUIStrings: function() {
+    updateUIStrings: function () {
       const isAr = lang === 'ar';
-      
+
       const hint = document.getElementById('hintText');
       if (hint) {
         hint.textContent = isAr ? 'اختر مبلغ الذهب > اختر الفريق' : 'Select The Amount Of Intel > Select Team';
       }
-      
+
       const label = document.querySelector('.results-label');
       if (label) {
         label.textContent = isAr ? 'النتائج :' : 'Results :';
       }
-      
+
       // Removed rule-specific IDs to match the updated static template
     },
 
-    showToast: function(msg) {
+    showToast: function (msg) {
       const el = document.getElementById('toast');
       el.textContent = msg;
       el.classList.add('show');
       setTimeout(() => el.classList.remove('show'), 2500);
     },
 
-    spawnConfetti: function() {
-      const colors = ['#FFD700','#FF5722','#4CAF50','#2196F3','#9C27B0','#FF4081','#00BCD4'];
+    spawnConfetti: function () {
+      const colors = ['#FFD700', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0', '#FF4081', '#00BCD4'];
       for (let i = 0; i < 35; i++) {
         setTimeout(() => {
           const p = document.createElement('div');
