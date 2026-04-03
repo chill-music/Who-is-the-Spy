@@ -124,10 +124,11 @@
   // Avatar with Frame
   var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     var sizeConfig = {
-      sm: { wrapper: 48, avatar: 42, mask: 42 },
-      md: { wrapper: 68, avatar: 60, mask: 60 },
-      lg: { wrapper: 100, avatar: 88, mask: 88 },
-      xl: { wrapper: 140, avatar: 124, mask: 124 }
+      xs: { wrapper: 32, avatar: 20, frameSize: 32 },
+      sm: { wrapper: 56, avatar: 36, frameSize: 56 },
+      md: { wrapper: 72, avatar: 48, frameSize: 72 },
+      lg: { wrapper: 90, avatar: 58, frameSize: 90 },
+      xl: { wrapper: 140, avatar: 90, frameSize: 140 }
     };
     var config = sizeConfig[size] || sizeConfig.md;
     var frameItem = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === equipped?.frames);
@@ -137,20 +138,21 @@
 
     var isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
     
-    // Use percentages for inner elements to ensure perfect centering and scaling
+    // Standardized Avatar Style (Matches Big Profile precision)
     var avatarStyle = { 
-      width: '82%', 
-      height: '82%', 
+      width: config.avatar + 'px', 
+      height: config.avatar + 'px', 
       borderRadius: '50%', 
       position: 'absolute', 
       top: '50%', 
       left: '50%', 
       transform: 'translate(-50%, -50%)', 
       zIndex: 2, 
-      border: '2px solid rgba(0,0,0,0.4)', 
-      boxShadow: '0 2px 6px rgba(0,0,0,0.3)', 
-      filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none',
-      overflow: 'hidden'
+      border: '2px solid rgba(255,255,255,0.08)', // Faint border for glass look
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)', 
+      filter: showBan ? 'grayscale(80%) brightness(0.4)' : 'none',
+      overflow: 'hidden',
+      background: 'transparent' // Force transparency
     };
 
     var renderFrame = () => {
@@ -181,8 +183,7 @@
             style: { 
               width: '100%', 
               height: '100%', 
-              objectFit: 'contain', 
-              transform: 'scale(1.15)' // Frames usually need slightly more than 100% to cover the avatar edge properly
+              objectFit: 'contain'
             }, 
             alt: "frame",
             onError: (e) => { e.target.style.display = 'none'; }
@@ -467,22 +468,14 @@
               )
             ),
             e("div", { className: "mp-profile-row" },
-              e("div", { className: "mp-avatar-container", onClick: () => { onClose(); if (onOpenProfile) onOpenProfile(profile.uid); }, style: { cursor: 'pointer', position: 'relative' } },
-                (() => {
-                  var fSrc = profile.equippedFrame;
-                  if (fSrc && fSrc !== 'none') {
-                    if (!fSrc.startsWith('http') && !fSrc.startsWith('/') && !fSrc.startsWith('data:')) {
-                      var found = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === fSrc);
-                      if (found) fSrc = found.preview || found.imageUrl;
-                      else fSrc = null;
-                    }
-                    if (fSrc) return e("img", { src: fSrc, style: { position: 'absolute', inset: '-10%', width: '120%', height: '120%', objectFit: 'contain', zIndex: 3, pointerEvents: 'none' } });
-                  }
-                  return null;
-                })(),
-                e("div", { className: "mp-avatar-pic", style: { width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)', background: 'transparent' } },
-                  profile.photo ? e("img", { src: profile.photo, style: { width: '100%', height: '100%', objectFit: 'cover' } }) : "🧑"
-                )
+              e("div", { className: "mp-avatar-container", style: { cursor: 'pointer', position: 'relative' } },
+                e(AvatarWithFrame, {
+                  photoURL: profile.photo || profile.photoURL,
+                  equipped: profile.equipped || { frames: profile.equippedFrame },
+                  size: 'md',
+                  lang: lang,
+                  onClick: () => { onClose(); if (onOpenProfile) onOpenProfile(profile.uid); }
+                })
               ),
               e("div", { className: "mp-user-info" },
                 e("div", { className: "mp-user-name" },

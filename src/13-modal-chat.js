@@ -438,14 +438,13 @@
         style: { position: 'relative', flexShrink: 0, cursor: 'pointer' },
         onClick: () => onOpenProfile && onOpenProfile(friend.uid) }, /*#__PURE__*/
 
-      React.createElement("img", {
-        src: friend.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.displayName || 'U')}&background=6366f1&color=fff&size=80`,
-        alt: "",
-        style: {
-          width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover',
-          border: `2px solid ${statusColor}44`,
-          boxShadow: isOnline ? `0 0 8px ${statusColor}33` : 'none'
-        } }
+      React.createElement(window.AvatarWithFrame, {
+        photoURL: friend.photoURL,
+        equipped: friend.equipped,
+        size: 'xs',
+        lang: lang,
+        onClick: () => onOpenProfile && onOpenProfile(friend.uid)
+      }
       ), /*#__PURE__*/
       React.createElement("div", { style: {
           position: 'absolute', bottom: '1px', right: '1px',
@@ -582,17 +581,16 @@
           return (/*#__PURE__*/
             React.createElement("div", { key: msg.id || idx, style: { display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px', marginBottom: isLastGroup ? '4px' : '1px' } }, /*#__PURE__*/
 
-            React.createElement("div", { style: { width: '28px', flexShrink: 0, alignSelf: 'flex-end' } },
+            React.createElement("div", { style: { width: '32px', height: '32px', flexShrink: 0, alignSelf: 'flex-end', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
             showAvatar ? /*#__PURE__*/
-            React.createElement("img", {
-              src: isMine ?
-              currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName || 'U')}&background=6366f1&color=fff&size=56` :
-              msg.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName || 'U')}&background=6366f1&color=fff&size=56`,
-              alt: "",
-              onClick: () => openMiniProfile(msg.senderId),
-              style: { width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', border: msgVipCfg ? `1.5px solid ${msgVipCfg.nameColor}` : '1.5px solid rgba(0,242,255,0.15)' } }
-            ) : /*#__PURE__*/
-            React.createElement("div", { style: { width: '28px' } })
+            React.createElement(window.AvatarWithFrame, {
+              photoURL: isMine ? (currentUser?.photoURL || currentUser?.photo) : (msg.senderPhoto || msg.senderPhotoURL),
+              equipped: isMine ? currentUser?.equipped : msg.senderEquipped,
+              size: 'xs',
+              lang: lang,
+              onClick: () => openMiniProfile(msg.senderId)
+            }) : /*#__PURE__*/
+            React.createElement("div", { style: { width: '32px', height: '32px' } })
             ), /*#__PURE__*/
             React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start', maxWidth: '72%', gap: '2px' } },
             showName && /*#__PURE__*/
