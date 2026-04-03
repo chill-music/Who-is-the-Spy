@@ -33,6 +33,7 @@
     if (!show) return null;
 
     var currency = userData?.currency || 0;
+    var vipLevel = window.getVIPLevel ? window.getVIPLevel(userData) : 0;
     var inventory = userData?.inventory || { frames: [], titles: [], themes: [], badges: [], gifts: [] };
     var equipped = userData?.equipped || {};
 
