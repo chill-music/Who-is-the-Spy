@@ -622,6 +622,16 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
                   isLoggedIn && currentUserData && /*#__PURE__*/
                   React.createElement("div", { onClick: () => setShowSelfChat(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: '1px solid var(--new-border)', cursor: 'pointer' }, className: "me-friend-row" }, /*#__PURE__*/
+                    React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
+                      React.createElement(window.AvatarWithFrame, {
+                        photoURL: currentUser?.photoURL,
+                        equipped: currentUser?.equipped,
+                        size: "sm",
+                        lang: lang,
+                        status: 'online'
+                      }),
+                      React.createElement("div", { style: { position: 'absolute', bottom: '0px', right: '0px', width: '9px', height: '9px', borderRadius: '50%', background: '#4ade80', border: '1.5px solid #0a0a14', zIndex: 11 } })
+                    ),
                     React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                       window.PlayerNameTag ? /*#__PURE__*/
                         React.createElement(window.PlayerNameTag, { player: currentUserData, lang: lang, size: "sm" }) : /*#__PURE__*/

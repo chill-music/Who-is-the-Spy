@@ -107,7 +107,6 @@
             { id: 'Pure_Heart', name_en: "Pure Heart", name_ar: "القلب النقي", cost: 600, type: 'frames', preview: 'icos/Frames/pure%20heart.png', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
             { id: 'frame_ice', name_en: "Ice Frame", name_ar: "إطار جليد", cost: 350, type: 'frames', preview: 'linear-gradient(45deg, #00d4ff, #ffffff, #00d4ff)', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
             { id: 'frame_shehab', name_en: "Shehab Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/xKgsYCZ3/shehab.gif', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
-            { id: 'frame_shehab', name_en: "Shehab Frame", name_ar: "إطار قوس قزح", cost: 600, type: 'frames', preview: 'https://i.ibb.co/xKgsYCZ3/shehab.gif', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },
 
             // ════ UNCOMMON ITEMS — لون أخضر ════
             { id: 'frame_mint', name_en: "Mint Frame", name_ar: "إطار نعناعي", cost: 75, type: 'frames', rarity: 'Uncommon', preview: 'linear-gradient(45deg, #4ade80, #22d3ee)', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null },

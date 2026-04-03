@@ -99,7 +99,7 @@
           React.createElement("div", { key: msg.id || i, style: { display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: '6px', alignItems: 'flex-end' } }, /*#__PURE__*/
 
           React.createElement("div", { 
-            style: { width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, cursor: 'pointer', position: 'relative' } },
+            style: { width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
           React.createElement(window.AvatarWithFrame, {
             photoURL: msg.senderPhoto,
             equipped: { frames: msg.senderFrame, badges: msg.senderBadges },

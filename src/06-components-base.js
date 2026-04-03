@@ -124,7 +124,7 @@
   // Avatar with Frame
   var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     var sizeConfig = {
-      xs: { wrapper: 28, avatar: 20, frameSize: 28 },
+      xs: { wrapper: 32, avatar: 22, frameSize: 32 },
       sm: { wrapper: 56, avatar: 36, frameSize: 56 },
       md: { wrapper: 72, avatar: 48, frameSize: 72 },
       lg: { wrapper: 90, avatar: 58, frameSize: 90 },
@@ -136,15 +136,26 @@
       !banData.expiresAt ||
       new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
 
-    var isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
+    var isImageURL = photoURL && (
+      photoURL.startsWith('http') || 
+      photoURL.startsWith('data:') || 
+      photoURL.startsWith('/') ||
+      photoURL.startsWith('icos/')
+    );
     
-    // Detect if this is an effect (GIF, WebP, or specified via data)
-    var isEffect = photoURL && (
+    // Detect if this is an effect that REQUIRES screen blending (e.g. black background glow)
+    var shouldScreenBlend = (equipped?.isEffect || photoURL && (
+      photoURL.toLowerCase().includes('_effect_') || 
+      photoURL.toLowerCase().includes('_animate_') ||
+      photoURL.toLowerCase().includes('aurora') ||
+      photoURL.toLowerCase().includes('inferno')
+    ));
+    
+    // Check if it's an animated format (GIF/WebP) but NOT necessarily an effect
+    var isAnimated = photoURL && (
       photoURL.toLowerCase().includes('.gif') || 
-      photoURL.toLowerCase().includes('.webp') || 
-      photoURL.toLowerCase().includes('effect') ||
-      photoURL.toLowerCase().includes('animate')
-    ) || equipped?.isEffect;
+      photoURL.toLowerCase().includes('.webp')
+    );
     
     // Standardized Avatar Style (Matches Big Profile precision)
     var avatarStyle = { 
@@ -156,12 +167,12 @@
       left: '50%', 
       transform: 'translate(-50%, -50%)', 
       zIndex: 2, 
-      border: isEffect ? 'none' : '2px solid rgba(255,255,255,0.08)', // No border for screen-blended effects
-      boxShadow: isEffect ? 'none' : '0 4px 12px rgba(0,0,0,0.3)', 
+      border: (shouldScreenBlend || isAnimated) ? 'none' : '2px solid rgba(255,255,255,0.12)', 
+      boxShadow: (shouldScreenBlend || isAnimated) ? 'none' : '0 4px 12px rgba(0,0,0,0.4)', 
       filter: showBan ? 'grayscale(80%) brightness(0.4)' : 'none',
       overflow: 'hidden',
       background: 'transparent',
-      mixBlendMode: isEffect ? 'screen' : 'normal' // 🔥 This removes the black background!
+      mixBlendMode: shouldScreenBlend ? 'screen' : 'normal' 
     };
 
     var renderFrame = () => {
