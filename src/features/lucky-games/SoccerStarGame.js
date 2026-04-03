@@ -313,8 +313,9 @@
             avatarContainer
           );
 
-          /* Click → MiniProfile: Bound immediately after rendering to ensure non-intercepted events */
-          const openUser = () => {
+          /* Click → MiniProfile: Enhanced capture logic for both frame and image */
+          const openUser = (e) => {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
             const currentUid = (authUser && authUser.uid) ? authUser.uid : null;
             if (!currentUid) {
               console.warn("[SoccerStar] Cannot open Mini-Profile: No UID detected.", authUser);
@@ -330,6 +331,8 @@
             }
           };
           avatarContainer.onclick = openUser;
+          avatarContainer.style.zIndex = "999";
+          avatarContainer.style.pointerEvents = "auto";
           console.log("[SoccerStar] Click-to-profile enabled for:", authUser ? authUser.uid : "unknown");
         }
       }
@@ -460,46 +463,70 @@
         }
         hasRevealed = false; // Reset lock for new round
         if (area) area.classList.remove('disabled');
-        // Start local countdown
-        if (timeLeft > 0) {
-          timerInterval = setInterval(() => {
-            timeLeft--;
-            updateTimerUI();
-            if (timeLeft <= 0) {
-              clearInterval(timerInterval);
-              status = 'reveal';
-              if (area) area.classList.add('disabled');
 
-              // Frontend Auto-Drive: Sync round results to everybody if backend is absent
-              if (!data.lastWinnerId || data.status === 'betting') {
-                const teamsArr = Object.keys(TEAMS);
-                const rw = teamsArr[Math.floor(Math.random() * teamsArr.length)];
-                data.lastWinnerId = rw; // local fallback
+        // REAL-TIME SYNC LOGIC
+        const now = Date.now();
+        let endsAt = 0;
+        
+        if (data.timerEndsAt) {
+          endsAt = (data.timerEndsAt.toMillis) ? data.timerEndsAt.toMillis() : (typeof data.timerEndsAt === 'number' ? data.timerEndsAt : now + 30000);
+        } else {
+          // If no timerEndsAt exists, this client acts as a master for this round if it was just loaded
+          // We set it to (now + timeLeft in seconds) or default 30
+          const initialSecs = timeLeft > 0 ? timeLeft : 30;
+          endsAt = now + (initialSecs * 1000);
+          const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+          sessRef.update({ 
+            timerEndsAt: (window.firebase && window.firebase.firestore) ? window.firebase.firestore.Timestamp.fromMillis(endsAt) : endsAt
+          }).catch(e => console.warn("[SoccerStar] Failed to set timerEndsAt:", e));
+        }
 
-                const hist = data.history || [];
-                if (hist.length > 20) hist.shift();
-                hist.push(rw);
+        const syncTimer = () => {
+          const currentNow = Date.now();
+          timeLeft = Math.max(0, Math.round((endsAt - currentNow) / 1000));
+          updateTimerUI();
 
-                const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
-                sessRef.get().then(snap => {
-                  if (snap.exists && snap.data().status === 'betting') {
-                    sessRef.update({
-                      status: 'reveal',
-                      lastWinnerId: rw,
-                      timer: 0,
-                      history: hist
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            status = 'reveal';
+            if (area) area.classList.add('disabled');
+
+            // Frontend Auto-Drive: Sync round results
+            if (!data.lastWinnerId || data.status === 'betting') {
+              const teamsArr = Object.keys(TEAMS);
+              const rw = teamsArr[Math.floor(Math.random() * teamsArr.length)];
+              const hist = data.history || [];
+              if (hist.length > 20) hist.shift();
+              hist.push(rw);
+
+              const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+              sessRef.get().then(snap => {
+                if (snap.exists && snap.data().status === 'betting') {
+                  sessRef.update({
+                    status: 'reveal',
+                    lastWinnerId: rw,
+                    timer: 0,
+                    history: hist,
+                    timerEndsAt: null // clear for next round
+                  });
+                  setTimeout(() => {
+                    sessRef.update({ 
+                      status: 'betting', 
+                      timer: 30, 
+                      lastWinnerId: null,
+                      timerEndsAt: (window.firebase && window.firebase.firestore) ? window.firebase.firestore.Timestamp.fromMillis(Date.now() + 30000) : (Date.now() + 30000)
                     });
-                    // Reset back to betting round after 8s
-                    setTimeout(() => {
-                      sessRef.update({ status: 'betting', timer: 30, lastWinnerId: null });
-                    }, 8000);
-                  }
-                }).catch(err => console.log(err));
-              }
-
-              this.revealResult(data);
+                  }, 8000);
+                }
+              }).catch(err => console.log(err));
             }
-          }, 1000);
+            this.revealResult(data);
+          }
+        };
+
+        if (timeLeft > 0 || endsAt > now) {
+          timerInterval = setInterval(syncTimer, 1000);
+          syncTimer(); // Immediate first run
         }
       } else {
         if (area) area.classList.add('disabled');
