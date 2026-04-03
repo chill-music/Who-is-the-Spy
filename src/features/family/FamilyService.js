@@ -429,8 +429,10 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
 
     var today = new Date().toDateString();
     var userTodayKey = `${currentUID}_${today}`;
-    var costPerSpin = 600; // Fixed cost as per requirement
-    var maxPaid = 50;      // Fixed limit as per requirement
+    
+    // 🧠 Dynamic Logic from config
+    var costPerSpin = currentGachaConfig.paidCostPerSpin || 600; 
+    var maxPaid = currentGachaConfig.maxPaidSpinsDaily || 50;
 
     if (mode === 'free') {
         var lastFree = family.gachaFreeLastUsed;

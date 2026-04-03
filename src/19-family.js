@@ -81,75 +81,45 @@
   //
   // ── لتغيير صورة أي جائزة: غير imageURL من null لرابط صورة/GIF ──
   // ── لتغيير نسبة الظهور: غير weight (الإجمالي ~10000) ──
-  var GACHA_CONFIG = {
-    paidCostPerSpin: 200, // Intel من رصيد اللاعب لكل سحبة مدفوعة
+  // ── GACHA CONFIG BASIC (Clans Level 1-4) ──
+  var GACHA_CONFIG_BASIC = {
+    paidCostPerSpin: 600,
     maxPaidSpinsDaily: 50,
     rewards: [
-    // ── خاتم كاريزما — نادر جداً ──
-    { weight: 20, type: 'charisma', amount: 20000, rarity: 'legendary', icon: '💍', imageURL: null,
-      label_en: '+20K Charisma Ring', label_ar: 'خاتم كاريزما 20K',
-      rateDisplay: '0.2%' },
-
-    // ── إطارات عادية (تدعم GIF) ──
-    // imageURL: ضع رابط صورة/GIF للإطار هنا
-    { weight: 300, type: 'frame', frameId: 'frame_temp_1d', duration: 1, rarity: 'rare', icon: '🖼️', imageURL: null,
-      label_en: 'Frame 1 Day', label_ar: 'إطار يوم واحد', rateDisplay: '3%' },
-    { weight: 200, type: 'frame', frameId: 'frame_temp_3d', duration: 3, rarity: 'rare', icon: '🖼️', imageURL: null,
-      label_en: 'Frame 3 Days', label_ar: 'إطار 3 أيام', rateDisplay: '2%' },
-    { weight: 150, type: 'frame', frameId: 'frame_temp_7d', duration: 7, rarity: 'epic', icon: '🖼️', imageURL: null,
-      label_en: 'Frame 7 Days', label_ar: 'إطار 7 أيام', rateDisplay: '1.5%' },
-
-    // ── إطارات متحركة GIF ──
-    // imageURL: ضع رابط GIF للإطار المتحرك هنا
-    { weight: 200, type: 'frame_anim', frameId: 'frame_anim_1d', duration: 1, rarity: 'rare', icon: '✨', imageURL: null,
-      label_en: 'Animated Frame 1 Day', label_ar: 'إطار متحرك يوم', rateDisplay: '2%' },
-    { weight: 150, type: 'frame_anim', frameId: 'frame_anim_3d', duration: 3, rarity: 'epic', icon: '✨', imageURL: null,
-      label_en: 'Animated Frame 3 Days', label_ar: 'إطار متحرك 3 أيام', rateDisplay: '1.5%' },
-    { weight: 100, type: 'frame_anim', frameId: 'frame_anim_7d', duration: 7, rarity: 'legendary', icon: '✨', imageURL: null,
-      label_en: 'Animated Frame 7 Days', label_ar: 'إطار متحرك 7 أيام', rateDisplay: '1%' },
-
-    // ── هدايا ──
-    { weight: 200, type: 'gift', giftId: 'gift_racecar', qty: 1, rarity: 'epic', icon: '🏎️', imageURL: null,
-      label_en: 'Gift 2000 Intel', label_ar: 'هدية 2000 إنتل', rateDisplay: '2%' },
-    { weight: 500, type: 'gift', giftId: 'gift_crown', qty: 1, rarity: 'rare', icon: '👑', imageURL: null,
-      label_en: 'Gift 520 Intel', label_ar: 'هدية 520 إنتل', rateDisplay: '5%' },
-    { weight: 1000, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'uncommon', icon: '🎂', imageURL: null,
-      label_en: 'Gift 200 Intel', label_ar: 'هدية 200 إنتل', rateDisplay: '10%' },
-    { weight: 1200, type: 'gift', giftId: 'gift_coffee', qty: 1, rarity: 'uncommon', icon: '☕', imageURL: null,
-      label_en: 'Gift 120 Intel', label_ar: 'هدية 120 إنتل', rateDisplay: '12%' },
-    { weight: 1500, type: 'gift', giftId: 'gift_teddy', qty: 1, rarity: 'common', icon: '🧸', imageURL: null,
-      label_en: 'Gift 50 Intel', label_ar: 'هدية 50 إنتل', rateDisplay: '15%' },
-
-    // ── عملة الموقع Intel ──
-    { weight: 1500, type: 'currency', amount: 30, rarity: 'common', icon: '🧠', imageURL: null,
-      label_en: '+30 Intel', label_ar: '+30 إنتل', rateDisplay: '15%' },
-    { weight: 800, type: 'currency', amount: 555, rarity: 'uncommon', icon: '🧠', imageURL: null,
-      label_en: '+555 Intel', label_ar: '+555 إنتل', rateDisplay: '8%' },
-    { weight: 300, type: 'currency', amount: 1688, rarity: 'rare', icon: '🧠', imageURL: null,
-      label_en: '+1688 Intel', label_ar: '+1688 إنتل', rateDisplay: '3%' },
-
-    // ── عملة القبيلة ──
-    { weight: 1000, type: 'coins', amount: 30, rarity: 'common', icon: '🏅', imageURL: null,
-      label_en: '+30 Coins', label_ar: '+30 عملة قبيلة', rateDisplay: '10%' },
-    { weight: 500, type: 'coins', amount: 50, rarity: 'uncommon', icon: '🏅', imageURL: null,
-      label_en: '+50 Coins', label_ar: '+50 عملة قبيلة', rateDisplay: '5%' },
-    { weight: 300, type: 'coins', amount: 88, rarity: 'rare', icon: '🏅', imageURL: null,
-      label_en: '+88 Coins', label_ar: '+88 عملة قبيلة', rateDisplay: '3%' },
-    { weight: 100, type: 'coins', amount: 1688, rarity: 'legendary', icon: '🏅', imageURL: null,
-      label_en: '+1688 Coins', label_ar: '+1688 عملة قبيلة', rateDisplay: '1%' },
-
-    // ── صناديق القبيلة (نادرة جداً) ──
-    { weight: 33, type: 'chest', chestType: 'normal', rarity: 'legendary', icon: '📦', imageURL: null,
-      label_en: 'Normal Chest', label_ar: 'صندوق عادي', rateDisplay: '0.33%' },
-    { weight: 33, type: 'chest', chestType: 'advanced', rarity: 'legendary', icon: '🎁', imageURL: null,
-      label_en: 'Advanced Chest', label_ar: 'صندوق متقدم', rateDisplay: '0.33%' },
-    { weight: 34, type: 'chest', chestType: 'rare', rarity: 'legendary', icon: '💠', imageURL: null,
-      label_en: 'Rare Chest', label_ar: 'صندوق نادر', rateDisplay: '0.34%' }]
-
+      { weight: 400, type: 'frame', frameId: 'frame_temp_1d', duration: 1, rarity: 'rare', icon: '🖼️', imageURL: null, label_en: 'Frame 1 Day', label_ar: 'إطار يوم واحد' },
+      { weight: 300, type: 'frame', frameId: 'frame_temp_3d', duration: 3, rarity: 'rare', icon: '🖼️', imageURL: null, label_en: 'Frame 3 Days', label_ar: 'إطار 3 أيام' },
+      { weight: 1000, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'uncommon', icon: '🎂', imageURL: null, label_en: 'Gift 200 Intel', label_ar: 'هدية 200 إنتل' },
+      { weight: 1500, type: 'gift', giftId: 'gift_teddy', qty: 1, rarity: 'common', icon: '🧸', imageURL: null, label_en: 'Gift 50 Intel', label_ar: 'هدية 50 إنتل' },
+      { weight: 2000, type: 'currency', amount: 30, rarity: 'common', icon: '🧠', imageURL: null, label_en: '+30 Intel', label_ar: '+30 إنتل' },
+      { weight: 1000, type: 'currency', amount: 555, rarity: 'uncommon', icon: '🧠', imageURL: null, label_en: '+555 Intel', label_ar: '+555 إنتل' },
+      { weight: 1500, type: 'coins', amount: 30, rarity: 'common', icon: '🏅', imageURL: null, label_en: '+30 Coins', label_ar: '+30 عملة قبيلة' },
+      { weight: 800, type: 'coins', amount: 50, rarity: 'uncommon', icon: '🏅', imageURL: null, label_en: '+50 Coins', label_ar: '+50 عملة قبيلة' }
+    ]
   };
-  window.GACHA_CONFIG = GACHA_CONFIG;
-  window.GACHA_CONFIG_BASIC = GACHA_CONFIG;
-  window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG;
+
+  // ── GACHA CONFIG PREMIUM (Clans Level 5+) ──
+  var GACHA_CONFIG_PREMIUM = {
+    paidCostPerSpin: 600,
+    maxPaidSpinsDaily: 50,
+    rewards: [
+      { weight: 20, type: 'charisma', amount: 20000, rarity: 'legendary', icon: '💍', label_en: '+20K Charisma Ring', label_ar: 'خاتم كاريزما 20K' },
+      { weight: 300, type: 'frame', frameId: 'frame_temp_1d', duration: 1, rarity: 'rare', icon: '🖼️', label_en: 'Frame 1 Day', label_ar: 'إطار يوم واحد' },
+      { weight: 150, type: 'frame', frameId: 'frame_temp_7d', duration: 7, rarity: 'epic', icon: '🖼️', label_en: 'Frame 7 Days', label_ar: 'إطار 7 أيام' },
+      { weight: 100, type: 'frame_anim', frameId: 'frame_anim_7d', duration: 7, rarity: 'legendary', icon: '✨', label_en: 'Animated Frame 7 Days', label_ar: 'إطار متحرك 7 أيام' },
+      { weight: 200, type: 'gift', giftId: 'gift_racecar', qty: 1, rarity: 'epic', icon: '🏎️', label_en: 'Gift 2000 Intel', label_ar: 'هدية 2000 إنتل' },
+      { weight: 500, type: 'gift', giftId: 'gift_crown', qty: 1, rarity: 'rare', icon: '👑', label_en: 'Gift 520 Intel', label_ar: 'هدية 520 إنتل' },
+      { weight: 1500, type: 'gift', giftId: 'gift_teddy', qty: 1, rarity: 'common', icon: '🧸', label_en: 'Gift 50 Intel', label_ar: 'هدية 50 إنتل' },
+      { weight: 1500, type: 'currency', amount: 30, rarity: 'common', icon: '🧠', label_en: '+30 Intel', label_ar: '+30 إنتل' },
+      { weight: 300, type: 'currency', amount: 1688, rarity: 'rare', icon: '🧠', label_en: '+1688 Intel', label_ar: '+1688 إنتل' },
+      { weight: 100, type: 'coins', amount: 1688, rarity: 'legendary', icon: '🏅', label_en: '+1688 Coins', label_ar: '+1688 عملة قبيلة' },
+      { weight: 33, type: 'chest', chestType: 'normal', rarity: 'legendary', icon: '📦', label_en: 'Normal Chest', label_ar: 'صندوق عادي' },
+      { weight: 34, type: 'chest', chestType: 'rare', rarity: 'legendary', icon: '💠', label_en: 'Rare Chest', label_ar: 'صندوق نادر' }
+    ]
+  };
+
+  window.GACHA_CONFIG_BASIC = GACHA_CONFIG_BASIC;
+  window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG_PREMIUM;
+  window.GACHA_CONFIG = GACHA_CONFIG_BASIC; // Fallback
 
 
   // ── ألوان نادرية الجاتشه ──

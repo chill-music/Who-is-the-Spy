@@ -31,16 +31,19 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
   var currentGachaConfig = family?.level >= 5 ? cPrem : cBasic;
   var rewards = currentGachaConfig.rewards || [];
 
+  var gachaCost = currentGachaConfig.paidCostPerSpin || 600;
+  var gachaMax = currentGachaConfig.maxPaidSpinsDaily || 50;
+
   var handleSpin = async (mode) => {
     if (spinning) return;
     if (mode === 'paid') {
-      if (spinsToday >= 50) {
-        onNotification(lang === 'ar' ? '⚠️ وصلت للحد الأقصى اليوم (50)' : '⚠️ Daily limit reached (50)');
+      if (spinsToday >= gachaMax) {
+        onNotification(lang === 'ar' ? `⚠️ وصلت للحد الأقصى اليوم (${gachaMax})` : `⚠️ Daily limit reached (${gachaMax})`);
         return;
       }
       var userCurrency = currentUserData?.currency || 0;
-      if (userCurrency < 600) {
-        onNotification(lang === 'ar' ? '❌ رصيدك غير كافٍ (تحتاج 600 💰)' : '❌ Insufficient funds (Need 600 💰)');
+      if (userCurrency < gachaCost) {
+        onNotification(lang === 'ar' ? `❌ رصيدك غير كافٍ (تحتاج ${gachaCost} 💰)` : `❌ Insufficient funds (Need ${gachaCost} 💰)`);
         return;
       }
     }
@@ -125,6 +128,13 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
           React.createElement("div", { className: "gacha-machine-container" },
             React.createElement("div", { className: "gacha-machine-frame" },
               
+              /* Gacha Header / Type Badge */
+              React.createElement("div", { className: "gacha-tier-badge" }, 
+                family?.level >= 5 
+                  ? (lang === 'ar' ? '🎰 الجاتشه المميزة' : '🎰 PREMIUM GACHA') 
+                  : (lang === 'ar' ? '🎰 الجاتشه العادية' : '🎰 BASIC GACHA')
+              ),
+
               /* Upper Chamber (Floating Gems) */
               React.createElement("div", { className: "gacha-chamber" },
                 React.createElement("div", { className: "gacha-chamber-light" }),
@@ -182,11 +192,11 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
             React.createElement("button", { 
               className: "gacha-btn gold", 
               onClick: () => handleSpin('paid'),
-              disabled: spinning || spinsToday >= 50,
-              style: { opacity: (spinning || spinsToday >= 50) ? 0.3 : 1 }
+              disabled: spinning || spinsToday >= gachaMax,
+              style: { opacity: (spinning || spinsToday >= gachaMax) ? 0.3 : 1 }
             },
-              React.createElement("span", { className: "gacha-btn-label" }, lang === 'ar' ? '600 كوينز' : '600 ROLL'),
-              React.createElement("span", { className: "gacha-btn-sub" }, lang === 'ar' ? `اليوم: ${spinsToday}/50` : `Today: ${spinsToday}/50`)
+              React.createElement("span", { className: "gacha-btn-label" }, lang === 'ar' ? `${gachaCost} كوينز` : `${gachaCost} ROLL`),
+              React.createElement("span", { className: "gacha-btn-sub" }, lang === 'ar' ? `اليوم: ${spinsToday}/${gachaMax}` : `Today: ${spinsToday}/${gachaMax}`)
             )
           ),
 
