@@ -819,6 +819,7 @@
             }
             } catch (e) {
               var msg = e.message || "";
+              if (!msg.startsWith('COOLDOWN:')) console.error(e);
               if (msg.startsWith('COOLDOWN:')) {
                 var hours = msg.split(':')[1];
                 onNotification(lang === 'ar' 
@@ -831,7 +832,13 @@
         },
         style: {
           width: '100%', padding: '12px', borderRadius: '14px', border: 'none',
-          background: family.joinType === 'open' ? 'linear-gradient(135deg, #00dbde, #0057ff)' : 'linear-gradient(135deg, #fc00ff, #7000ff)',
+          background: (() => {
+            if (currentUserData?.leftFamilyAt) {
+              var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+              if (Date.now() - leftAt < 24 * 60 * 60 * 1000) return '#374151';
+            }
+            return family.joinType === 'open' ? 'linear-gradient(135deg, #00dbde, #0057ff)' : 'linear-gradient(135deg, #fc00ff, #7000ff)';
+          })(),
           color: 'white', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
           boxShadow: '0 4px 12px rgba(0,0,0,0.2)', transition: 'all 0.2s'
         }

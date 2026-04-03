@@ -866,6 +866,18 @@ var kickMember = async ({ family, targetUID, currentUID, lang }) => {
     });
     
     await postSystemMessage(family.id, lang === 'ar' ? `🚪 تم طرد أحد الأعضاء` : `🚪 A member was kicked`);
+
+    // Bot Notification from "The Detective"
+    await botChatsCollection.add({
+        botId: 'detective_bot',
+        toUserId: targetUID,
+        type: 'family_kick',
+        message: lang === 'ar' 
+            ? `🕵️ تم إزالتك من قبيلة "${family.name || family.id}". نأمل أن تجد قبيلة جديدة تناسبك قريباً.` 
+            : `🕵️ You have been removed from the "${family.name || family.id}" family. We hope you find a new tribe that fits you soon.`,
+        read: false,
+        timestamp: TS()
+    }).catch(e => console.error('Detective Bot Kick Notification Error:', e));
 };
 
 /**

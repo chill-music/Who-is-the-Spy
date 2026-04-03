@@ -29,6 +29,7 @@ service cloud.firestore {
       allow update: if isLoggedIn() && (
         isOwnerUID() ||
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['staffRole', 'ban'])
+        // leftFamilyAt: Timestamp of when user voluntarily left a family (used for 24h cooldown)
       );
 
       allow delete: if isLoggedIn() && isOwnerUID();
