@@ -87,7 +87,20 @@ var FamilyGacha = ({ family, currentUID, currentUserData, lang, onNotification, 
 
   return (
     React.createElement(PortalModal, null,
-      React.createElement("div", { className: "modal-overlay", onClick: onClose, style: { zIndex: Z.MODAL_HIGH + 10, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' } },
+      React.createElement("div", { 
+        className: "modal-overlay", 
+        onClick: onClose, 
+        style: { 
+          zIndex: Z.MODAL_HIGH + 10, 
+          background: 'rgba(0,0,0,0.85)', 
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          padding: '40px 0',
+          overflowY: 'auto'
+        } 
+      },
         React.createElement("div", { className: "gacha-terminal-modal", onClick: (e) => e.stopPropagation() },
           
           /* ── Header Stats ── */
