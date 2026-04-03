@@ -390,6 +390,17 @@
             setShowIncomingProposal && setShowIncomingProposal(false);
         }, [lang, setNotification, setShowIncomingProposal]);
 
+        var handleDivorce = useCallback(async (coupleDoc) => {
+            if (!coupleDoc) return;
+            await window.divorceCouple({
+                coupleDocId: coupleDoc.id,
+                uid1: coupleDoc.uid1,
+                uid2: coupleDoc.uid2,
+                onNotification: setNotification,
+                lang,
+            });
+        }, [lang, setNotification]);
+
         return {
             handleGoogleLogin, handleLogout,
             createNotification, markNotificationRead, clearAllNotifications, handleNotificationClick,
@@ -399,7 +410,7 @@
             submitSpyWordGuess, submitMrWhiteLocationGuess, spyVoluntaryDeclare, addBotToRoom, removeBotFromRoom,
             openProfile, openPrivateChat, closePrivateChat, handleSendRequest, handleAddFriendById, handleAcceptRequest, handleRejectRequest,
             handlePurchase, handleBuyVIP, handleEquip, handleUnequip, handleSendGiftToUser,
-            handleSendProposal, handleAcceptProposal, handleDeclineProposal
+            handleSendProposal, handleAcceptProposal, handleDeclineProposal, handleDivorce
         };
     };
 })();

@@ -72,7 +72,10 @@
       handleAcceptProposal, handleDeclineProposal, handlePurchase, handleEquip, handleUnequip,
       handleBuyVIP, markNotificationRead, clearAllNotifications, handleNotificationClick,
       createNotification, openPrivateChat, setShowPrivateChat: setShowPrivateChatFn,
-      resetGame, handleLeaveRoom
+      resetGame, handleLeaveRoom,
+      // Marriage Actions
+      handleAcceptProposal, handleDeclineProposal, handleDivorce,
+      shopInitialTab, setShopInitialTab
     } = props;
 
     // Re-export some setters to window so non-React code can use them
@@ -190,6 +193,7 @@
         onClose: () => setShowShop(false),
         userData: isLoggedIn ? userData : props.guestData,
         lang: lang,
+        initialTab: shopInitialTab,
         onPurchase: handlePurchase,
         onEquip: handleEquip,
         onUnequip: handleUnequip,
@@ -292,9 +296,16 @@
         currentUserData: userData,
         coupleData: coupleData,
         partnerData: partnerData,
-        onOpenPropose: () => {if (setShowWeddingHall) setShowWeddingHall(false);setShowShop(true);},
+        partnerData: partnerData,
+        onOpenPropose: () => {
+          if (setShowWeddingHall) setShowWeddingHall(false);
+          if (setShopInitialTab) setShopInitialTab('rings');
+          setShowShop(true);
+        },
         onOpenCoupleCard: () => {if (setShowWeddingHall) setShowWeddingHall(false);if (setShowCoupleCard) setShowCoupleCard(true);},
-        onDivorce: () => {},
+        onAccept: handleAcceptProposal,
+        onDecline: handleDeclineProposal,
+        onDivorce: handleDivorce,
         onNotification: setNotification }
       ),
 

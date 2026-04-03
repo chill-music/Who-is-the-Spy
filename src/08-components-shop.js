@@ -18,9 +18,15 @@
   // ═══════════════════════════════════════════════════════════════
   // 🛒  SHOP MODAL — Premium Dark Gaming Store
   // ═══════════════════════════════════════════════════════════════
-  var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard }) => {
+  var ShopModal = ({ show, onClose, userData, lang, onPurchase, onEquip, onUnequip, onOpenInventory, onPropose, currentUID, coupleData, onOpenCoupleCard, initialTab = 'frames' }) => {
     var t = TRANSLATIONS[lang];
-    var [activeTab, setActiveTab] = useState('frames');
+    var [activeTab, setActiveTab] = useState(initialTab);
+
+    useEffect(() => {
+      if (show && initialTab) {
+        setActiveTab(initialTab);
+      }
+    }, [show, initialTab]);
     var [activeGiftSubTab, setActiveGiftSubTab] = useState('all'); // ✅ New gift sub-tab state
     var [selectedItem, setSelectedItem] = useState(null);
     var [showPreview, setShowPreview] = useState(false);
