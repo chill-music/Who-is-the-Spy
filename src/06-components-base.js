@@ -167,7 +167,7 @@
       top: '50%', 
       left: '50%', 
       transform: 'translate(-50%, -50%)', 
-      zIndex: 2, 
+      zIndex: 10, 
       border: (shouldScreenBlend || isAnimated) ? 'none' : '2px solid rgba(255,255,255,0.12)', 
       boxShadow: (shouldScreenBlend || isAnimated) ? 'none' : '0 4px 12px rgba(0,0,0,0.4)', 
       filter: showBan ? 'grayscale(80%) brightness(0.4)' : 'none',
@@ -202,7 +202,7 @@
           style: { 
             position: 'absolute', 
             inset: 0, 
-            zIndex: 10, 
+            zIndex: 1, 
             pointerEvents: 'none',
             display: 'flex',
             alignItems: 'center',
@@ -248,7 +248,7 @@
     );
 
     return (/*#__PURE__*/
-      React.createElement("div", { style: { position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }, onClick: onClick },
+      React.createElement("div", { style: { position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0, isolation: 'isolate' }, onClick: onClick },
         renderFrame(),
         displayIsImageURL ? /*#__PURE__*/
           React.createElement("img", {
