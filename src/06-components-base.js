@@ -156,6 +156,7 @@
       photoURL.toLowerCase().includes('.gif') || 
       photoURL.toLowerCase().includes('.webp')
     );
+
     
     // Standardized Avatar Style (Matches Big Profile precision)
     var avatarStyle = { 
@@ -188,6 +189,13 @@
 
       // Handle CSS Gradients vs Image URLs
       var isGradient = frameUrl.includes('linear-gradient') || frameUrl.includes('radial-gradient');
+      var frameNeedsScreenBlend = !isGradient && (
+        frameUrl.toLowerCase().includes('.gif') || 
+        frameUrl.toLowerCase().includes('fickle') || 
+        frameUrl.toLowerCase().includes('pure') || 
+        frameUrl.toLowerCase().includes('effect') || 
+        frameUrl.toLowerCase().includes('animate')
+      );
 
       return (/*#__PURE__*/
         React.createElement("div", { 
@@ -200,7 +208,7 @@
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '50%',
-            overflow: 'hidden'
+            overflow: 'visible' // Allow parts to go slightly outside
           } 
         }, isGradient ? /*#__PURE__*/
           React.createElement("div", { 
@@ -217,7 +225,9 @@
             style: { 
               width: '100%', 
               height: '100%', 
-              objectFit: 'contain'
+              objectFit: 'contain',
+              mixBlendMode: frameNeedsScreenBlend ? 'screen' : 'normal',
+              pointerEvents: 'none'
             }, 
             alt: "frame",
             onError: (e) => { e.target.style.display = 'none'; }
@@ -225,17 +235,29 @@
         ));
     };
 
+    var displayPhotoURL = photoURL;
+    if (photoURL && frameItem && (photoURL === frameItem.preview || photoURL === frameItem.imageUrl)) {
+      displayPhotoURL = `https://ui-avatars.com/api/?name=User&background=random`;
+    }
+
+    var displayIsImageURL = displayPhotoURL && (
+      displayPhotoURL.startsWith('http') || 
+      displayPhotoURL.startsWith('data:') || 
+      displayPhotoURL.startsWith('/') ||
+      displayPhotoURL.startsWith('icos/')
+    );
+
     return (/*#__PURE__*/
       React.createElement("div", { style: { position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }, onClick: onClick },
         renderFrame(),
-        isImageURL ? /*#__PURE__*/
+        displayIsImageURL ? /*#__PURE__*/
           React.createElement("img", {
-            src: photoURL, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar",
+            src: displayPhotoURL, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar",
             onError: (e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=User&background=random`; }
           }) :
-          photoURL ? /*#__PURE__*/
+          displayPhotoURL ? /*#__PURE__*/
             React.createElement("div", { style: { ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', fontSize: Math.round(config.avatar * 0.52) + 'px', userSelect: 'none' } },
-              photoURL
+              displayPhotoURL
             ) : /*#__PURE__*/
 
             React.createElement("img", { src: `https://ui-avatars.com/api/?name=User&background=random`, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar" }),

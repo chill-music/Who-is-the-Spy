@@ -117,6 +117,19 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
   !banData.expiresAt ||
   new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
 
+  var isGradientFrame = frameStyle && frameStyle.preview && (frameStyle.preview.includes('linear-gradient') || frameStyle.preview.includes('radial-gradient'));
+  var frameNeedsScreenBlendV11 = frameStyle && !isGradientFrame && (
+    frameStyle.preview.toLowerCase().includes('.gif') || 
+    frameStyle.preview.toLowerCase().includes('fickle') || 
+    frameStyle.preview.toLowerCase().includes('pure') || 
+    frameStyle.preview.toLowerCase().includes('effect') || 
+    frameStyle.preview.toLowerCase().includes('animate')
+  );
+
+  var displayPhotoURL = photoURL;
+  if (photoURL && frameStyle && photoURL === frameStyle.preview) {
+    displayPhotoURL = `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`;
+  }
 
   return (/*#__PURE__*/
     React.createElement("div", { className: "profile-avatar-container", style: {
@@ -144,8 +157,8 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
         pointerEvents: 'none'
       } },
 
-    frameStyle.preview.startsWith('http') ? /*#__PURE__*/
-    React.createElement("img", { src: frameStyle.preview, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain' } }) // Changed 'cover' to 'contain' for frames
+    !isGradientFrame ? /*#__PURE__*/
+    React.createElement("img", { src: frameStyle.preview, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: frameNeedsScreenBlendV11 ? 'screen' : 'normal' } }) // Changed 'cover' to 'contain' for frames
     : /*#__PURE__*/
     React.createElement("div", { style: {
         width: '100%',
@@ -170,7 +183,7 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
         overflow: hasImageEffect ? 'hidden' : 'visible'
       } }, /*#__PURE__*/
     React.createElement("img", {
-      src: photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`,
+      src: displayPhotoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`,
       alt: "",
       className: "profile-avatar",
       style: {
