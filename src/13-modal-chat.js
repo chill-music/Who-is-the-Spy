@@ -685,22 +685,16 @@
               marginBottom: isLastGroup ? '4px' : '1px'
             } }, /*#__PURE__*/
 
-          React.createElement("div", { style: { width: '28px', flexShrink: 0, alignSelf: 'flex-end' } },
+          React.createElement("div", { style: { width: '28px', flexShrink: 0, alignSelf: 'flex-end', position: 'relative' } },
           showAvatar ? /*#__PURE__*/
-          React.createElement("img", {
-            src: isMine ?
-            currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName || 'U')}&background=6366f1&color=fff&size=56` :
-            msg.senderPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.senderName || 'U')}&background=6366f1&color=fff&size=56`,
-            alt: "",
-            onClick: () => openMiniProfile(msg.senderId),
-            style: {
-              width: '28px', height: '28px', borderRadius: '50%',
-              objectFit: 'cover', cursor: 'pointer',
-              border: msgVipCfg ? `1.5px solid ${msgVipCfg.nameColor}` : '1.5px solid rgba(0,242,255,0.15)',
-              boxShadow: msgVipCfg ? `0 0 6px ${msgVipCfg.nameColor}55` : 'none'
-            } }
-          ) : /*#__PURE__*/
-          React.createElement("div", { style: { width: '28px' } })
+          React.createElement(window.AvatarWithFrame, {
+            photoURL: isMine ? (currentUser?.photoURL || currentUser?.photo) : (msg.senderPhoto || msg.senderPhotoURL),
+            equipped: isMine ? currentUser?.equipped : msg.senderEquipped,
+            size: 'xs',
+            lang: lang,
+            onClick: () => openMiniProfile(msg.senderId)
+          }) : /*#__PURE__*/
+          React.createElement("div", { style: { width: '28px', height: '28px' } })
           ), /*#__PURE__*/
 
 

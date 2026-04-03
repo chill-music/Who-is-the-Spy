@@ -138,8 +138,13 @@
 
     var isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
     
-    // Detect if this is an effect (GIF or specified via data)
-    var isEffect = photoURL && (photoURL.toLowerCase().endsWith('.gif') || photoURL.toLowerCase().endsWith('.webp')) || equipped?.isEffect;
+    // Detect if this is an effect (GIF, WebP, or specified via data)
+    var isEffect = photoURL && (
+      photoURL.toLowerCase().includes('.gif') || 
+      photoURL.toLowerCase().includes('.webp') || 
+      photoURL.toLowerCase().includes('effect') ||
+      photoURL.toLowerCase().includes('animate')
+    ) || equipped?.isEffect;
     
     // Standardized Avatar Style (Matches Big Profile precision)
     var avatarStyle = { 
@@ -451,10 +456,12 @@
               ),
               (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '36px', height: '36px', marginLeft: '-10px' } },
                 e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
-                  e("div", { className: "mp-cp-thumb", style: { inset: '2px' } },
-                    e("div", { className: "mp-cp-thumb-inner" },
-                      e("img", { src: partnerData.photo || partnerData.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerData.name)}` })
-                    )
+                  e("div", { className: "mp-cp-thumb", style: { inset: '2px', position: 'relative' } },
+                    e(AvatarWithFrame, {
+                      photoURL: partnerData.photo || partnerData.photoURL,
+                      size: 'xs',
+                      lang: lang
+                    })
                   ),
                   e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
                 )

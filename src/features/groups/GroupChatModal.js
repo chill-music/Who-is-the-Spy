@@ -63,10 +63,15 @@
       React.createElement("button", { onClick: onClose, style: { background: 'none', border: 'none', color: '#00f2ff', fontSize: '20px', cursor: 'pointer', padding: '0 4px', lineHeight: 1 } }, "\u2039"), /*#__PURE__*/
       React.createElement("div", {
         onClick: () => setShowDetails(true),
-        style: { width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, overflow: 'hidden', cursor: 'pointer' } },
+        style: { width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(167,139,250,0.3),rgba(112,0,255,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0, overflow: 'hidden', cursor: 'pointer', position: 'relative' } },
 
       activeGroup.photoURL ? /*#__PURE__*/
-      React.createElement("img", { src: activeGroup.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) :
+      React.createElement(window.AvatarWithFrame, {
+        photoURL: activeGroup.photoURL,
+        size: "sm",
+        lang: lang,
+        equipped: { isEffect: activeGroup.photoURL.includes('.gif') }
+      }) :
       '👨‍👩‍👧'
       ), /*#__PURE__*/
       React.createElement("div", { style: { flex: 1, minWidth: 0, cursor: 'pointer' }, onClick: () => setShowDetails(true) }, /*#__PURE__*/
@@ -110,9 +115,14 @@
           var vipCfgRP = window.getVIPConfig(msg.senderVipLevel);
           return (/*#__PURE__*/
             React.createElement("div", { key: msg.id, style: { display: 'flex', flexDirection: isMeRP ? 'row-reverse' : 'row', gap: '7px', alignItems: 'flex-end', marginBottom: '4px' } }, /*#__PURE__*/
-            React.createElement("div", { onClick: () => openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }),
-              style: { width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: vipCfgRP ? `2px solid ${vipCfgRP.nameColor}` : '2px solid rgba(255,255,255,0.1)' } },
-            msg.senderPhoto ? /*#__PURE__*/React.createElement("img", { src: msg.senderPhoto, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px' } }, "\uD83D\uDE0E")
+            React.createElement("div", { onClick: () => claimRedPacket(msg.rpId), 
+              style: { width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', flexShrink: 0, cursor: 'pointer', position: 'relative' } },
+            React.createElement(window.AvatarWithFrame, {
+              photoURL: msg.senderPhoto,
+              size: "xs",
+              lang: lang,
+              equipped: { isEffect: msg.senderPhoto?.includes('.gif'), frames: msg.senderFrame }
+            })
             ), /*#__PURE__*/
             React.createElement("div", { style: { maxWidth: 'min(220px, calc(100vw - 90px))' } }, /*#__PURE__*/
             React.createElement("div", { onClick: () => openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }),
@@ -145,13 +155,14 @@
         var nameColor = vipCfgMsg ? vipCfgMsg.nameColor : isMe ? '#00f2ff' : '#a78bfa';
         return (/*#__PURE__*/
           React.createElement("div", { key: msg.id, style: { display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: '7px', alignItems: 'flex-end' } }, /*#__PURE__*/
-          React.createElement("div", { style: { position: 'relative', width: '30px', height: '30px', flexShrink: 0 } }, /*#__PURE__*/
-          React.createElement("div", {
-            onClick: () => openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }),
-            style: { width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', overflow: 'hidden', cursor: 'pointer', border: vipCfgMsg ? `2px solid ${vipCfgMsg.nameColor}` : '2px solid rgba(255,255,255,0.1)', boxShadow: vipCfgMsg ? `0 0 6px ${vipCfgMsg.nameColor}66` : 'none', position: 'relative' } },
-          msg.senderPhoto ? /*#__PURE__*/React.createElement("img", { src: msg.senderPhoto, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' } }, "\uD83D\uDE0E"),
-          msg.senderFrame && /*#__PURE__*/React.createElement("img", { src: msg.senderFrame, alt: "", onError: (e) => e.target.style.display = 'none', style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' } })
-          )
+          React.createElement("div", { style: { position: 'relative', width: '30px', height: '30px', flexShrink: 0 } }, 
+          React.createElement(window.AvatarWithFrame, {
+            photoURL: msg.senderPhoto,
+            equipped: { frames: msg.senderFrame, badges: msg.senderBadges, isEffect: msg.senderPhoto?.includes('.gif') },
+            size: "xs",
+            lang: lang,
+            onClick: () => openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto })
+          })
           ), /*#__PURE__*/
           React.createElement("div", { style: { maxWidth: 'min(70%, calc(100vw - 80px))' } }, /*#__PURE__*/
           React.createElement("div", { style: { marginBottom: '2px', paddingLeft: isMe ? 0 : '4px', paddingRight: isMe ? '4px' : 0 } }, /*#__PURE__*/

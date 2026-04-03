@@ -622,6 +622,12 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
                   isLoggedIn && currentUserData && /*#__PURE__*/
                   React.createElement("div", { onClick: () => setShowSelfChat(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: '1px solid var(--new-border)', cursor: 'pointer' }, className: "me-friend-row" }, /*#__PURE__*/
+                    React.createElement(window.AvatarWithFrame, {
+                      photoURL: currentUserData.photoURL || currentUserData.photo,
+                      equipped: currentUserData.equipped || { frames: currentUserData.equippedFrame },
+                      size: "sm",
+                      lang: lang
+                    }),
                     React.createElement("div", { style: { flex: 1, minWidth: 0 } },
                       window.PlayerNameTag ? /*#__PURE__*/
                         React.createElement(window.PlayerNameTag, { player: currentUserData, lang: lang, size: "sm" }) : /*#__PURE__*/
@@ -685,12 +691,14 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                         return (/*#__PURE__*/
                           React.createElement("div", { key: friend.id, onClick: () => gameActions.openProfile(friend.id), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderBottom: '1px solid var(--new-border)', cursor: 'pointer' }, className: "me-friend-row" }, /*#__PURE__*/
                             React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
-                              React.createElement("div", { style: { width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', border: fVipCfg ? `2px solid ${fVipCfg.nameColor}` : '2px solid rgba(255,255,255,0.1)', boxShadow: fVipCfg ? `0 0 8px ${fVipCfg.nameColor}44` : 'none' } },
-                                friend.photoURL ? /*#__PURE__*/
-                                  React.createElement("img", { src: friend.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
-                                  React.createElement("div", { style: { width: '100%', height: '100%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#6b7280', fontWeight: 700 } }, (friend.displayName || 'U')[0].toUpperCase())
-                              ), /*#__PURE__*/
-                              React.createElement("div", { style: { position: 'absolute', bottom: '0px', right: '0px', width: '9px', height: '9px', borderRadius: '50%', background: sc, border: '1.5px solid #0a0a14' } })
+                              React.createElement(window.AvatarWithFrame, {
+                                photoURL: friend.photoURL,
+                                equipped: friend.equipped || { frames: friend.equippedFrame },
+                                size: "sm",
+                                lang: lang,
+                                status: friend.onlineStatus || 'offline'
+                              }),
+                              React.createElement("div", { style: { position: 'absolute', bottom: '0px', right: '0px', width: '9px', height: '9px', borderRadius: '50%', background: sc, border: '1.5px solid #0a0a14', zIndex: 11 } })
                             ), /*#__PURE__*/
                             React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /*#__PURE__*/
                               React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap', marginBottom: fBadgeIds.length > 0 || fTitleItem ? '2px' : '0' } }, /*#__PURE__*/
