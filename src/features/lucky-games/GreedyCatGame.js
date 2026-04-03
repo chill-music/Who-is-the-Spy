@@ -788,16 +788,8 @@
     };
     $('gc-btn-record').onclick = function() { GreedyCatGame.openRecord(); };
 
-    /* Render Avatar — plain img only, no React component conflict with #gc-avatar-mount */
-    var mount = $('gc-avatar-mount');
-    if (mount) {
-      var photo = S.currentUser && S.currentUser.photoURL ? S.currentUser.photoURL : '';
-      /* Simple <img> fills #gc-avatar-mount exactly.
-         Golden ring = #gc-avatar-box conic-gradient (box) + inset:3px (mount) */
-      mount.innerHTML = photo
-        ? '<img src="' + photo.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" onerror="this.src=\'https://ui-avatars.com/api/?name=U&background=6366f1&color=fff\'" />'
-        : '<div style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:20px;">😺</div>';
-    }
+    /* Render Avatar — React component */
+    syncUserAvatar();
 
     subscribeSync();
   };
@@ -812,5 +804,26 @@
     }
     if (rootEl) rootEl.innerHTML = '';
   };
+
+  function syncUserAvatar() {
+    var mount = $('gc-avatar-mount');
+    if (!mount) return;
+    var photoURL = S.currentUser ? S.currentUser.photoURL : null;
+    if (window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+      window.ReactDOM.render(
+        window.React.createElement(window.AvatarWithFrameV11, {
+          photoURL: photoURL,
+          equipped: S.currentUser ? S.currentUser.equipped : null,
+          size: 'sm',
+          lang: lang
+        }),
+        mount
+      );
+    } else {
+      mount.innerHTML = photoURL 
+        ? '<img src="' + photoURL + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />'
+        : '<div style="width:100%;height:100%;border-radius:50%;background:#ccc;display:flex;align-items:center;justify-content:center;">😺</div>';
+    }
+  }
 
 })();
