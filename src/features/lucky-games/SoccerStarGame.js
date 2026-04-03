@@ -312,6 +312,25 @@
             }),
             avatarContainer
           );
+
+          /* Click → MiniProfile: Bound immediately after rendering to ensure non-intercepted events */
+          const openUser = () => {
+            const currentUid = (authUser && authUser.uid) ? authUser.uid : null;
+            if (!currentUid) {
+              console.warn("[SoccerStar] Cannot open Mini-Profile: No UID detected.", authUser);
+              return;
+            }
+            if (typeof window.openLuckyGamesMiniProfile === 'function') {
+              window.openLuckyGamesMiniProfile(currentUid);
+            } else if (typeof window.openMiniProfile === 'function') {
+              window.openMiniProfile(currentUid);
+            } else if (typeof window.setMiniProfileUID !== 'undefined') {
+              window.setMiniProfileUID(currentUid);
+              if (window.setShowMiniProfile) window.setShowMiniProfile(true);
+            }
+          };
+          avatarContainer.onclick = openUser;
+          console.log("[SoccerStar] Click-to-profile enabled for:", authUser ? authUser.uid : "unknown");
         }
       }
       console.log("[SoccerStar] Game started for:", authUser ? authUser.uid : "Guest");
@@ -361,27 +380,6 @@
       document.getElementById('nextPageBtn').onclick = () => { recordsPage++; this.renderRecords(); };
 
       // MVP / Winner Profile
-      const openUser = () => {
-        const currentUid = (authUser && authUser.uid) ? authUser.uid : null;
-        if (!currentUid) {
-          console.warn("[SoccerStar] Cannot open Mini-Profile: No UID detected.", authUser);
-          return;
-        }
-        if (typeof window.openLuckyGamesMiniProfile === 'function') {
-          window.openLuckyGamesMiniProfile(currentUid);
-        } else if (typeof window.openMiniProfile === 'function') {
-          window.openMiniProfile(currentUid);
-        } else if (typeof window.setMiniProfileUID !== 'undefined') {
-          window.setMiniProfileUID(currentUid);
-          if (window.setShowMiniProfile) window.setShowMiniProfile(true);
-        }
-      };
-      const avatarContainer = document.getElementById('userAvatarContainer');
-      if (avatarContainer) {
-        avatarContainer.onclick = openUser;
-        console.log("[SoccerStar] Avatar click-to-profile enabled for:", authUser ? authUser.uid : "unknown");
-      }
-
       document.getElementById('resultWinnerPhoto').onclick = () => {
         const winnerId = document.getElementById('resultWinnerPhoto').dataset.uid;
         if (!winnerId) return;

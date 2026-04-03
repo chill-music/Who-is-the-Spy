@@ -277,8 +277,8 @@
 
       /* ── top nav ── */
       '.s7-top-nav{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;border-bottom:1px solid rgba(212,175,55,0.12);}',
-      '.s7-avatar{width:40px;height:40px;position:relative;cursor:pointer;flex-shrink:0;margin-top:-6px;margin-left:-2px;}',
-      '.s7-username{flex:1;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:20px;margin-top:-6px;display:flex;align-items:center;height:40px;}',
+      '.s7-avatar{width:34px;height:34px;position:relative;cursor:pointer;flex-shrink:0;margin-top:-4px;margin-left:2px;}',
+      '.s7-username{flex:1;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:14px;margin-top:-4px;display:flex;align-items:center;height:34px;}',
       '.s7-balance-chip{display:flex;align-items:center;gap:5px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:20px;padding:4px 10px;}',
       '.s7-balance-chip span:first-child{font-size:14px;}',
       '.s7-bal-val{font-size:13px;font-weight:900;color:#FFDF73;font-family:"Orbitron",monospace;direction:ltr;}',
