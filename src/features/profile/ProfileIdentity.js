@@ -33,6 +33,7 @@ var ProfileIdentity = ({
     React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' } }, /*#__PURE__*/
     React.createElement(window.VIPName, {
       userData: targetData,
+      displayName: targetData?.displayName,
       className: "profile-name" }
     ), /*#__PURE__*/
     React.createElement(window.VIPBadge, {

@@ -375,9 +375,10 @@
 
   // ════ VIP NAME COMPONENT — اسم الـ VIP بالتأثيرات الصح ════
   var VIPName = ({ displayName, userData, className = '', style = {} }) => {
+    var name = displayName || userData?.displayName || userData?.name || '—';
     var level = getVIPLevel(userData);
     if (!level) {
-      return /*#__PURE__*/React.createElement("span", { className: className, style: style }, displayName);
+      return /*#__PURE__*/React.createElement("span", { className: className, style: style }, name);
     }
     var cfg = VIP_CONFIG[level - 1];
 
@@ -389,12 +390,13 @@
           style: {
             color: cfg.nameColor,
             textShadow: `0 0 10px ${cfg.glowColor}, 0 0 20px ${cfg.glowColor}`,
+            '--vip-shimmer-color': cfg.glowColor,
             position: 'relative',
             ...style
           } },
 
-        displayName, /*#__PURE__*/
-        React.createElement("span", { className: "vip-name-gradient-overlay", "aria-hidden": "true" }, displayName)
+        name, /*#__PURE__*/
+        React.createElement("span", { className: "vip-name-gradient-overlay", "aria-hidden": "true" }, name)
         ));
 
     }
@@ -409,14 +411,14 @@
             ...style
           } },
 
-        displayName
+        name
         ));
 
     }
     // VIP 1-5: red
     return (/*#__PURE__*/
       React.createElement("span", { className: className, style: { color: cfg.nameColor, ...style } },
-      displayName
+      name
       ));
 
   };
