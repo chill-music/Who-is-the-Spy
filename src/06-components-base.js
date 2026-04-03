@@ -124,7 +124,7 @@
   // Avatar with Frame
   var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     var sizeConfig = {
-      xs: { wrapper: 32, avatar: 20, frameSize: 32 },
+      xs: { wrapper: 28, avatar: 20, frameSize: 28 },
       sm: { wrapper: 56, avatar: 36, frameSize: 56 },
       md: { wrapper: 72, avatar: 48, frameSize: 72 },
       lg: { wrapper: 90, avatar: 58, frameSize: 90 },
@@ -175,6 +175,9 @@
       var frameUrl = frameItem.preview || frameItem.imageUrl;
       if (!frameUrl) return null;
 
+      // Handle CSS Gradients vs Image URLs
+      var isGradient = frameUrl.includes('linear-gradient') || frameUrl.includes('radial-gradient');
+
       return (/*#__PURE__*/
         React.createElement("div", { 
           style: { 
@@ -184,9 +187,20 @@
             pointerEvents: 'none',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            borderRadius: '50%',
+            overflow: 'hidden'
           } 
-        }, /*#__PURE__*/
+        }, isGradient ? /*#__PURE__*/
+          React.createElement("div", { 
+            style: { 
+              width: '100%', 
+              height: '100%', 
+              background: frameUrl,
+              opacity: 0.8,
+              borderRadius: '50%'
+            } 
+          }) : /*#__PURE__*/
           React.createElement("img", {
             src: frameUrl, 
             style: { 

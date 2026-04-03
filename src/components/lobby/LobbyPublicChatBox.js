@@ -99,10 +99,10 @@
           React.createElement("div", { key: msg.id || i, style: { display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: '6px', alignItems: 'flex-end' } }, /*#__PURE__*/
 
           React.createElement("div", { 
-            style: { width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, cursor: 'pointer', background: 'rgba(255,255,255,0.08)', position: 'relative' } },
+            style: { width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, cursor: 'pointer', position: 'relative' } },
           React.createElement(window.AvatarWithFrame, {
             photoURL: msg.senderPhoto,
-            equipped: { frames: msg.senderFrame, badges: msg.senderBadges, isEffect: msg.senderPhoto?.includes('.gif') },
+            equipped: { frames: msg.senderFrame, badges: msg.senderBadges },
             size: "xs",
             lang: lang,
             onClick: () => openMini(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto })
