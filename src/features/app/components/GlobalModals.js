@@ -125,7 +125,13 @@
       window.TutorialModal && /*#__PURE__*/
       React.createElement(window.TutorialModal, {
         show: showTutorial,
-        onClose: () => {if (setShowTutorial) setShowTutorial(false);localStorage.setItem('pro_spy_tutorial_v2', 'true');},
+        onClose: () => {
+          if (setShowTutorial) setShowTutorial(false);
+          localStorage.setItem('pro_spy_tutorial_v2', 'true');
+          if (user && !user.isAnonymous && window.usersCollection) {
+            window.usersCollection.doc(user.uid).update({ tutorial_v2_done: true }).catch(() => {});
+          }
+        },
         lang: lang }
       ),
 

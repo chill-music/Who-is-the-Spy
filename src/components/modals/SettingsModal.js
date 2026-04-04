@@ -97,21 +97,21 @@
       React.createElement("span", null, "\uD83D\uDC64"), /*#__PURE__*/
       React.createElement("span", null, lang === 'ar' ? 'معلومات الحساب' : 'Account Info')
       ), /*#__PURE__*/
-      React.createElement("div", { style: { padding: '16px', borderRadius: '12px', background: 'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))', border: '1px solid rgba(0,242,255,0.15)', textAlign: 'center' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '32px', marginBottom: '8px' } }, "\uD83D\uDD12"), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: 'white', marginBottom: '4px' } },
-      lang === 'ar' ? 'حساب زائر' : 'Guest Account'
+      React.createElement("div", { style: { padding: '16px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(185, 28, 28, 0.05))', border: '1px solid rgba(239, 68, 68, 0.4)', textAlign: 'center' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '32px', marginBottom: '8px' } }, "\u26A0\uFE0F"), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#fca5a5', marginBottom: '4px' } },
+      lang === 'ar' ? 'تحذير مسح البيانات لزائر' : 'Guest Data Loss Warning'
       ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', marginBottom: '14px' } },
-      lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'
+      React.createElement("div", { style: { fontSize: '11px', color: '#fecaca', marginBottom: '14px', lineHeight: 1.4 } },
+      lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.'
       ), /*#__PURE__*/
       React.createElement("button", { onClick: onLoginGoogle, className: "btn-google", style: {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           width: '100%', padding: '12px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-          fontSize: '13px'
+          fontSize: '13px', fontWeight: 800
         } }, /*#__PURE__*/
       React.createElement("img", { src: "https://www.google.com/favicon.ico", alt: "G", style: { width: '18px', height: '18px' } }),
-      lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'
+      lang === 'ar' ? 'حفظ التقدم (دخول بجوجل)' : 'Link Google & Save Progress'
       )
       )
       ),

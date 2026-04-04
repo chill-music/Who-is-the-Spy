@@ -24,8 +24,23 @@
 
   // Guest Banner
   var GuestBanner = ({ lang }) => {
+    var [dismissed, setDismissed] = useState(() => localStorage.getItem('pro_spy_guest_banner') === 'true');
+    if (dismissed) return null;
+    
     var t = TRANSLATIONS[lang];
-    return /*#__PURE__*/React.createElement("div", { className: "guest-banner" }, " ", /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title" }, t.guestTitle), " ", /*#__PURE__*/React.createElement("p", { className: "guest-banner-desc" }, t.guestDesc), " ");
+    var desc = lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.';
+    
+    return /*#__PURE__*/React.createElement("div", { className: "guest-banner", style: { position: 'relative', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.05))', border: '1px solid rgba(239, 68, 68, 0.4)', paddingRight: '28px', textAlign: 'left' } }, 
+      /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title", style: { color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '6px' } }, "⚠️ ", lang === 'ar' ? 'تحذير للزوار' : 'Guest Warning'), 
+      /*#__PURE__*/React.createElement("p", { className: "guest-banner-desc", style: { color: '#fecaca', fontSize: '11px', lineHeight: 1.4, marginTop: '4px' } }, desc),
+      /*#__PURE__*/React.createElement("button", {
+        onClick: () => {
+          setDismissed(true);
+          localStorage.setItem('pro_spy_guest_banner', 'true');
+        },
+        style: { position: 'absolute', top: '8px', right: '12px', background: 'none', border: 'none', color: '#fca5a5', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: 0 }
+      }, "×")
+    );
   };
 
   // Notification Toast — Modern sliding pill from top
