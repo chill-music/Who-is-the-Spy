@@ -116,6 +116,7 @@ var FamilySearch = ({
           : `⏳ You must wait ${hours} hours before joining another family`;
       } else if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
       else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
+      else if (e.message === 'Already in a family') errorMsg = lang === 'ar' ? 'أنت بالفعل عضو في قبيلة' : 'You are already in a family';
       else if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة' : 'This family no longer exists';
 
       _alert({
@@ -213,15 +214,19 @@ var FamilySearch = ({
               onNotification(lang === 'ar' ? '⏳ لا يمكنك إنشاء قبيلة أثناء فترة الانتظار' : '⏳ You cannot create a family during cooldown');
               return;
             }
+            if (currentUserData?.familyId) {
+              onNotification(lang === 'ar' ? 'أنت بالفعل عضو في قبيلة' : 'You are already in a family');
+              return;
+            }
             setView('create');
           }, 
           style: { 
             padding: '6px 16px', borderRadius: '20px', 
-            background: isCooldown ? 'rgba(255,255,255,0.05)' : 'rgba(0,219,222,0.1)', 
-            border: isCooldown ? '1px solid rgba(255,255,255,0.1)' : '1px solid #00dbde', 
-            color: isCooldown ? '#6b7280' : '#00dbde', 
+            background: (isCooldown || currentUserData?.familyId) ? 'rgba(255,255,255,0.05)' : 'rgba(0,219,222,0.1)', 
+            border: (isCooldown || currentUserData?.familyId) ? '1px solid rgba(255,255,255,0.1)' : '1px solid #00dbde', 
+            color: (isCooldown || currentUserData?.familyId) ? '#6b7280' : '#00dbde', 
             fontSize: '14px', fontWeight: 600, cursor: 'pointer', 
-            boxShadow: isCooldown ? 'none' : '0 2px 8px rgba(0,219,222,0.15)' 
+            boxShadow: (isCooldown || currentUserData?.familyId) ? 'none' : '0 2px 8px rgba(0,219,222,0.15)' 
           } 
         },
         lang === 'ar' ? 'إنشاء' : 'Create'
@@ -324,6 +329,7 @@ var FamilySearch = ({
             style: { 
               padding: '8px 20px', borderRadius: '20px', 
               background: (() => {
+                if (currentUserData?.familyId) return '#374151';
                 if (currentUserData?.leftFamilyAt) {
                   var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
                   if (Date.now() - leftAt < 24 * 60 * 60 * 1000) return '#374151';

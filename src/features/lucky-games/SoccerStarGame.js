@@ -626,13 +626,19 @@
     },
 
     showWinPopup: function (session, myBonus, myInput = 0) {
+      const popup = document.getElementById('resultPopup');
+      if (!popup) return;
+
       const winnerId = session.lastWinnerId;
       const team = TEAMS[winnerId];
-      const popup = document.getElementById('resultPopup');
 
       // Temporary fallback until DB load finishes
-      document.getElementById('resultWinnerImg').src = session.winnerPhoto || (authUser ? authUser.photoURL : 'icos/idon.png');
-      document.getElementById('resultWinnerPhoto').dataset.uid = session.winnerUid || (authUser ? authUser.uid : '');
+      const winnerImg = document.getElementById('resultWinnerImg');
+      if (winnerImg) {
+        winnerImg.src = session.winnerPhoto || (authUser ? authUser.photoURL : 'icos/idon.png');
+      }
+      const winnerPhoto = document.getElementById('resultWinnerPhoto');
+      if (winnerPhoto) winnerPhoto.dataset.uid = session.winnerUid || (authUser ? authUser.uid : '');
 
       document.getElementById('resClubLogo').src = team.logo;
       document.getElementById('resClubName').textContent = team.name;
@@ -663,6 +669,8 @@
 
     fetchRoundWinners: async function (roundId, myBonus = 0, myInput = 0) {
       const listEl = document.getElementById('topRoundWinnersList');
+      if (!listEl) return;
+
       // Fetch up to 5 to easily find MVP + runners up
       const snap = await window.db.collection('lucky_games_sessions').doc('soccer_star').collection('recent_winners')
         .orderBy('timestamp', 'desc').limit(5).get();

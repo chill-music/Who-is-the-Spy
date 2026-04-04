@@ -818,6 +818,8 @@
                 onNotification(lang === 'ar' 
                   ? `⏳ يجب الانتظار ${hours} ساعة قبل الانضمام لقبيلة أخرى` 
                   : `⏳ You must wait ${hours} hours before joining another family`);
+              } else if (msg === 'Already in a family') {
+                onNotification(lang === 'ar' ? 'أنت بالفعل عضو في قبيلة' : 'You are already in a family');
               } else {
                 onNotification(msg || (lang === 'ar' ? '❌ فشل الانضمام' : '❌ Failed to join'));
               }
@@ -826,6 +828,7 @@
         style: {
           width: '100%', padding: '12px', borderRadius: '14px', border: 'none',
           background: (() => {
+            if (currentUserData?.familyId) return '#374151';
             if (currentUserData?.leftFamilyAt) {
               var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
               if (Date.now() - leftAt < 24 * 60 * 60 * 1000) return '#374151';

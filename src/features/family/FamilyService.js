@@ -666,11 +666,13 @@ var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, current
     return ref.id;
 };
 
-/**
- * Join an existing family.
- */
 var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
     if (!currentUID || !familyId) return null;
+
+    if (currentUserData && currentUserData.familyId) {
+        throw new Error('Already in a family');
+    }
+
     var snap = await familiesCollection.doc(familyId).get();
     if (!snap.exists) throw new Error('Family not found');
     var fd = snap.data();
