@@ -19,12 +19,14 @@
             if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'wins') {
                 var unsub = usersCollection.orderBy('stats.wins', 'desc').limit(100).onSnapshot(snap => {
                     var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                        .filter(d => !d.isAnonymous)
                         .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                     setLeaderboardData(data);
                 }, error => {
                     // Fallback to static fetch if snapshot fails
                     usersCollection.limit(100).get().then(snap => {
                         var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                            .filter(d => !d.isAnonymous)
                             .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                         data.sort((a, b) => (b.stats?.wins || 0) - (a.stats?.wins || 0));
                         setLeaderboardData(data);
@@ -39,11 +41,13 @@
             if ((activeView === 'leaderboard' || activeView === 'ranking') && leaderboardTab === 'charisma') {
                 var unsub = usersCollection.orderBy('charisma', 'desc').limit(100).onSnapshot(snap => {
                     var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                        .filter(d => !d.isAnonymous)
                         .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                     setCharismaLeaderboard(data);
                 }, error => {
                     usersCollection.limit(100).get().then(snap => {
                         var data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                            .filter(d => !d.isAnonymous)
                             .filter(d => typeof getUserRole === 'function' ? !getUserRole(d, d.id) : true);
                         data.sort((a, b) => (b.charisma || 0) - (a.charisma || 0));
                         setCharismaLeaderboard(data);

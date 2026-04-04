@@ -144,11 +144,7 @@
             { id: 'title_hunter', name_en: "Hunter", name_ar: "صياد", cost: 450, type: 'titles', preview: '🎯', imageUrl: '', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "50%", textLeft: "50%", fontSize: "10px" },
             { id: 'title_ghost', name_en: "Ghost", name_ar: "شبح", cost: 800, type: 'titles', preview: '👻', imageUrl: '', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "50%", textLeft: "50%", fontSize: "10px" },
             { id: 'title_legend', name_en: "Legend", name_ar: "أسطورة", cost: 1500, type: 'titles', preview: '👑', imageUrl: '', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "50%", textLeft: "50%", fontSize: "10px" },
-<<<<<<< HEAD
-            { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '', imageUrl: 'icos/Titles/tittest.png', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "69%", textLeft: "50%", fontSize: "6px" },
-=======
             { id: 'title_pro', name_en: "Pro Player", name_ar: "محترف", cost: 1000, type: 'titles', preview: '', imageUrl: 'icos/Titles/tittest.png', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "68%", textLeft: "50%", fontSize: "6px" },
->>>>>>> 5e3ce2891ff3e4e51894fb025520f0484d1486a0
             { id: 'title_shadow', name_en: "Shadow", name_ar: "ظل", cost: 700, type: 'titles', preview: '', imageUrl: 'icos/Titles/Titles%20Shehab.png', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "53%", textLeft: "56%", fontSize: "9px" },
             // ════ UNCOMMON TITLES ════
             { id: 'title_rookie', name_en: "Rookie", name_ar: "مبتدئ", cost: 80, type: 'titles', rarity: 'Uncommon', preview: '🌱', imageUrl: '', hidden: false, isEvent: false, limitedTime: false, eventOnly: false, durationDays: null, season: null, textTop: "50%", textLeft: "55%", fontSize: "10px" },
