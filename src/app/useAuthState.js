@@ -115,12 +115,17 @@
                         unsubSnapGlobal = userRef.onSnapshot(function(snap) {
                             if (snap.exists) {
                                 var data = snap.data();
-                                // Ignore stale ghost accounts from local cache
-                                if (isNewUser && !data.customId && !data.displayName) {
-                                    console.warn('[Auth] Ignoring stale cached ghost document.');
+                                // Ignore stale ghost accounts from local cache (no name & no customId = empty shell)
+                                if (!data.customId && !data.displayName) {
+                                    console.warn('[Auth] Ignoring stale cached ghost document — treating as new user.');
+                                    setUserData(null);
+                                    // Re-trigger onboarding via the effect
                                     return;
                                 }
                                 applyUserData(data);
+                            } else if (isNewUser) {
+                                // doc deleted after we started listening — re-open onboarding
+                                setUserData(null);
                             }
                         }, function(error) {
                             console.error('[Auth] Firestore listener error:', error);
@@ -132,15 +137,34 @@
                         .then(function(serverDoc) {
                             if (serverDoc.exists) {
                                 var existingData = serverDoc.data();
+                                // If the doc exists but is a ghost (no name/id = DB was wiped and re-created empty shell)
+                                if (!existingData.customId && !existingData.displayName) {
+                                    console.warn('[Auth] Server doc is a ghost shell (no customId/displayName) — treating as new user.');
+                                    setUserData(null);
+                                    setUserDataLoading(false);
+                                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                    // Directly trigger onboarding — don't wait for effect
+                                    var userRef2 = usersCollection.doc(u.uid);
+                                    setOnboardingGoogleUser(u);
+                                    setPendingNewUserRef(userRef2);
+                                    setShowOnboarding(true);
+                                    setupRealtimeListener(true);
+                                    return;
+                                }
                                 applyUserData(existingData);
                                 setUserDataLoading(false);
                                 if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                                 setupRealtimeListener(false);
                             } else {
                                 // Confirmed absent on server — genuinely new user
+                                console.log('[Auth] Confirmed no doc on server — new user, opening onboarding.');
                                 setUserData(null);
                                 setUserDataLoading(false);
                                 if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                // Directly open onboarding here (don't wait for effect race)
+                                setOnboardingGoogleUser(u);
+                                setPendingNewUserRef(userRef);
+                                setShowOnboarding(true);
                                 // Phase B: real-time listener (also fires when onboarding creates the doc)
                                 setupRealtimeListener(true);
                             }
