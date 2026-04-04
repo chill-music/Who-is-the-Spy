@@ -63,7 +63,7 @@
                         window._googleLoginInProgress = true;
                         await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
                         await auth.signInWithRedirect(provider);
-                    } catch (_) { 
+                    } catch (_) {
                         window._googleLoginInProgress = false;
                     }
                 }
