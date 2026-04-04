@@ -19,10 +19,9 @@
         var [userDataLoading, setUserDataLoading] = useState(true);
 
         useEffect(() => {
-            console.log("Onboarding check: authLoading=" + authLoading + " userDataLoading=" + userDataLoading + " user=" + (user ? user.uid : "null") + " userData=" + (userData ? JSON.stringify(userData).slice(0, 50) + "..." : "null"));
+            // Only log + act when all conditions for a new-user are potentially met
             if (!authLoading && !userDataLoading && user !== null && user && !user.isAnonymous && !userData && !window._googleLoginInProgress) {
-                // Only NOW show onboarding - confirmed new user
-                console.log("!!! TRIGGERING ONBOARDING - CONFIRMED NEW USER !!!");
+                console.log("[Auth] Confirmed new user — showing onboarding (uid=" + user.uid + ")");
                 var userRef = usersCollection.doc(user.uid);
                 setOnboardingGoogleUser(user);
                 setPendingNewUserRef(userRef);
