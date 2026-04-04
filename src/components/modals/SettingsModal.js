@@ -11,6 +11,8 @@
     var [showEmailLocal, setShowEmailLocal] = useState(false);
     var [editingName, setEditingName] = useState(false);
     var [newName, setNewName] = useState('');
+    var [editingBirthDate, setEditingBirthDate] = useState(false);
+    var [newBirthDate, setNewBirthDate] = useState('');
 
     var myRole = useMemo(() => getUserRole(userData, user?.uid), [userData, user?.uid]);
     var myRoleCfg = ROLE_CONFIG[myRole];
@@ -252,7 +254,25 @@
 
       React.createElement("div", { className: "settings-account-row", style: { marginTop: '8px' } }, /*#__PURE__*/
       React.createElement("span", { className: "settings-account-label" }, "🎂 ", lang === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'), /*#__PURE__*/
-      React.createElement("span", { className: "settings-account-value", style: { color: '#9ca3af' } }, userData?.birthDate || (lang === 'ar' ? 'غير محدد' : 'Not Set'))
+      
+      editingBirthDate ? /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', gap: '4px' } }, /*#__PURE__*/
+      React.createElement("input", { type: "date", className: "input-dark", style: { padding: '4px 8px', fontSize: '11px', borderRadius: '6px', width: '120px' }, value: newBirthDate, onChange: (e) => setNewBirthDate(e.target.value), max: new Date().toISOString().split("T")[0] }), /*#__PURE__*/
+      React.createElement("button", { className: "btn-neon", style: { padding: '2px 8px', fontSize: '10px', borderRadius: '6px' }, onClick: async () => {
+          if (newBirthDate && user) {
+            await usersCollection.doc(user.uid).update({ birthDate: newBirthDate });
+            onNotification(lang === 'ar' ? 'تم الحفظ!' : 'Saved!');
+            setEditingBirthDate(false);
+          }
+        } }, "\u2713"), /*#__PURE__*/
+      React.createElement("button", { className: "btn-ghost", style: { padding: '2px 6px', fontSize: '10px', borderRadius: '6px' }, onClick: () => setEditingBirthDate(false) }, "\u2715")
+      ) : /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
+      React.createElement("span", { className: "settings-account-value", style: { color: userData?.birthDate ? '' : '#9ca3af' } }, userData?.birthDate || (lang === 'ar' ? 'غير محدد' : 'Not Set')), /*#__PURE__*/
+      !userData?.birthDate && /*#__PURE__*/
+      React.createElement("button", { onClick: () => {setNewBirthDate('');setEditingBirthDate(true);}, className: "settings-eye-btn" }, "\u270F\uFE0F")
+      )
+      
       ), /*#__PURE__*/
 
       React.createElement("div", { style: { marginTop: '8px' } }, /*#__PURE__*/

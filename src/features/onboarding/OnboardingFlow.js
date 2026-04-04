@@ -181,7 +181,10 @@
 
       React.createElement("div", { className: "onboarding-field" }, /*#__PURE__*/
       React.createElement("label", { className: "onboarding-label" },
-      lang === 'ar' ? '🎂 تاريخ الميلاد' : '🎂 Date of Birth'
+      lang === 'ar' ? '🎂 تاريخ الميلاد' : '🎂 Date of Birth', /*#__PURE__*/
+      React.createElement("span", { style: { color: '#6b7280', fontWeight: 400, fontSize: '11px', marginRight: '4px', marginLeft: '4px' } }, "(",
+      lang === 'ar' ? 'اختياري' : 'optional', ")"
+      )
       ), /*#__PURE__*/
       React.createElement("input", {
         type: "date",
@@ -257,8 +260,8 @@
       React.createElement("div", { className: "onboarding-footer" }, /*#__PURE__*/
       React.createElement("button", {
         onClick: handleComplete,
-        disabled: !displayName.trim() || !gender || !birthDate,
-        className: `onboarding-submit-btn ${!displayName.trim() || !gender || !birthDate ? 'disabled' : ''}` },
+        disabled: !displayName.trim() || !gender,
+        className: `onboarding-submit-btn ${!displayName.trim() || !gender ? 'disabled' : ''}` },
 
       lang === 'ar' ? '🚀 ابدأ اللعب!' : '🚀 Start Playing!'
       )
