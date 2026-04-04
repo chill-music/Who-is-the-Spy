@@ -120,16 +120,14 @@
                         style: { backgroundImage: `url('${slot.asset}')` } 
                       })
                     ), /*#__PURE__*/
-                    React.createElement("div", { className: "podium-info-new" }, /*#__PURE__*/
-                      React.createElement("div", { className: "podium-name-new" }, slot.p.displayName || slot.p.name), /*#__PURE__*/
-                      React.createElement("div", { className: "podium-score-new" }, fmt(getVal(slot.p)))
-                    )
+                    React.createElement("div", { className: "podium-name" }, slot.p.displayName || slot.p.name), /*#__PURE__*/
+                    React.createElement("div", { className: "podium-score" }, fmt(getVal(slot.p)))
                   )
                 ))
               ), /*#__PURE__*/
 
               React.createElement("div", { className: "lb-list-new" },
-                data.length > 3 ? rest.map((player, i) => {
+                rest.map((player, i) => {
                   var rank = i + 4;
                   var isMe = (player.id || player.uid) === window.__currentUID;
                   return (/*#__PURE__*/
@@ -145,7 +143,7 @@
                       React.createElement("div", { className: `lb-val-new ${leaderboardTab === 'charisma' ? 'gold' : ''}` }, fmt(getVal(player)))
                     ));
 
-                }) : null,
+                }),
                 data.length === 0 && /*#__PURE__*/React.createElement("div", { style: { padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' } }, "\uD83C\uDFC6 ", lang === 'ar' ? 'لا توجد بيانات بعد' : 'No data yet')
               )
             ));
