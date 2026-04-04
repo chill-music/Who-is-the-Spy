@@ -19,8 +19,8 @@
         var [userDataLoading, setUserDataLoading] = useState(true);
 
         useEffect(() => {
-            console.log("Onboarding check: authLoading=" + authLoading + " userDataLoading=" + userDataLoading + " userData=" + (userData ? JSON.stringify(userData).slice(0, 50) + "..." : "null"));
-            if (!authLoading && !userDataLoading && user && !user.isAnonymous && !userData && !window._googleLoginInProgress) {
+            console.log("Onboarding check: authLoading=" + authLoading + " userDataLoading=" + userDataLoading + " user=" + (user ? user.uid : "null") + " userData=" + (userData ? JSON.stringify(userData).slice(0, 50) + "..." : "null"));
+            if (!authLoading && !userDataLoading && user !== null && user && !user.isAnonymous && !userData && !window._googleLoginInProgress) {
                 // Only NOW show onboarding - confirmed new user
                 console.log("!!! TRIGGERING ONBOARDING - CONFIRMED NEW USER !!!");
                 var userRef = usersCollection.doc(user.uid);
@@ -127,14 +127,23 @@
                         setUserDataLoading(false);
                         if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                     });
-                } else {
+                } else if (u === null) {
+                    // Not authenticated — show login screen only, never trigger onboarding
+                    console.log('[Auth] No user session — showing login screen');
                     setUser(null);
                     setUserData(null);
                     setAuthLoading(false);
                     setUserDataLoading(false);
+                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                    return; // Stop here — do not fall through to any further logic
+                } else {
+                    // Anonymous / guest user — no Firestore listener needed
+                    setUser(null);
+                    setUserData(null);
+                    setAuthLoading(false);
+                    setUserDataLoading(false);
+                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                 }
-                /* ── Hide boot screen (guest or no user) ── */
-                if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
             });
             return () => {
                 unsubAuth();
