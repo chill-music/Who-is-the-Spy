@@ -72,17 +72,7 @@
             });
         });
 
-        // Automatically reload when a new service worker takes over
-        var refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-            if (refreshing) return;
-            refreshing = true;
-            
-            // Wait for auth to be ready before reloading
-            var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
-                unsubscribe(); // Stop listening
-                window.location.reload();
-            });
-        });
+        // Auto-reload disabled intentionally.
+        // Waiting for the next natural page load avoids interrupting Firebase Auth's initialization flow.
     }
 })();

@@ -167,7 +167,7 @@ var LAZY = [
 
 /* ── INSTALL: cache only critical files (fast) ──────────────── */
 self.addEventListener('install', function(event) {
-  self.skipWaiting(); /* Activate immediately — don't wait for old SW */
+  /* Wait for the next natural page navigation to activate the new SW */
   event.waitUntil(
     caches.open(CACHE_V).then(function(cache) {
       return Promise.allSettled(
@@ -185,8 +185,7 @@ self.addEventListener('install', function(event) {
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     Promise.all([
-      /* 1. Claim all clients immediately */
-      self.clients.claim(),
+      /* 1. (clients.claim removed - wait for natural navigation) */
 
       /* 2. Delete old cache versions */
       caches.keys().then(function(keys) {
