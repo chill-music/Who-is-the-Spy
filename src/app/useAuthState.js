@@ -56,6 +56,7 @@
                     }
                     /* All other errors (including auth/invalid-action) are safe to ignore */
                 });
+            var unsubSnapGlobal = null;
 
             /* ── 2. Primary auth state listener ────────────────────────────── */
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
@@ -72,50 +73,60 @@
                     setAuthLoading(false);
                     var userRef = usersCollection.doc(u.uid);
                     
-                    console.log("userData loading started");
-                    var doc = await userRef.get();
-                    if (!doc.exists) {
-                        console.log("userData received: null (doc does not exist)");
-                        setUserData(null);
-                        setUserDataLoading(false);
-                        console.log("userDataLoading set to false");
-                    } else {
-                        var existingData = doc.data();
-                        console.log("userData received: " + JSON.stringify(existingData).slice(0, 100) + "...");
-                        setUserData(existingData);
-                        if (existingData.displayName) setNickname(existingData.displayName);
-                        
-                        // Load saved language from Firestore
-                        if (existingData.lang && (existingData.lang === 'ar' || existingData.lang === 'en')) {
-                            setLang(existingData.lang);
-                            localStorage.setItem('pro_spy_lang', existingData.lang);
-                        }
-
-                        // Check login rewards cycle
-                        if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(existingData)) {
-                            await userRef.update({ 
-                                'loginRewards.currentDay': 0, 
-                                'loginRewards.streak': 0, 
-                                'loginRewards.cycleMonth': getCurrentCycleMonth() 
-                            });
-                        }
-
-                        // Real-time user data sync
-                        var unsubSnap = userRef.onSnapshot(snap => {
-                            if (snap.exists) {
-                                var d = snap.data();
-                                setUserData(d);
-                                if (d.displayName) setNickname(d.displayName);
+                    console.log("userData loading started via onSnapshot");
+                    
+                    if (unsubSnapGlobal) unsubSnapGlobal();
+                    
+                    unsubSnapGlobal = userRef.onSnapshot((doc) => {
+                        if (doc.exists) {
+                            var existingData = doc.data();
+                            console.log("userData received: " + JSON.stringify(existingData).slice(0, 100) + "...");
+                            setUserData(existingData);
+                            if (existingData.displayName) setNickname(existingData.displayName);
+                            
+                            // Load saved language from Firestore
+                            if (existingData.lang && (existingData.lang === 'ar' || existingData.lang === 'en')) {
+                                setLang(existingData.lang);
+                                localStorage.setItem('pro_spy_lang', existingData.lang);
                             }
-                        });
-                        
+
+                            // Check login rewards cycle
+                            if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(existingData)) {
+                                userRef.update({ 
+                                    'loginRewards.currentDay': 0, 
+                                    'loginRewards.streak': 0, 
+                                    'loginRewards.cycleMonth': getCurrentCycleMonth() 
+                                }).catch(()=>{});
+                            }
+                            
+                            setUserDataLoading(false);
+                            console.log("userDataLoading set to false");
+                            
+                            /* ── Hide boot screen when user data is ready ── */
+                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                        } else {
+                            console.log("userData snapshot says doc does not exist. Waiting 3 seconds to confirm...");
+                            // Wait 3 seconds before concluding new user
+                            // (gives Firestore time to fully connect)
+                            setTimeout(() => {
+                                // Check one more time before showing onboarding
+                                userRef.get().then((freshDoc) => {
+                                    if (!freshDoc.exists) {
+                                        console.log("userData received: null (confirmed doc does not exist after 3s)");
+                                        setUserData(null);
+                                        setUserDataLoading(false);
+                                        console.log("userDataLoading set to false (confirmed new user)");
+                                        /* ── Hide boot screen ── */
+                                        if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                    }
+                                });
+                            }, 3000);
+                        }
+                    }, (error) => {
+                        console.error('Firestore connection error:', error);
                         setUserDataLoading(false);
-                        console.log("userDataLoading set to false");
-                        
-                        /* ── Hide boot screen when user data is ready ── */
                         if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                        return () => unsubSnap();
-                    }
+                    });
                 } else {
                     setUser(null);
                     setUserData(null);
@@ -125,7 +136,10 @@
                 /* ── Hide boot screen (guest or no user) ── */
                 if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
             });
-            return unsubAuth;
+            return () => {
+                unsubAuth();
+                if (unsubSnapGlobal) unsubSnapGlobal();
+            };
         }, []);
 
         var isLoggedIn = !!user;
