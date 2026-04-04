@@ -452,28 +452,28 @@
     font-size: 22px;
 }
 
-/* rank-1: TOP1 badge — circle center at ~39% from top, diameter ~38% image width */
+/* rank-1: TOP1 badge — full circle (inner hole) ~28% wide, starts at 22% from top */
 .podium-rank-1 .podium-asset-container { width: 115%; margin: 0 auto; }
 .podium-rank-1 .podium-avatar-wrapper {
-    width: 38%;
+    width: 28%;
     top: 22%;
 }
 .podium-rank-1 .podium-frame-asset {
     filter: drop-shadow(0 8px 24px rgba(255,200,0,0.45));
 }
 
-/* rank-2: TOP2 badge — circle center at ~26% from top, diameter ~52% image width */
+/* rank-2: TOP2 badge — inner hole ~38% wide, sits at top of badge (~6%) */
 .podium-rank-2 .podium-asset-container { width: 96%; }
 .podium-rank-2 .podium-avatar-wrapper {
-    width: 52%;
-    top: 4%;
+    width: 38%;
+    top: 6%;
 }
 
 /* rank-3: TOP3 badge — same proportions as TOP2 */
 .podium-rank-3 .podium-asset-container { width: 90%; }
 .podium-rank-3 .podium-avatar-wrapper {
-    width: 52%;
-    top: 4%;
+    width: 38%;
+    top: 6%;
 }
 
 /* ── Name & score below the badge ── */
