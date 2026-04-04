@@ -16,9 +16,21 @@
         var [user, setUser] = useState(null);
         var [userData, setUserData] = useState(null);
         var [authLoading, setAuthLoading] = useState(true);
+        var [userDataLoading, setUserDataLoading] = useState(true);
+
+        useEffect(() => {
+            if (!authLoading && !userDataLoading && user && !user.isAnonymous && !userData) {
+                // Only NOW show onboarding - confirmed new user
+                var userRef = usersCollection.doc(user.uid);
+                setOnboardingGoogleUser(user);
+                setPendingNewUserRef(userRef);
+                setShowOnboarding(true);
+            }
+        }, [authLoading, userDataLoading, user, userData]);
 
         useEffect(() => {
             setAuthLoading(true);
+            setUserDataLoading(true);
 
             /* ── 1. Handle Google Redirect Result (mobile / PWA) ─────────────
                Must be called INSIDE React so onAuthStateChanged fires first
@@ -47,14 +59,12 @@
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
                 if (u && !u.isAnonymous) {
                     setUser(u);
+                    setAuthLoading(false);
                     var userRef = usersCollection.doc(u.uid);
                     var doc = await userRef.get();
                     if (!doc.exists) {
-                        // New user - show onboarding modal
-                        setOnboardingGoogleUser(u);
-                        setPendingNewUserRef(userRef);
-                        setAuthLoading(false);
-                        setShowOnboarding(true);
+                        setUserData(null);
+                        setUserDataLoading(false);
                     } else {
                         var existingData = doc.data();
                         setUserData(existingData);
@@ -83,7 +93,7 @@
                                 if (d.displayName) setNickname(d.displayName);
                             }
                         });
-                        setAuthLoading(false);
+                        setUserDataLoading(false);
                         /* ── Hide boot screen when user data is ready ── */
                         if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                         return () => unsubSnap();
@@ -91,8 +101,9 @@
                 } else {
                     setUser(null);
                     setUserData(null);
+                    setAuthLoading(false);
+                    setUserDataLoading(false);
                 }
-                setAuthLoading(false);
                 /* ── Hide boot screen (guest or no user) ── */
                 if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
             });
@@ -100,6 +111,6 @@
         }, []);
 
         var isLoggedIn = !!user;
-        return { user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading };
+        return { user, userData, authLoading, userDataLoading, isLoggedIn, setUser, setUserData, setAuthLoading, setUserDataLoading };
     };
 })();

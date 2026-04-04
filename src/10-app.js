@@ -118,7 +118,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     // ── Auth & Logic Hooks ──
     var [onboardingStates, setOnboardingStates] = useState({ googleUser: null, pendingRef: null, show: false });
     var [chatSubTab, setChatSubTab] = useState('friends'); // ✅ Fix: replaces DOM manipulation for chat tab switching
-    var { user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading } = useAuthState({
+    var { user, userData, authLoading, userDataLoading, isLoggedIn, setUser, setUserData, setAuthLoading } = useAuthState({
       setLang, setNickname,
       setOnboardingGoogleUser: (u) => setOnboardingStates((prev) => ({ ...prev, googleUser: u })),
       setPendingNewUserRef: (r) => setOnboardingStates((prev) => ({ ...prev, pendingRef: r })),
@@ -295,8 +295,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
     }
 
-    // 🔒 authLoading screen
-    if (authLoading) {
+    // 🔒 authLoading & userDataLoading screen
+    if (authLoading || userDataLoading) {
       return (/*#__PURE__*/
         React.createElement("div", { style: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(160deg,#060612,#0a0a1e)', flexDirection: 'column', gap: '16px' } }, /*#__PURE__*/
           React.createElement("div", { style: { fontSize: '48px', animation: 'gw-float 2s ease-in-out infinite' } }, "\uD83D\uDD75\uFE0F"), /*#__PURE__*/
