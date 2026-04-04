@@ -6,7 +6,7 @@
     var [loading, setLoading] = useState(true);
 
     useEffect(() => {
-      var unsub = feedbackCollection.orderBy('timestamp', 'desc').limit(100).onSnapshot((snap) => {
+      var unsub = feedbackCollection.orderBy('createdAt', 'desc').limit(100).onSnapshot((snap) => {
         setFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setLoading(false);
       }, () => setLoading(false));
@@ -34,7 +34,7 @@
       React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px' } }, /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '11px', fontWeight: 700, color: '#10b981' } }, f.userName || 'Anonymous'), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '10px', color: '#9ca3af' } }, f.timestamp?.toDate?.() ? f.timestamp.toDate().toLocaleString() : '')
+      React.createElement("span", { style: { fontSize: '10px', color: '#9ca3af' } }, f.createdAt?.toDate?.() ? f.createdAt.toDate().toLocaleString() : (f.timestamp?.toDate?.() ? f.timestamp.toDate().toLocaleString() : ''))
       ), /*#__PURE__*/
       React.createElement("button", { onClick: () => deleteFeedback(f.id), style: { padding: '3px 8px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: '6px', fontSize: '9px', cursor: 'pointer' } }, lang === 'ar' ? 'حذف' : 'Delete')
       ), /*#__PURE__*/

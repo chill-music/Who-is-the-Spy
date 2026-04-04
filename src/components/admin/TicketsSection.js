@@ -13,7 +13,10 @@
       var unsub = ticketsCollection.orderBy('createdAt', 'desc').limit(100).onSnapshot((snap) => {
         setTickets(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setLoading(false);
-      }, () => setLoading(false));
+      }, (err) => {
+        console.warn('Tickets access error:', err);
+        setLoading(false);
+      });
       return unsub;
     }, []);
 
@@ -32,15 +35,21 @@
           updatedAt: TS(),
           lastMessageBy: currentUser.uid
         });
+        if (window.logStaffAction) {
+          await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPLY_TICKET', ticket.userId, ticket.userName, `Replied to ticket ID: ${ticket.id}`);
+        }
         onNotification('✅ Reply sent');
         setReplyingTo(null);
         setReplyText('');
       } catch (e) {onNotification('❌ Error');}
     };
 
-    var closeTicket = async (id) => {
+    var closeTicket = async (id, userId, userName) => {
       try {
         await ticketsCollection.doc(id).update({ status: 'closed', closedAt: TS() });
+        if (window.logStaffAction) {
+          await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'CLOSE_TICKET', userId, userName, `Closed ticket ID: ${id}`);
+        }
         onNotification('✅ Ticket closed');
       } catch (e) {onNotification('❌ Error');}
     };
@@ -117,7 +126,7 @@
         style: { flex: 1, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b', padding: '8px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' } }, "\uD83D\uDCAC ",
       lang === 'ar' ? 'رد' : 'Reply'
       ), /*#__PURE__*/
-      React.createElement("button", { onClick: () => closeTicket(t.id),
+      React.createElement("button", { onClick: () => closeTicket(t.id, t.userId, t.userName),
         style: { flex: 1, background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', padding: '8px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' } }, "\u2705 ",
       lang === 'ar' ? 'إغلاق التذكرة' : 'Close'
       ), /*#__PURE__*/

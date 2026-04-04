@@ -10,8 +10,25 @@
     var [searching, setSearching] = useState(false);
 
     useEffect(() => {
-      var unsub = usersCollection.where('role', 'in', ['moderator', 'admin', 'owner']).onSnapshot((snap) => {
-        setStaff(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      var unsub = usersCollection.where('role', 'in', ['moderator', 'admin', 'owner']).onSnapshot(async (snap) => {
+        var staffData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        
+        // Also ensure AdminConfig.OWNERS are loaded if they don't have the role field
+        if (window.AdminConfig && window.AdminConfig.OWNERS) {
+          var missingOwnerUids = window.AdminConfig.OWNERS.filter(uid => !staffData.find(s => s.uid === uid));
+          for (var uid of missingOwnerUids) {
+            try {
+              var doc = await usersCollection.doc(uid).get();
+              if (doc.exists) {
+                var d = doc.data();
+                d.role = d.role || 'owner';
+                staffData.push({ id: doc.id, ...d });
+              }
+            } catch (e) {}
+          }
+        }
+        
+        setStaff(staffData);
         setLoading(false);
       });
       return unsub;
@@ -24,6 +41,9 @@
       }
       try {
         await usersCollection.doc(uid).update({ role: newRole });
+        if (window.logStaffAction) {
+          await window.logStaffAction(currentUser.uid, currentUserData?.displayName, newRole === 'user' ? 'REMOVE_STAFF' : 'ASSIGN_ROLE', uid, 'User', `Changed role to: ${newRole}`);
+        }
         onNotification('✅ Role updated');
         setEditing(null);
       } catch (e) {onNotification('❌ Error');}
@@ -38,6 +58,9 @@
           onNotification(lang === 'ar' ? '❌ المستخدم غير موجود' : '❌ User not found');
         } else {
           await usersCollection.doc(searchUID.trim()).update({ role: 'moderator' });
+          if (window.logStaffAction) {
+            await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'ASSIGN_ROLE', searchUID.trim(), res.data().displayName || 'User', 'Changed role to: moderator');
+          }
           onNotification(lang === 'ar' ? '✅ تمت إضافة المشرف' : '✅ Added as Moderator');
           setSearchUID('');
         }

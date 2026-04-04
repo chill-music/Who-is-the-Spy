@@ -9,7 +9,10 @@
       'BAN_USER': '#ef4444',
       'UNBAN_USER': '#10b981',
       'RESOLVE_REPORT': '#3b82f6',
+      'ESCALATE_REPORT': '#8b5cf6',
       'EDIT_STAFF': '#8b5cf6',
+      'ASSIGN_ROLE': '#f5af19',
+      'REMOVE_STAFF': '#ef4444',
       'SEND_GOLD': '#f59e0b',
       'BROADCAST': '#f59e0b',
       'DELETE_TICKET': '#6b7280'

@@ -13,12 +13,12 @@
       if (!tid) return;
       setSearching(true);setSearchResult(null);
       try {
-        var snap = await usersCollection.where('uid', '==', tid).limit(1).get();
-        if (snap.empty) {
+        var docSnap = await usersCollection.doc(tid).get();
+        if (docSnap.exists) {
+          setSearchResult({ id: docSnap.id, ...docSnap.data() });
+        } else {
           var snap2 = await usersCollection.where('displayName', '==', tid).limit(1).get();
           if (!snap2.empty) setSearchResult({ id: snap2.docs[0].id, ...snap2.docs[0].data() });
-        } else {
-          setSearchResult({ id: snap.docs[0].id, ...snap.docs[0].data() });
         }
       } catch (e) {}
       setSearching(false);
@@ -33,6 +33,9 @@
           'ban.unbannedBy': currentUser.uid,
           'ban.unbannedAt': TS()
         });
+        if (window.logStaffAction) {
+          await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'UNBAN_USER', searchResult.id, searchResult.displayName, 'Unbanned user via Admin Panel');
+        }
         setSearchResult({ ...searchResult, ban: { ...searchResult.ban, isBanned: false } });
         onNotification('✅ User unbanned');
       } catch (e) {onNotification('❌ Error');}
