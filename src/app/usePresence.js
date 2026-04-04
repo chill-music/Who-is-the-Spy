@@ -12,7 +12,10 @@
     window.usePresence = ({ user, isLoggedIn, userData, isGuest }) => {
         // Presence / Heartbeat Logic
         useEffect(() => {
-            if (!user || isGuest) return;
+            // CRITICAL: Must wait for userData to exist. If we write to Firestore
+            // before the user finishes onboarding, we create a "ghost" document that
+            // causes useAuthState to bypass the onboarding screen for new users!
+            if (!user || !userData || isGuest) return;
 
             // Set online immediately on login
             (async () => {
@@ -89,7 +92,7 @@
                     } catch (e) { console.error('[PRO SPY ERROR] usePresence unmount:', e); }
                 })();
             };
-        }, [user?.uid, isGuest]);
+        }, [user?.uid, isGuest, userData?.uid]);
 
         // Daily Session Start Reset
         useEffect(() => {
