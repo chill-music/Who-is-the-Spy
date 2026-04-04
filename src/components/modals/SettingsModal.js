@@ -257,9 +257,20 @@
       
       editingBirthDate ? /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', gap: '4px' } }, /*#__PURE__*/
-      React.createElement("input", { type: "date", className: "input-dark", style: { padding: '4px 8px', fontSize: '11px', borderRadius: '6px', width: '120px' }, value: newBirthDate, onChange: (e) => setNewBirthDate(e.target.value), max: new Date().toISOString().split("T")[0] }), /*#__PURE__*/
+      React.createElement("input", { type: "date", className: "input-dark", style: { padding: '4px 8px', fontSize: '11px', borderRadius: '6px', width: '120px' }, value: newBirthDate, onChange: (e) => setNewBirthDate(e.target.value), max: new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split("T")[0], min: "1920-01-01" }), /*#__PURE__*/
       React.createElement("button", { className: "btn-neon", style: { padding: '2px 8px', fontSize: '10px', borderRadius: '6px' }, onClick: async () => {
           if (newBirthDate && user) {
+            var today = new Date();
+            var dob = new Date(newBirthDate);
+            var age = today.getFullYear() - dob.getFullYear();
+            var m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            if (age < 16 || age > 100) {
+                onNotification(lang === 'ar' ? 'يرجى إدخال تاريخ ميلاد صحيح (16 - 100 سنة)' : 'Please enter a valid birth date (16 - 100 years)');
+                return;
+            }
             await usersCollection.doc(user.uid).update({ birthDate: newBirthDate });
             onNotification(lang === 'ar' ? 'تم الحفظ!' : 'Saved!');
             setEditingBirthDate(false);
@@ -268,7 +279,18 @@
       React.createElement("button", { className: "btn-ghost", style: { padding: '2px 6px', fontSize: '10px', borderRadius: '6px' }, onClick: () => setEditingBirthDate(false) }, "\u2715")
       ) : /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
-      React.createElement("span", { className: "settings-account-value", style: { color: userData?.birthDate ? '' : '#9ca3af' } }, userData?.birthDate || (lang === 'ar' ? 'غير محدد' : 'Not Set')), /*#__PURE__*/
+      React.createElement("span", { className: "settings-account-value", style: { color: userData?.birthDate ? '' : '#9ca3af' } }, 
+        userData?.birthDate ? `${userData.birthDate} (${
+            (() => {
+                var today = new Date();
+                var dob = new Date(userData.birthDate);
+                var age = today.getFullYear() - dob.getFullYear();
+                var m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                return age;
+            })()
+        } ${lang === 'ar' ? 'سنة' : 'years'})` : (lang === 'ar' ? 'غير محدد' : 'Not Set')
+      ), /*#__PURE__*/
       !userData?.birthDate && /*#__PURE__*/
       React.createElement("button", { onClick: () => {setNewBirthDate('');setEditingBirthDate(true);}, className: "settings-eye-btn" }, "\u270F\uFE0F")
       )

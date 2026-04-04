@@ -108,6 +108,7 @@
     var [country, setCountry] = useState(null);
     var [showCountryPicker, setShowCountryPicker] = useState(false);
     var [photoURL, setPhotoURL] = useState(googleUser?.photoURL || null);
+    var [errorMsg, setErrorMsg] = useState('');
     var fileRef = useRef(null);
 
     if (!show) return null;
@@ -135,6 +136,21 @@
 
     var handleComplete = () => {
       if (!displayName.trim() || !gender) return;
+      
+      if (birthDate) {
+        var today = new Date();
+        var dob = new Date(birthDate);
+        var age = today.getFullYear() - dob.getFullYear();
+        var m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        if (age < 16 || age > 100) {
+            setErrorMsg(lang === 'ar' ? 'يرجى إدخال تاريخ ميلاد صحيح (16 - 100 سنة)' : 'Please enter a valid birth date (16 - 100 years)');
+            return;
+        }
+      }
+      
       onComplete({ displayName: displayName.trim(), gender, birthDate, country, photoURL });
     };
 
@@ -144,7 +160,8 @@
       React.createElement("div", { className: "onboarding-header" }, /*#__PURE__*/
       React.createElement("div", { className: "onboarding-spy-icon" }, "\uD83D\uDD75\uFE0F"), /*#__PURE__*/
       React.createElement("h2", { className: "onboarding-title" }, lang === 'ar' ? 'مرحباً في PRO SPY!' : 'Welcome to PRO SPY!'), /*#__PURE__*/
-      React.createElement("p", { className: "onboarding-subtitle" }, lang === 'ar' ? 'أكمل ملفك الشخصي للبدء' : 'Complete your profile to start')
+      React.createElement("p", { className: "onboarding-subtitle" }, lang === 'ar' ? 'أكمل ملفك الشخصي للبدء' : 'Complete your profile to start'), /*#__PURE__*/
+      errorMsg && React.createElement("p", { style: { color: '#ef4444', fontSize: '11px', marginTop: '6px', fontWeight: 'bold' } }, errorMsg)
       ), /*#__PURE__*/
 
       React.createElement("div", { className: "onboarding-body" }, /*#__PURE__*/
@@ -191,7 +208,8 @@
         className: "onboarding-input",
         value: birthDate,
         onChange: (e) => setBirthDate(e.target.value),
-        max: new Date().toISOString().split("T")[0]
+        max: new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split("T")[0],
+        min: "1920-01-01"
       })
       ), /*#__PURE__*/
 
