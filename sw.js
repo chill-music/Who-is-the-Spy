@@ -7,8 +7,8 @@
    SW install timing out while caching 100+ files.
 ═══════════════════════════════════════════════════════════════════ */
 
-var CACHE_V       = 'pro-spy-v10';
-var CACHE_LAZY_V  = 'pro-spy-lazy-v10';
+var CACHE_V       = 'pro-spy-v11';
+var CACHE_LAZY_V  = 'pro-spy-lazy-v11';
 
 /* ── Critical files (must cache on install) ───────────────────── */
 var CRITICAL = [
