@@ -81,6 +81,8 @@
                 // Set offline on component unmount (logout)
                 (async () => {
                     try {
+                        var currentUser = firebase.auth().currentUser;
+                        if (!currentUser) return; // Don't update if logged out
                         await usersCollection.doc(user.uid).update({ onlineStatus: 'offline' });
                     } catch (e) { console.error('[PRO SPY ERROR] usePresence unmount:', e); }
                 })();

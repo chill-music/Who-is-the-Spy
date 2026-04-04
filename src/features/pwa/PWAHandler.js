@@ -77,7 +77,12 @@
         navigator.serviceWorker.addEventListener('controllerchange', function() {
             if (refreshing) return;
             refreshing = true;
-            window.location.reload();
+            
+            // Wait for auth to be ready before reloading
+            var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+                unsubscribe(); // Stop listening
+                window.location.reload();
+            });
         });
     }
 })();
