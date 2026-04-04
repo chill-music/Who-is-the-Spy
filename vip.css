@@ -428,14 +428,18 @@
     border-radius: 50%;
     overflow: hidden;
     aspect-ratio: 1;     /* always a perfect circle */
-    /* default fallback */
-    width: 42%;
-    top: 22%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .podium-avatar-wrapper img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -444,6 +448,10 @@
 }
 
 .podium-avatar-wrapper span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -452,28 +460,28 @@
     font-size: 22px;
 }
 
-/* rank-1: TOP1 badge — full circle (inner hole) ~28% wide, starts at 22% from top */
+/* rank-1: TOP1 badge */
 .podium-rank-1 .podium-asset-container { width: 115%; margin: 0 auto; }
 .podium-rank-1 .podium-avatar-wrapper {
     width: 28%;
-    top: 22%;
+    top: 36.5%;
 }
 .podium-rank-1 .podium-frame-asset {
     filter: drop-shadow(0 8px 24px rgba(255,200,0,0.45));
 }
 
-/* rank-2: TOP2 badge — inner hole ~38% wide, sits at top of badge (~6%) */
+/* rank-2: TOP2 badge */
 .podium-rank-2 .podium-asset-container { width: 96%; }
 .podium-rank-2 .podium-avatar-wrapper {
-    width: 38%;
-    top: 6%;
+    width: 36%;
+    top: 25.5%;
 }
 
-/* rank-3: TOP3 badge — same proportions as TOP2 */
+/* rank-3: TOP3 badge */
 .podium-rank-3 .podium-asset-container { width: 90%; }
 .podium-rank-3 .podium-avatar-wrapper {
-    width: 38%;
-    top: 6%;
+    width: 36%;
+    top: 25.5%;
 }
 
 /* ── Name & score below the badge ── */
