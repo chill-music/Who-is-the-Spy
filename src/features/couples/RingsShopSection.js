@@ -19,36 +19,53 @@
         return;
       }
 
-      window._confirm({
-        title: lang === 'ar' ? 'تأكيد الشراء' : 'Confirm Purchase',
-        text: lang === 'ar' ? `هل أنت متأكد أنك تريد شراء ${ring.name_ar} مقابل ${ring.cost}🧠 ؟` : `Are you sure you want to buy ${ring.name_en} for ${ring.cost}🧠?`,
-        icon: 'question',
-        confirmButtonText: lang === 'ar' ? 'نعم، شراء' : 'Yes, Buy',
-        onConfirm: async () => {
-          setBuying(ring.id); setBuyMsg('');
-          try {
-            var snap = await usersCollection.doc(currentUID).get();
-            var currentBal = snap.exists ? snap.data().currency || 0 : 0;
-            if (currentBal < ring.cost) {
-              setBuyMsg(lang === 'ar' ? `❌ رصيد غير كافٍ (${currentBal}🧠)` : `❌ Insufficient balance (${currentBal}🧠)`);
-              setBuying(null); return;
-            }
-            // 🛡️ SECURITY: Ring Purchase
-            if (window.SecurityService) {
-              await window.SecurityService.applyCurrencyTransaction(currentUID, -ring.cost, `Ring Purchase: ${ring.name}`, { ringId: ring.id });
-            } else {
-              await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(-ring.cost) });
-            }
-            
-            await usersCollection.doc(currentUID).update({
-              'inventory.rings': firebase.firestore.FieldValue.arrayUnion(ring.id)
-            });
-            setBuyMsg(lang === 'ar' ? `✅ ${ring.name_ar} أُضيف لمخزونك!` : `✅ ${ring.name_en} added to inventory!`);
-            setTimeout(() => setBuyMsg(''), 3000);
-          } catch (e) { setBuyMsg(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
-          setBuying(null);
+      var proceedPurchase = async () => {
+        setBuying(ring.id); setBuyMsg('');
+        try {
+          var snap = await usersCollection.doc(currentUID).get();
+          var currentBal = snap.exists ? snap.data().currency || 0 : 0;
+          if (currentBal < ring.cost) {
+            setBuyMsg(lang === 'ar' ? `❌ رصيد غير كافٍ (${currentBal}🧠)` : `❌ Insufficient balance (${currentBal}🧠)`);
+            setBuying(null); return;
+          }
+          // 🛡️ SECURITY: Ring Purchase
+          if (window.SecurityService) {
+            await window.SecurityService.applyCurrencyTransaction(currentUID, -ring.cost, `Ring Purchase: ${ring.name}`, { ringId: ring.id });
+          } else {
+            await usersCollection.doc(currentUID).update({ currency: firebase.firestore.FieldValue.increment(-ring.cost) });
+          }
+          
+          await usersCollection.doc(currentUID).update({
+            'inventory.rings': firebase.firestore.FieldValue.arrayUnion(ring.id)
+          });
+          setBuyMsg(lang === 'ar' ? `✅ ${ring.name_ar} أُضيف لمخزونك!` : `✅ ${ring.name_en} added to inventory!`);
+          setTimeout(() => setBuyMsg(''), 3000);
+        } catch (e) { setBuyMsg(lang === 'ar' ? '❌ خطأ' : '❌ Error'); }
+        setBuying(null);
+      };
+
+      if (typeof window._confirm === 'function') {
+        window._confirm({
+          title: lang === 'ar' ? 'تأكيد الشراء' : 'Confirm Purchase',
+          text: lang === 'ar' ? `هل أنت متأكد أنك تريد شراء ${ring.name_ar} مقابل ${ring.cost}🧠 ؟` : `Are you sure you want to buy ${ring.name_en} for ${ring.cost}🧠?`,
+          icon: 'question',
+          confirmButtonText: lang === 'ar' ? 'نعم، شراء' : 'Yes, Buy',
+          onConfirm: proceedPurchase
+        });
+      } else if (window.Swal) {
+        window.Swal.fire({
+          title: lang === 'ar' ? 'تأكيد الشراء' : 'Confirm Purchase',
+          text: lang === 'ar' ? `هل أنت متأكد أنك تريد شراء ${ring.name_ar} مقابل ${ring.cost}🧠 ؟` : `Are you sure you want to buy ${ring.name_en} for ${ring.cost}🧠?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: lang === 'ar' ? 'نعم، شراء' : 'Yes, Buy',
+          cancelButtonText: lang === 'ar' ? 'إلغاء' : 'Cancel'
+        }).then(res => { if(res.isConfirmed) proceedPurchase(); });
+      } else {
+        if (window.confirm(lang === 'ar' ? `هل أنت متأكد أنك تريد شراء ${ring.name_ar} مقابل ${ring.cost}🧠 ؟` : `Are you sure you want to buy ${ring.name_en} for ${ring.cost}🧠?`)) {
+          proceedPurchase();
         }
-      });
+      }
     };
 
     var visibleRings = window.RINGS_DATA.filter((r) => !r.hidden || myRings.includes(r.id));
