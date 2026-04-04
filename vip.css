@@ -406,63 +406,41 @@
 }
 
 .podium-avatar-img {
-    width: 65px;
-    height: 65px;
+    width: 58px; /* Slightly smaller to fit in the ring */
+    height: 58px;
     border-radius: 50%;
     object-fit: cover;
     z-index: 1;
+    position: relative;
+    top: 2px; /* Adjust vertical centering within frame */
 }
 
 .podium-rank-1 .podium-avatar-img { 
-    width: 80px; 
-    height: 80px; 
-    box-shadow: 0 0 20px rgba(251,191,36,0.4);
-}
-
-.podium-info-new {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 8px;
-    width: 100%;
-}
-
-.podium-name-new {
-    font-size: 11px;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 80px;
-}
-
-.podium-score-new {
-    font-size: 10px;
-    font-weight: 900;
-    color: #00f2ff;
-    margin-top: 2px;
+    width: 82px; /* Scaled down for top 1 frame */
+    height: 82px; 
+    top: 3px;
+    box-shadow: 0 0 15px rgba(251,191,36,0.3);
 }
 
 /* The Layered Frame (leaderboard top 1.png etc) */
 .podium-frame-overlay {
     position: absolute;
-    inset: -15%; /* Shrunk from -20% to keep it tighter */
-    width: 130%; /* Shrunk from 140% */
-    height: 130%;
+    inset: -25%; /* Larger stretch for frames */
+    width: 150%;
+    height: 150%;
     z-index: 5;
     pointer-events: none;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
 .podium-name {
     font-size: 11px;
     font-weight: 900;
     color: #fff;
-    margin-top: 12px;
+    margin-top: 15px; /* More breathing room */
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
     width: 100%;
     text-align: center;
