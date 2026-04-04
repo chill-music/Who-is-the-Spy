@@ -463,8 +463,9 @@
 /* rank-1: TOP1 badge */
 .podium-rank-1 .podium-asset-container { width: 115%; margin: 0 auto; }
 .podium-rank-1 .podium-avatar-wrapper {
-    width: 28%;
-    top: 36.5%;
+    width: 32%;
+    top: 45%;
+    left: 50%;
 }
 .podium-rank-1 .podium-frame-asset {
     filter: drop-shadow(0 8px 24px rgba(255,200,0,0.45));
@@ -473,15 +474,17 @@
 /* rank-2: TOP2 badge */
 .podium-rank-2 .podium-asset-container { width: 96%; }
 .podium-rank-2 .podium-avatar-wrapper {
-    width: 36%;
-    top: 25.5%;
+    width: 35%;
+    top: 33%;
+    left: 50%;
 }
 
 /* rank-3: TOP3 badge */
 .podium-rank-3 .podium-asset-container { width: 90%; }
 .podium-rank-3 .podium-avatar-wrapper {
     width: 36%;
-    top: 25.5%;
+    top: 34.5%;
+    left: 49.5%;
 }
 
 /* ── Name & score below the badge ── */

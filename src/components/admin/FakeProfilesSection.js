@@ -48,6 +48,11 @@
             role: 'user',
             xp: Math.floor(Math.random() * 2000),
             currency: 500,
+            charisma: Math.floor(Math.random() * 15000),
+            stats: {
+              wins: Math.floor(Math.random() * 50),
+              losses: Math.floor(Math.random() * 20)
+            },
             createdAt: TS()
           });
         }
