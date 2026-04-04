@@ -113,12 +113,13 @@
                     key: i, className: `podium-item-new podium-rank-${slot.rank}`,
                     onClick: () => openProfile && openProfile(slot.p.id || slot.p.uid)
                   }, /*#__PURE__*/
-                    React.createElement("div", { className: "podium-avatar-wrapper" }, /*#__PURE__*/
-                      React.createElement("img", { src: getAvatar(slot.p) || 'icos/default-avatar.png', className: "podium-avatar-img", alt: "" }), /*#__PURE__*/
-                      React.createElement("div", { 
-                        className: "podium-frame-overlay", 
-                        style: { backgroundImage: `url('${slot.asset}')` } 
-                      })
+                    React.createElement("div", { className: "podium-asset-container" }, /*#__PURE__*/
+                      React.createElement("img", { src: slot.asset, className: "podium-frame-asset", alt: "" }), /*#__PURE__*/
+                      React.createElement("div", { className: "podium-avatar-wrapper" },
+                        getAvatar(slot.p)
+                          ? /*#__PURE__*/React.createElement("img", { src: getAvatar(slot.p), alt: "" })
+                          : /*#__PURE__*/React.createElement("span", { style: { fontSize: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' } }, getEmoji(slot.rank - 1))
+                      )
                     ), /*#__PURE__*/
                     React.createElement("div", { className: "podium-name" }, slot.p.displayName || slot.p.name), /*#__PURE__*/
                     React.createElement("div", { className: "podium-score" }, fmt(getVal(slot.p)))
