@@ -40,7 +40,7 @@
           return (/*#__PURE__*/
             React.createElement(React.Fragment, null,
               top3.length > 0 && /*#__PURE__*/
-              React.createElement("div", { className: "podium-container-new" },
+              React.createElement("div", { className: "podium-container-new podium-tab-family" },
                 podiumData.map((slot, i) => (/*#__PURE__*/
                   React.createElement("div", {
                     key: i, className: `podium-item-new podium-rank-${slot.rank}`,
@@ -107,7 +107,7 @@
           return (/*#__PURE__*/
             React.createElement(React.Fragment, null,
               top3.length > 0 && /*#__PURE__*/
-              React.createElement("div", { className: "podium-container-new" },
+              React.createElement("div", { className: `podium-container-new podium-tab-${leaderboardTab}` },
                 podiumData.map((slot, i) => (/*#__PURE__*/
                   React.createElement("div", {
                     key: i, className: `podium-item-new podium-rank-${slot.rank}`,
