@@ -43,6 +43,7 @@
                  and is reliable even on Android Chrome.
             ──────────────────────────────────────────────────────────────── */
             try {
+                window._googleLoginInProgress = true;
                 /* Ensure token survives app restarts / page refreshes */
                 await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
                 var result = await auth.signInWithPopup(provider);
@@ -50,6 +51,7 @@
                     setShowDropdown && setShowDropdown(false);
                 }
             } catch (e) {
+                window._googleLoginInProgress = false;
                 /* Ignore user-cancelled interactions */
                 if (e.code === 'auth/popup-closed-by-user'
                     || e.code === 'auth/cancelled-popup-request') {
@@ -58,9 +60,12 @@
                 /* Only as last resort: popup was hard-blocked by browser */
                 if (e.code === 'auth/popup-blocked') {
                     try {
+                        window._googleLoginInProgress = true;
                         await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
                         await auth.signInWithRedirect(provider);
-                    } catch (_) { }
+                    } catch (_) { 
+                        window._googleLoginInProgress = false;
+                    }
                 }
             }
         }, [setShowDropdown]);

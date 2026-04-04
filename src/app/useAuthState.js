@@ -20,7 +20,7 @@
 
         useEffect(() => {
             console.log("Onboarding check: authLoading=" + authLoading + " userDataLoading=" + userDataLoading + " userData=" + (userData ? JSON.stringify(userData).slice(0, 50) + "..." : "null"));
-            if (!authLoading && !userDataLoading && user && !user.isAnonymous && !userData) {
+            if (!authLoading && !userDataLoading && user && !user.isAnonymous && !userData && !window._googleLoginInProgress) {
                 // Only NOW show onboarding - confirmed new user
                 console.log("!!! TRIGGERING ONBOARDING - CONFIRMED NEW USER !!!");
                 var userRef = usersCollection.doc(user.uid);
@@ -60,7 +60,14 @@
             /* ── 2. Primary auth state listener ────────────────────────────── */
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
                 console.log("Auth state changed: " + (u ? u.uid : "null"));
+                
+                if (u === null && window._googleLoginInProgress) {
+                    console.log("Ignored null auth state because Google Login is in progress");
+                    return;
+                }
+
                 if (u && !u.isAnonymous) {
+                    window._googleLoginInProgress = false;
                     setUser(u);
                     setAuthLoading(false);
                     var userRef = usersCollection.doc(u.uid);
