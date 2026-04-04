@@ -809,64 +809,27 @@
 }
 
 /* ══════════════════════════════════════════════════════════
-   ⭐ CHARISMA TAB - PODIUM AVATAR POSITIONING 
+   ⭐ UNIFIED PODIUM AVATAR POSITIONING 
+   (Adjust these while looking at Bot Accounts! Bots have pure edge-to-edge images without hidden padding).
    ══════════════════════════════════════════════════════════ */
-.podium-tab-charisma .podium-rank-1 .podium-avatar-wrapper {
-    width: 32%;
-    top: 45%;
+.podium-rank-1 .podium-avatar-wrapper {
+    width: 26%;
+    /* Adjusted to fit the Top 1 badge hole */
+    top: 42%;
+    /* Adjusted to lift it to the proper hole level */
     left: 50%;
 }
 
-.podium-tab-charisma .podium-rank-2 .podium-avatar-wrapper {
-    width: 43%;
+.podium-rank-2 .podium-avatar-wrapper {
+    width: 41%;
+    /* Adjusted for the smaller Top 2 badge */
     top: 31%;
     left: 50%;
 }
 
-.podium-tab-charisma .podium-rank-3 .podium-avatar-wrapper {
-    width: 39%;
-    top: 35%;
-    left: 50%;
-}
-
-/* ══════════════════════════════════════════════════════════
-   🏆 WINS TAB - PODIUM AVATAR POSITIONING 
-   ══════════════════════════════════════════════════════════ */
-.podium-tab-wins .podium-rank-1 .podium-avatar-wrapper {
-    width: 32%;
-    top: 45%;
-    left: 50%;
-}
-
-.podium-tab-wins .podium-rank-2 .podium-avatar-wrapper {
-    width: 38%;
-    top: 34%;
-    left: 50%;
-}
-
-.podium-tab-wins .podium-rank-3 .podium-avatar-wrapper {
-    width: 43%;
-    top: 30%;
-    left: 50%;
-}
-
-/* ══════════════════════════════════════════════════════════
-   🏠 FAMILY TAB - PODIUM AVATAR POSITIONING 
-   ══════════════════════════════════════════════════════════ */
-.podium-tab-family .podium-rank-1 .podium-avatar-wrapper {
-    width: 32%;
-    top: 45%;
-    left: 50%;
-}
-
-.podium-tab-family .podium-rank-2 .podium-avatar-wrapper {
-    width: 40%;
-    top: 30%;
-    left: 50%;
-}
-
-.podium-tab-family .podium-rank-3 .podium-avatar-wrapper {
-    width: 43%;
+.podium-rank-3 .podium-avatar-wrapper {
+    width: 44%;
+    /* Top 3 uses the same dimensions as Top 2 usually */
     top: 31%;
     left: 50%;
 }
