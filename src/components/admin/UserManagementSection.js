@@ -4,6 +4,7 @@
   var UserManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
     var [searchTerm, setSearchTerm] = useState('');
     var [searchResult, setSearchResult] = useState(null);
+    var [notFound, setNotFound] = useState(false);
     var [searching, setSearching] = useState(false);
     var [processing, setProcessing] = useState(false);
 
@@ -11,16 +12,20 @@
       e.preventDefault();
       var tid = searchTerm.trim();
       if (!tid) return;
-      setSearching(true);setSearchResult(null);
+      setSearching(true); setSearchResult(null); setNotFound(false);
       try {
         var docSnap = await usersCollection.doc(tid).get();
         if (docSnap.exists) {
           setSearchResult({ id: docSnap.id, ...docSnap.data() });
         } else {
           var snap2 = await usersCollection.where('displayName', '==', tid).limit(1).get();
-          if (!snap2.empty) setSearchResult({ id: snap2.docs[0].id, ...snap2.docs[0].data() });
+          if (!snap2.empty) {
+            setSearchResult({ id: snap2.docs[0].id, ...snap2.docs[0].data() });
+          } else {
+            setNotFound(true);
+          }
         }
-      } catch (e) {}
+      } catch (e) { setNotFound(true); }
       setSearching(false);
     };
 
@@ -47,13 +52,21 @@
       React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: '#3b82f6', marginBottom: '16px' } }, "\uD83D\uDD0D ",
       lang === 'ar' ? 'البحث والإدارة' : 'Search & Manage Users'
       ), /*#__PURE__*/
-      React.createElement("form", { onSubmit: handleSearch, style: { display: 'flex', gap: '8px', marginBottom: '20px' } }, /*#__PURE__*/
-      React.createElement("input", { className: "input-dark", style: { flex: 1, padding: '10px', borderRadius: '10px', fontSize: '13px' },
+      React.createElement("form", { onSubmit: handleSearch, style: { display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' } }, /*#__PURE__*/
+      React.createElement("input", { className: "input-dark", style: { flex: 1, minWidth: '140px', padding: '10px', borderRadius: '10px', fontSize: '13px' },
         placeholder: lang === 'ar' ? 'ابحث بـ UID أو الإسم...' : 'Search by UID or Name...',
         value: searchTerm, onChange: (e) => setSearchTerm(e.target.value) }), /*#__PURE__*/
-      React.createElement("button", { type: "submit", disabled: searching, className: "btn-neon", style: { padding: '0 20px' } },
+      React.createElement("button", { type: "submit", disabled: searching, className: "btn-neon", style: { padding: '0 20px', flexShrink: 0 } },
       searching ? '⏳' : lang === 'ar' ? 'بحث' : 'Search'
-      )
+      ),
+      (searchResult || notFound) && /*#__PURE__*/
+      React.createElement("button", { type: "button", onClick: () => { setSearchResult(null); setNotFound(false); setSearchTerm(''); },
+        style: { padding: '0 14px', background: 'rgba(255,255,255,0.07)', color: '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', flexShrink: 0 } }, '×')
+      ),
+
+      notFound && /*#__PURE__*/
+      React.createElement("div", { style: { padding: '14px 16px', borderRadius: '12px', background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', textAlign: 'center', color: '#ef4444', fontSize: '12px', marginBottom: '16px' } },
+        '⚠️ ', lang === 'ar' ? 'لم يتم العثور على مستخدم بهذا الاسم أو المعرّف الفريد.' : 'No user found with that UID or display name.'
       ),
 
       searchResult && /*#__PURE__*/
