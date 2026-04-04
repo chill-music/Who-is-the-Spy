@@ -71,6 +71,10 @@
                     window._googleLoginInProgress = false;
                     setUser(u);
                     setAuthLoading(false);
+                    setUserDataLoading(true); // ← CRITICAL: reset before async server read;
+                                              //   the null-auth branch may have set this false,
+                                              //   which would let the onboarding effect fire
+                                              //   immediately before we get the real answer.
                     var userRef = usersCollection.doc(u.uid);
 
                     if (unsubSnapGlobal) { unsubSnapGlobal(); unsubSnapGlobal = null; }
