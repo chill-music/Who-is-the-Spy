@@ -60,7 +60,7 @@
         }, [isLoggedIn, userData, user]);
 
         // ── Onboarding Complete Handler ──
-        var handleOnboardingComplete = useCallback(async ({ displayName, gender, country, photoURL }) => {
+        var handleOnboardingComplete = useCallback(async ({ displayName, gender, birthDate, country, photoURL }) => {
             if (!onboardingGoogleUser || !pendingNewUserRef) return;
             
             // Dependencies: TS, getCurrentCycleMonth, usersCollection (global)
@@ -73,6 +73,7 @@
                 displayName: displayName,
                 photoURL: finalPhoto,
                 gender: gender,
+                birthDate: birthDate,
                 country: country ? { code: country.code, flag: country.flag, name_ar: country.name_ar, name_en: country.name_en } : null,
                 customId: Math.floor(100000000 + Math.random() * 900000000).toString(),
                 stats: { wins: 0, losses: 0, xp: 0 },
@@ -81,6 +82,7 @@
                 friendRequests: [],
                 createdAt: typeof window.TS === 'function' ? window.TS() : new Date(),
                 lastChangedName: null,
+                nameChangeHistory: [],
                 lastActive: typeof window.TS === 'function' ? window.TS() : new Date(),
                 isAnonymous: false,
                 currency: 100,

@@ -104,6 +104,7 @@
   var OnboardingModal = ({ show, googleUser, onComplete, lang }) => {
     var [displayName, setDisplayName] = useState(googleUser?.displayName || '');
     var [gender, setGender] = useState('');
+    var [birthDate, setBirthDate] = useState('');
     var [country, setCountry] = useState(null);
     var [showCountryPicker, setShowCountryPicker] = useState(false);
     var [photoURL, setPhotoURL] = useState(googleUser?.photoURL || null);
@@ -133,8 +134,8 @@
     };
 
     var handleComplete = () => {
-      if (!displayName.trim() || !gender) return;
-      onComplete({ displayName: displayName.trim(), gender, country, photoURL });
+      if (!displayName.trim() || !gender || !birthDate) return;
+      onComplete({ displayName: displayName.trim(), gender, birthDate, country, photoURL });
     };
 
     return (/*#__PURE__*/
@@ -177,6 +178,19 @@
       )
       ), /*#__PURE__*/
 
+
+      React.createElement("div", { className: "onboarding-field" }, /*#__PURE__*/
+      React.createElement("label", { className: "onboarding-label" },
+      lang === 'ar' ? '🎂 تاريخ الميلاد' : '🎂 Date of Birth'
+      ), /*#__PURE__*/
+      React.createElement("input", {
+        type: "date",
+        className: "onboarding-input",
+        value: birthDate,
+        onChange: (e) => setBirthDate(e.target.value),
+        max: new Date().toISOString().split("T")[0]
+      })
+      ), /*#__PURE__*/
 
       React.createElement("div", { className: "onboarding-field" }, /*#__PURE__*/
       React.createElement("label", { className: "onboarding-label" },
@@ -243,8 +257,8 @@
       React.createElement("div", { className: "onboarding-footer" }, /*#__PURE__*/
       React.createElement("button", {
         onClick: handleComplete,
-        disabled: !displayName.trim() || !gender,
-        className: `onboarding-submit-btn ${!displayName.trim() || !gender ? 'disabled' : ''}` },
+        disabled: !displayName.trim() || !gender || !birthDate,
+        className: `onboarding-submit-btn ${!displayName.trim() || !gender || !birthDate ? 'disabled' : ''}` },
 
       lang === 'ar' ? '🚀 ابدأ اللعب!' : '🚀 Start Playing!'
       )

@@ -187,10 +187,20 @@
       React.createElement("button", { className: "btn-neon", style: { padding: '2px 8px', fontSize: '10px', borderRadius: '6px' }, onClick: async () => {
           if (newName.trim() && user) {
             var now = new Date();
-            var lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
-            var diffDays = (now - lastChange) / (1000 * 60 * 60 * 24);
-            if (diffDays < 30) {onNotification(lang === 'ar' ? 'يمكن التغيير مرة شهريًا' : 'Can change once per month');setEditingName(false);return;}
-            await usersCollection.doc(user.uid).update({ displayName: newName.trim(), lastChangedName: TS() });
+            var history = userData?.nameChangeHistory || [];
+            if (userData?.lastChangedName && history.length === 0) {
+               history.push(userData.lastChangedName);
+            }
+            history = history.filter(ts => (now - (ts.toDate ? ts.toDate() : new Date(ts))) < 30 * 24 * 60 * 60 * 1000);
+            
+            if (history.length >= 5) {
+               onNotification(lang === 'ar' ? 'يمكن التغيير 5 مرات شهرياً كحد أقصى' : 'Max 5 name changes per month');
+               setEditingName(false);
+               return;
+            }
+            history.push(typeof window.TS === 'function' ? window.TS() : new Date());
+            
+            await usersCollection.doc(user.uid).update({ displayName: newName.trim(), nameChangeHistory: history });
             onNotification(lang === 'ar' ? 'تم تغيير الاسم!' : 'Name changed!');
             setEditingName(false);
           }
@@ -203,7 +213,6 @@
       React.createElement("button", { onClick: () => {setNewName(userData?.displayName || '');setEditingName(true);}, className: "settings-eye-btn" }, "\u270F\uFE0F")
       )
 
-      )
       ), /*#__PURE__*/
 
       React.createElement("div", { className: "settings-account-row", style: { marginTop: '4px' } }, /*#__PURE__*/
@@ -239,6 +248,11 @@
         } },
       "\u2640\uFE0F ", lang === 'ar' ? 'أنثى' : 'Female')
       )
+      ), /*#__PURE__*/
+
+      React.createElement("div", { className: "settings-account-row", style: { marginTop: '8px' } }, /*#__PURE__*/
+      React.createElement("span", { className: "settings-account-label" }, "🎂 ", lang === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'), /*#__PURE__*/
+      React.createElement("span", { className: "settings-account-value", style: { color: '#9ca3af' } }, userData?.birthDate || (lang === 'ar' ? 'غير محدد' : 'Not Set'))
       ), /*#__PURE__*/
 
       React.createElement("div", { style: { marginTop: '8px' } }, /*#__PURE__*/
@@ -352,7 +366,7 @@
       React.createElement("div", { style: { height: '8px' } })
       )
       )
-      ));
+      )));
 
   };
 
