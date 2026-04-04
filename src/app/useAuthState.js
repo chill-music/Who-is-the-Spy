@@ -59,8 +59,7 @@
 
             /* ── 2. Primary auth state listener ────────────────────────────── */
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
-                console.log("Auth state changed: " + (u ? u.uid : "null"));
-
+                // Debug logs removed for cleanliness
                 if (u === null && window._googleLoginInProgress) {
                     console.log("Ignored null auth state because Google Login is in progress");
                     return;
@@ -120,24 +119,19 @@
                         }, function(error) {
                             console.error('[Auth] Firestore listener error:', error);
                         });
-                        console.log('[Auth] Real-time profile listener active.');
                     };
 
                     /* Phase A: server-forced read — the definitive existence check */
-                    console.log('[Auth] Forcing server read to bypass stale cache...');
                     userRef.get({ source: 'server' })
                         .then(function(serverDoc) {
                             if (serverDoc.exists) {
                                 var existingData = serverDoc.data();
-                                console.log('userData received (server): ' + JSON.stringify(existingData).slice(0, 100) + '...');
                                 applyUserData(existingData);
                             } else {
                                 // Confirmed absent on server — genuinely new user
-                                console.log('userData received (server): null — confirmed new user');
                                 setUserData(null);
                             }
                             setUserDataLoading(false);
-                            console.log('userDataLoading set to false');
                             if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                             // Phase B: real-time listener (also fires when onboarding creates the doc)
                             setupRealtimeListener();
