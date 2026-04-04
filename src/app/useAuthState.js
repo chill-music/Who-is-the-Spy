@@ -61,7 +61,7 @@
             /* ── 2. Primary auth state listener ────────────────────────────── */
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
                 console.log("Auth state changed: " + (u ? u.uid : "null"));
-                
+
                 if (u === null && window._googleLoginInProgress) {
                     console.log("Ignored null auth state because Google Login is in progress");
                     return;
@@ -72,61 +72,97 @@
                     setUser(u);
                     setAuthLoading(false);
                     var userRef = usersCollection.doc(u.uid);
-                    
-                    console.log("userData loading started via onSnapshot");
-                    
-                    if (unsubSnapGlobal) unsubSnapGlobal();
-                    
-                    unsubSnapGlobal = userRef.onSnapshot((doc) => {
-                        if (doc.exists) {
-                            var existingData = doc.data();
-                            console.log("userData received: " + JSON.stringify(existingData).slice(0, 100) + "...");
-                            setUserData(existingData);
-                            if (existingData.displayName) setNickname(existingData.displayName);
-                            
-                            // Load saved language from Firestore
-                            if (existingData.lang && (existingData.lang === 'ar' || existingData.lang === 'en')) {
-                                setLang(existingData.lang);
-                                localStorage.setItem('pro_spy_lang', existingData.lang);
-                            }
 
-                            // Check login rewards cycle
-                            if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(existingData)) {
-                                userRef.update({ 
-                                    'loginRewards.currentDay': 0, 
-                                    'loginRewards.streak': 0, 
-                                    'loginRewards.cycleMonth': getCurrentCycleMonth() 
-                                }).catch(()=>{});
-                            }
-                            
-                            setUserDataLoading(false);
-                            console.log("userDataLoading set to false");
-                            
-                            /* ── Hide boot screen when user data is ready ── */
-                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                        } else {
-                            console.log("userData snapshot says doc does not exist. Waiting 3 seconds to confirm...");
-                            // Wait 3 seconds before concluding new user
-                            // (gives Firestore time to fully connect)
-                            setTimeout(() => {
-                                // Check one more time before showing onboarding
-                                userRef.get().then((freshDoc) => {
-                                    if (!freshDoc.exists) {
-                                        console.log("userData received: null (confirmed doc does not exist after 3s)");
-                                        setUserData(null);
-                                        setUserDataLoading(false);
-                                        console.log("userDataLoading set to false (confirmed new user)");
-                                        /* ── Hide boot screen ── */
-                                        if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                                    }
-                                });
-                            }, 3000);
+                    if (unsubSnapGlobal) { unsubSnapGlobal(); unsubSnapGlobal = null; }
+
+                    /* ── 3. Two-phase user data load ──────────────────────────────────
+                       Phase A — Force server read ({ source: 'server' }):
+                         After clearing browser data, Firestore's local cache is empty.
+                         Both onSnapshot() and get() without { source: 'server' } hit
+                         that empty cache first and return doc.exists=false — even when
+                         the document EXISTS on the server. This caused returning users
+                         to be treated as new users and shown the onboarding screen.
+                         Forcing { source: 'server' } bypasses the cache completely.
+
+                       Phase B — Real-time listener (onSnapshot):
+                         Set up AFTER the authoritative server read, so live profile
+                         updates (avatar changes, currency, etc.) are still reflected.
+                         Also fires when a genuine new user finishes onboarding and
+                         the document is created for the first time.
+                    ─────────────────────────────────────────────────────────────── */
+
+                    /* Helper: write user data fields into React state */
+                    var applyUserData = function(data) {
+                        setUserData(data);
+                        if (data.displayName) setNickname(data.displayName);
+                        if (data.lang && (data.lang === 'ar' || data.lang === 'en')) {
+                            setLang(data.lang);
+                            localStorage.setItem('pro_spy_lang', data.lang);
                         }
-                    }, (error) => {
-                        console.error('Firestore connection error:', error);
-                        setUserDataLoading(false);
-                        if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                    });
+                        if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(data)) {
+                            userRef.update({
+                                'loginRewards.currentDay': 0,
+                                'loginRewards.streak': 0,
+                                'loginRewards.cycleMonth': getCurrentCycleMonth()
+                            }).catch(() => {});
+                        }
+                    };
+
+                    /* Helper: activate real-time listener for live profile updates */
+                    var setupRealtimeListener = function() {
+                        unsubSnapGlobal = userRef.onSnapshot(function(snap) {
+                            if (snap.exists) {
+                                applyUserData(snap.data());
+                            }
+                        }, function(error) {
+                            console.error('[Auth] Firestore listener error:', error);
+                        });
+                        console.log('[Auth] Real-time profile listener active.');
+                    };
+
+                    /* Phase A: server-forced read — the definitive existence check */
+                    console.log('[Auth] Forcing server read to bypass stale cache...');
+                    userRef.get({ source: 'server' })
+                        .then(function(serverDoc) {
+                            if (serverDoc.exists) {
+                                var existingData = serverDoc.data();
+                                console.log('userData received (server): ' + JSON.stringify(existingData).slice(0, 100) + '...');
+                                applyUserData(existingData);
+                            } else {
+                                // Confirmed absent on server — genuinely new user
+                                console.log('userData received (server): null — confirmed new user');
+                                setUserData(null);
+                            }
+                            setUserDataLoading(false);
+                            console.log('userDataLoading set to false');
+                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                            // Phase B: real-time listener (also fires when onboarding creates the doc)
+                            setupRealtimeListener();
+                        })
+                        .catch(function(err) {
+                            // Server unreachable (offline / network error) — fall back to default read
+                            console.warn('[Auth] Server read failed, falling back to default source:', err.message);
+                            userRef.get()
+                                .then(function(fallbackDoc) {
+                                    if (fallbackDoc.exists) {
+                                        var fallbackData = fallbackDoc.data();
+                                        console.log('userData received (fallback): ' + JSON.stringify(fallbackData).slice(0, 100) + '...');
+                                        applyUserData(fallbackData);
+                                    } else {
+                                        console.log('userData received (fallback): null');
+                                        setUserData(null);
+                                    }
+                                    setUserDataLoading(false);
+                                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                    setupRealtimeListener();
+                                })
+                                .catch(function(fallbackErr) {
+                                    console.error('[Auth] Fallback read also failed:', fallbackErr);
+                                    setUserDataLoading(false);
+                                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                });
+                        });
+
                 } else if (u === null) {
                     // Not authenticated — show login screen only, never trigger onboarding
                     console.log('[Auth] No user session — showing login screen');
