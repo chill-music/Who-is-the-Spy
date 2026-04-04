@@ -372,7 +372,17 @@
                         React.createElement("button", {
                           onClick: () => {
                             if (!canAfford || !currentUID) return;
-                            onPurchase(rp);
+                            if (window._confirm) {
+                              window._confirm({
+                                title: lang === 'ar' ? 'تأكيد الشراء' : 'Confirm Purchase',
+                                text: lang === 'ar' ? `هل أنت متأكد أنك تريد شراء ${rp.name_ar} مقابل ${rp.amount}🧠 ؟` : `Are you sure you want to buy ${rp.name_en} for ${rp.amount}🧠?`,
+                                icon: 'question',
+                                confirmButtonText: lang === 'ar' ? 'نعم، شراء' : 'Yes, Buy',
+                                onConfirm: () => onPurchase(rp)
+                              });
+                            } else {
+                              onPurchase(rp);
+                            }
                           },
                           disabled: !canAfford,
                           style: { padding: '7px 14px', borderRadius: '10px', border: 'none', cursor: canAfford ? 'pointer' : 'not-allowed', background: canAfford ? `linear-gradient(135deg,${rp.color},${rp.color}88)` : 'rgba(255,255,255,0.06)', color: canAfford ? '#000' : '#4b5563', fontSize: '11px', fontWeight: 800, transition: 'all 0.2s' }
@@ -511,8 +521,9 @@
                 React.createElement("div", {
                   style: {
                     display: 'grid',
-                    gridTemplateColumns: activeTab === 'gifts' ? 'repeat(auto-fill,minmax(82px,1fr))' : 'repeat(auto-fill,minmax(106px,1fr))',
-                    gap: '8px'
+                    gridTemplateColumns: activeTab === 'gifts' ? 'repeat(auto-fill,minmax(85px,1fr))' : 'repeat(auto-fill,minmax(106px,1fr))',
+                    gap: activeTab === 'gifts' ? '12px' : '10px',
+                    padding: '4px'
                   }
                 },
                   getTabItems(activeTab)?.map((item) => {
@@ -687,7 +698,17 @@
                           React.createElement("span", null, item.preview || '🎨')
                     ), /*#__PURE__*/
                     React.createElement("div", { style: { fontSize: '17px', fontWeight: 900, color: '#f1f5f9', marginBottom: '4px' } }, name),
-                    desc && /*#__PURE__*/React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', lineHeight: 1.6, marginBottom: '12px' } }, desc), /*#__PURE__*/
+                    desc && /*#__PURE__*/React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', lineHeight: 1.6, marginBottom: '8px' } }, desc), /*#__PURE__*/
+                    
+                    (item.isEvent || item.eventOnly || item.limitedTime || item.durationDays) && /*#__PURE__*/
+                    React.createElement("div", { style: { display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '12px', flexWrap: 'wrap' } },
+                        (item.isEvent || item.eventOnly) && /*#__PURE__*/
+                        React.createElement("span", { style: { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 } }, "⚡ " + (lang === 'ar' ? "حدث" : "Event")),
+                        item.limitedTime && /*#__PURE__*/
+                        React.createElement("span", { style: { background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.4)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 } }, "⌛ " + (lang === 'ar' ? "محدود" : "Limited")),
+                        item.durationDays && !item.limitedTime && /*#__PURE__*/
+                        React.createElement("span", { style: { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.4)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800 } }, "⏳ " + item.durationDays + (lang === 'ar' ? " يوم" : " Days"))
+                    ),
 
                     React.createElement("div", { style: { display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.05))', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '10px', padding: '6px 16px', marginBottom: '16px' } }, /*#__PURE__*/
                       React.createElement("span", { style: { fontSize: '16px' } }, "\uD83E\uDDE0"), /*#__PURE__*/

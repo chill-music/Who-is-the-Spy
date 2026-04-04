@@ -3966,8 +3966,8 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid var(--primary);
-    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    border: none;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
