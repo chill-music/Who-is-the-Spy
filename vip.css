@@ -414,23 +414,48 @@
 }
 
 .podium-rank-1 .podium-avatar-img { 
-    width: 90px; 
-    height: 90px; 
-    box-shadow: 0 0 15px rgba(251,191,36,0.3);
+    width: 80px; 
+    height: 80px; 
+    box-shadow: 0 0 20px rgba(251,191,36,0.4);
+}
+
+.podium-info-new {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.podium-name-new {
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+
+.podium-score-new {
+    font-size: 10px;
+    font-weight: 900;
+    color: #00f2ff;
+    margin-top: 2px;
 }
 
 /* The Layered Frame (leaderboard top 1.png etc) */
 .podium-frame-overlay {
     position: absolute;
-    inset: -20%; /* Slightly larger inset for bigger frames */
-    width: 140%;
-    height: 140%;
+    inset: -15%; /* Shrunk from -20% to keep it tighter */
+    width: 130%; /* Shrunk from 140% */
+    height: 130%;
     z-index: 5;
     pointer-events: none;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
 .podium-name {
