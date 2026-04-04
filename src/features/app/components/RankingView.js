@@ -43,15 +43,15 @@
               React.createElement("div", { className: "podium-container-new" },
                 podiumData.map((slot, i) => (/*#__PURE__*/
                   React.createElement("div", {
-                    key: i, className: `podium-item-new rank-${slot.rank}`,
+                    key: i, className: `podium-item-new podium-rank-${slot.rank}`,
                     onClick: () => { if (setViewFamilyId) setViewFamilyId(slot.p.id); if (setShowFamilyModal) setShowFamilyModal(true); }
                   }, /*#__PURE__*/
                     React.createElement("div", { className: "podium-asset-container" }, /*#__PURE__*/
                       React.createElement("img", { src: slot.asset, className: "podium-frame-asset", alt: "" }), /*#__PURE__*/
                       React.createElement("div", { className: "podium-avatar-wrapper" },
-                        slot.p.photoURL ? /*#__PURE__*/
-                          React.createElement("img", { src: slot.p.photoURL, alt: "" }) : /*#__PURE__*/
-                          React.createElement("span", { style: { fontSize: '22px' } }, slot.p.emblem || '🏠')
+                        slot.p.photoURL
+                          ? /*#__PURE__*/React.createElement("img", { src: slot.p.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' } })
+                          : /*#__PURE__*/React.createElement("span", { style: { fontSize: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' } }, slot.p.emblem || '\uD83C\uDFE0')
                       )
                     ), /*#__PURE__*/
                     React.createElement("div", { className: "podium-info-new" }, /*#__PURE__*/
