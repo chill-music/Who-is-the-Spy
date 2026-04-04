@@ -19,8 +19,10 @@
         var [userDataLoading, setUserDataLoading] = useState(true);
 
         useEffect(() => {
+            console.log("Onboarding check: authLoading=" + authLoading + " userDataLoading=" + userDataLoading + " userData=" + (userData ? JSON.stringify(userData).slice(0, 50) + "..." : "null"));
             if (!authLoading && !userDataLoading && user && !user.isAnonymous && !userData) {
                 // Only NOW show onboarding - confirmed new user
+                console.log("!!! TRIGGERING ONBOARDING - CONFIRMED NEW USER !!!");
                 var userRef = usersCollection.doc(user.uid);
                 setOnboardingGoogleUser(user);
                 setPendingNewUserRef(userRef);
@@ -57,16 +59,22 @@
 
             /* ── 2. Primary auth state listener ────────────────────────────── */
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
+                console.log("Auth state changed: " + (u ? u.uid : "null"));
                 if (u && !u.isAnonymous) {
                     setUser(u);
                     setAuthLoading(false);
                     var userRef = usersCollection.doc(u.uid);
+                    
+                    console.log("userData loading started");
                     var doc = await userRef.get();
                     if (!doc.exists) {
+                        console.log("userData received: null (doc does not exist)");
                         setUserData(null);
                         setUserDataLoading(false);
+                        console.log("userDataLoading set to false");
                     } else {
                         var existingData = doc.data();
+                        console.log("userData received: " + JSON.stringify(existingData).slice(0, 100) + "...");
                         setUserData(existingData);
                         if (existingData.displayName) setNickname(existingData.displayName);
                         
@@ -93,7 +101,10 @@
                                 if (d.displayName) setNickname(d.displayName);
                             }
                         });
+                        
                         setUserDataLoading(false);
+                        console.log("userDataLoading set to false");
+                        
                         /* ── Hide boot screen when user data is ready ── */
                         if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                         return () => unsubSnap();
