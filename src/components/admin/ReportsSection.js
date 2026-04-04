@@ -61,23 +61,7 @@
 
     useEffect(() => {
       if (myRole === 'moderator') {
-        usersCollection.where('role', 'in', ['admin', 'owner']).get().then(async (snap) => {
-          var staffData = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          if (window.AdminConfig && window.AdminConfig.OWNERS) {
-            var missingOwnerUids = window.AdminConfig.OWNERS.filter(uid => !staffData.find(s => s.uid === uid));
-            for (var uid of missingOwnerUids) {
-              try {
-                var doc = await usersCollection.doc(uid).get();
-                if (doc.exists) {
-                  var d = doc.data();
-                  d.role = d.role || 'owner';
-                  staffData.push({ id: doc.id, ...d });
-                }
-              } catch (e) {}
-            }
-          }
-          setStaffList(staffData);
-        });
+        window.fetchStaffList(['admin', 'owner']).then((list) => setStaffList(list));
       }
     }, [myRole]);
 

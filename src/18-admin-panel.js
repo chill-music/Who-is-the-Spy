@@ -50,7 +50,7 @@
     { id: 'logs', icon: '📜', label: lang === 'ar' ? 'السجل' : 'Logs', minRole: 'admin' },
     { id: 'financial', icon: '💰', label: lang === 'ar' ? 'المالية' : 'Financial', minRole: 'admin' },
     { id: 'faq', icon: '❓', label: lang === 'ar' ? 'الأسئلة' : 'FAQ', minRole: 'admin' },
-    { id: 'feedback', icon: '📩', label: lang === 'ar' ? 'الملاحظات' : 'Feedback', minRole: 'admin' },
+    { id: 'feedback', icon: '📩', label: lang === 'ar' ? 'الملاحظات' : 'Feedback' },
     { id: 'fake', icon: '🎭', label: lang === 'ar' ? 'وهمي' : 'Fake', minRole: 'owner' }];
 
 

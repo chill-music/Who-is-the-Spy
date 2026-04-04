@@ -10,49 +10,57 @@
       'UNBAN_USER': '#10b981',
       'RESOLVE_REPORT': '#3b82f6',
       'ESCALATE_REPORT': '#8b5cf6',
+      'ESCALATE_TICKET': '#8b5cf6',
+      'REPLY_TICKET': '#f59e0b',
+      'CLOSE_TICKET': '#10b981',
       'EDIT_STAFF': '#8b5cf6',
       'ASSIGN_ROLE': '#f5af19',
       'REMOVE_STAFF': '#ef4444',
       'SEND_GOLD': '#f59e0b',
       'BROADCAST': '#f59e0b',
-      'DELETE_TICKET': '#6b7280'
+      'DELETE_TICKET': '#6b7280',
+      'DELETE_MOMENT': '#6b7280',
+      'HIDE_MOMENT': '#6b7280',
     };
 
+    var [error, setError] = useState(null);
+
     useEffect(() => {
-      // Fetch last 50 staff logs
-      var unsub = staffLogCollection.orderBy('timestamp', 'desc').limit(50).onSnapshot((snap) => {
-        setLogs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setLoading(false);
-      }, () => setLoading(false));
+      var unsub = staffLogCollection.orderBy('timestamp', 'desc').limit(200).onSnapshot(
+        (snap) => { setLogs(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); setLoading(false); },
+        (err)  => { console.warn('[ActivityLog]', err); setError(err.code || 'permission-denied'); setLoading(false); }
+      );
       return unsub;
     }, []);
+
 
     return (/*#__PURE__*/
       React.createElement("div", null, /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: '#3b82f6', marginBottom: '16px' } }, "\uD83D\uDCCB ",
       lang === 'ar' ? 'سجل نشاط الفريق' : 'Staff Activity Log'
       ),
-      loading ? /*#__PURE__*/React.createElement("div", { style: { color: '#6b7280', fontSize: '12px', textAlign: 'center', padding: '20px' } }, "\u23F3") : /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '50vh', overflowY: 'auto' } },
+      loading ? /*#__PURE__*/React.createElement("div", { style: { color: '#6b7280', fontSize: '12px', textAlign: 'center', padding: '20px' } }, "\u23F3") :
+      error   ? /*#__PURE__*/React.createElement("div", { style: { padding: '16px', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '12px' } },
+        '\u26a0\ufe0f ', lang === 'ar' ? `خطأ في الصلاحيات (${error}) — تأكد من تحديث قوانين Firestore.` : `Permission error (${error}) — update your Firestore rules to allow staff log reads.`)
+      : /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '60vh', overflowY: 'auto' } },
       logs.length === 0 && /*#__PURE__*/React.createElement("div", { style: { color: '#6b7280', fontSize: '12px', textAlign: 'center', padding: '20px' } }, lang === 'ar' ? 'لا توجد سجلات' : 'No logs yet'),
       logs.map((log) => {
         var ts = log.timestamp?.toDate?.();
         var color = actionColors[log.action] || '#9ca3af';
         return (/*#__PURE__*/
           React.createElement("div", { key: log.id, style: { background: 'rgba(255,255,255,0.03)', border: `1px solid ${color}20`, borderRadius: '8px', padding: '10px', borderLeft: `3px solid ${color}` } }, /*#__PURE__*/
-          React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' } }, /*#__PURE__*/
           React.createElement("span", { style: { fontSize: '11px', fontWeight: 700, color } }, log.action?.replace(/_/g, ' ')), /*#__PURE__*/
           React.createElement("span", { style: { fontSize: '9px', color: '#6b7280' } }, ts ? ts.toLocaleString() : '')
           ), /*#__PURE__*/
           React.createElement("div", { style: { fontSize: '11px', color: '#d1d5db' } }, /*#__PURE__*/
-          React.createElement("strong", null, log.staffName), log.targetName ? ` → ${log.targetName}` : ''
+          React.createElement("strong", null, log.staffName), log.targetName ? ` \u2192 ${log.targetName}` : ''
           ),
           log.details && /*#__PURE__*/React.createElement("div", { style: { fontSize: '10px', color: '#6b7280', marginTop: '2px' } }, log.details)
           ));
-
       })
       )
-
       ));
 
   };
