@@ -796,7 +796,8 @@ window.SecurityService = {
 
         // 1. Sanity Check
         var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777'));
-        var MAX_SINGLE_REWARD = isGameWin ? 500000000 : 100000; 
+        var isGiftBonus = reason && reason.includes('Gift Received Bonus');
+        var MAX_SINGLE_REWARD = (isGameWin || isGiftBonus) ? 500000000 : 100000; 
         
         if (amount > MAX_SINGLE_REWARD) {
             var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random()*1000);
