@@ -341,9 +341,15 @@
           }
         } else {
           setFamily(null);
+          // 🛡️ SECURITY: Zero-Deletion Policy — Do not delete user's clan association
+          // unless we have explicit proof the family document was deleted/purged.
+          /* 
           if (!viewFamilyId) {
             usersCollection.doc(currentUID).update({ familyId: null, familyName: null, familyTag: null }).catch(() => {});
           }
+          */
+          // NOTE: Automated cleanup on 'null' state was causing data loss after clearing cache.
+          // Permanent membership data should only be wiped by an explicit 'Leave/Kick' action.
         }
         setLoadingFamily(false);
       }, () => setLoadingFamily(false));

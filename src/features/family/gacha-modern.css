@@ -29,7 +29,7 @@
 }
 
 .gacha-terminal-modal.is-max-gacha {
-  background: radial-gradient(circle at top right, #330066 0%, #0d001a 100%);
+  background: #08040d;
   border: 2.5px solid var(--gacha-max-pink);
   box-shadow: 0 0 35px rgba(255, 0, 255, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(12px);
@@ -100,10 +100,10 @@
   position: relative;
   width: 100%;
   height: 330px; /* Reduced from 380px for mobile height space */
-  background: linear-gradient(145deg, #1f1f2e, #0d0d14);
+  background: #0d0d1a;
   border: 3px solid var(--gacha-gold);
   border-radius: 24px;
-  box-shadow: 0 0 40px rgba(212, 175, 55, 0.2), inset 0 0 60px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.15), inset 0 0 40px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   display: flex;
   flex-direction: column;
