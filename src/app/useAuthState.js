@@ -111,10 +111,16 @@
                     };
 
                     /* Helper: activate real-time listener for live profile updates */
-                    var setupRealtimeListener = function() {
+                    var setupRealtimeListener = function(isNewUser) {
                         unsubSnapGlobal = userRef.onSnapshot(function(snap) {
                             if (snap.exists) {
-                                applyUserData(snap.data());
+                                var data = snap.data();
+                                // Ignore stale ghost accounts from local cache
+                                if (isNewUser && !data.customId && !data.displayName) {
+                                    console.warn('[Auth] Ignoring stale cached ghost document.');
+                                    return;
+                                }
+                                applyUserData(data);
                             }
                         }, function(error) {
                             console.error('[Auth] Firestore listener error:', error);
@@ -127,14 +133,17 @@
                             if (serverDoc.exists) {
                                 var existingData = serverDoc.data();
                                 applyUserData(existingData);
+                                setUserDataLoading(false);
+                                if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                setupRealtimeListener(false);
                             } else {
                                 // Confirmed absent on server — genuinely new user
                                 setUserData(null);
+                                setUserDataLoading(false);
+                                if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                // Phase B: real-time listener (also fires when onboarding creates the doc)
+                                setupRealtimeListener(true);
                             }
-                            setUserDataLoading(false);
-                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                            // Phase B: real-time listener (also fires when onboarding creates the doc)
-                            setupRealtimeListener();
                         })
                         .catch(function(err) {
                             // Server unreachable (offline / network error) — fall back to default read
@@ -143,15 +152,27 @@
                                 .then(function(fallbackDoc) {
                                     if (fallbackDoc.exists) {
                                         var fallbackData = fallbackDoc.data();
-                                        console.log('userData received (fallback): ' + JSON.stringify(fallbackData).slice(0, 100) + '...');
-                                        applyUserData(fallbackData);
+                                        // Ignore if fallback is an old ghost account
+                                        if (!fallbackData.customId && !fallbackData.displayName) {
+                                            console.log('userData received (fallback): ghost document ignored');
+                                            setUserData(null);
+                                            setUserDataLoading(false);
+                                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                            setupRealtimeListener(true);
+                                        } else {
+                                            console.log('userData received (fallback): ' + JSON.stringify(fallbackData).slice(0, 100) + '...');
+                                            applyUserData(fallbackData);
+                                            setUserDataLoading(false);
+                                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                            setupRealtimeListener(false);
+                                        }
                                     } else {
                                         console.log('userData received (fallback): null');
                                         setUserData(null);
+                                        setUserDataLoading(false);
+                                        if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                        setupRealtimeListener(true);
                                     }
-                                    setUserDataLoading(false);
-                                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                                    setupRealtimeListener();
                                 })
                                 .catch(function(fallbackErr) {
                                     console.error('[Auth] Fallback read also failed:', fallbackErr);
