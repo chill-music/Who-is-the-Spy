@@ -30,6 +30,7 @@
     onOpenMarriage, // opens the marriage/wedding hall page
     onOpenFamily, // opens family modal (pass familyId to view any family)
     onOpenBFFModal, // opens BFF modal for own profile
+    onOpenVIPCenter, // opens the VIP Center modal
     onNotification = () => {} // optional notification callback
   }) => {
     var t = TRANSLATIONS[lang] || {};
@@ -441,6 +442,7 @@
         setShowProfileCoupleCard: setShowProfileCoupleCard,
         currentViewerData: currentViewerData,
         onOpenMarriage: onOpenMarriage,
+        onOpenVIPCenter: onOpenVIPCenter,
         onOpenSettings: onOpenSettings,
         onOpenProfile: onOpenProfile }
       ),
@@ -482,6 +484,7 @@
         lang: lang,
         onOpenFamily: onOpenFamily,
         onOpenProfile: onOpenProfile,
+        onOpenVIPCenter: onOpenVIPCenter,
         setShowRoleInfoPopup: setShowRoleInfoPopup,
         copiedId: copiedId,
         setCopiedId: setCopiedId,
@@ -774,16 +777,17 @@
 
 
       isOwnProfile && isGuestProp && onLoginGoogle && /*#__PURE__*/
-      React.createElement("div", { style: { margin: '8px 12px', padding: '14px 16px', borderRadius: '16px', background: 'linear-gradient(135deg,rgba(66,133,244,0.13),rgba(26,115,232,0.08))', border: '1px solid rgba(66,133,244,0.3)', display: 'flex', alignItems: 'center', gap: '12px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '28px', flexShrink: 0 } }, "\uD83D\uDD11"), /*#__PURE__*/
+      React.createElement("div", { style: { margin: '8px 12px', padding: '14px 16px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.08))', border: '1px solid rgba(239, 68, 68, 0.4)', display: 'flex', alignItems: 'center', gap: '12px' } }, /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '28px', flexShrink: 0 } }, "\u26A0\uFE0F"), /*#__PURE__*/
       React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#e5e7eb', marginBottom: '2px' } }, lang === 'ar' ? 'سجّل دخولك بجوجل' : 'Sign in with Google'), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, lang === 'ar' ? 'احفظ تقدمك واستمتع بكل الميزات' : 'Save progress & unlock all features')
+      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#fca5a5', marginBottom: '2px' } }, lang === 'ar' ? 'تحذير مسح البيانات لزائر' : 'Guest Data Loss Warning'), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '11px', color: '#fecaca', lineHeight: 1.4 } }, lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.')
       ), /*#__PURE__*/
       React.createElement("button", {
         onClick: onLoginGoogle,
-        style: { flexShrink: 0, padding: '8px 14px', borderRadius: '10px', background: 'linear-gradient(135deg,#4285f4,#1a73e8)', border: 'none', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 10px rgba(66,133,244,0.4)' } },
-      lang === 'ar' ? 'دخول' : 'Login'
+        style: { flexShrink: 0, padding: '8px 14px', borderRadius: '10px', background: 'linear-gradient(135deg,#4285f4,#1a73e8)', border: 'none', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 10px rgba(66,133,244,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' } },
+      React.createElement("span", null, lang === 'ar' ? 'دخول بحساب' : 'Link Google'),
+      React.createElement("span", { style: { fontSize: '9px', opacity: 0.9, marginTop: '2px', fontWeight: 'bold' } }, lang === 'ar' ? 'لحفظ التقدم' : 'To Save Data')
       )
       ),
 

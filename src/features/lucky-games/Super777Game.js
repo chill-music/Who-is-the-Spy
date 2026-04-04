@@ -184,9 +184,10 @@
       var authUser = window.firebase && window.firebase.auth && window.firebase.auth().currentUser;
       var uid = authUser ? authUser.uid : null;
       if (!uid || !window.db || !window.appId) return;
+      var sid = uid + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
       await window.db.collection('artifacts').doc(window.appId)
         .collection('public').doc('data')
-        .collection('lucky_games_sessions').add({
+        .collection('lucky_games_sessions').doc(sid).set({
           uid:        uid,
           gameId:     'super_777',
           coinsSpent: sessionCoinsSpent,
@@ -277,10 +278,8 @@
 
       /* ── top nav ── */
       '.s7-top-nav{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;border-bottom:1px solid rgba(212,175,55,0.12);}',
-      '.s7-avatar{width:40px;height:40px;position:relative;cursor:pointer;flex-shrink:0;}',
-      '.s7-avatar-photo{width:40px;height:40px;border-radius:50%;border:2px solid rgba(212,175,55,0.6);overflow:hidden;background:linear-gradient(135deg,#D4AF37,#FF8C00);position:relative;z-index:1;}',
-      '.s7-avatar-frame{position:absolute;top:-6px;left:-6px;width:52px;height:52px;object-fit:contain;pointer-events:none;z-index:2;}',
-      '.s7-username{flex:1;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+      '.s7-avatar{width:34px;height:34px;position:relative;cursor:pointer;flex-shrink:0;margin-top:-6px;margin-left:2px;}',
+      '.s7-username{flex:1;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:14px;margin-top:-6px;display:flex;align-items:center;height:34px;}',
       '.s7-balance-chip{display:flex;align-items:center;gap:5px;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:20px;padding:4px 10px;}',
       '.s7-balance-chip span:first-child{font-size:14px;}',
       '.s7-bal-val{font-size:13px;font-weight:900;color:#FFDF73;font-family:"Orbitron",monospace;direction:ltr;}',
@@ -813,25 +812,24 @@
       var avatarEl = $id('s7-avatar');
       if (!avatarEl) return;
 
-      /* Build avatar photo HTML */
-      var photoInner = photoURL
-        ? '<img src="' + photoURL + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>'
-        : '<span style="font-size:14px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">' + displayName.charAt(0).toUpperCase() + '</span>';
-
-      /* Resolve frame src */
-      var frameSrc = null;
-      if (stateObj && stateObj.equipped && stateObj.equipped.frame && stateObj.equipped.frame !== 'none') {
-        frameSrc = stateObj.equipped.frame;
-        if (!frameSrc.startsWith('http') && !frameSrc.startsWith('/') && !frameSrc.startsWith('data:')) {
-          var frameItem = (window.SHOP_ITEMS && window.SHOP_ITEMS.frames || []).find(function(f) { return f.id === frameSrc; });
-          frameSrc = frameItem ? (frameItem.preview || frameItem.imageUrl) : null;
-        }
+      /* Map into React land so it perfectly matches Shop & Profile */
+      if (window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+        window.ReactDOM.render(
+          window.React.createElement(window.AvatarWithFrameV11, {
+            photoURL: photoURL,
+            equipped: stateObj?.equipped || authUser?.equipped,
+            size: 'sm',
+            lang: lang
+          }),
+          avatarEl
+        );
+      } else {
+        /* Vanilla fallback */
+        avatarEl.innerHTML =
+          '<div style="width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid #D4AF37;background:#1a0414;">' +
+          (photoURL ? '<img src="' + photoURL + '" style="width:100%;height:100%;object-fit:cover;" alt=""/>' : '<span style="font-size:14px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">' + displayName.charAt(0).toUpperCase() + '</span>') +
+          '</div>';
       }
-
-      /* Render into avatar container */
-      avatarEl.innerHTML =
-        '<div class="s7-avatar-photo">' + photoInner + '</div>' +
-        (frameSrc ? '<img class="s7-avatar-frame" src="' + frameSrc + '" alt="" onerror="this.style.display=\'none\'"/>' : '');
 
       /* Click → MiniProfile */
       if (typeof window.openLuckyGamesMiniProfile === 'function') {

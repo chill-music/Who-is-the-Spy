@@ -1,21 +1,21 @@
-# Folder: Mini-Games (src/features/lucky-games)
+# src/features/lucky-games Directory Map
 
-## Overview
-This directory contains standalone "Lucky" games designed for player engagement and currency consumption. These games are interactive and use custom CSS for high-status animations.
+Contains specialized arcade mini-games for user engagement and currency sinks.
 
-## Main Hub
+## Games & Logic
 
-### [LuckyGamesHub.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/lucky-games/LuckyGamesHub.js)
-- **Purpose**: Games Navigator.
-- **Logic**: Orchestrates the entry points for all mini-games, tracking the user's available currency before allowing play.
-- **Dependencies**: Interacts with the `users` collection for currency transactions.
-
-## Individual Games
-
-- **[GreedyCatGame.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/lucky-games/GreedyCatGame.js)**: A cat-themed reward game.
-- **[LuckyFruitGame.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/lucky-games/LuckyFruitGame.js)**: Classic fruit-slot mechanics.
-- **[SoccerStarGame.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/lucky-games/SoccerStarGame.js)**: Football-themed prediction reward game.
-- **[Super777Game.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/lucky-games/Super777Game.js)**: Premium slot-machine logic.
+| File | Game Type | Purpose |
+| :--- | :--- | :--- |
+| **`LuckyGamesHub.js`** | (Dashboard) | Centralized interface for selecting and launching mini-games. |
+| **`LuckyFruitGame.js`** | Slots / Matching | Classic fruit-themed slot machine game. |
+| **`Super777Game.js`** | Slots / Neon | High-stakes neon-themed casino game. |
+| **`GreedyCatGame.js`** | Interactive | A risk-based "greedy cat" mechanics game. |
+| **`SoccerStarGame.js`** | Sports | A stylized soccer-themed simulation game. |
 
 ## Styling
-- Each game has its own dedicated CSS file (`greedy-cat.css`, `lucky-fruit.css`, etc.) to ensure encapsulated design.
+
+Each game has a dedicated stylesheet for its unique visual theme:
+- `lucky-fruit.css`
+- `super777.css`
+- `greedy-cat.css`
+- `soccer-star.css`

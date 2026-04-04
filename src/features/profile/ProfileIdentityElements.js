@@ -99,7 +99,7 @@ var UserBadgesV11 = ({ equipped, lang }) => {
 var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId, banData, lang }) => {
   var sizeMap = {
     sm: { wrapper: 64, avatar: 36, frameSize: 56 },
-    md: { wrapper: 80, avatar: 48, frameSize: 72 },
+    md: { wrapper: 86, avatar: 60, frameSize: 86 },
     lg: { wrapper: 96, avatar: 58, frameSize: 90 },
     xl: { wrapper: 150, avatar: 90, frameSize: 140 }
   };
@@ -117,6 +117,13 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
   !banData.expiresAt ||
   new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
 
+  var isGradientFrame = frameStyle && frameStyle.preview && (frameStyle.preview.includes('linear-gradient') || frameStyle.preview.includes('radial-gradient'));
+  var frameNeedsScreenBlendV11 = frameStyle && !isGradientFrame;
+
+  var displayPhotoURL = photoURL;
+  if (photoURL && frameStyle && photoURL === frameStyle.preview) {
+    displayPhotoURL = `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`;
+  }
 
   return (/*#__PURE__*/
     React.createElement("div", { className: "profile-avatar-container", style: {
@@ -144,8 +151,8 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
         pointerEvents: 'none'
       } },
 
-    frameStyle.preview.startsWith('http') ? /*#__PURE__*/
-    React.createElement("img", { src: frameStyle.preview, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain' } }) // Changed 'cover' to 'contain' for frames
+    !isGradientFrame ? /*#__PURE__*/
+    React.createElement("img", { src: frameStyle.preview, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: frameNeedsScreenBlendV11 ? 'screen' : 'normal' } }) // Changed 'cover' to 'contain' for frames
     : /*#__PURE__*/
     React.createElement("div", { style: {
         width: '100%',
@@ -170,7 +177,7 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
         overflow: hasImageEffect ? 'hidden' : 'visible'
       } }, /*#__PURE__*/
     React.createElement("img", {
-      src: photoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`,
+      src: displayPhotoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`,
       alt: "",
       className: "profile-avatar",
       style: {

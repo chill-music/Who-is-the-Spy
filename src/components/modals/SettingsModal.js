@@ -11,6 +11,8 @@
     var [showEmailLocal, setShowEmailLocal] = useState(false);
     var [editingName, setEditingName] = useState(false);
     var [newName, setNewName] = useState('');
+    var [editingBirthDate, setEditingBirthDate] = useState(false);
+    var [newBirthDate, setNewBirthDate] = useState('');
 
     var myRole = useMemo(() => getUserRole(userData, user?.uid), [userData, user?.uid]);
     var myRoleCfg = ROLE_CONFIG[myRole];
@@ -97,21 +99,21 @@
       React.createElement("span", null, "\uD83D\uDC64"), /*#__PURE__*/
       React.createElement("span", null, lang === 'ar' ? 'معلومات الحساب' : 'Account Info')
       ), /*#__PURE__*/
-      React.createElement("div", { style: { padding: '16px', borderRadius: '12px', background: 'linear-gradient(135deg,rgba(0,10,30,0.6),rgba(20,0,50,0.4))', border: '1px solid rgba(0,242,255,0.15)', textAlign: 'center' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '32px', marginBottom: '8px' } }, "\uD83D\uDD12"), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: 'white', marginBottom: '4px' } },
-      lang === 'ar' ? 'حساب زائر' : 'Guest Account'
+      React.createElement("div", { style: { padding: '16px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(185, 28, 28, 0.05))', border: '1px solid rgba(239, 68, 68, 0.4)', textAlign: 'center' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '32px', marginBottom: '8px' } }, "\u26A0\uFE0F"), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#fca5a5', marginBottom: '4px' } },
+      lang === 'ar' ? 'تحذير مسح البيانات لزائر' : 'Guest Data Loss Warning'
       ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', marginBottom: '14px' } },
-      lang === 'ar' ? 'سجّل دخولك للوصول لجميع المميزات' : 'Login to access all features'
+      React.createElement("div", { style: { fontSize: '11px', color: '#fecaca', marginBottom: '14px', lineHeight: 1.4 } },
+      lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.'
       ), /*#__PURE__*/
       React.createElement("button", { onClick: onLoginGoogle, className: "btn-google", style: {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           width: '100%', padding: '12px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-          fontSize: '13px'
+          fontSize: '13px', fontWeight: 800
         } }, /*#__PURE__*/
       React.createElement("img", { src: "https://www.google.com/favicon.ico", alt: "G", style: { width: '18px', height: '18px' } }),
-      lang === 'ar' ? 'تسجيل الدخول بجوجل' : 'Login with Google'
+      lang === 'ar' ? 'حفظ التقدم (دخول بجوجل)' : 'Link Google & Save Progress'
       )
       )
       ),
@@ -187,10 +189,20 @@
       React.createElement("button", { className: "btn-neon", style: { padding: '2px 8px', fontSize: '10px', borderRadius: '6px' }, onClick: async () => {
           if (newName.trim() && user) {
             var now = new Date();
-            var lastChange = userData?.lastChangedName?.toDate?.() || new Date(0);
-            var diffDays = (now - lastChange) / (1000 * 60 * 60 * 24);
-            if (diffDays < 30) {onNotification(lang === 'ar' ? 'يمكن التغيير مرة شهريًا' : 'Can change once per month');setEditingName(false);return;}
-            await usersCollection.doc(user.uid).update({ displayName: newName.trim(), lastChangedName: TS() });
+            var history = userData?.nameChangeHistory || [];
+            if (userData?.lastChangedName && history.length === 0) {
+               history.push(userData.lastChangedName);
+            }
+            history = history.filter(ts => (now - (ts.toDate ? ts.toDate() : new Date(ts))) < 30 * 24 * 60 * 60 * 1000);
+            
+            if (history.length >= 5) {
+               onNotification(lang === 'ar' ? 'يمكن التغيير 5 مرات شهرياً كحد أقصى' : 'Max 5 name changes per month');
+               setEditingName(false);
+               return;
+            }
+            history.push(typeof window.TS === 'function' ? window.TS() : new Date());
+            
+            await usersCollection.doc(user.uid).update({ displayName: newName.trim(), nameChangeHistory: history });
             onNotification(lang === 'ar' ? 'تم تغيير الاسم!' : 'Name changed!');
             setEditingName(false);
           }
@@ -203,7 +215,6 @@
       React.createElement("button", { onClick: () => {setNewName(userData?.displayName || '');setEditingName(true);}, className: "settings-eye-btn" }, "\u270F\uFE0F")
       )
 
-      )
       ), /*#__PURE__*/
 
       React.createElement("div", { className: "settings-account-row", style: { marginTop: '4px' } }, /*#__PURE__*/
@@ -239,6 +250,51 @@
         } },
       "\u2640\uFE0F ", lang === 'ar' ? 'أنثى' : 'Female')
       )
+      ), /*#__PURE__*/
+
+      React.createElement("div", { className: "settings-account-row", style: { marginTop: '8px' } }, /*#__PURE__*/
+      React.createElement("span", { className: "settings-account-label" }, "🎂 ", lang === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'), /*#__PURE__*/
+      
+      editingBirthDate ? /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', gap: '4px' } }, /*#__PURE__*/
+      React.createElement("input", { type: "date", className: "input-dark", style: { padding: '4px 8px', fontSize: '11px', borderRadius: '6px', width: '120px' }, value: newBirthDate, onChange: (e) => setNewBirthDate(e.target.value), max: new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split("T")[0], min: "1920-01-01" }), /*#__PURE__*/
+      React.createElement("button", { className: "btn-neon", style: { padding: '2px 8px', fontSize: '10px', borderRadius: '6px' }, onClick: async () => {
+          if (newBirthDate && user) {
+            var today = new Date();
+            var dob = new Date(newBirthDate);
+            var age = today.getFullYear() - dob.getFullYear();
+            var m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            if (age < 16 || age > 100) {
+                onNotification(lang === 'ar' ? 'يرجى إدخال تاريخ ميلاد صحيح (16 - 100 سنة)' : 'Please enter a valid birth date (16 - 100 years)');
+                return;
+            }
+            await usersCollection.doc(user.uid).update({ birthDate: newBirthDate });
+            onNotification(lang === 'ar' ? 'تم الحفظ!' : 'Saved!');
+            setEditingBirthDate(false);
+          }
+        } }, "\u2713"), /*#__PURE__*/
+      React.createElement("button", { className: "btn-ghost", style: { padding: '2px 6px', fontSize: '10px', borderRadius: '6px' }, onClick: () => setEditingBirthDate(false) }, "\u2715")
+      ) : /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
+      React.createElement("span", { className: "settings-account-value", style: { color: userData?.birthDate ? '' : '#9ca3af' } }, 
+        userData?.birthDate ? `${userData.birthDate} (${
+            (() => {
+                var today = new Date();
+                var dob = new Date(userData.birthDate);
+                var age = today.getFullYear() - dob.getFullYear();
+                var m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                return age;
+            })()
+        } ${lang === 'ar' ? 'سنة' : 'years'})` : (lang === 'ar' ? 'غير محدد' : 'Not Set')
+      ), /*#__PURE__*/
+      !userData?.birthDate && /*#__PURE__*/
+      React.createElement("button", { onClick: () => {setNewBirthDate('');setEditingBirthDate(true);}, className: "settings-eye-btn" }, "\u270F\uFE0F")
+      )
+      
       ), /*#__PURE__*/
 
       React.createElement("div", { style: { marginTop: '8px' } }, /*#__PURE__*/
@@ -352,7 +408,7 @@
       React.createElement("div", { style: { height: '8px' } })
       )
       )
-      ));
+      )));
 
   };
 

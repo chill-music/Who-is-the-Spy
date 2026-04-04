@@ -1,34 +1,34 @@
-# Folder: User Identity & Profiles (src/features/profile)
+# src/features/profile Directory Map
 
-## Overview
-This directory contains the logic and UI for the application's comprehensive profile system. It handles user identity, social standings (VIP, achievements), and community interactions like "Moments."
+Contains the core user profile system, achievements, and social feed ("Moments").
 
-## High-Level Logic
+## Profile Views
 
-### [ProfileV11.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileV11.js)
-- **Purpose**: Master Profile View.
-- **Logic**: The latest (v11) iteration of the player profile. It integrates every sub-component below into a single, cohesive, high-status card.
-- **Dependencies**: Orchestrates all sub-components in this directory and consumes data from `window.fetchMiniProfileData`.
+| File | Purpose |
+| :--- | :--- |
+| **`ProfileV11.js`** | The main full-screen profile layout. |
+| **`ProfileHeader.js`** | Top section (Banner, Avatar, Frames, and IDs). |
+| **`ProfileIdentity.js`** | Display of user relationships, tribe signs, and gender. |
+| **`ProfileStats.js`** | Detailed view of wins, losses, and game activity. |
+| **`ProfileTabs.js`** | Navigation between Stats, Moments, Friends, and Admin tools. |
 
-### Identity & Status
-- **[ProfileHeader.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileHeader.js)**: Top profile section containing the avatar, display name, and quick-action buttons.
-- **[ProfileIdentity.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileIdentity.js)**: Global identity logic used by multiple views.
-- **[ProfileIdentityElements.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileIdentityElements.js)**: Individual UI elements for badges, role labels, and VIP status indicators.
-- **[ProfileEffects.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileEffects.js)**: Technical logic for VIP animations (Glows, Light Streaks) and floating icon effects.
+## Feature Modules
 
-### Stats & Social
-- **[ProfileStats.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileStats.js)**: Displays cumulative performance counters (Wins/Losses, Charisma, Total Visits).
-- **[WinRateCircle.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/WinRateCircle.js)**: Radial chart component for performance visualization.
-- **[AchievementsDisplay.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/AchievementsDisplay.js)**: Fetches and displays unlocked milestones for the current user.
-- **[ProfileFriendsSection.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileFriendsSection.js)**: Integrated social management tool for checking mutual friends.
+| File | Purpose |
+| :--- | :--- |
+| **`GiftWall.js`** | Visual gallery of gifts received from other players. |
+| **`GiftWallDetailModal.js`** | Detailed view of a specific gift or sender. |
+| **`MomentsSystem.js`** | Social feed for posting updates, photos, and comments. |
+| **`AchievementsDisplay.js`** | Grid representing unlocked user milestones and badges. |
+| **`ProfileAdmin.js`** | Management tools for staff (Banning, Warn, etc.) within a profile context. |
+| **`ProfileFriendsSection.js`** | List of friends and pending relationship indicators. |
 
-### Social Mechanisms
-- **[GiftWall.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/GiftWall.js)**: A persistent record of virtual gifts received by the user.
-- **[GiftWallDetailModal.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/GiftWallDetailModal.js)**: Shows exactly *who* sent *what*, with timestamps.
-- **[MomentsSystem.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/MomentsSystem.js)**: The community photo feed. Handles uploads, comments, and real-time social engagement.
+## Components & Helpers
 
-### Helpers & Utilities
-- **[ProfileAdmin.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileAdmin.js)**: Private configuration tools for the user (Bio editing, ID change, Name changes).
-- **[ProfileHelpers.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileHelpers.js)**: Internal computational utilities for profile data extraction.
-- **[ProfileTabs.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileTabs.js)**: The navigation controller within the multi-tab profile system.
-- **[ProfileFamilySignBadge.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/profile/ProfileFamilySignBadge.js)**: Logic for calculating and showing the appropriate "Family Sign" level badge.
+| File | Purpose |
+| :--- | :--- |
+| **`ProfileHelpers.js`** | Utility functions for checking roles (Admin/Owner) and status. |
+| **`ProfileIdentityElements.js`** | UI parts for relationship indicators (BFF, Couple). |
+| **`ProfileFamilySignBadge.js`** | UI for tribal "Sign" markers. |
+| **`ProfileEffects.js`** | Decorative effects like Sakura petals or Heart bursts. |
+| **`WinRateCircle.js`** | Visual chart representing the user's winning percentage. |

@@ -420,7 +420,11 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
 
     var cBasic = window.FamilyConstants?.GACHA_CONFIG_BASIC || window.GACHA_CONFIG_BASIC || window.GACHA_CONFIG || {};
     var cPrem = window.FamilyConstants?.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG_PREMIUM || window.GACHA_CONFIG || {};
-    var currentGachaConfig = (family?.level >= 5) ? cPrem : cBasic;
+    var cMax = window.FamilyConstants?.GACHA_CONFIG_MAX || window.GACHA_CONFIG_MAX || {};
+
+    var currentGachaConfig = cBasic;
+    if (family?.level >= 10) currentGachaConfig = cMax;
+    else if (family?.level >= 5) currentGachaConfig = cPrem;
     var rewards = currentGachaConfig.rewards || [];
     if (!rewards.length) {
         if (onNotification) onNotification(lang === 'ar' ? '❌ إعدادات الجاتشه غير جاهزة' : '❌ Gacha not configured');
@@ -429,8 +433,10 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
 
     var today = new Date().toDateString();
     var userTodayKey = `${currentUID}_${today}`;
-    var costPerSpin = 600; // Fixed cost as per requirement
-    var maxPaid = 50;      // Fixed limit as per requirement
+    
+    // 🧠 Dynamic Logic from config
+    var costPerSpin = currentGachaConfig.paidCostPerSpin || 600; 
+    var maxPaid = currentGachaConfig.maxPaidSpinsDaily || 50;
 
     if (mode === 'free') {
         var lastFree = family.gachaFreeLastUsed;
@@ -498,16 +504,32 @@ var handleGachaRoll = async ({ family, currentUID, currentUserData, mode = 'free
             userRewardUpdate.charisma = firebase.firestore.FieldValue.increment(picked.amount || 0);
         } else if (picked.type === 'coins') {
             rewardUpdates.familyCoins = firebase.firestore.FieldValue.increment(picked.amount || 0);
-        } else if (picked.type === 'frame' || picked.type === 'frame_anim') {
+        } else if (picked.type === 'frame') {
             var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
-            userRewardUpdate['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(picked.frameId);
-            userRewardUpdate[`inventory.expiry.${picked.frameId}`] = expiresAt;
-        } else if (picked.type === 'gift') {
-            userRewardUpdate['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(picked.giftId);
-            userRewardUpdate[`inventory.giftCounts.${picked.giftId}`] = firebase.firestore.FieldValue.increment(picked.qty || 1);
-            if (picked.giftId !== 'gift_ring') {
-                userRewardUpdate[`inventory.expiry.${picked.giftId}`] = Date.now() + 30 * 86400000;
+            userRewardUpdate['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'badge') {
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            userRewardUpdate['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'title') {
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            userRewardUpdate['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'ring') {
+            userRewardUpdate['inventory.rings'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            // Rings are permanent usually, or follow duration if provided
+            if (picked.duration) {
+                userRewardUpdate[`inventory.expiry.${picked.id}`] = Date.now() + picked.duration * 86400000;
             }
+        } else if (picked.type === 'effect') {
+            var expiresAt = picked.duration ? Date.now() + picked.duration * 86400000 : null;
+            userRewardUpdate['inventory.profileEffects'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = expiresAt;
+        } else if (picked.type === 'gift') {
+            userRewardUpdate['inventory.gifts'] = firebase.firestore.FieldValue.arrayUnion(picked.id);
+            userRewardUpdate[`inventory.giftCounts.${picked.id}`] = firebase.firestore.FieldValue.increment(picked.qty || 1);
+            userRewardUpdate[`inventory.expiry.${picked.id}`] = Date.now() + 30 * 86400000;
         } else if (picked.type === 'chest') {
             var chestItem = {
                 chestId: makeChestId('gacha'),
@@ -616,6 +638,17 @@ var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, current
         lastActivity: TS(),
     });
 
+    // 🛡️ SECURITY: Family Cooldown check
+    if (currentUserData?.leftFamilyAt) {
+        var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+        var diff = Date.now() - leftAt;
+        var cooldown = 24 * 60 * 60 * 1000;
+        if (diff < cooldown) {
+            var hoursLeft = Math.ceil((cooldown - diff) / (60 * 60 * 1000));
+            throw new Error(`COOLDOWN:${hoursLeft}`);
+        }
+    }
+
     // 🛡️ SECURITY: Family Creation Cost
     if (window.SecurityService) {
         await window.SecurityService.applyCurrencyTransaction(currentUID, -FAMILY_CREATE_COST, 'Family Creation');
@@ -626,6 +659,7 @@ var createFamily = async ({ tribeName, tribeTag, tribeDesc, tribeEmblem, current
     await usersCollection.doc(currentUID).update({
         familyId: ref.id, familyName: cleanName, familyTag: cleanTag,
         familySignLevel: null, familySignColor: null, familySignImageURL: null,
+        leftFamilyAt: null, // Clear cooldown on successful join/create
     });
 
     await postSystemMessage(ref.id, lang === 'ar' ? `🏠 تم إنشاء العائلة! مرحباً ${currentUserData?.displayName}` : `🏠 Family created! Welcome ${currentUserData?.displayName}`);
@@ -640,6 +674,20 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
     var snap = await familiesCollection.doc(familyId).get();
     if (!snap.exists) throw new Error('Family not found');
     var fd = snap.data();
+
+    // 🛡️ SECURITY: Family Cooldown check
+    var userDoc = await usersCollection.doc(currentUID).get();
+    var userData = userDoc.data() || {};
+    if (userData.leftFamilyAt) {
+        var leftAt = userData.leftFamilyAt.toDate ? userData.leftFamilyAt.toDate().getTime() : userData.leftFamilyAt;
+        var diff = Date.now() - leftAt;
+        var cooldown = 24 * 60 * 60 * 1000;
+        if (diff < cooldown) {
+            var hoursLeft = Math.ceil((cooldown - diff) / (60 * 60 * 1000));
+            throw new Error(`COOLDOWN:${hoursLeft}`);
+        }
+    }
+
     var lvl = getFamilyLevelConfig(fd.level || 1);
     if ((fd.members || []).length >= lvl.maxMembers) throw new Error('Family is full');
 
@@ -663,6 +711,7 @@ var joinFamily = async ({ familyId, currentUID, currentUserData, lang }) => {
         familySignLevel: signData?.level || null,
         familySignColor: signData?.color || null,
         familySignImageURL: fd.signImageURL || null,
+        leftFamilyAt: null, // Clear cooldown on successful join
     });
 
     await postSystemMessage(familyId, lang === 'ar' ? `🎉 ${currentUserData?.displayName} انضم للعائلة!` : `🎉 ${currentUserData?.displayName} joined the family!`);
@@ -693,6 +742,7 @@ var leaveFamily = async ({ family, currentUID, currentUserData, lang }) => {
     await usersCollection.doc(currentUID).update({
         familyId: null, familyName: null, familyTag: null,
         familySignLevel: null, familySignColor: null, familySignImageURL: null,
+        leftFamilyAt: TS(), // Start 24h cooldown on voluntary leave
     });
 };
 
@@ -834,9 +884,22 @@ var kickMember = async ({ family, targetUID, currentUID, lang }) => {
     await usersCollection.doc(targetUID).update({
         familyId: null, familyName: null, familyTag: null,
         familySignLevel: null, familySignColor: null, familySignImageURL: null,
+        leftFamilyAt: null, // Exempt from cooldown if kicked
     });
     
     await postSystemMessage(family.id, lang === 'ar' ? `🚪 تم طرد أحد الأعضاء` : `🚪 A member was kicked`);
+
+    // Bot Notification from "The Detective"
+    await botChatsCollection.add({
+        botId: 'detective_bot',
+        toUserId: targetUID,
+        type: 'family_kick',
+        message: lang === 'ar' 
+            ? `🕵️ تم إزالتك من قبيلة "${family.name || family.id}". نأمل أن تجد قبيلة جديدة تناسبك قريباً.` 
+            : `🕵️ You have been removed from the "${family.name || family.id}" family. We hope you find a new tribe that fits you soon.`,
+        read: false,
+        timestamp: TS()
+    }).catch(e => console.error('Detective Bot Kick Notification Error:', e));
 };
 
 /**
@@ -876,6 +939,7 @@ var handleJoinRequest = async ({ family, targetUID, accept, lang }) => {
             familySignLevel: signData?.level || null,
             familySignColor: signData?.color || null,
             familySignImageURL: family.signImageURL || null,
+            leftFamilyAt: null, // Clear cooldown on join
         });
         
         await postSystemMessage(family.id, lang === 'ar' ? `🎉 عضو جديد انضم!` : `🎉 A new member joined!`);

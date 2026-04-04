@@ -54,6 +54,7 @@
         var [notification, setNotification] = useState(null);
         var [showSummary, setShowSummary] = useState(false);
         var [showShop, setShowShop] = useState(false);
+        var [shopInitialTab, setShopInitialTab] = useState('frames');
         var [showInventory, setShowInventory] = useState(false);
         var [showPrivateChat, setShowPrivateChat] = useState(false);
         var [showSelfChat, setShowSelfChat] = useState(false);
@@ -147,6 +148,7 @@
             notification, setNotification,
             showSummary, setShowSummary,
             showShop, setShowShop,
+            shopInitialTab, setShopInitialTab,
             showInventory, setShowInventory,
             showPrivateChat, setShowPrivateChat,
             showSelfChat, setShowSelfChat,

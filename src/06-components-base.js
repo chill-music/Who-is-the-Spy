@@ -24,8 +24,23 @@
 
   // Guest Banner
   var GuestBanner = ({ lang }) => {
+    var [dismissed, setDismissed] = useState(() => localStorage.getItem('pro_spy_guest_banner') === 'true');
+    if (dismissed) return null;
+    
     var t = TRANSLATIONS[lang];
-    return /*#__PURE__*/React.createElement("div", { className: "guest-banner" }, " ", /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title" }, t.guestTitle), " ", /*#__PURE__*/React.createElement("p", { className: "guest-banner-desc" }, t.guestDesc), " ");
+    var desc = lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.';
+    
+    return /*#__PURE__*/React.createElement("div", { className: "guest-banner", style: { position: 'relative', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.05))', border: '1px solid rgba(239, 68, 68, 0.4)', paddingRight: '28px', textAlign: 'left' } }, 
+      /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title", style: { color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '6px' } }, "⚠️ ", lang === 'ar' ? 'تحذير للزوار' : 'Guest Warning'), 
+      /*#__PURE__*/React.createElement("p", { className: "guest-banner-desc", style: { color: '#fecaca', fontSize: '11px', lineHeight: 1.4, marginTop: '4px' } }, desc),
+      /*#__PURE__*/React.createElement("button", {
+        onClick: () => {
+          setDismissed(true);
+          localStorage.setItem('pro_spy_guest_banner', 'true');
+        },
+        style: { position: 'absolute', top: '8px', right: '12px', background: 'none', border: 'none', color: '#fca5a5', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: 0 }
+      }, "×")
+    );
   };
 
   // Notification Toast — Modern sliding pill from top
@@ -124,10 +139,11 @@
   // Avatar with Frame
   var AvatarWithFrame = ({ photoURL, equipped, size = 'md', onClick, banData, lang }) => {
     var sizeConfig = {
-      sm: { wrapper: 48, avatar: 42, mask: 42 },
-      md: { wrapper: 68, avatar: 60, mask: 60 },
-      lg: { wrapper: 100, avatar: 88, mask: 88 },
-      xl: { wrapper: 140, avatar: 124, mask: 124 }
+      xs: { wrapper: 32, avatar: 22, frameSize: 32 },
+      sm: { wrapper: 56, avatar: 36, frameSize: 56 },
+      md: { wrapper: 72, avatar: 48, frameSize: 72 },
+      lg: { wrapper: 90, avatar: 58, frameSize: 90 },
+      xl: { wrapper: 140, avatar: 90, frameSize: 140 }
     };
     var config = sizeConfig[size] || sizeConfig.md;
     var frameItem = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === equipped?.frames);
@@ -135,27 +151,49 @@
       !banData.expiresAt ||
       new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
 
-    var isImageURL = photoURL && (photoURL.startsWith('http') || photoURL.startsWith('data:') || photoURL.startsWith('/'));
-    
-    // Use percentages for inner elements to ensure perfect centering and scaling
-    var avatarStyle = { 
-      width: '82%', 
-      height: '82%', 
-      borderRadius: '50%', 
-      position: 'absolute', 
-      top: '50%', 
-      left: '50%', 
-      transform: 'translate(-50%, -50%)', 
-      zIndex: 2, 
-      border: '2px solid rgba(0,0,0,0.4)', 
-      boxShadow: '0 2px 6px rgba(0,0,0,0.3)', 
-      filter: showBan ? 'grayscale(70%) brightness(0.5)' : 'none',
-      overflow: 'hidden'
+    var isImageURL = photoURL && (
+      photoURL.startsWith('http') ||
+      photoURL.startsWith('data:') ||
+      photoURL.startsWith('/') ||
+      photoURL.startsWith('icos/')
+    );
+
+    // Detect if this is an effect that REQUIRES screen blending (e.g. black background glow)
+    var shouldScreenBlend = (equipped?.isEffect || photoURL && (
+      photoURL.toLowerCase().includes('_effect_') ||
+      photoURL.toLowerCase().includes('_animate_') ||
+      photoURL.toLowerCase().includes('aurora') ||
+      photoURL.toLowerCase().includes('inferno')
+    ));
+
+    // Check if it's an animated format (GIF/WebP) but NOT necessarily an effect
+    var isAnimated = photoURL && (
+      photoURL.toLowerCase().includes('.gif') ||
+      photoURL.toLowerCase().includes('.webp')
+    );
+
+
+    // Standardized Avatar Style (Matches Big Profile precision)
+    var avatarStyle = {
+      width: config.avatar + 'px',
+      height: config.avatar + 'px',
+      borderRadius: '50%',
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: 10,
+      border: (shouldScreenBlend || isAnimated) ? 'none' : '2px solid rgba(255,255,255,0.12)',
+      boxShadow: (shouldScreenBlend || isAnimated) ? 'none' : '0 4px 12px rgba(0,0,0,0.4)',
+      filter: showBan ? 'grayscale(80%) brightness(0.4)' : 'none',
+      overflow: 'hidden',
+      background: 'transparent',
+      mixBlendMode: shouldScreenBlend ? 'screen' : 'normal'
     };
 
     var renderFrame = () => {
       if (!equipped?.frames || equipped.frames === 'none') return null;
-      
+
       if (!frameItem) {
         frameItem = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === equipped.frames || f.preview === equipped.frames);
       }
@@ -164,43 +202,71 @@
       var frameUrl = frameItem.preview || frameItem.imageUrl;
       if (!frameUrl) return null;
 
+      // Handle CSS Gradients vs Image URLs
+      var isGradient = frameUrl.includes('linear-gradient') || frameUrl.includes('radial-gradient');
+      var frameNeedsScreenBlend = !isGradient;
+
       return (/*#__PURE__*/
-        React.createElement("div", { 
-          style: { 
-            position: 'absolute', 
-            inset: 0, 
-            zIndex: 10, 
+        React.createElement("div", {
+          style: {
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
             pointerEvents: 'none',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
-          } 
-        }, /*#__PURE__*/
+            justifyContent: 'center',
+            borderRadius: '50%',
+            overflow: 'visible' // Allow parts to go slightly outside
+          }
+        }, isGradient ? /*#__PURE__*/
+          React.createElement("div", {
+            style: {
+              width: '100%',
+              height: '100%',
+              background: frameUrl,
+              opacity: 0.8,
+              borderRadius: '50%'
+            }
+          }) : /*#__PURE__*/
           React.createElement("img", {
-            src: frameUrl, 
-            style: { 
-              width: '100%', 
-              height: '100%', 
-              objectFit: 'contain', 
-              transform: 'scale(1.15)' // Frames usually need slightly more than 100% to cover the avatar edge properly
-            }, 
+            src: frameUrl,
+            style: {
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              mixBlendMode: frameNeedsScreenBlend ? 'screen' : 'normal',
+              pointerEvents: 'none'
+            },
             alt: "frame",
             onError: (e) => { e.target.style.display = 'none'; }
           })
         ));
     };
 
+    var displayPhotoURL = photoURL;
+    if (photoURL && frameItem && (photoURL === frameItem.preview || photoURL === frameItem.imageUrl)) {
+      displayPhotoURL = `https://ui-avatars.com/api/?name=User&background=random`;
+    }
+
+    var displayIsImageURL = displayPhotoURL && (
+      displayPhotoURL.startsWith('http') ||
+      displayPhotoURL.startsWith('data:') ||
+      displayPhotoURL.startsWith('/') ||
+      displayPhotoURL.startsWith('icos/')
+    );
+
     return (/*#__PURE__*/
-      React.createElement("div", { style: { position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0 }, onClick: onClick },
+      React.createElement("div", { style: { position: 'relative', width: config.wrapper + 'px', height: config.wrapper + 'px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: onClick ? 'pointer' : 'default', flexShrink: 0, isolation: 'isolate' }, onClick: onClick },
         renderFrame(),
-        isImageURL ? /*#__PURE__*/
+        displayIsImageURL ? /*#__PURE__*/
           React.createElement("img", {
-            src: photoURL, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar",
+            src: displayPhotoURL, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar",
             onError: (e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=User&background=random`; }
           }) :
-          photoURL ? /*#__PURE__*/
+          displayPhotoURL ? /*#__PURE__*/
             React.createElement("div", { style: { ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', fontSize: Math.round(config.avatar * 0.52) + 'px', userSelect: 'none' } },
-              photoURL
+              displayPhotoURL
             ) : /*#__PURE__*/
 
             React.createElement("img", { src: `https://ui-avatars.com/api/?name=User&background=random`, style: { ...avatarStyle, objectFit: 'cover' }, alt: "avatar" }),
@@ -306,7 +372,7 @@
     }, [profile?.uid]);
 
     if (!profile) return null;
-    
+
     // Fix: Define isBlocked (Bug 4)
     var isBlocked = (window.currentUserData?.blockedUsers || []).includes(profile.uid);
     var displayName = profile.name || profile.displayName || '—';
@@ -376,9 +442,10 @@
           hasMenu && showMenu && e("div", { className: "mp-menu-dropdown", onClick: (ev) => ev.stopPropagation(), style: { zIndex: 2011 } },
             e("div", { className: "mp-menu-item", onClick: () => { setShowMenu(false); onClose(); onOpenProfile ? onOpenProfile(profile.uid) : (window.setShowUserProfile && window.setShowUserProfile(true)); } }, "👤 ", lang === 'ar' ? 'فتح البروفايل' : 'Profile'),
             !isSelf && e("div", { className: "mp-menu-item danger", onClick: () => { setShowMenu(false); setReportModal(true); } }, "🚨 ", lang === 'ar' ? 'إبلاغ' : 'Report'),
-            !isSelf && e("div", { className: "mp-menu-item", onClick: async () => { 
-                setShowMenu(false); 
-                onClose(); 
+            !isSelf && e("div", {
+              className: "mp-menu-item", onClick: async () => {
+                setShowMenu(false);
+                onClose();
                 if (isBlocked) {
                   if (onUnblock) await onUnblock(profile.uid);
                   else if (window.handleUnblockUser) await window.handleUnblockUser(profile.uid);
@@ -390,71 +457,74 @@
                     onClose();
                   }
                 }
-              } }, (isBlocked ? "✅ " : "🚫 ") + (lang === 'ar' ? (isBlocked ? 'إلغاء الحظر' : 'حظر') : (isBlocked ? 'Unblock' : 'Block')))
+              }
+            }, (isBlocked ? "✅ " : "🚫 ") + (lang === 'ar' ? (isBlocked ? 'إلغاء الحظر' : 'حظر') : (isBlocked ? 'Unblock' : 'Block')))
           ),
 
           /* --- Exact Position based on Red Box Feedback (Bug 3) --- */
-          (coupleDoc && partnerData) && e("div", { 
-              className: "mp-cp-label", 
-              onClick: (ev) => { 
-                ev.stopPropagation();
-                onClose(); 
-                if (onOpenCoupleCard) onOpenCoupleCard(coupleDoc);
-                else if (window.openCoupleCard) window.openCoupleCard(coupleDoc);
-                else if (window.setShowCoupleCard) window.setShowCoupleCard(true);
-              }, 
-              style: { 
-                cursor: 'pointer', 
-                top: '90px', 
-                right: '18px', 
-                position: 'absolute', 
-                zIndex: 25, 
+          (coupleDoc && partnerData) && e("div", {
+            className: "mp-cp-label",
+            onClick: (ev) => {
+              ev.stopPropagation();
+              onClose();
+              if (onOpenCoupleCard) onOpenCoupleCard(coupleDoc);
+              else if (window.openCoupleCard) window.openCoupleCard(coupleDoc);
+              else if (window.setShowCoupleCard) window.setShowCoupleCard(true);
+            },
+            style: {
+              cursor: 'pointer',
+              top: '90px',
+              right: '18px',
+              position: 'absolute',
+              zIndex: 25,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              maxWidth: 'calc(100% - 24px)',
+              justifyContent: 'flex-end',
+              transform: 'scale(1.0)',
+              transformOrigin: 'right top'
+            }
+          },
+            e("div", {
+              className: "mp-cp-pill",
+              style: {
+                padding: '6px 14px',
+                background: 'rgba(255,255,255,0.06)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: '20px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                maxWidth: 'calc(100% - 24px)', 
-                justifyContent: 'flex-end',
-                transform: 'scale(1.0)',
-                transformOrigin: 'right top'
-              } 
+                gap: '6px',
+                color: '#fff',
+                fontSize: '11px',
+                fontWeight: '700',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+              }
             },
-              e("div", { 
-                className: "mp-cp-pill", 
-                style: { 
-                  padding: '6px 14px', 
-                  background: 'rgba(255,255,255,0.06)', 
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255,255,255,0.12)', 
-                  borderRadius: '20px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  color: '#fff',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
-                } 
-              },
-                (lang === 'ar' ? 
-                  ((profile.gender || 'male') === 'female' ? 'بيتها' : 'بيته') : 
-                  ((profile.gender || 'male') === 'female' ? 'Her Home' : 'His Home')),
-                /* Real Ring Asset Integration */
-                profile.coupleRingImageUrl ? 
-                  e("img", { src: profile.coupleRingImageUrl, style: { width: '20px', height: '20px', objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.8))' } }) :
-                  e("span", { style: { fontSize: '16px', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.8))' } }, profile.coupleRingEmoji || '💍')
-              ),
-              (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '36px', height: '36px', marginLeft: '-10px' } },
-                e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
-                  e("div", { className: "mp-cp-thumb", style: { inset: '2px' } },
-                    e("div", { className: "mp-cp-thumb-inner" },
-                      e("img", { src: partnerData.photo || partnerData.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerData.name)}` })
-                    )
-                  ),
-                  e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
-                )
-              )
+              (lang === 'ar' ?
+                ((profile.gender || 'male') === 'female' ? 'بيتها' : 'بيته') :
+                ((profile.gender || 'male') === 'female' ? 'Her Home' : 'His Home')),
+              /* Real Ring Asset Integration */
+              profile.coupleRingImageUrl ?
+                e("img", { src: profile.coupleRingImageUrl, style: { width: '20px', height: '20px', objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.8))' } }) :
+                e("span", { style: { fontSize: '16px', filter: 'drop-shadow(0 0 6px rgba(0,212,255,0.8))' } }, profile.coupleRingEmoji || '💍')
             ),
+            (coupleDoc && partnerData) && e("div", { className: "mp-cp-avatar-wrap", style: { width: '36px', height: '36px', marginLeft: '-10px' } },
+              e("div", { className: "mp-cp-avatar-wrap-inner", style: { position: 'relative', width: '100%', height: '100%' } },
+                e("div", { className: "mp-cp-thumb", style: { inset: '2px', position: 'relative' } },
+                  e(AvatarWithFrame, {
+                    photoURL: partnerData.photo || partnerData.photoURL,
+                    size: 'xs',
+                    lang: lang
+                  })
+                ),
+                e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } }), e("div", { className: "mp-cp-hud-dot", style: { width: '3px', height: '3px' } })
+              )
+            )
+          ),
 
           e("div", { className: "mp-body", style: { background: '#0d0d1f', color: '#fff' } },
             e("div", { className: "mp-badge-row", style: { height: '48px', margin: '0 -18px 14px', padding: 0 } },
@@ -467,22 +537,17 @@
               )
             ),
             e("div", { className: "mp-profile-row" },
-              e("div", { className: "mp-avatar-container", onClick: () => { onClose(); if (onOpenProfile) onOpenProfile(profile.uid); }, style: { cursor: 'pointer', position: 'relative' } },
-                (() => {
-                  var fSrc = profile.equippedFrame;
-                  if (fSrc && fSrc !== 'none') {
-                    if (!fSrc.startsWith('http') && !fSrc.startsWith('/') && !fSrc.startsWith('data:')) {
-                      var found = (window.SHOP_ITEMS?.frames || []).find((f) => f.id === fSrc);
-                      if (found) fSrc = found.preview || found.imageUrl;
-                      else fSrc = null;
-                    }
-                    if (fSrc) return e("img", { src: fSrc, style: { position: 'absolute', inset: '-10%', width: '120%', height: '120%', objectFit: 'contain', zIndex: 3, pointerEvents: 'none' } });
-                  }
-                  return null;
-                })(),
-                e("div", { className: "mp-avatar-pic", style: { width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)', background: 'transparent' } },
-                  profile.photo ? e("img", { src: profile.photo, style: { width: '100%', height: '100%', objectFit: 'cover' } }) : "🧑"
-                )
+              e("div", { className: "mp-avatar-container", style: { cursor: 'pointer', position: 'relative' } },
+                e((window.AvatarWithFrameV11 || AvatarWithFrame), {
+                  photoURL: profile.photo || profile.photoURL,
+                  equipped: profile.equipped || {
+                    frames: profile.equippedFrame,
+                    isEffect: profile.photo && (profile.photo.includes('.gif') || profile.photo.includes('effect'))
+                  },
+                  size: 'md',
+                  lang: lang,
+                  onClick: () => { onClose(); if (onOpenProfile) onOpenProfile(profile.uid); }
+                })
               ),
               e("div", { className: "mp-user-info" },
                 e("div", { className: "mp-user-name" },
@@ -498,7 +563,7 @@
                   ),
                   familySignEl
                 ),
-                e("div", { className: "mp-user-id", style: { color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '4px' } }, 
+                e("div", { className: "mp-user-id", style: { color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '4px' } },
                   (() => {
                     var vipIdIcon = window.VIP_ID_ICONS?.[profile.vipLevel] || window.ID_ICON_IMAGE_URL;
                     return vipIdIcon ? e("img", { src: vipIdIcon, style: { height: '16px', objectFit: 'contain' } }) : "ID: ";
@@ -518,16 +583,18 @@
                   e("div", { className: "mp-multi-btns" },
                     profile.isFriend ? e("button", { className: "mp-btn-half mp-friend-btn", style: { background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' } }, "✅ " + t_friend) :
                       e("button", { className: "mp-btn-half mp-add-btn", onClick: async () => { try { await window.usersCollection?.doc(profile.uid).update({ friendRequests: window.firebase.firestore.FieldValue.arrayUnion(currentUID) }); window.showToast?.(lang === 'ar' ? 'تم إرسال طلب الصداقة' : 'Request sent'); } catch (e) { } } }, "➕ " + t_add),
-                    e("button", { className: "mp-btn-half mp-gift-half-btn", onClick: () => { 
-                      onClose();
-                      if (window.openGiftModal) {
-                        window.openGiftModal(profile);
-                      } else {
-                        // Fallback to inventory if modal logic is missing
-                        if (onOpenInventory) onOpenInventory();
-                        else if (window.setShowInventory) window.setShowInventory(true);
+                    e("button", {
+                      className: "mp-btn-half mp-gift-half-btn", onClick: () => {
+                        onClose();
+                        if (window.openGiftModal) {
+                          window.openGiftModal(profile);
+                        } else {
+                          // Fallback to inventory if modal logic is missing
+                          if (onOpenInventory) onOpenInventory();
+                          else if (window.setShowInventory) window.setShowInventory(true);
+                        }
                       }
-                    } }, "🎁 " + t_gift)
+                    }, "🎁 " + t_gift)
                   )
                 )
             )

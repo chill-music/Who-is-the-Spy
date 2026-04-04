@@ -72,7 +72,10 @@
       handleAcceptProposal, handleDeclineProposal, handlePurchase, handleEquip, handleUnequip,
       handleBuyVIP, markNotificationRead, clearAllNotifications, handleNotificationClick,
       createNotification, openPrivateChat, setShowPrivateChat: setShowPrivateChatFn,
-      resetGame, handleLeaveRoom
+      resetGame, handleLeaveRoom,
+      // Marriage Actions
+      handleAcceptProposal, handleDeclineProposal, handleDivorce,
+      shopInitialTab, setShopInitialTab
     } = props;
 
     // Re-export some setters to window so non-React code can use them
@@ -122,7 +125,13 @@
       window.TutorialModal && /*#__PURE__*/
       React.createElement(window.TutorialModal, {
         show: showTutorial,
-        onClose: () => {if (setShowTutorial) setShowTutorial(false);localStorage.setItem('pro_spy_tutorial_v2', 'true');},
+        onClose: () => {
+          if (setShowTutorial) setShowTutorial(false);
+          localStorage.setItem('pro_spy_tutorial_v2', 'true');
+          if (user && !user.isAnonymous && window.usersCollection) {
+            window.usersCollection.doc(user.uid).update({ tutorial_v2_done: true }).catch(() => {});
+          }
+        },
         lang: lang }
       ),
 
@@ -190,10 +199,10 @@
         onClose: () => setShowShop(false),
         userData: isLoggedIn ? userData : props.guestData,
         lang: lang,
+        initialTab: shopInitialTab,
         onPurchase: handlePurchase,
         onEquip: handleEquip,
         onUnequip: handleUnequip,
-        onBuyVIP: handleBuyVIP,
         onOpenInventory: () => {setShowShop(false);setShowInventory(true);},
         currentUID: currentUID,
         onPropose: (ring) => {if (setProposalRing) setProposalRing(ring);setShowShop(false);if (setShowProposalModal) setShowProposalModal(true);},
@@ -293,9 +302,16 @@
         currentUserData: userData,
         coupleData: coupleData,
         partnerData: partnerData,
-        onOpenPropose: () => {if (setShowWeddingHall) setShowWeddingHall(false);setShowShop(true);},
+        partnerData: partnerData,
+        onOpenPropose: () => {
+          if (setShowWeddingHall) setShowWeddingHall(false);
+          if (setShopInitialTab) setShopInitialTab('rings');
+          setShowShop(true);
+        },
         onOpenCoupleCard: () => {if (setShowWeddingHall) setShowWeddingHall(false);if (setShowCoupleCard) setShowCoupleCard(true);},
-        onDivorce: () => {},
+        onAccept: handleAcceptProposal,
+        onDecline: handleDeclineProposal,
+        onDivorce: handleDivorce,
         onNotification: setNotification }
       ),
 
@@ -475,6 +491,7 @@
         onOpenMarriage: () => {setShowMyAccount(false);if (setShowWeddingHall) setShowWeddingHall(true);},
         onOpenFamily: (fid) => {setShowMyAccount(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
         onOpenBFFModal: () => {setShowMyAccount(false);setShowBFFModal(true);},
+        onOpenVIPCenter: () => {setShowMyAccount(false);setShowVIPCenter(true);},
         onNotification: setNotification,
         onOpenChat: (target) => {
           setShowMyAccount(false);
@@ -502,6 +519,7 @@
         currentViewerData: userData,
         onOpenProfile: (uid) => {if (setTargetProfileUID) setTargetProfileUID(uid);setShowUserProfile(true);},
         onOpenFamily: (fid) => {setShowUserProfile(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
+        onOpenVIPCenter: () => {setShowUserProfile(false);setShowVIPCenter(true);},
         onNotification: setNotification,
         onOpenChat: (friendData) => {openPrivateChat && openPrivateChat(friendData);setShowUserProfile(false);} }
       ),

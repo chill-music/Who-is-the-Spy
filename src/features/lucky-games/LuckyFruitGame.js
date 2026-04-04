@@ -81,7 +81,7 @@
           '<span id="lf-coins">1000</span>',
         '</div>',
         /* Avatar — photo loaded dynamically via React */
-        '<div id="lf-avatar" style="cursor:pointer;position:relative;width:48px;height:48px;flex-shrink:0;margin-left:4px;"></div>',
+        '<div id="lf-avatar" style="cursor:pointer;position:relative;width:40px;height:40px;flex-shrink:0;margin-left:4px;"></div>',
       '</div>',
       
       /* WHEEL OVERLAY (NEW) */
@@ -920,7 +920,7 @@
           window.React.createElement(window.AvatarWithFrameV11, {
             photoURL: photoURL,
             equipped: state?.equipped || authUser?.equipped,
-            size: 'md',
+            size: 'sm',
             lang: lang
           }),
           avatarEl

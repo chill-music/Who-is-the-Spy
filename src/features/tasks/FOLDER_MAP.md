@@ -1,11 +1,9 @@
-# Folder: Player Engagement (src/features/tasks)
+# src/features/tasks Directory Map
 
-## Overview
-This directory contains the logic for daily player missions, providing consistent goals for users to earn currency and progress.
+Contains the daily mission and achievement tracking UI for player progression.
 
-## Files
+## UI Components
 
-### [DailyTasksPanel.js](file:///c:/Users/sheha/OneDrive/Desktop/Who-is-the-Spy-og/src/features/tasks/DailyTasksPanel.js)
-- **Purpose**: Daily Mission List.
-- **Logic**: Fetches the `daily_tasks` collection and compares it against the user's progress. It handles the "Claim" action for completed missions, triggering currency transactions in the `users` collection.
-- **Dependencies**: Interacts with `01-config.js` and updates the user's currency.
+| File | Purpose |
+| :--- | :--- |
+| **`DailyTasksPanel.js`** | The main dashboard for viewing and claiming rewards for persistent and daily missions. |

@@ -669,25 +669,30 @@ var resolveRewardItem = function (reward) {
             var allFrames = [].concat(SI.frames || [], SI.limitedFrames || []);
             var frame = allFrames.find(function (f) { return f.id === resolved.frameId; });
             if (frame) {
-                resolved.icon = frame.icon || '🖼️';
-                if (frame.imageUrl) resolved.imageURL = frame.imageUrl;
-                resolved.label_en = resolved.label_en || frame.name_en;
-                resolved.label_ar = resolved.label_ar || frame.name_ar;
+                resolved.icon = resolved.icon || '🖼️';
+                resolved.label_en = (frame.name_en || 'Frame');
+                resolved.label_ar = (frame.name_ar || 'إطار');
+                
+                var durSfx_en = resolved.duration ? ' · ' + resolved.duration + 'd' : '';
+                var durSfx_ar = resolved.duration ? ' · ' + resolved.duration + ' أيام' : '';
+                resolved.label_en += durSfx_en;
+                resolved.label_ar += durSfx_ar;
+                
+                // Fix frame asset resolution: Fallback to preview if imageUrl is missing
+                var frameAsset = frame.imageUrl || frame.preview;
+                if (frameAsset) {
+                    resolved.imageURL = frameAsset;
+                    if (!frameAsset.includes('linear-gradient')) {
+                        resolved.icon = frameAsset; 
+                    }
+                }
+                if (frame.preview) resolved.preview = frame.preview;
                 _meta(frame);
             }
         }
         resolved.icon = resolved.icon || '🖼️';
         resolved.label_en = resolved.label_en || 'Frame';
         resolved.label_ar = resolved.label_ar || 'إطار';
-        if (frame) {
-            var durSfx_en = resolved.duration ? ' · ' + resolved.duration + 'd' : '';
-            var durSfx_ar = resolved.duration ? ' · ' + resolved.duration + ' أيام' : '';
-            resolved.label_en = resolved.label_en || (frame.name_en + durSfx_en);
-            resolved.label_ar = resolved.label_ar || (frame.name_ar + durSfx_ar);
-            if (frame.preview) resolved.preview = frame.preview;   // CSS gradient or image URL
-            if (frame.imageUrl) resolved.imageURL = frame.imageUrl;
-            _meta(frame);
-        }
 
     } else if ((resolved.type === 'title' || resolved.type === 'titles') && resolved.titleId) {
         if (SI) {
@@ -791,7 +796,8 @@ window.SecurityService = {
 
         // 1. Sanity Check
         var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777'));
-        var MAX_SINGLE_REWARD = isGameWin ? 500000000 : 100000; 
+        var isGiftBonus = reason && reason.includes('Gift Received Bonus');
+        var MAX_SINGLE_REWARD = (isGameWin || isGiftBonus) ? 500000000 : 100000; 
         
         if (amount > MAX_SINGLE_REWARD) {
             var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random()*1000);
