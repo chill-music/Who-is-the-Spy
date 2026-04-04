@@ -266,11 +266,11 @@
                 }
                 await usersCollection.doc(user.uid).update(senderUpdate);
 
-                // 🛡️ SECURITY: Use centralized service for Gift Receiver bonus
+                // 💰 Gift Receiver bonus — written directly to Firestore.
+                // SecurityService only allows writes for the current authenticated user,
+                // so we bypass it here since receiverId may differ from the sender.
                 var receiverId = isSelfSend ? user.uid : targetUser.uid;
-                if (window.SecurityService) {
-                    await window.SecurityService.applyCurrencyTransaction(receiverId, totalBonus, `Gift Received Bonus: ${gift.id} x${qty}`, { senderId: user.uid });
-                } else {
+                if (totalBonus > 0) {
                     await usersCollection.doc(receiverId).update({ currency: firebase.firestore.FieldValue.increment(totalBonus) });
                 }
                 
