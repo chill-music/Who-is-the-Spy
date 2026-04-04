@@ -110,21 +110,18 @@
               React.createElement("div", { className: "podium-container-new" },
                 podiumData.map((slot, i) => (/*#__PURE__*/
                   React.createElement("div", {
-                    key: i, className: `podium-item-new rank-${slot.rank}`,
+                    key: i, className: `podium-item-new podium-rank-${slot.rank}`,
                     onClick: () => openProfile && openProfile(slot.p.id || slot.p.uid)
                   }, /*#__PURE__*/
-                    React.createElement("div", { className: "podium-asset-container" }, /*#__PURE__*/
-                      React.createElement("img", { src: slot.asset, className: "podium-frame-asset", alt: "" }), /*#__PURE__*/
-                      React.createElement("div", { className: "podium-avatar-wrapper" },
-                        getAvatar(slot.p) ? /*#__PURE__*/
-                          React.createElement("img", { src: getAvatar(slot.p), alt: "" }) : /*#__PURE__*/
-                          React.createElement("span", null, getEmoji(top3.indexOf(slot.p)))
-                      )
+                    React.createElement("div", { className: "podium-avatar-wrapper" }, /*#__PURE__*/
+                      React.createElement("img", { src: getAvatar(slot.p) || 'icos/default-avatar.png', className: "podium-avatar-img", alt: "" }), /*#__PURE__*/
+                      React.createElement("div", { 
+                        className: "podium-frame-overlay", 
+                        style: { backgroundImage: `url('${slot.asset}')` } 
+                      })
                     ), /*#__PURE__*/
-                    React.createElement("div", { className: "podium-info-new" }, /*#__PURE__*/
-                      React.createElement("div", { className: "podium-name-new" }, slot.p.displayName || slot.p.name), /*#__PURE__*/
-                      React.createElement("div", { className: "podium-score-new" }, fmt(getVal(slot.p)))
-                    )
+                    React.createElement("div", { className: "podium-name" }, slot.p.displayName || slot.p.name), /*#__PURE__*/
+                    React.createElement("div", { className: "podium-score" }, fmt(getVal(slot.p)))
                   )
                 ))
               ), /*#__PURE__*/

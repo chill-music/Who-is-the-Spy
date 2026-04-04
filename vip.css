@@ -371,11 +371,14 @@
 
 .podium-container-new {
     display: flex;
+    flex-direction: row !important; /* Force side-by-side */
     align-items: flex-end;
     justify-content: center;
-    gap: 12px;
-    padding: 20px 10px;
-    margin-top: 5px;
+    gap: 15px; /* Slightly more gap */
+    padding: 20px 5px;
+    margin-top: 10px;
+    min-width: 320px; /* Ensure 3 players fit */
+    width: 100%;
 }
 
 .podium-item-new {
@@ -384,6 +387,7 @@
     align-items: center;
     position: relative;
     transition: transform 0.3s ease;
+    width: 90px; /* Fixed width to prevent shrinking */
 }
 
 .podium-item-new:hover { transform: translateY(-5px); }
@@ -409,28 +413,34 @@
     z-index: 1;
 }
 
-.podium-rank-1 .podium-avatar-img { width: 85px; height: 85px; }
+.podium-rank-1 .podium-avatar-img { 
+    width: 90px; 
+    height: 90px; 
+    box-shadow: 0 0 15px rgba(251,191,36,0.3);
+}
 
 /* The Layered Frame (leaderboard top 1.png etc) */
 .podium-frame-overlay {
     position: absolute;
-    inset: -15%;
-    width: 130%;
-    height: 130%;
+    inset: -20%; /* Slightly larger inset for bigger frames */
+    width: 140%;
+    height: 140%;
     z-index: 5;
     pointer-events: none;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
 .podium-name {
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 900;
     color: #fff;
-    margin-top: 8px;
+    margin-top: 12px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    max-width: 80px;
+    width: 100%;
+    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -439,5 +449,52 @@
 .podium-score {
     font-size: 10px;
     color: #00f2ff;
-    font-weight: 700;
+    font-weight: 800;
+}
+
+/* Shop and Grid Centering */
+.shop-standard-item {
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center vertically */
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    overflow: hidden;
+    min-height: 115px; /* Consistent height */
+    text-align: center;
+}
+
+.shop-standard-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 242, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+}
+
+/* Profile Effects Container */
+.portrait-effect-container {
+    position: relative;
+    width: 100%;
+    max-width: 50px;
+    aspect-ratio: 9/16;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.portrait-effect-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Fill the vertical space */
 }

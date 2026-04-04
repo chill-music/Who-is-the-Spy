@@ -55,30 +55,41 @@
 
     var renderPreview = (item) => {
       var isPath = item.preview && (item.preview.startsWith('http') || item.preview.includes('/'));
-      if (item.type === 'frames') return isPath ? /*#__PURE__*/
-        React.createElement("img", { src: item.preview, alt: "", style: { width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' } }) : /*#__PURE__*/
-        React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: item.preview } });
-      if (item.type === 'badges') return item.imageUrl ? /*#__PURE__*/
-        React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '32px', height: '32px', objectFit: 'contain' } }) : /*#__PURE__*/
-        React.createElement("span", { style: { fontSize: '26px' } }, item.preview);
-      if (item.type === 'titles') return item.imageUrl ? /*#__PURE__*/
-        React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '28px', height: '28px', objectFit: 'contain', background: 'transparent !important', border: 'none' } }) : /*#__PURE__*/
-        React.createElement("span", { style: { fontSize: '22px' } }, item.preview);
+      
+      // Wrapper to ensure consistent centering and sizing
+      var wrap = (content) => React.createElement("div", { 
+        style: { 
+          width: '100%', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' 
+        } 
+      }, content);
 
-      if (item.type === 'gifts' || item.type === 'gifts_vip') return item.imageUrl ? /*#__PURE__*/
-        React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '32px', height: '32px', objectFit: 'contain' } }) : /*#__PURE__*/
-        React.createElement("span", { style: { fontSize: '26px' } }, item.emoji);
+      if (item.type === 'frames') return wrap(isPath ? 
+        React.createElement("img", { src: item.preview, alt: "", style: { width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' } }) : 
+        React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: item.preview } }));
+      
+      if (item.type === 'badges') return wrap(item.imageUrl ? 
+        React.createElement("img", { src: item.imageUrl, alt: "", style: { maxWidth: '38px', maxHeight: '38px', objectFit: 'contain' } }) : 
+        React.createElement("span", { style: { fontSize: '28px' } }, item.preview));
+      
+      if (item.type === 'titles') return wrap(item.imageUrl ? 
+        React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '32px', height: '32px', objectFit: 'contain' } }) : 
+        React.createElement("span", { style: { fontSize: '24px' } }, item.preview));
+
+      if (item.type === 'gifts' || item.type === 'gifts_vip') return wrap(item.imageUrl ? 
+        React.createElement("img", { src: item.imageUrl, alt: "", style: { width: '36px', height: '36px', objectFit: 'contain' } }) : 
+        React.createElement("span", { style: { fontSize: '30px' } }, item.emoji));
+      
       if (item.type === 'profileEffects') {
-        var src = typeof item.particles === 'string' && item.particles.startsWith('http') ?
-          item.particles : item.imageUrl || null;
-        return /*#__PURE__*/
-          React.createElement("div", { className: "portrait-effect-container" },
-            src ? /*#__PURE__*/
-              React.createElement("img", { src: src, alt: item.name_en }) : /*#__PURE__*/
-              React.createElement("span", { style: { fontSize: '26px' } }, item.preview)
-          );
+        var src = item.imageUrl || (typeof item.particles === 'string' && item.particles.startsWith('http') ? item.particles : null);
+        return React.createElement("div", { 
+          className: "portrait-effect-container",
+          style: { width: '45px', height: '80px', margin: '0 auto', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }
+        },
+          src ? React.createElement("img", { src: src, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain' } }) : 
+          React.createElement("span", { style: { fontSize: '26px' } }, item.preview || '✨')
+        );
       }
-      return /*#__PURE__*/React.createElement("span", { style: { fontSize: '22px' } }, "\uD83C\uDFA8");
+      return wrap(React.createElement("span", { style: { fontSize: '24px' } }, "🎨"));
     };
 
     // 🎁 تاب الهدايا أُزيل من الشوب — الهدايا متاحة فقط من البروفايل والشاتات
@@ -527,6 +538,7 @@
                          rKey === 'Mythic' ? 'mythic-pulse 2s ease-in-out infinite' : 'none';
 
                       var giftRarityClass = getGiftRarity(item.cost);
+                      var hasSpecialGlow = isVIPMaxGift || vipGlowType;
                       var glowClass = hasSpecialGlow ? `glow-${vipGlowType}` : `shop-rarity-${giftRarityClass.toLowerCase()}`;
 
                       return (/*#__PURE__*/
