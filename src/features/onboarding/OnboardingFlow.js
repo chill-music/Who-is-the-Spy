@@ -134,7 +134,7 @@
     };
 
     var handleComplete = () => {
-      if (!displayName.trim() || !gender || !birthDate) return;
+      if (!displayName.trim() || !gender) return;
       onComplete({ displayName: displayName.trim(), gender, birthDate, country, photoURL });
     };
 
