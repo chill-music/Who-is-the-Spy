@@ -10,8 +10,18 @@
 (function() {
     var GameService = {
         /**
+         * Returns the role of the current player in the room.
+         */
+        getMyRole: function(room, currentUID) {
+            if (!room || !room.players || !currentUID) return null;
+            var p = room.players.find(function(player) { return player.uid === currentUID; });
+            return p ? p.role : null;
+        },
+
+        /**
          * Extracted from startGame in 10-app.js
          */
+
         startGame: async function(context) {
             var room = context.room;
             var currentUID = context.currentUID;
@@ -501,7 +511,7 @@
             var setAlertMessage = context.setAlertMessage;
             var playSound = context.playSound;
 
-            if (!room || currentUID !== OWNER_UID) return;
+            if (!room || currentUID !== room.admin) return;
             
             var bots = room.players.filter(function(p) { return p.isBot; });
             if (bots.length >= 5) { 
@@ -550,7 +560,7 @@
             var OWNER_UID = context.OWNER_UID;
             var playSound = context.playSound;
 
-            if (!room || currentUID !== OWNER_UID) return;
+            if (!room || currentUID !== room.admin) return;
             
             try {
                 await roomsCollection.doc(roomId).update({ 
@@ -563,6 +573,6 @@
         }
     };
 
-    // Export to global scope
-    window.GameService = GameService;
+    // Export to global scope with safety merge
+    window.GameService = Object.assign(window.GameService || {}, GameService);
 })();

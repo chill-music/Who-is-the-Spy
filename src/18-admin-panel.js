@@ -23,7 +23,7 @@
     var renderSection = () => {
       var props = { currentUser, currentUserData, lang, onNotification };
       switch (activeTab) {
-        case 'overview':return /*#__PURE__*/React.createElement(window.AdminOverview, props);
+        case 'overview':return /*#__PURE__*/React.createElement(window.AdminOverview, { ...props, currentUser });
         case 'staff':return /*#__PURE__*/React.createElement(window.StaffManagementSection, props);
         case 'users':return /*#__PURE__*/React.createElement(window.UserManagementSection, props);
         case 'broadcast':return /*#__PURE__*/React.createElement(window.BroadcastSection, props);
@@ -50,7 +50,7 @@
     { id: 'logs', icon: '📜', label: lang === 'ar' ? 'السجل' : 'Logs', minRole: 'admin' },
     { id: 'financial', icon: '💰', label: lang === 'ar' ? 'المالية' : 'Financial', minRole: 'admin' },
     { id: 'faq', icon: '❓', label: lang === 'ar' ? 'الأسئلة' : 'FAQ', minRole: 'admin' },
-    { id: 'feedback', icon: '📩', label: lang === 'ar' ? 'الملاحظات' : 'Feedback', minRole: 'admin' },
+    { id: 'feedback', icon: '📩', label: lang === 'ar' ? 'الملاحظات' : 'Feedback' },
     { id: 'fake', icon: '🎭', label: lang === 'ar' ? 'وهمي' : 'Fake', minRole: 'owner' }];
 
 
@@ -65,25 +65,25 @@
         style: { width: '95%', maxWidth: '1000px', height: '90%', background: '#0f172a', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' } }, /*#__PURE__*/
 
 
-      React.createElement("div", { style: { width: '240px', background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' } }, /*#__PURE__*/
+      React.createElement("div", { className: "admin-sidebar flex-sidebar", style: { width: '240px', background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', flexShrink: 0 } }, /*#__PURE__*/
       React.createElement("div", { style: { padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '1px', marginBottom: '4px' } }, "\uD83D\uDEE1\uFE0F PRO SPY"), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '10px', color: '#64748b', fontWeight: 700 } }, "ADMIN CONTROL CENTER")
       ), /*#__PURE__*/
 
-      React.createElement("div", { style: { flex: 1, overflowY: 'auto', padding: '12px' } },
+      React.createElement("div", { className: "admin-sidebar-tabs", style: { flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column' } },
       tabs.map((t) => {
         if (t.minRole === 'owner' && userRole !== 'owner') return null;
         if (t.minRole === 'admin' && userRole !== 'owner' && userRole !== 'admin') return null;
 
         var active = activeTab === t.id;
         return (/*#__PURE__*/
-          React.createElement("div", { key: t.id, onClick: () => setActiveTab(t.id), style: {
+          React.createElement("div", { className: "admin-sidebar-tab", key: t.id, onClick: () => setActiveTab(t.id), style: {
               display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', cursor: 'pointer', marginBottom: '4px',
               background: active ? 'linear-gradient(90deg, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0.05) 100%)' : 'transparent',
               color: active ? '#3b82f6' : '#94a3b8',
               border: active ? '1px solid rgba(59,130,246,0.2)' : '1px solid transparent',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s', flexShrink: 0
             } }, /*#__PURE__*/
           React.createElement("span", { style: { fontSize: '16px' } }, t.icon), /*#__PURE__*/
           React.createElement("span", { style: { fontSize: '13px', fontWeight: active ? 700 : 500 } }, t.label)
@@ -120,6 +120,8 @@
       React.createElement("style", null, `
                     .admin-panel-container::-webkit-scrollbar { width: 4px; }
                     .admin-panel-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                    .admin-sidebar-tabs::-webkit-scrollbar { height: 4px; }
+                    .admin-sidebar-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
                     .input-dark {
                         background: rgba(255,255,255,0.03);
                         border: 1px solid rgba(255,255,255,0.1);
@@ -140,6 +142,31 @@
                     .btn-neon:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
                     .btn-neon:active { transform: translateY(0); }
                     .btn-neon:disabled { opacity: 0.5; cursor: not-allowed; }
+                    
+                    @media (max-width: 768px) {
+                        .admin-panel-container {
+                            flex-direction: column !important;
+                            height: 98% !important;
+                            width: 98% !important;
+                        }
+                        .admin-sidebar {
+                            width: 100% !important;
+                            border-right: none !important;
+                            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+                        }
+                        .admin-sidebar-tabs {
+                            flex-direction: row !important;
+                            overflow-x: auto !important;
+                            overflow-y: hidden !important;
+                            padding: 8px !important;
+                            gap: 8px !important;
+                            height: auto !important;
+                        }
+                        .admin-sidebar-tab {
+                            margin-bottom: 0 !important;
+                            white-space: nowrap !important;
+                        }
+                    }
                 `)
       ));
 

@@ -12,6 +12,17 @@ var _criticalComponents = [
 'useGameActions', 'useUserListeners',
 'RankingView', 'GroupsSection'];
 
+// Secondary components: modals and feature scripts that load after core.
+// We wait for these too before the first render so Guards evaluate correctly.
+var _secondaryComponents = [
+  'ProfileV11', 'ShopModal', 'InventoryModal',
+  'SettingsModal', 'BrowseRoomsModal', 'PrivateChatModal',
+  'SelfChatModal', 'FunPassModal', 'FamilyModal', 'FamilyChatModal',
+  'LoginRewards', 'WeddingHallModal', 'BFFModal', 'BotChatModal',
+  'LuckyGamesHubModal', 'TutorialModal', 'HelpCenterModal', 'PublicChatModal'
+];
+
+var _allComponents = _criticalComponents.concat(_secondaryComponents);
 
 function _mountApp() {
   var AppWithErrorBoundary = function () {
@@ -24,7 +35,7 @@ function _mountApp() {
 
 function _waitForComponents(attempt) {
   attempt = attempt || 0;
-  var missing = _criticalComponents.filter(function (c) {return typeof window[c] !== 'function';});
+  var missing = _allComponents.filter(function (c) {return typeof window[c] !== 'function';});
   if (missing.length === 0) {
     _mountApp();
   } else if (attempt < 200) {// max ~10 seconds

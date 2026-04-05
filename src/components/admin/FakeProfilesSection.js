@@ -35,7 +35,7 @@
       setGenerating(true);
       try {
         var batch = db.batch();
-        for (var i = 0; i < 1; i++) {
+        for (var i = 0; i < 10; i++) {
           var randomId = 'bot_' + Math.random().toString(36).substr(2, 9);
           var name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)] + ' (Bot)';
           var photo = FAKE_PROFILE_PHOTOS[Math.floor(Math.random() * FAKE_PROFILE_PHOTOS.length)];
@@ -46,13 +46,18 @@
             photoURL: photo,
             isFake: true,
             role: 'user',
-            xp: Math.floor(Math.random() * 2000),
-            currency: 500,
+            xp: Math.floor(Math.random() * 50000) + 10000,
+            currency: Math.floor(Math.random() * 10000) + 5000,
+            charisma: Math.floor(Math.random() * 150000) + 50000,
+            stats: {
+              wins: Math.floor(Math.random() * 500) + 50,
+              losses: Math.floor(Math.random() * 200) + 20
+            },
             createdAt: TS()
           });
         }
         await batch.commit();
-        onNotification(lang === 'ar' ? '✅ تم إنشاء حساب واحد' : '✅ Generated 1 profile');
+        onNotification(lang === 'ar' ? '✅ تم إنشاء 10 حسابات' : '✅ Generated 10 profiles');
       } catch (e) {onNotification('❌ Error');}
       setGenerating(false);
     };

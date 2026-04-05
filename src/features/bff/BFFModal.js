@@ -164,10 +164,9 @@
       React.createElement("div", { style: { width: '40px', height: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.15)' } })
       ), /*#__PURE__*/
 
-
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 18px 12px', flexShrink: 0 } }, /*#__PURE__*/
       React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '16px', fontWeight: 900, color: 'white' } }, "\u2764\uFE0F ", lang === 'ar' ? 'BFF الخاص بي' : 'My BFF'), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '16px', fontWeight: 900, color: 'white' } }, "❤️ ", lang === 'ar' ? 'BFF الخاص بي' : 'My BFF'), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '10px', color: '#a78bfa', marginTop: '2px' } },
       myRelationships.length, "/", maxSlots, " ", lang === 'ar' ? 'علاقات' : 'relationships'
       )
@@ -176,9 +175,8 @@
           background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '10px',
           color: '#9ca3af', fontSize: '18px', width: '34px', height: '34px', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
-        } }, "\u2715")
+        } }, "✕")
       ), /*#__PURE__*/
-
 
       React.createElement("div", { style: { display: 'flex', gap: '8px', padding: '0 16px 12px', flexShrink: 0 } },
       [
@@ -202,20 +200,16 @@
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           animation: 'pulse-ring 1.2s ease-in-out infinite'
         } }, t.badge)
-
       )
       )
       ), /*#__PURE__*/
 
-
       React.createElement("div", { style: { flex: 1, overflowY: 'auto', padding: '0 16px 16px' } },
-
 
       tab === 'relationships' && (
       loading ? /*#__PURE__*/
-      React.createElement("div", { style: { textAlign: 'center', padding: '40px', color: '#6b7280' } }, "\u23F3") : /*#__PURE__*/
+      React.createElement("div", { style: { textAlign: 'center', padding: '40px', color: '#6b7280' } }, "⌛") : /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '14px' } },
-
 
       coupleData && couplePartnerData && (() => {
         var ring = typeof RINGS_DATA !== 'undefined' ?
@@ -239,11 +233,10 @@
               position: 'relative'
             } }, /*#__PURE__*/
 
-          React.createElement("div", { style: { position: 'absolute', top: 6, left: 10, fontSize: '10px', opacity: 0.6 } }, "\u2726"), /*#__PURE__*/
-          React.createElement("div", { style: { position: 'absolute', top: 8, right: 14, fontSize: '8px', opacity: 0.5 } }, "\u2726"), /*#__PURE__*/
-          React.createElement("div", { style: { position: 'absolute', bottom: 10, left: 20, fontSize: '7px', opacity: 0.4 } }, "\u2726"), /*#__PURE__*/
-          React.createElement("div", { style: { position: 'absolute', bottom: 8, right: 10, fontSize: '9px', opacity: 0.5 } }, "\u2726"), /*#__PURE__*/
-
+          React.createElement("div", { style: { position: 'absolute', top: 6, left: 10, fontSize: '10px', opacity: 0.6 } }, "✦"), /*#__PURE__*/
+          React.createElement("div", { style: { position: 'absolute', top: 8, right: 14, fontSize: '8px', opacity: 0.5 } }, "✦"), /*#__PURE__*/
+          React.createElement("div", { style: { position: 'absolute', bottom: 10, left: 20, fontSize: '7px', opacity: 0.4 } }, "✦"), /*#__PURE__*/
+          React.createElement("div", { style: { position: 'absolute', bottom: 8, right: 10, fontSize: '9px', opacity: 0.5 } }, "✦"), /*#__PURE__*/
 
           React.createElement("div", { style: { textAlign: 'center', marginBottom: '10px' } }, /*#__PURE__*/
           React.createElement("span", { style: {
@@ -253,7 +246,6 @@
               boxShadow: '0 2px 10px rgba(168,85,247,0.5)'
             } }, "CP LV", cpLevel)
           ), /*#__PURE__*/
-
 
           React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0' } }, /*#__PURE__*/
 
@@ -266,13 +258,12 @@
             } },
           currentUserData?.photoURL ? /*#__PURE__*/
           React.createElement("img", { src: currentUserData.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
-          React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' } }, "\uD83D\uDE0A")
+          React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' } }, "😊")
           ), /*#__PURE__*/
           React.createElement("div", { style: { fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', maxWidth: '70px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
           currentUserData?.displayName || '...'
           )
           ), /*#__PURE__*/
-
 
           React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 } }, /*#__PURE__*/
           React.createElement("div", { style: { fontSize: '32px', filter: 'drop-shadow(0 2px 8px rgba(255,255,255,0.5))' } },
@@ -285,7 +276,6 @@
           )
           ), /*#__PURE__*/
 
-
           React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flex: 1 } }, /*#__PURE__*/
           React.createElement("div", { style: {
               width: '60px', height: '60px', borderRadius: '50%',
@@ -295,7 +285,7 @@
             } },
           couplePartnerData?.photoURL ? /*#__PURE__*/
           React.createElement("img", { src: couplePartnerData.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
-          React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' } }, "\uD83D\uDE0A")
+          React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' } }, "😊")
           ), /*#__PURE__*/
           React.createElement("div", { style: { fontSize: '10px', fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', maxWidth: '70px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
           couplePartnerData?.displayName || '...'
@@ -303,13 +293,11 @@
           )
           )
           ));
-
       })(),
-
 
       myRelationships.length === 0 && !coupleData ? /*#__PURE__*/
       React.createElement("div", { style: { textAlign: 'center', padding: '40px 20px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '48px', marginBottom: '12px' } }, "\uD83E\uDD1D"), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '48px', marginBottom: '12px' } }, "🤝"), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '13px', color: '#6b7280' } },
       lang === 'ar' ? 'لا علاقات بعد — أرسل طلب صداقة!' : 'No relationships yet — send a request!'
       )
@@ -325,32 +313,19 @@
         var token = BFF_TOKEN_ITEMS.find((t) => t.id === rel.tokenId) || BFF_TOKEN_ITEMS[0];
         var lvInfo = getBFFLevel(rel.giftPoints || 0);
         return (/*#__PURE__*/
-          React.createElement("div", { key: rel.id, onClick: () => openCard(rel), style: {
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              cursor: 'pointer'
-            } }, /*#__PURE__*/
+          React.createElement("div", {
+            key: rel.id, onClick: () => openCard(rel),
+            className: `shop-standard-item shop-rarity-${(token.rarity || 'Common').toLowerCase()}`,
+            style: {
+              height: '110px', padding: '0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+            }
+          }, /*#__PURE__*/
 
           React.createElement("div", { style: {
-              width: '100%', height: '110px',
-              borderRadius: '14px', position: 'relative',
-              background: `linear-gradient(145deg, ${token.color}38, ${token.color}18)`,
-              border: `1.5px solid ${token.color}60`,
-              boxShadow: `0 4px 16px ${token.glow}40`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'visible'
-            } }, /*#__PURE__*/
-
-          React.createElement("div", { style: {
-              position: 'absolute', inset: 0, borderRadius: '12px',
-              background: `repeating-linear-gradient(45deg, ${token.color}0a 0, transparent 10px, ${token.color}05 10px, transparent 20px)`,
-              overflow: 'hidden', pointerEvents: 'none'
-            } }), /*#__PURE__*/
-
-          React.createElement("div", { style: {
-              position: 'absolute', top: '6px', left: '6px',
+              position: 'absolute', top: '5px', left: '5px',
               background: `linear-gradient(135deg,${lvInfo.color},${lvInfo.color}aa)`,
-              borderRadius: '6px', padding: '2px 6px',
-              fontSize: '7px', fontWeight: 900, color: '#000',
+              borderRadius: '6px', padding: '1px 5px',
+              fontSize: '8px', fontWeight: 900, color: '#000',
               display: 'flex', alignItems: 'center', gap: '2px',
               boxShadow: `0 2px 6px ${lvInfo.glow}`, zIndex: 2
             } }, /*#__PURE__*/
@@ -358,60 +333,38 @@
           React.createElement("span", null, "LV", lvInfo.level)
           ), /*#__PURE__*/
 
-          React.createElement("span", { style: { fontSize: '32px', zIndex: 1 } },
+          React.createElement("span", { style: { fontSize: '32px', zIndex: 1, filter: `drop-shadow(0 0 10px ${token.glow})` } },
           token.imageURL ? /*#__PURE__*/
           React.createElement("img", { src: token.imageURL, alt: "", style: { width: '36px', height: '36px', objectFit: 'contain' } }) :
           token.emoji
           ), /*#__PURE__*/
 
           React.createElement("div", { style: {
-              position: 'absolute', bottom: '-16px',
-              width: '34px', height: '34px', borderRadius: '50%',
-              border: `2.5px solid ${lvInfo.color}`,
+              position: 'absolute', bottom: '-15px',
+              width: '32px', height: '32px', borderRadius: '50%',
+              border: `2px solid ${lvInfo.color}`,
               overflow: 'hidden', background: '#0d0d1a',
               boxShadow: `0 2px 10px rgba(0,0,0,0.5), 0 0 6px ${lvInfo.glow}`,
               zIndex: 3
             } },
           partner?.photoURL ? /*#__PURE__*/
           React.createElement("img", { src: partner.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
-          React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' } }, "\uD83D\uDE0E")
-          )
-          ), /*#__PURE__*/
-
-          React.createElement("div", { style: {
-              marginTop: '20px',
-              fontSize: '10px', fontWeight: 600,
-              color: '#d1d5db', textAlign: 'center',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              width: '100%'
-            } },
-          partner?.displayName || '...'
+          React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' } }, "😎")
           )
           ));
 
       }),
 
-
       Array.from({ length: Math.max(0, maxSlots - myRelationships.length) }).map((_, i) => /*#__PURE__*/
-      React.createElement("div", { key: `locked-${i}`, style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          width: '100%', height: '110px',
-          borderRadius: '14px',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1.5px dashed rgba(255,255,255,0.12)',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: '6px'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '20px', opacity: 0.25 } }, "\uD83D\uDD12"), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '8px', color: 'rgba(255,255,255,0.28)', textAlign: 'center', padding: '0 6px', lineHeight: 1.4 } },
-      lang === 'ar' ? 'اضغط لفتح مزيد من الخانات' : 'Tap to unlock more slots for your BFF'
+      React.createElement("div", {
+        key: `locked-${i}`,
+        className: "shop-standard-item",
+        style: { height: '110px', cursor: 'default', opacity: 0.3 }
+      }, /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '24px' } }, "➕")
       )
       )
-      )
-      )
-      ), /*#__PURE__*/
-
-
+      ),
 
       React.createElement("button", { onClick: async () => {setBuyingSlot(true);await buyBFFExtraSlot({ uid: currentUID, userData: currentUserData, onNotification, lang });setBuyingSlot(false);},
         disabled: buyingSlot || currency < BFF_CONFIG.extraSlotCost,
@@ -419,19 +372,18 @@
           width: '100%', padding: '10px', borderRadius: '12px', border: 'none', cursor: 'pointer',
           background: currency >= BFF_CONFIG.extraSlotCost ? 'linear-gradient(135deg,#a78bfa,#7c3aed)' : 'rgba(255,255,255,0.05)',
           color: currency >= BFF_CONFIG.extraSlotCost ? 'white' : '#4b5563',
-          fontSize: '11px', fontWeight: 700
+          fontSize: '11px', fontWeight: 700,
+          marginTop: '14px'
         } },
       buyingSlot ? '⏳' : `+ ${lang === 'ar' ? 'فتح خانة جديدة' : 'Unlock New Slot'} (${BFF_CONFIG.extraSlotCost} 🧠)`
       )
       )),
 
-
-
       tab === 'requests' && /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '12px' } },
       pendingRequests.length === 0 ? /*#__PURE__*/
       React.createElement("div", { style: { textAlign: 'center', padding: '40px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '40px', marginBottom: '12px' } }, "\uD83D\uDCE9"), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '40px', marginBottom: '12px' } }, "📩"), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '13px', color: '#6b7280' } },
       lang === 'ar' ? 'لا طلبات واردة' : 'No pending requests'
       )
@@ -446,16 +398,13 @@
         onDone: () => {} }
       )
       )
-
       ),
-
-
 
       tab === 'send' && /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '14px' } }, /*#__PURE__*/
 
       React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' } }, "\uD83C\uDF9F\uFE0F ",
+      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' } }, "🎫 ",
       lang === 'ar' ? 'توكناتي:' : 'My tokens:',
       myTokens.length === 0 && /*#__PURE__*/React.createElement("span", { style: { color: '#6b7280', fontWeight: 400, marginRight: '6px' } }, " (", lang === 'ar' ? 'لا توكنات — اشترِ من المتجر' : 'No tokens — buy from Shop', ")")
       ), /*#__PURE__*/
@@ -476,10 +425,9 @@
       )
       ),
 
-
       friendsData?.length > 0 && /*#__PURE__*/
       React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' } }, "\uD83D\uDC65 ",
+      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' } }, "👥 ",
       lang === 'ar' ? 'أصدقاؤك:' : 'Your Friends:'
       ), /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
@@ -497,21 +445,18 @@
           React.createElement("div", { style: { width: '34px', height: '34px', borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${isSelected ? 'rgba(167,139,250,0.7)' : 'rgba(255,255,255,0.15)'}` } },
           f.photoURL ? /*#__PURE__*/
           React.createElement("img", { src: f.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
-          React.createElement("div", { style: { width: '100%', height: '100%', background: 'rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' } }, "\uD83D\uDE0E")
+          React.createElement("div", { style: { width: '100%', height: '100%', background: 'rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' } }, "😊")
           ), /*#__PURE__*/
           React.createElement("span", { style: { fontSize: '8px', color: isSelected ? '#e9d5ff' : '#9ca3af', fontWeight: 700, maxWidth: '52px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
           f.displayName || '?'
           )
           ));
-
       })
       )
       ), /*#__PURE__*/
 
-
-
       React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' } }, "\uD83D\uDD0D ",
+      React.createElement("div", { style: { fontSize: '11px', color: '#a78bfa', fontWeight: 700, marginBottom: '8px' } }, "🔍 ",
       lang === 'ar' ? 'أو ابحث بالـ ID:' : 'Or search by ID:'
       ), /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', gap: '8px' } }, /*#__PURE__*/
@@ -531,13 +476,11 @@
       React.createElement("div", { style: { width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 } },
       targetData.photoURL ? /*#__PURE__*/
       React.createElement("img", { src: targetData.photoURL, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/
-      React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83D\uDE0E")
+      React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "😊")
       ), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '12px', fontWeight: 700, color: '#4ade80' } }, targetData.displayName)
       )
-
       ), /*#__PURE__*/
-
 
       React.createElement("button", { onClick: handleSend, disabled: !selectedToken || !targetData || sending || myTokens.length === 0,
         style: {
@@ -552,11 +495,9 @@
       sending ? '⏳' : `🤝 ${lang === 'ar' ? 'إرسال طلب الصداقة' : 'Send Friendship Request'}`
       )
       )
-
       )
       )
       ),
-
 
       viewCard && /*#__PURE__*/
       React.createElement(BFFCardModal, {
@@ -569,7 +510,6 @@
         lang: lang,
         onNotification: onNotification }
       )
-
       ));
 
   };

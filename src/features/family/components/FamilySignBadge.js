@@ -1,7 +1,7 @@
 var { FAMILY_SIGN_LEVELS, getFamilySignImage } = window.FamilyConstants || {};
 
 // Enhanced FamilySignBadge — image with tag overlaid, matches ProfileFamilySignBadge
-var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, imageURL, onClick }) => {
+var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, imageURL, onClick, isLarge = false }) => {
   // Correct call to getFamilySignImage(activeness=0, level=signLevel)
   var imgSrc = imageURL || (typeof getFamilySignImage === 'function' ? getFamilySignImage(0, signLevel) : null);
 
@@ -18,12 +18,12 @@ var FamilySignBadge = ({ level, size = 40, lang, tag, color, small, signLevel, i
   if (imgSrc) {
     // Badge is purely the image size; tag text floats centered over the image
     var imgW = small ?
-    36 + displayTag.length * 3 // small: 3→45  4→48  5→51
-    : 54 + displayTag.length * 5; // normal: 3→69 4→74  5→79
+    Math.round((38 + displayTag.length * 3) * (isLarge ? 1.7 : 1.0)) 
+    : Math.round((56 + displayTag.length * 5) * (isLarge ? 1.7 : 1.0)); 
     var imgH = Math.round(imgW * 0.55);
     var fontSize = small ?
-    displayTag.length <= 3 ? 8 : displayTag.length === 4 ? 7 : 6 :
-    displayTag.length <= 3 ? 11 : displayTag.length === 4 ? 10 : 9;
+    Math.round((displayTag.length <= 3 ? 8 : displayTag.length === 4 ? 7 : 6) * (isLarge ? 1.6 : 1.0)) :
+    Math.round((displayTag.length <= 3 ? 11 : displayTag.length === 4 ? 10 : 9) * (isLarge ? 1.65 : 1.0));
 
     return (/*#__PURE__*/
       React.createElement("span", { style: {

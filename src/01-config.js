@@ -1,6 +1,16 @@
 // ==========================================
+window.PRO_SPY_VERSION = "2.4";
+window._activeListeners = 0;
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// 🛡️ [STABILITY] Initialize GameService early to prevent getMyRole crash in 10-app.js
+window.GameService = window.GameService || {
+    getMyRole: function() { return null; },
+    isGameActive: function() { return false; },
+    getCurrentRoom: function() { return null; }
+};
+
 // 🎯 Z-INDEX CONSTANTS - Layer Management
 var Z = {
     MODAL: 10000,  // Standard modals
@@ -45,6 +55,17 @@ var firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
+
+// Enable offline persistence — queues writes (including refunds) across sessions via IndexedDB
+db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
+  if (err.code === 'failed-precondition') {
+    // Multiple tabs open — persistence only works in one tab at a time
+    console.warn('[PRO SPY] Firestore persistence limited to one tab');
+  } else if (err.code === 'unimplemented') {
+    console.warn('[PRO SPY] Firestore persistence not available in this browser');
+  }
+});
+
 var storage = firebase.storage();
 var appId = 'pro_spy_v25_final_fix_complete';
 
@@ -228,6 +249,43 @@ var BOT_CHATS_CONFIG = [
         photoURL: null, // ← ضع رابط صورة البوت هنا (الأونر فقط يغيرها)
         official: true,
         readOnly: true,
+    },
+    // ─────────────────────────────────────────────────────────
+    // 🕵️ PRO SPY — Broadcast & Feedback Acknowledgements
+    // Visible to all users. No real Firestore user doc required.
+    // ─────────────────────────────────────────────────────────
+    {
+        id: 'pro_spy_bot',
+        name_ar: 'PRO SPY',
+        name_en: 'PRO SPY',
+        emoji: '🕵️',
+        description_ar: 'البث الرسمي والإعلانات من فريق PRO SPY',
+        description_en: 'Official broadcasts & announcements from the PRO SPY team',
+        color: '#8b5cf6',
+        glow: 'rgba(139,92,246,0.4)',
+        photoURL: null,
+        official: true,
+        readOnly: true,
+    },
+    // ─────────────────────────────────────────────────────────
+    // 🔒 ADMIN HQ — Staff-only administrative alerts
+    // Hidden from regular users (staffOnly: true, minRole: 'moderator').
+    // Used for ticket escalation notifications to admin/mod/owner only.
+    // ─────────────────────────────────────────────────────────
+    {
+        id: 'staff_command_bot',
+        name_ar: 'المقر الإداري',
+        name_en: 'Admin HQ',
+        emoji: '🔒',
+        description_ar: 'تنبيهات التصعيد والإشعارات الإدارية الداخلية',
+        description_en: 'Escalation alerts & internal admin notifications',
+        color: '#f59e0b',
+        glow: 'rgba(245,158,11,0.4)',
+        photoURL: null,
+        official: true,
+        readOnly: true,
+        staffOnly: true,    // ← Hidden from regular users
+        minRole: 'moderator', // ← Minimum role required to see this bot
     },
 ];
 
@@ -477,6 +535,7 @@ var fetchMiniProfileData = async (uid, myFriendsList = []) => {
             loading: false,
         };
     } catch (e) {
+        console.error('[PRO SPY ERROR] fetchMiniProfileData:', e);
         return null;
     }
 };
@@ -647,25 +706,30 @@ var resolveRewardItem = function (reward) {
             var allFrames = [].concat(SI.frames || [], SI.limitedFrames || []);
             var frame = allFrames.find(function (f) { return f.id === resolved.frameId; });
             if (frame) {
-                resolved.icon = frame.icon || '🖼️';
-                if (frame.imageUrl) resolved.imageURL = frame.imageUrl;
-                resolved.label_en = resolved.label_en || frame.name_en;
-                resolved.label_ar = resolved.label_ar || frame.name_ar;
+                resolved.icon = resolved.icon || '🖼️';
+                resolved.label_en = (frame.name_en || 'Frame');
+                resolved.label_ar = (frame.name_ar || 'إطار');
+                
+                var durSfx_en = resolved.duration ? ' · ' + resolved.duration + 'd' : '';
+                var durSfx_ar = resolved.duration ? ' · ' + resolved.duration + ' أيام' : '';
+                resolved.label_en += durSfx_en;
+                resolved.label_ar += durSfx_ar;
+                
+                // Fix frame asset resolution: Fallback to preview if imageUrl is missing
+                var frameAsset = frame.imageUrl || frame.preview;
+                if (frameAsset) {
+                    resolved.imageURL = frameAsset;
+                    if (!frameAsset.includes('linear-gradient')) {
+                        resolved.icon = frameAsset; 
+                    }
+                }
+                if (frame.preview) resolved.preview = frame.preview;
                 _meta(frame);
             }
         }
         resolved.icon = resolved.icon || '🖼️';
         resolved.label_en = resolved.label_en || 'Frame';
         resolved.label_ar = resolved.label_ar || 'إطار';
-        if (frame) {
-            var durSfx_en = resolved.duration ? ' · ' + resolved.duration + 'd' : '';
-            var durSfx_ar = resolved.duration ? ' · ' + resolved.duration + ' أيام' : '';
-            resolved.label_en = resolved.label_en || (frame.name_en + durSfx_en);
-            resolved.label_ar = resolved.label_ar || (frame.name_ar + durSfx_ar);
-            if (frame.preview) resolved.preview = frame.preview;   // CSS gradient or image URL
-            if (frame.imageUrl) resolved.imageURL = frame.imageUrl;
-            _meta(frame);
-        }
 
     } else if ((resolved.type === 'title' || resolved.type === 'titles') && resolved.titleId) {
         if (SI) {
@@ -752,6 +816,13 @@ window.SecurityService = {
     applyCurrencyTransaction: async function(uid, amount, reason, meta = {}) {
         if (!uid || typeof amount !== 'number' || amount === 0) return { success: false };
         
+        // UID validation: abort if window global UID diverges from authenticated user
+        var authUID = firebase.auth().currentUser && firebase.auth().currentUser.uid;
+        if (authUID && uid !== authUID) {
+            console.error('[SEC] UID mismatch — write aborted. Supplied:', uid, '| Auth:', authUID);
+            return { success: false, error: 'UID mismatch' };
+        }
+
         // 🛡️ CLEANING: Remove undefined values from meta to prevent Firestore crashes
         var cleanMeta = {};
         if (meta && typeof meta === 'object') {

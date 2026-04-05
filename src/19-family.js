@@ -81,75 +81,62 @@
   //
   // ── لتغيير صورة أي جائزة: غير imageURL من null لرابط صورة/GIF ──
   // ── لتغيير نسبة الظهور: غير weight (الإجمالي ~10000) ──
-  var GACHA_CONFIG = {
-    paidCostPerSpin: 200, // Intel من رصيد اللاعب لكل سحبة مدفوعة
+  // ── GACHA CONFIG BASIC (Clans Level 1-4) ──
+  var GACHA_CONFIG_BASIC = {
+    paidCostPerSpin: 600,
     maxPaidSpinsDaily: 50,
     rewards: [
-    // ── خاتم كاريزما — نادر جداً ──
-    { weight: 20, type: 'charisma', amount: 20000, rarity: 'legendary', icon: '💍', imageURL: null,
-      label_en: '+20K Charisma Ring', label_ar: 'خاتم كاريزما 20K',
-      rateDisplay: '0.2%' },
-
-    // ── إطارات عادية (تدعم GIF) ──
-    // imageURL: ضع رابط صورة/GIF للإطار هنا
-    { weight: 300, type: 'frame', frameId: 'frame_temp_1d', duration: 1, rarity: 'rare', icon: '🖼️', imageURL: null,
-      label_en: 'Frame 1 Day', label_ar: 'إطار يوم واحد', rateDisplay: '3%' },
-    { weight: 200, type: 'frame', frameId: 'frame_temp_3d', duration: 3, rarity: 'rare', icon: '🖼️', imageURL: null,
-      label_en: 'Frame 3 Days', label_ar: 'إطار 3 أيام', rateDisplay: '2%' },
-    { weight: 150, type: 'frame', frameId: 'frame_temp_7d', duration: 7, rarity: 'epic', icon: '🖼️', imageURL: null,
-      label_en: 'Frame 7 Days', label_ar: 'إطار 7 أيام', rateDisplay: '1.5%' },
-
-    // ── إطارات متحركة GIF ──
-    // imageURL: ضع رابط GIF للإطار المتحرك هنا
-    { weight: 200, type: 'frame_anim', frameId: 'frame_anim_1d', duration: 1, rarity: 'rare', icon: '✨', imageURL: null,
-      label_en: 'Animated Frame 1 Day', label_ar: 'إطار متحرك يوم', rateDisplay: '2%' },
-    { weight: 150, type: 'frame_anim', frameId: 'frame_anim_3d', duration: 3, rarity: 'epic', icon: '✨', imageURL: null,
-      label_en: 'Animated Frame 3 Days', label_ar: 'إطار متحرك 3 أيام', rateDisplay: '1.5%' },
-    { weight: 100, type: 'frame_anim', frameId: 'frame_anim_7d', duration: 7, rarity: 'legendary', icon: '✨', imageURL: null,
-      label_en: 'Animated Frame 7 Days', label_ar: 'إطار متحرك 7 أيام', rateDisplay: '1%' },
-
-    // ── هدايا ──
-    { weight: 200, type: 'gift', giftId: 'gift_racecar', qty: 1, rarity: 'epic', icon: '🏎️', imageURL: null,
-      label_en: 'Gift 2000 Intel', label_ar: 'هدية 2000 إنتل', rateDisplay: '2%' },
-    { weight: 500, type: 'gift', giftId: 'gift_crown', qty: 1, rarity: 'rare', icon: '👑', imageURL: null,
-      label_en: 'Gift 520 Intel', label_ar: 'هدية 520 إنتل', rateDisplay: '5%' },
-    { weight: 1000, type: 'gift', giftId: 'gift_cake', qty: 1, rarity: 'uncommon', icon: '🎂', imageURL: null,
-      label_en: 'Gift 200 Intel', label_ar: 'هدية 200 إنتل', rateDisplay: '10%' },
-    { weight: 1200, type: 'gift', giftId: 'gift_coffee', qty: 1, rarity: 'uncommon', icon: '☕', imageURL: null,
-      label_en: 'Gift 120 Intel', label_ar: 'هدية 120 إنتل', rateDisplay: '12%' },
-    { weight: 1500, type: 'gift', giftId: 'gift_teddy', qty: 1, rarity: 'common', icon: '🧸', imageURL: null,
-      label_en: 'Gift 50 Intel', label_ar: 'هدية 50 إنتل', rateDisplay: '15%' },
-
-    // ── عملة الموقع Intel ──
-    { weight: 1500, type: 'currency', amount: 30, rarity: 'common', icon: '🧠', imageURL: null,
-      label_en: '+30 Intel', label_ar: '+30 إنتل', rateDisplay: '15%' },
-    { weight: 800, type: 'currency', amount: 555, rarity: 'uncommon', icon: '🧠', imageURL: null,
-      label_en: '+555 Intel', label_ar: '+555 إنتل', rateDisplay: '8%' },
-    { weight: 300, type: 'currency', amount: 1688, rarity: 'rare', icon: '🧠', imageURL: null,
-      label_en: '+1688 Intel', label_ar: '+1688 إنتل', rateDisplay: '3%' },
-
-    // ── عملة القبيلة ──
-    { weight: 1000, type: 'coins', amount: 30, rarity: 'common', icon: '🏅', imageURL: null,
-      label_en: '+30 Coins', label_ar: '+30 عملة قبيلة', rateDisplay: '10%' },
-    { weight: 500, type: 'coins', amount: 50, rarity: 'uncommon', icon: '🏅', imageURL: null,
-      label_en: '+50 Coins', label_ar: '+50 عملة قبيلة', rateDisplay: '5%' },
-    { weight: 300, type: 'coins', amount: 88, rarity: 'rare', icon: '🏅', imageURL: null,
-      label_en: '+88 Coins', label_ar: '+88 عملة قبيلة', rateDisplay: '3%' },
-    { weight: 100, type: 'coins', amount: 1688, rarity: 'legendary', icon: '🏅', imageURL: null,
-      label_en: '+1688 Coins', label_ar: '+1688 عملة قبيلة', rateDisplay: '1%' },
-
-    // ── صناديق القبيلة (نادرة جداً) ──
-    { weight: 33, type: 'chest', chestType: 'normal', rarity: 'legendary', icon: '📦', imageURL: null,
-      label_en: 'Normal Chest', label_ar: 'صندوق عادي', rateDisplay: '0.33%' },
-    { weight: 33, type: 'chest', chestType: 'advanced', rarity: 'legendary', icon: '🎁', imageURL: null,
-      label_en: 'Advanced Chest', label_ar: 'صندوق متقدم', rateDisplay: '0.33%' },
-    { weight: 34, type: 'chest', chestType: 'rare', rarity: 'legendary', icon: '💠', imageURL: null,
-      label_en: 'Rare Chest', label_ar: 'صندوق نادر', rateDisplay: '0.34%' }]
-
+      { id: 'intel_100', type: 'currency', amount: 100, weight: 400 },
+      { id: 'intel_250', type: 'currency', amount: 250, weight: 200 },
+      { id: 'intel_500', type: 'currency', amount: 500, weight: 100 },
+      { id: 'charisma_50', type: 'charisma', amount: 50, weight: 150 },
+      { id: 'gift_rose', type: 'gift', weight: 80 },
+      { id: 'gift_candy', type: 'gift', weight: 40 },
+      { id: 'frame_gold', type: 'frame', weight: 20, duration: 1 },
+      { id: 'title_scout', type: 'title', weight: 10, duration: 1 }
+    ]
   };
-  window.GACHA_CONFIG = GACHA_CONFIG;
-  window.GACHA_CONFIG_BASIC = GACHA_CONFIG;
-  window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG;
+
+  // ── GACHA CONFIG PREMIUM (Clans Level 5-9) ──
+  var GACHA_CONFIG_PREMIUM = {
+    paidCostPerSpin: 600,
+    maxPaidSpinsDaily: 50,
+    rewards: [
+      { id: 'intel_300', type: 'currency', amount: 300, weight: 300 },
+      { id: 'intel_600', type: 'currency', amount: 600, weight: 150 },
+      { id: 'intel_1200', type: 'currency', amount: 1200, weight: 50 },
+      { id: 'charisma_200', type: 'charisma', amount: 200, weight: 100 },
+      { id: 'gift_heart', type: 'gift', weight: 100 },
+      { id: 'gift_crown', type: 'gift', weight: 100 },
+      { id: 'badge_pro', type: 'badge', weight: 80, duration: 7 },
+      { id: 'frame_shehab', type: 'frame', weight: 50, duration: 3 },
+      { id: 'title_legend', type: 'title', weight: 40, duration: 7 },
+      { id: 'chest_bronze', type: 'chest', chestType: 'bronze', weight: 30 }
+    ]
+  };
+
+  // ── GACHA CONFIG MAX (Clans Level 10+) ──
+  var GACHA_CONFIG_MAX = {
+    paidCostPerSpin: 600,
+    maxPaidSpinsDaily: 50,
+    rewards: [
+      { id: 'intel_1000', type: 'currency', amount: 1000, weight: 200 },
+      { id: 'intel_2500', type: 'currency', amount: 2500, weight: 100 },
+      { id: 'charisma_500', type: 'charisma', amount: 500, weight: 150 },
+      { id: 'gift_universe', type: 'gift', weight: 100 },
+      { id: 'ring_diamond', type: 'ring', weight: 50 },
+      { id: 'ring_eternal', type: 'ring', weight: 50 },
+      { id: 'badge_legend', type: 'badge', weight: 100, duration: 30 },
+      { id: 'frame_s1_celestial', type: 'frame', weight: 100, duration: 7 },
+      { id: 'title_s1_pioneer', type: 'title', weight: 100, duration: 7 },
+      { id: 'effect_gif2', type: 'effect', weight: 50, duration: 3 }
+    ]
+  };
+
+  window.GACHA_CONFIG_BASIC = GACHA_CONFIG_BASIC;
+  window.GACHA_CONFIG_PREMIUM = GACHA_CONFIG_PREMIUM;
+  window.GACHA_CONFIG_MAX = GACHA_CONFIG_MAX;
+  window.GACHA_CONFIG = GACHA_CONFIG_BASIC; // Fallback
 
 
   // ── ألوان نادرية الجاتشه ──
@@ -304,7 +291,6 @@
       var fid = viewFamilyId || currentUserData?.familyId;
       if (!fid) {setFamily(null);setLoadingFamily(false);return;}
       var unsub = familiesCollection.doc(fid).onSnapshot((snap) => {
-        if (snap.metadata.hasPendingWrites) return; /* Prevent loop on local estimate */
         if (snap.exists) {
           var d = { id: snap.id, ...snap.data() };
           setFamily(d);
@@ -355,9 +341,15 @@
           }
         } else {
           setFamily(null);
+          // 🛡️ SECURITY: Zero-Deletion Policy — Do not delete user's clan association
+          // unless we have explicit proof the family document was deleted/purged.
+          /* 
           if (!viewFamilyId) {
             usersCollection.doc(currentUID).update({ familyId: null, familyName: null, familyTag: null }).catch(() => {});
           }
+          */
+          // NOTE: Automated cleanup on 'null' state was causing data loss after clearing cache.
+          // Permanent membership data should only be wiped by an explicit 'Leave/Kick' action.
         }
         setLoadingFamily(false);
       }, () => setLoadingFamily(false));
@@ -599,8 +591,14 @@
     { id: 'manage', label_en: 'Manage', label_ar: 'إدارة', icon: '⚙️' }];
 
 
-    var fLvl = family ? getFamilyLevel(family.activeness || 0) : null;
-    var fProg = family ? getFamilyLevelProgress(family.activeness || 0) : 0;
+    var { getFamilyLevelConfig = () => ({}) } = window.FamilyConstants || {};
+    var fLvl = family ? getFamilyLevelConfig(family.level || 1) : null;
+    var fProg = 0;
+    if (family && fLvl) {
+      var nextLv = FAMILY_LEVEL_CONFIG.find((c) => c.level === fLvl.level + 1);
+      if (!nextLv) fProg = 100;
+      else fProg = Math.max(0, Math.min(100, Math.round(((family.activeness || 0) - fLvl.activeness) / (nextLv.activeness - fLvl.activeness) * 100)));
+    }
     var myRole = family ? getFamilyRole(family, currentUID) : null;
     var canManage = family ? canManageFamily(family, currentUID) : false;
     var weeklyAct = family ? family.weeklyActiveness || 0 : 0;
@@ -610,6 +608,23 @@
     var lastWeekAct = family ? family.lastWeekActiveness !== undefined ? family.lastWeekActiveness : weeklyAct : 0;
     var signData = (family ? getFamilySignLevelData(lastWeekAct) : null) || SIGN_FALLBACK;
     var signProg = family ? getFamilySignProgress(lastWeekAct) : 0;
+    var onSetRole = async (targetUID, newRole) => {
+      try {
+        await window.FamilyService.setMemberRole({ family, targetUID, newRole, currentUID, lang });
+        onNotification(lang === 'ar' ? '✅ تم تحديث الرتبة' : '✅ Role updated');
+      } catch (e) {
+        onNotification(e.message || (lang === 'ar' ? '❌ فشل التحديث' : '❌ Update failed'));
+      }
+    };
+
+    var onKick = async (targetUID) => {
+      try {
+        await window.FamilyService.kickMember({ family, targetUID, currentUID, lang });
+        onNotification(lang === 'ar' ? '✅ تم طرد العضو' : '✅ Member kicked');
+      } catch (e) {
+        onNotification(e.message || (lang === 'ar' ? '❌ فشل الطرد' : '❌ Kick failed'));
+      }
+    };
 
     // ─────────────────────────────────────────────
     // TAB: PROFILE (redesigned to match reference image)
@@ -625,7 +640,7 @@
     // TAB: MEMBERS
     // ─────────────────────────────────────────────
     var renderMembers = () => {
-      if (window.FamilyMembers) return /*#__PURE__*/React.createElement(window.FamilyMembers, { family: family, members: familyMembers, currentUID: currentUID, lang: lang, onNotification: onNotification, S: S, myRole: myRole, activeTab: activeTab, setActiveTab: setActiveTab, setFamily: setFamily, view: view, setView: setView });
+      if (window.FamilyMembers) return /*#__PURE__*/React.createElement(window.FamilyMembers, { family: family, members: familyMembers, currentUID: currentUID, lang: lang, onNotification: onNotification, S: S, myRole: myRole, activeTab: activeTab, setActiveTab: setActiveTab, setFamily: setFamily, view: view, setView: setView, onSetRole: onSetRole, onKick: onKick });
       return /*#__PURE__*/React.createElement("div", { style: { padding: '20px', color: 'white', textAlign: 'center' } }, lang === 'ar' ? 'جاري التحميل...' : 'Loading...');
     };
 
@@ -765,23 +780,68 @@
 
 
       family && activeTab === 'profile' && /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 16px', background: 'rgba(255,255,255,0.04)', borderTop: '1px solid #e5e7eb', flexShrink: 0 } }, /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0, width: '100%', boxSizing: 'border-box' } },
 
-      React.createElement("button", { onClick: () => onOpenChat ? onOpenChat() : setShowChatModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(107,114,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "\uD83D\uDCAC"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#6b7280', fontWeight: 600 } }, lang === 'ar' ? 'شات' : 'Chat')
-      ), /*#__PURE__*/
+      !isReadOnly ? /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-around', width: '100%' } }, /*#__PURE__*/
+        React.createElement("button", { onClick: () => onOpenChat ? onOpenChat() : setShowChatModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(107,114,128,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "💬"), /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#6b7280', fontWeight: 600 } }, lang === 'ar' ? 'شات' : 'Chat')
+        ), /*#__PURE__*/
 
+        React.createElement("button", { onClick: () => setShowGachaModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "🎰"), /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#a78bfa', fontWeight: 600 } }, lang === 'ar' ? 'جاتشه' : 'Gacha')
+        ),
 
-      React.createElement("button", { onClick: () => setShowGachaModal(true), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' } }, "\uD83C\uDFB0"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#a78bfa', fontWeight: 600 } }, lang === 'ar' ? 'جاتشه' : 'Gacha')
-      ),
+        React.createElement("button", { onClick: () => setShowDonatePanel((v) => !v), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 900, color: '#10b981' } }, "+"), /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#10b981', fontWeight: 600 } }, lang === 'ar' ? 'تبرع' : 'Donate')
+        )
+      ) : /*#__PURE__*/
 
-      !(!!viewFamilyId && viewFamilyId !== currentUserData?.familyId) && /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowDonatePanel((v) => !v), style: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '4px 12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 900, color: '#10b981' } }, "+"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#10b981', fontWeight: 600 } }, lang === 'ar' ? 'تبرع' : 'Donate')
+      React.createElement("button", {
+        onClick: async () => {
+          if (!window.FamilyService?.joinFamily) return;
+          try {
+            var res = await window.FamilyService.joinFamily({ familyId: family.id, currentUID, currentUserData, lang });
+            if (res?.status === 'pending') {
+              onNotification(lang === 'ar' ? '✅ تم إرسال طلب الانضمام' : '✅ Join request sent');
+            } else if (res?.status === 'joined') {
+              onNotification(lang === 'ar' ? '🎉 تم الانضمام للقبيلة' : '🎉 Joined the family');
+            }
+            } catch (e) {
+              var msg = e.message || "";
+              if (!msg.startsWith('COOLDOWN:')) console.error(e);
+              if (msg.startsWith('COOLDOWN:')) {
+                var hours = msg.split(':')[1];
+                onNotification(lang === 'ar' 
+                  ? `⏳ يجب الانتظار ${hours} ساعة قبل الانضمام لقبيلة أخرى` 
+                  : `⏳ You must wait ${hours} hours before joining another family`);
+              } else if (msg === 'Already in a family') {
+                onNotification(lang === 'ar' ? 'أنت بالفعل عضو في قبيلة' : 'You are already in a family');
+              } else {
+                onNotification(msg || (lang === 'ar' ? '❌ فشل الانضمام' : '❌ Failed to join'));
+              }
+            }
+        },
+        style: {
+          width: '100%', padding: '12px', borderRadius: '14px', border: 'none',
+          background: (() => {
+            if (currentUserData?.familyId) return '#374151';
+            if (currentUserData?.leftFamilyAt) {
+              var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+              if (Date.now() - leftAt < 24 * 60 * 60 * 1000) return '#374151';
+            }
+            return family.joinType === 'open' ? 'linear-gradient(135deg, #00dbde, #0057ff)' : 'linear-gradient(135deg, #fc00ff, #7000ff)';
+          })(),
+          color: 'white', fontSize: '14px', fontWeight: 900, cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)', transition: 'all 0.2s'
+        }
+      },
+        family.joinType === 'open' ?
+          (lang === 'ar' ? '🚀 انضم الآن' : '🚀 Join Now') :
+          (lang === 'ar' ? '📩 طلب انضمام' : '📩 Request to Join')
       )
 
       )

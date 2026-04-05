@@ -8,9 +8,11 @@
     loading, joinError, sessionClaimedToday,
     setShowMyAccount, setShowShop, setShowLoginRewards, setShowSetupModal,
     setShowFunPass, setShowBrowseRooms, setShowPublicChat, setShowUserProfile,
+    setShowLuckyGames,
     handleJoinGame, handleCreateGame, setNotification, requireLogin,
     currentUID, user
   }) {
+
     var fmtNum = window.fmtNum || ((n) => n.toLocaleString());
 
     return (/*#__PURE__*/
@@ -66,6 +68,61 @@
       ),
       joinError && /*#__PURE__*/React.createElement("p", { style: { fontSize: '11px', color: '#ff4d4d', textAlign: 'center', marginTop: '6px' } }, joinError)
       ), /*#__PURE__*/
+      
+      /* 🎰 LUCKY GAMES SHORTCUT BOX */
+      React.createElement("div", { 
+        className: "lucky-games-shortcut-new", 
+        onClick: () => { if (isLoggedIn) setShowLuckyGames(true); else requireLogin(); },
+        style: {
+          margin: '0 16px 12px',
+          padding: '16px',
+          background: 'linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,242,255,0.05))',
+          borderRadius: '16px',
+          border: '1px solid rgba(0,242,255,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          cursor: 'pointer',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        } 
+      }, 
+        /* Neon Glow Effect BG */
+        React.createElement("div", { style: { position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(0,242,255,0.1) 0%, transparent 70%)', transform: 'rotate(-25deg)', pointerEvents: 'none' } }),
+        
+        /* Icon Wrapper */
+        React.createElement("div", { 
+          style: { 
+            width: '44px', height: '44px', borderRadius: '12px', 
+            background: 'var(--bg-card)', border: '1px solid rgba(0,242,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '24px', boxShadow: '0 0 12px rgba(0,242,255,0.2)' 
+          } 
+        }, "🎮"),
+        
+        /* Text Body */
+        React.createElement("div", { style: { flex: 1 } }, 
+          React.createElement("div", { style: { fontSize: '15px', fontWeight: 900, color: '#fff', letterSpacing: '0.5px', textShadow: '0 0 8px rgba(0,242,255,0.3)' } }, 
+            lang === 'ar' ? 'ألعاب الحرب ⚔️' : 'Lucky & War Games 🎰'
+          ),
+          React.createElement("div", { style: { fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' } }, 
+            lang === 'ar' ? 'العب العاب الحظ واكسب مكافآت ضخمة!' : 'Play games of luck and win massive rewards!'
+          )
+        ),
+        
+        /* Action Arrow */
+        React.createElement("div", { 
+          style: { 
+            width: '28px', height: '28px', borderRadius: '50%', 
+            background: 'rgba(0,242,255,0.1)', display: 'flex', 
+            alignItems: 'center', justifyContent: 'center', 
+            color: 'var(--primary)', fontSize: '16px', fontWeight: 700 
+          } 
+        }, "→")
+      ),
+
 
 
       React.createElement("div", { className: "sec-head-new" }, /*#__PURE__*/

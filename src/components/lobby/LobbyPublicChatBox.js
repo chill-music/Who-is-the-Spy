@@ -98,9 +98,15 @@
         return (/*#__PURE__*/
           React.createElement("div", { key: msg.id || i, style: { display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: '6px', alignItems: 'flex-end' } }, /*#__PURE__*/
 
-          React.createElement("div", { onClick: () => openMini(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }),
-            style: { width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: vipCfg ? `1.5px solid ${vipCfg.nameColor}` : '1.5px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.08)' } },
-          msg.senderPhoto ? /*#__PURE__*/React.createElement("img", { src: msg.senderPhoto, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' } }, "\uD83D\uDE0E")
+          React.createElement("div", { 
+            style: { width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+          React.createElement(window.AvatarWithFrame, {
+            photoURL: msg.senderPhoto,
+            equipped: { frames: msg.senderFrame, badges: msg.senderBadges },
+            size: "xs",
+            lang: lang,
+            onClick: () => openMini(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto })
+          })
           ), /*#__PURE__*/
           React.createElement("div", { style: { maxWidth: 'min(70%, calc(100vw - 70px))' } }, /*#__PURE__*/
           React.createElement("div", { onClick: () => openMini(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }),

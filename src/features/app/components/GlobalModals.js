@@ -20,6 +20,8 @@
       // Account & Profile
       showMyAccount, setShowMyAccount,
       showUserProfile, setShowUserProfile, targetProfileUID, setTargetProfileUID,
+      showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
+      showMiniProfile, setShowMiniProfile, miniProfileUID, miniProfileData,
 
       // Social
       showFriendsMoments, setShowFriendsMoments,
@@ -28,6 +30,7 @@
       showBFFModal, setShowBFFModal, bffInitialTab, setBffInitialTab,
       showDetectiveBot, setShowDetectiveBot,
       showLoveBot, setShowLoveBot,
+      showStaffCommandBot, setShowStaffCommandBot,
       showBrowseRooms, setShowBrowseRooms,
       showPrivateChat, closePrivateChat, chatFriend,
       showSelfChat, setShowSelfChat,
@@ -70,7 +73,10 @@
       handleAcceptProposal, handleDeclineProposal, handlePurchase, handleEquip, handleUnequip,
       handleBuyVIP, markNotificationRead, clearAllNotifications, handleNotificationClick,
       createNotification, openPrivateChat, setShowPrivateChat: setShowPrivateChatFn,
-      resetGame, handleLeaveRoom
+      resetGame, handleLeaveRoom,
+      // Marriage Actions
+      handleAcceptProposal, handleDeclineProposal, handleDivorce,
+      shopInitialTab, setShopInitialTab
     } = props;
 
     // Re-export some setters to window so non-React code can use them
@@ -78,6 +84,8 @@
     window.setShowUserProfile = setShowUserProfile;
     window.setAlertMessage = setAlertMessage;
     window.setNotification = setNotification;
+    // Allow non-React game code (e.g. SoccerStarGame exitBtn) to close the hub
+    window.closeLuckyGamesHub = function () { if (setShowLuckyGames) setShowLuckyGames(false); };
 
     return (/*#__PURE__*/
       React.createElement("div", { className: "global-modals-container", style: { position: 'relative', zIndex: 9999 } },
@@ -118,7 +126,13 @@
       window.TutorialModal && /*#__PURE__*/
       React.createElement(window.TutorialModal, {
         show: showTutorial,
-        onClose: () => {if (setShowTutorial) setShowTutorial(false);localStorage.setItem('pro_spy_tutorial_v2', 'true');},
+        onClose: () => {
+          if (setShowTutorial) setShowTutorial(false);
+          localStorage.setItem('pro_spy_tutorial_v2', 'true');
+          if (user && !user.isAnonymous && window.usersCollection) {
+            window.usersCollection.doc(user.uid).update({ tutorial_v2_done: true }).catch(() => {});
+          }
+        },
         lang: lang }
       ),
 
@@ -138,30 +152,42 @@
 
       showSummary && room && /*#__PURE__*/
       React.createElement("div", { className: "modal-overlay", onClick: () => setShowSummary(false) }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+      React.createElement("div", { className: "modal-content animate-pop relative overflow-hidden", onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+      
+      // Master Reveal Sweep Animation
+      React.createElement("div", { className: "winning-team-sweep" }),
+
       React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
       React.createElement("h2", { className: "modal-title" }, t.summaryTitle),
       window.ModalCloseBtn && /*#__PURE__*/React.createElement(window.ModalCloseBtn, { onClose: () => setShowSummary(false) })
       ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-body text-center" }, /*#__PURE__*/
-      React.createElement("div", { className: "text-4xl mb-3" }, room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'), /*#__PURE__*/
-      React.createElement("h2", { className: "text-xl font-bold mb-3" }, room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin),
-      room.chosenWord && /*#__PURE__*/React.createElement("div", { className: "text-xs text-cyan-400 mb-3" }, "\uD83D\uDD11 ", t.selectedWord, ": ", /*#__PURE__*/React.createElement("strong", null, room.chosenWord)), /*#__PURE__*/
-      React.createElement("div", { style: { background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px', marginBottom: '8px', textAlign: 'left' } }, /*#__PURE__*/
-      React.createElement("div", { className: "text-xs font-bold text-gray-300 mb-2" }, "\uD83D\uDCCB ", t.rolesRevealTitle),
+      React.createElement("div", { className: "modal-body text-center z-10" }, /*#__PURE__*/
+      React.createElement("div", { className: "text-5xl mb-4 drop-shadow-lg" }, room.status === 'finished_spy_caught' ? '🎉' : room.status === 'finished_mrwhite_wins' ? '👻' : '🕵️'), /*#__PURE__*/
+      React.createElement("h2", { className: `summary-title ${room.status === 'finished_spy_caught' ? 'winner-glow-agent' : room.status === 'finished_mrwhite_wins' ? 'winner-glow-white' : 'winner-glow-spy'}` }, 
+        room.status === 'finished_spy_caught' ? t.agentsWin : room.status === 'finished_mrwhite_wins' ? t.mrWhiteWin : t.spyWin
+      ),
+      room.chosenWord && /*#__PURE__*/React.createElement("div", { className: "text-sm text-primary/70 mb-4 font-tech uppercase tracking-widest" }, 
+        t.selectedWord, ": ", /*#__PURE__*/React.createElement("span", { className: "text-white font-bold" }, room.chosenWord)
+      ), /*#__PURE__*/
+      
+      React.createElement("div", { className: "summary-roles-panel" }, /*#__PURE__*/
+      React.createElement("div", { className: "text-xs font-black text-white/40 uppercase tracking-widest mb-3" }, "📋 " + t.rolesRevealTitle),
       room.players.filter((p) => p.role).map((p) => /*#__PURE__*/
-      React.createElement("div", { key: p.uid, className: "flex items-center justify-between gap-2 mb-1", style: { fontSize: '11px' } }, /*#__PURE__*/
-      React.createElement("span", { className: "text-gray-300 truncate" }, p.name, p.uid === currentUID ? ' (You)' : ''), /*#__PURE__*/
-      React.createElement("span", { style: { color: p.role === 'spy' ? '#ef4444' : p.role === 'mrwhite' ? '#8b5cf6' : p.role === 'informant' ? '#a78bfa' : '#10b981', fontWeight: 700, flexShrink: 0 } },
-      p.role === 'spy' ? '🕵️ ' + t.statusSpy : p.role === 'mrwhite' ? '👻 ' + t.statusMrWhite : p.role === 'informant' ? '👁️ ' + t.statusInformant : '🤵 ' + t.statusAgent
+      React.createElement("div", { key: p.uid, className: "flex items-center justify-between gap-2 mb-2 p-1.5 rounded-lg border border-white/5 bg-white/5" }, /*#__PURE__*/
+      React.createElement("span", { className: "text-[11px] font-bold text-white/80 truncate" }, p.name, p.uid === currentUID ? ' (You)' : ''), /*#__PURE__*/
+      React.createElement("span", { 
+        className: "text-[11px] font-black uppercase flex items-center gap-1",
+        style: { color: p.role === 'spy' ? '#ff0055' : p.role === 'mrwhite' ? '#ffd700' : p.role === 'informant' ? '#a78bfa' : '#00f2ff' } 
+      },
+        p.role === 'spy' ? '🕵️ ' + t.statusSpy : p.role === 'mrwhite' ? '👻 ' + t.statusMrWhite : p.role === 'informant' ? '👁️ ' + t.statusInformant : '🤵 ' + t.statusAgent
       )
       )
       )
       )
       ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-footer" },
-      room.admin === currentUID && /*#__PURE__*/React.createElement("button", { onClick: resetGame, className: "btn-neon w-full py-2 rounded-lg text-sm font-bold mb-2" }, t.playAgain), /*#__PURE__*/
-      React.createElement("button", { onClick: handleLeaveRoom, className: "btn-ghost w-full py-2 rounded-lg text-sm" }, t.leaveRoom)
+      React.createElement("div", { className: "modal-footer flex-col gap-2" },
+      room.admin === currentUID && /*#__PURE__*/React.createElement("button", { onClick: resetGame, className: "btn-neon w-full py-3 rounded-xl text-sm font-black uppercase tracking-wider" }, t.playAgain), /*#__PURE__*/
+      React.createElement("button", { onClick: handleLeaveRoom, className: "btn-ghost w-full py-3 rounded-xl text-sm font-bold text-white/60" }, t.leaveRoom)
       )
       )
       ),
@@ -174,10 +200,10 @@
         onClose: () => setShowShop(false),
         userData: isLoggedIn ? userData : props.guestData,
         lang: lang,
+        initialTab: shopInitialTab,
         onPurchase: handlePurchase,
         onEquip: handleEquip,
         onUnequip: handleUnequip,
-        onBuyVIP: handleBuyVIP,
         onOpenInventory: () => {setShowShop(false);setShowInventory(true);},
         currentUID: currentUID,
         onPropose: (ring) => {if (setProposalRing) setProposalRing(ring);setShowShop(false);if (setShowProposalModal) setShowProposalModal(true);},
@@ -277,9 +303,16 @@
         currentUserData: userData,
         coupleData: coupleData,
         partnerData: partnerData,
-        onOpenPropose: () => {if (setShowWeddingHall) setShowWeddingHall(false);setShowShop(true);},
+        partnerData: partnerData,
+        onOpenPropose: () => {
+          if (setShowWeddingHall) setShowWeddingHall(false);
+          if (setShopInitialTab) setShopInitialTab('rings');
+          setShowShop(true);
+        },
         onOpenCoupleCard: () => {if (setShowWeddingHall) setShowWeddingHall(false);if (setShowCoupleCard) setShowCoupleCard(true);},
-        onDivorce: () => {},
+        onAccept: handleAcceptProposal,
+        onDecline: handleDeclineProposal,
+        onDivorce: handleDivorce,
         onNotification: setNotification }
       ),
 
@@ -431,6 +464,20 @@
 
 
 
+      // 🔒 ADMIN HQ — Staff-only bot: only renders for admin / moderator / owner
+      showStaffCommandBot && window.BotChatModal &&
+      ['owner','admin','moderator'].includes(currentUserData?.role) && /*#__PURE__*/
+      React.createElement(window.BotChatModal, {
+        show: showStaffCommandBot,
+        onClose: () => setShowStaffCommandBot(false),
+        botId: "staff_command_bot",
+        currentUID: currentUID,
+        currentUserData: currentUserData,
+        lang: lang }
+      ),
+
+
+
       showMyAccount && currentUID && window.ProfileV11 && /*#__PURE__*/
       React.createElement(window.ProfileV11, {
         show: showMyAccount,
@@ -459,6 +506,7 @@
         onOpenMarriage: () => {setShowMyAccount(false);if (setShowWeddingHall) setShowWeddingHall(true);},
         onOpenFamily: (fid) => {setShowMyAccount(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
         onOpenBFFModal: () => {setShowMyAccount(false);setShowBFFModal(true);},
+        onOpenVIPCenter: () => {setShowMyAccount(false);setShowVIPCenter(true);},
         onNotification: setNotification,
         onOpenChat: (target) => {
           setShowMyAccount(false);
@@ -469,7 +517,7 @@
 
 
 
-      window.ProfileV11 && /*#__PURE__*/
+      showUserProfile && window.ProfileV11 && /*#__PURE__*/
       React.createElement(window.ProfileV11, {
         show: showUserProfile,
         onClose: () => setShowUserProfile(false),
@@ -486,8 +534,31 @@
         currentViewerData: userData,
         onOpenProfile: (uid) => {if (setTargetProfileUID) setTargetProfileUID(uid);setShowUserProfile(true);},
         onOpenFamily: (fid) => {setShowUserProfile(false);setViewFamilyId(fid || null);setShowFamilyModal(true);},
+        onOpenVIPCenter: () => {setShowUserProfile(false);setShowVIPCenter(true);},
         onNotification: setNotification,
         onOpenChat: (friendData) => {openPrivateChat && openPrivateChat(friendData);setShowUserProfile(false);} }
+      ),
+
+
+
+      showMiniProfile && window.MiniProfilePopup && /*#__PURE__*/
+      React.createElement(window.MiniProfilePopup, {
+        show: showMiniProfile,
+        onClose: () => setShowMiniProfile(false),
+        uid: miniProfileUID,
+        data: miniProfileData,
+        lang: lang,
+        t: t,
+        currentUID: currentUID,
+        currentUserData: currentUserData,
+        onNotification: setNotification,
+        onOpenFullProfile: (uid) => {
+          setShowMiniProfile(false);
+          setTargetProfileUID(uid);
+          setShowUserProfile(true);
+        },
+        onOpenChat: openPrivateChat,
+        onSendGift: handleSendGiftToUser }
       ),
 
 
@@ -627,6 +698,19 @@
         lang: lang,
         userData: currentUserData,
         currentUID: currentUID }
+      ),
+
+
+      showSendGiftModal && window.SendGiftModal && /*#__PURE__*/
+      React.createElement(window.SendGiftModal, {
+        show: showSendGiftModal,
+        onClose: () => setShowSendGiftModal(false),
+        targetUser: sendGiftTarget,
+        currentUser: currentUserData,
+        lang: lang,
+        onSendGift: handleSendGiftToUser,
+        currency: currentUserData?.currency || 0,
+        friendsData: friendsData }
       )
 
 

@@ -12,7 +12,7 @@
     window.useAppUIState = function () {
         // ── Global States ──
         var [lang, setLang] = useState(localStorage.getItem('pro_spy_lang') || 'en');
-        
+
         useEffect(() => {
             document.documentElement.lang = lang;
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -54,6 +54,7 @@
         var [notification, setNotification] = useState(null);
         var [showSummary, setShowSummary] = useState(false);
         var [showShop, setShowShop] = useState(false);
+        var [shopInitialTab, setShopInitialTab] = useState('frames');
         var [showInventory, setShowInventory] = useState(false);
         var [showPrivateChat, setShowPrivateChat] = useState(false);
         var [showSelfChat, setShowSelfChat] = useState(false);
@@ -94,8 +95,10 @@
 
         var [showDetectiveBot, setShowDetectiveBot] = useState(false);
         var [showLoveBot, setShowLoveBot] = useState(false);
+        var [showStaffCommandBot, setShowStaffCommandBot] = useState(false);
         var [detectiveBotUnread, setDetectiveBotUnread] = useState(0);
         var [loveBotUnread, setLoveBotUnread] = useState(0);
+        var [staffCommandBotUnread, setStaffCommandBotUnread] = useState(0);
 
         var [showVIPCenter, setShowVIPCenter] = useState(false);
         var [showHelpCenter, setShowHelpCenter] = useState(false);
@@ -106,6 +109,8 @@
         var [showGameChat, setShowGameChat] = useState(true);
         var gameChatRef = useRef(null);
         var [showLuckyGames, setShowLuckyGames] = useState(false);
+        var [showSendGiftModal, setShowSendGiftModal] = useState(false);
+        var [sendGiftTarget, setSendGiftTarget] = useState(null);
 
         return {
             lang, setLang,
@@ -145,6 +150,7 @@
             notification, setNotification,
             showSummary, setShowSummary,
             showShop, setShowShop,
+            shopInitialTab, setShopInitialTab,
             showInventory, setShowInventory,
             showPrivateChat, setShowPrivateChat,
             showSelfChat, setShowSelfChat,
@@ -182,8 +188,10 @@
             bffUnreadCount, setBffUnreadCount,
             showDetectiveBot, setShowDetectiveBot,
             showLoveBot, setShowLoveBot,
+            showStaffCommandBot, setShowStaffCommandBot,
             detectiveBotUnread, setDetectiveBotUnread,
             loveBotUnread, setLoveBotUnread,
+            staffCommandBotUnread, setStaffCommandBotUnread,
             showVIPCenter, setShowVIPCenter,
             showHelpCenter, setShowHelpCenter,
             showPublicChat, setShowPublicChat,
@@ -192,6 +200,8 @@
             showGameChat, setShowGameChat,
             gameChatRef,
             showLuckyGames, setShowLuckyGames,
+            showSendGiftModal, setShowSendGiftModal,
+            sendGiftTarget, setSendGiftTarget
         };
     };
 })();

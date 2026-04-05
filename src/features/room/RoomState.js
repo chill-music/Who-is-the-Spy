@@ -89,6 +89,7 @@
                     mode: setupMode, 
                     isPrivate: isPrivate, 
                     password: isPrivate ? password : null, 
+                    maxPlayers: 8, 
                     startedAt: null, 
                     summaryShown: false 
                 });
@@ -105,10 +106,10 @@
                             setCopied(true);
                             setTimeout(function() { setCopied(false); }, 2000);
                         }
-                    }).catch(function() {});
+                    }).catch(function(e) { console.error('[PRO SPY ERROR] Clipboard write failed:', e); });
                 }
             } catch (e) {
-                console.error("Room Creation Error:", e);
+                console.error('[PRO SPY ERROR] Room Creation Error:', e);
                 if (typeof setLoading === 'function') setLoading(false);
                 if (typeof setAlertMessage === 'function') {
                     setAlertMessage(lang === 'ar' ? 'فشل إنشاء الغرفة' : 'Failed to create room');

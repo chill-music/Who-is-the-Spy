@@ -37,14 +37,30 @@
 
         // ── Tutorial Auto-Trigger ──
         useEffect(() => { 
-            var tutorialDone = localStorage.getItem('pro_spy_tutorial_v2'); 
-            if (!tutorialDone && isLoggedIn) {
-                setShowTutorial(true); 
+            var localDone = localStorage.getItem('pro_spy_tutorial_v2') === 'true'; 
+            var firestoreDone = userData?.tutorial_v2_done === true;
+            var isGuestUser = user?.isAnonymous === true;
+
+            if (isLoggedIn) {
+                if (isGuestUser) {
+                    if (!localDone) setShowTutorial(true); 
+                } else if (userData) {
+                    if (!firestoreDone) {
+                        if (localDone) {
+                            // Migrate local to Firestore immediately to prevent showing it again
+                            if (window.usersCollection && user?.uid) {
+                                window.usersCollection.doc(user.uid).update({ tutorial_v2_done: true }).catch(() => {});
+                            }
+                        } else {
+                            setShowTutorial(true); 
+                        }
+                    }
+                }
             }
-        }, [isLoggedIn]);
+        }, [isLoggedIn, userData, user]);
 
         // ── Onboarding Complete Handler ──
-        var handleOnboardingComplete = useCallback(async ({ displayName, gender, country, photoURL }) => {
+        var handleOnboardingComplete = useCallback(async ({ displayName, gender, birthDate, country, photoURL }) => {
             if (!onboardingGoogleUser || !pendingNewUserRef) return;
             
             // Dependencies: TS, getCurrentCycleMonth, usersCollection (global)
@@ -57,22 +73,25 @@
                 displayName: displayName,
                 photoURL: finalPhoto,
                 gender: gender,
+                birthDate: birthDate,
                 country: country ? { code: country.code, flag: country.flag, name_ar: country.name_ar, name_en: country.name_en } : null,
                 customId: Math.floor(100000000 + Math.random() * 900000000).toString(),
                 stats: { wins: 0, losses: 0, xp: 0 },
                 achievements: [],
                 friends: [],
                 friendRequests: [],
-                createdAt: TS(),
+                createdAt: typeof window.TS === 'function' ? window.TS() : new Date(),
                 lastChangedName: null,
-                lastActive: TS(),
+                nameChangeHistory: [],
+                lastActive: typeof window.TS === 'function' ? window.TS() : new Date(),
                 isAnonymous: false,
                 currency: 100,
                 inventory: { frames: [], titles: [], themes: [], badges: [], gifts: [] },
                 equipped: { badges: [] },
                 charisma: 0,
                 bannerURL: null,
-                loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: getCurrentCycleMonth() },
+                loginRewards: { currentDay: 0, lastClaimDate: null, streak: 0, totalClaims: 0, cycleMonth: typeof window.getCurrentCycleMonth === 'function' ? window.getCurrentCycleMonth() : new Date().getMonth() + 1 },
+                tutorial_v2_done: localStorage.getItem('pro_spy_tutorial_v2') === 'true',
             };
 
             try {
@@ -84,15 +103,6 @@
                 setShowOnboarding(false);
                 setOnboardingGoogleUser(null);
                 setPendingNewUserRef(null);
-                
-                // Start listening to user doc (inline sync)
-                pendingNewUserRef.onSnapshot(snap => {
-                    if (snap.exists) { 
-                        var d = snap.data();
-                        setUserData(d); 
-                        if (d.displayName) setNickname(d.displayName); 
-                    }
-                });
 
                 if (typeof playSound === 'function') playSound('success');
                 setNotification(lang === 'ar' ? '🎉 مرحباً بك!' : '🎉 Welcome aboard!');

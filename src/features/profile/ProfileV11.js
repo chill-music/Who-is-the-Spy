@@ -30,6 +30,7 @@
     onOpenMarriage, // opens the marriage/wedding hall page
     onOpenFamily, // opens family modal (pass familyId to view any family)
     onOpenBFFModal, // opens BFF modal for own profile
+    onOpenVIPCenter, // opens the VIP Center modal
     onNotification = () => {} // optional notification callback
   }) => {
     var t = TRANSLATIONS[lang] || {};
@@ -110,11 +111,13 @@
               setTargetData(null);
             }
             setLoading(false);
-          }).catch(() => {
+          }).catch((e) => {
+            console.error('[PRO SPY ERROR] Guest fetch failed:', e);
             if (isMounted) {setTargetData(null);setLoading(false);}
           });
         }
-      }).catch(() => {
+      }).catch((e) => {
+        console.error('[PRO SPY ERROR] User fetch failed:', e);
         if (isMounted) {setLoading(false);setTargetData(null);}
         clearTimeout(safetyTimer);
       });
@@ -144,17 +147,17 @@
         unsubPartner = usersCollection.doc(partnerUID).
         onSnapshot((doc) => {
           if (doc.exists) setProfilePartnerData({ id: doc.id, ...doc.data() });
-        }, () => {});
+        }, (e) => console.error('[PRO SPY ERROR] Partner listener failed:', e));
       };
 
       // Query both directions simultaneously — first match wins
       var p1 = couplesCollection.
       where('uid1', '==', targetUID).where('status', '==', 'accepted').limit(1).
-      get().catch(() => null);
+      get().catch((e) => { console.error('[PRO SPY ERROR] Couple P1 query failed:', e); return null; });
 
       var p2 = couplesCollection.
       where('uid2', '==', targetUID).where('status', '==', 'accepted').limit(1).
-      get().catch(() => null);
+      get().catch((e) => { console.error('[PRO SPY ERROR] Couple P2 query failed:', e); return null; });
 
       Promise.all([p1, p2]).then(([snap1, snap2]) => {
         var snap = snap1 && !snap1.empty ? snap1 : snap2 && !snap2.empty ? snap2 : null;
@@ -218,7 +221,8 @@
         var users = snap.docs.map((doc, idx) => ({ id: doc.id, rank: idx + 1 }));
         var userRank = users.find((u) => u.id === targetUID);
         setCharismaRank(userRank ? userRank.rank : '--');
-      }).catch(() => {
+      }).catch((e) => {
+        console.error('[PRO SPY ERROR] Charisma rank fetch failed:', e);
         setCharismaRank('--');
       });
     }, [show, targetUID, targetData]);
@@ -243,7 +247,7 @@
         // Sort descending, cap at 100
         var sorted = Object.values(map).sort((a, b) => b.total - a.total).slice(0, 100);
         setGuardData(sorted);
-      }, () => {});
+      }, (e) => console.error('[PRO SPY ERROR] Guard listener failed:', e));
       return () => unsub();
     }, [show, targetUID, currentUserUID]);
 
@@ -288,7 +292,7 @@
           var max = Math.min(friends.length, 70);
           amount = max > 0 ? Math.floor(Math.random() * max) + 1 : 1;
         }
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR]', e); }
       try {
         await guardCollection.add({
           receiverId: targetUID,
@@ -306,7 +310,7 @@
         midnight.setDate(midnight.getDate() + 1);
         midnight.setHours(0, 0, 0, 0);
         setGuardLockedUntil(midnight);
-      } catch (e) {}
+      } catch (e) { console.error('[PRO SPY ERROR]', e); }
     }, [currentUserUID, targetUID, guardGiven, isLoggedInProp, userData, currentUserFriends]);
 
     if (!show) return null;
@@ -383,7 +387,7 @@
             reportId: reportRef.id,
             timestamp: TS(),
             read: false
-          }).catch(() => {});
+          }).catch((e) => console.error('[PRO SPY ERROR] Detective bot report message failed:', e));
         }
         setShowReportModal(false);
         setReportReason('');
@@ -438,6 +442,7 @@
         setShowProfileCoupleCard: setShowProfileCoupleCard,
         currentViewerData: currentViewerData,
         onOpenMarriage: onOpenMarriage,
+        onOpenVIPCenter: onOpenVIPCenter,
         onOpenSettings: onOpenSettings,
         onOpenProfile: onOpenProfile }
       ),
@@ -479,6 +484,7 @@
         lang: lang,
         onOpenFamily: onOpenFamily,
         onOpenProfile: onOpenProfile,
+        onOpenVIPCenter: onOpenVIPCenter,
         setShowRoleInfoPopup: setShowRoleInfoPopup,
         copiedId: copiedId,
         setCopiedId: setCopiedId,
@@ -771,16 +777,17 @@
 
 
       isOwnProfile && isGuestProp && onLoginGoogle && /*#__PURE__*/
-      React.createElement("div", { style: { margin: '8px 12px', padding: '14px 16px', borderRadius: '16px', background: 'linear-gradient(135deg,rgba(66,133,244,0.13),rgba(26,115,232,0.08))', border: '1px solid rgba(66,133,244,0.3)', display: 'flex', alignItems: 'center', gap: '12px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '28px', flexShrink: 0 } }, "\uD83D\uDD11"), /*#__PURE__*/
+      React.createElement("div", { style: { margin: '8px 12px', padding: '14px 16px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.08))', border: '1px solid rgba(239, 68, 68, 0.4)', display: 'flex', alignItems: 'center', gap: '12px' } }, /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '28px', flexShrink: 0 } }, "\u26A0\uFE0F"), /*#__PURE__*/
       React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#e5e7eb', marginBottom: '2px' } }, lang === 'ar' ? 'سجّل دخولك بجوجل' : 'Sign in with Google'), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, lang === 'ar' ? 'احفظ تقدمك واستمتع بكل الميزات' : 'Save progress & unlock all features')
+      React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#fca5a5', marginBottom: '2px' } }, lang === 'ar' ? 'تحذير مسح البيانات لزائر' : 'Guest Data Loss Warning'), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '11px', color: '#fecaca', lineHeight: 1.4 } }, lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.')
       ), /*#__PURE__*/
       React.createElement("button", {
         onClick: onLoginGoogle,
-        style: { flexShrink: 0, padding: '8px 14px', borderRadius: '10px', background: 'linear-gradient(135deg,#4285f4,#1a73e8)', border: 'none', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 10px rgba(66,133,244,0.4)' } },
-      lang === 'ar' ? 'دخول' : 'Login'
+        style: { flexShrink: 0, padding: '8px 14px', borderRadius: '10px', background: 'linear-gradient(135deg,#4285f4,#1a73e8)', border: 'none', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 10px rgba(66,133,244,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' } },
+      React.createElement("span", null, lang === 'ar' ? 'دخول بحساب' : 'Link Google'),
+      React.createElement("span", { style: { fontSize: '9px', opacity: 0.9, marginTop: '2px', fontWeight: 'bold' } }, lang === 'ar' ? 'لحفظ التقدم' : 'To Save Data')
       )
       ),
 

@@ -273,8 +273,8 @@
   {
     level: 10,
     name_en: 'VIP X', name_ar: 'في آي بي 10',
-    nameColor: '#ef4444',
-    glowColor: 'rgba(239,68,68,1)',
+    nameColor: '#ff1a1a',
+    glowColor: 'rgba(255, 26, 26, 1)',
     gradientAnim: true,
     xpMultiplier: 2.0,
     idLength: 6,
@@ -375,9 +375,10 @@
 
   // ════ VIP NAME COMPONENT — اسم الـ VIP بالتأثيرات الصح ════
   var VIPName = ({ displayName, userData, className = '', style = {} }) => {
+    var name = displayName || userData?.displayName || userData?.name || '—';
     var level = getVIPLevel(userData);
     if (!level) {
-      return /*#__PURE__*/React.createElement("span", { className: className, style: style }, displayName);
+      return /*#__PURE__*/React.createElement("span", { className: className, style: style }, name);
     }
     var cfg = VIP_CONFIG[level - 1];
 
@@ -389,12 +390,13 @@
           style: {
             color: cfg.nameColor,
             textShadow: `0 0 10px ${cfg.glowColor}, 0 0 20px ${cfg.glowColor}`,
+            '--vip-shimmer-color': cfg.glowColor,
             position: 'relative',
             ...style
           } },
 
-        displayName, /*#__PURE__*/
-        React.createElement("span", { className: "vip-name-gradient-overlay", "aria-hidden": "true" }, displayName)
+        name, /*#__PURE__*/
+        React.createElement("span", { className: "vip-name-gradient-overlay", "aria-hidden": "true" }, name)
         ));
 
     }
@@ -409,14 +411,14 @@
             ...style
           } },
 
-        displayName
+        name
         ));
 
     }
     // VIP 1-5: red
     return (/*#__PURE__*/
       React.createElement("span", { className: className, style: { color: cfg.nameColor, ...style } },
-      displayName
+      name
       ));
 
   };
@@ -976,7 +978,7 @@
 
 
 
-  // ════ VIP BUY / RENEW SECTION (embedded in VIP Center) ════
+  // ════ VIP BUY / RENEW SECTION (Premium Shop Style) ════
   var VIPBuySection = ({ userData, user, lang, onNotification, isRenew }) => {
     var [showConfirm, setShowConfirm] = useState(false);
     var [buying, setBuying] = useState(false);
@@ -998,7 +1000,6 @@
         new Date(now.getTime() + (vipDaysLeft + 30) * 86400000) :
         new Date(now.getTime() + 30 * 86400000);
         
-        // 🛡️ SECURITY: VIP Item Purchase
         if (window.SecurityService) {
           await window.SecurityService.applyCurrencyTransaction(user.uid, -50000, `VIP Activation/Renewal`);
         } else {
@@ -1021,22 +1022,21 @@
 
     var canAfford = currency >= 50000;
 
-    // Renew mode: only show the renew button inline, no banners or feature pills
     if (isRenew) return (/*#__PURE__*/
-      React.createElement("div", { style: { marginTop: '4px' } },
+      React.createElement("div", { style: { marginTop: '8px' } },
       !showConfirm ? /*#__PURE__*/
       React.createElement("button", {
         onClick: () => canAfford && setShowConfirm(true),
         disabled: !canAfford,
         style: {
-          width: '100%', padding: '11px', borderRadius: '11px', border: 'none',
+          width: '100%', padding: '14px', borderRadius: '14px', border: 'none',
           background: canAfford ? 'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)' : 'rgba(100,100,100,0.12)',
           color: canAfford ? '#fff' : '#4b5563',
-          fontWeight: 800, fontSize: '13px', cursor: canAfford ? 'pointer' : 'not-allowed',
-          boxShadow: canAfford ? '0 4px 18px rgba(124,58,237,0.4)' : 'none',
+          fontWeight: 900, fontSize: '14px', cursor: canAfford ? 'pointer' : 'not-allowed',
+          boxShadow: canAfford ? '0 6px 20px rgba(124,58,237,0.35)' : 'none',
           transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
         } },
-      canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
+      canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
       React.createElement("span", { style: { position: 'relative' } },
       canAfford ?
       `🔄 ${lang === 'ar' ? 'تجديد +30 يوم' : 'Renew +30 days'} — 50,000 🧠` :
@@ -1044,38 +1044,35 @@
       )
       ) : /*#__PURE__*/
 
-      React.createElement("div", { style: { borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(168,85,247,0.35)', background: 'linear-gradient(135deg,#1a0533,#0d0d2b)', padding: '14px', textAlign: 'center' } }, /*#__PURE__*/
-      React.createElement("div", { style: { color: '#e9d5ff', fontWeight: 800, fontSize: '14px', marginBottom: '4px' } }, "\uD83D\uDD04 ", lang === 'ar' ? 'تجديد VIP؟' : 'Renew VIP?'), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '16px', marginBottom: '12px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', gap: '8px', justifyContent: 'center' } }, /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '7px 16px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer', fontSize: '12px' } },
+      React.createElement("div", { style: { borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(135deg,#1a0533,#0d0d2b)', padding: '18px', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' } }, /*#__PURE__*/
+      React.createElement("div", { style: { color: '#e9d5ff', fontWeight: 900, fontSize: '15px', marginBottom: '6px' } }, "🔄 ", lang === 'ar' ? 'تأكيد التجديد؟' : 'Confirm Renewal?'), /*#__PURE__*/
+      React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '20px', marginBottom: '16px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', gap: '10px', justifyContent: 'center' } }, /*#__PURE__*/
+      React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '9px 20px', borderRadius: '11px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer', fontSize: '13px' } },
       lang === 'ar' ? 'إلغاء' : 'Cancel'
       ), /*#__PURE__*/
-      React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '7px 20px', borderRadius: '9px', border: 'none', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '12px' } },
+      React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '9px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '13px', boxShadow: '0 0 15px rgba(124,58,237,0.4)' } },
       buying ? '⏳' : lang === 'ar' ? 'تأكيد' : 'Confirm'
       )
       )
       )
-
       ));
 
-
     return (/*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '10px' } }, /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '12px' } }, /*#__PURE__*/
 
       React.createElement("div", { style: {
-          borderRadius: '12px', padding: '12px 14px',
-          background: 'linear-gradient(135deg,rgba(124,58,237,0.14),rgba(168,85,247,0.08))',
-          border: '1px solid rgba(168,85,247,0.3)',
-          fontSize: '11px', color: '#c4b5fd', lineHeight: 1.6, textAlign: 'center'
+          borderRadius: '14px', padding: '14px 16px',
+          background: 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(168,85,247,0.08))',
+          border: '1px solid rgba(168,85,247,0.35)',
+          fontSize: '11px', color: '#c4b5fd', lineHeight: 1.6, textAlign: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
         } }, "\uD83C\uDF81 ",
       lang === 'ar' ?
       'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!' :
       'Every gift you send earns VIP XP — the more you give, the higher you level!'
       ), /*#__PURE__*/
 
-
-      React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' } },
+      React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' } },
       [
       { icon: '🎨', ar: 'اسم ملون مميز', en: 'Colored VIP Name' },
       { icon: '⚡', ar: 'مضاعف XP ×1.2', en: '1.2× XP Multiplier' },
@@ -1083,20 +1080,19 @@
       { icon: '🎁', ar: 'هدايا VIP مقفلة', en: 'Locked VIP Gifts' }].
       map((f, i) => /*#__PURE__*/
       React.createElement("div", { key: i, style: {
-          display: 'flex', alignItems: 'center', gap: '7px',
-          fontSize: '10px', color: '#e9d5ff',
-          background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(196,181,253,0.12)',
-          borderRadius: '9px', padding: '7px 9px'
+          display: 'flex', alignItems: 'center', gap: '8px',
+          fontSize: '11px', color: '#e9d5ff',
+          background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(196,181,253,0.15)',
+          borderRadius: '11px', padding: '9px 10px'
         } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '13px', flexShrink: 0 } }, f.icon), /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '15px', flexShrink: 0 } }, f.icon), /*#__PURE__*/
       React.createElement("span", { style: { fontWeight: 600, lineHeight: 1.3 } }, lang === 'ar' ? f.ar : f.en)
       )
       )
       ), /*#__PURE__*/
 
-
-      React.createElement("div", { style: { textAlign: 'center', fontSize: '11px', color: '#6b7280' } },
-      lang === 'ar' ? 'رصيدك:' : 'Balance:', " ", /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 700 } }, currency.toLocaleString(), " \uD83E\uDDE0")
+      React.createElement("div", { style: { textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginBottom: '2px' } },
+      lang === 'ar' ? 'رصيدك الحالي:' : 'Current Balance:', " ", /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 800 } }, currency.toLocaleString(), " \uD83E\uDDE0")
       ),
 
 
@@ -1105,39 +1101,36 @@
         onClick: () => canAfford && setShowConfirm(true),
         disabled: !canAfford,
         style: {
-          width: '100%', padding: '14px', borderRadius: '13px', border: 'none',
+          width: '100%', padding: '16px', borderRadius: '15px', border: 'none',
           background: canAfford ? 'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)' : 'rgba(100,100,100,0.12)',
           color: canAfford ? '#fff' : '#4b5563',
-          fontWeight: 900, fontSize: '15px', cursor: canAfford ? 'pointer' : 'not-allowed',
-          boxShadow: canAfford ? '0 6px 24px rgba(239,68,68,0.4)' : 'none',
+          fontWeight: 900, fontSize: '16px', cursor: canAfford ? 'pointer' : 'not-allowed',
+          boxShadow: canAfford ? '0 8px 24px rgba(239,68,68,0.4)' : 'none',
           transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
         } },
-      canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
+      canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
       React.createElement("span", { style: { position: 'relative' } },
       canAfford ?
       `👑 ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} — 50,000 🧠` :
-      `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠 (${lang === 'ar' ? 'لديك' : 'Have'}: ${currency.toLocaleString()})`
+      `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`
       )
       ) : /*#__PURE__*/
 
-      React.createElement("div", { style: { borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(168,85,247,0.35)', background: 'linear-gradient(135deg,#1a0533,#0d0d2b)' } }, /*#__PURE__*/
-      React.createElement("div", { style: { padding: '16px', textAlign: 'center' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '36px', marginBottom: '8px' } }, "\uD83D\uDC51"), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#e9d5ff', fontWeight: 900, fontSize: '15px', marginBottom: '6px' } },
-      lang === 'ar' ? 'تفعيل VIP؟' : 'Activate VIP?'
+      React.createElement("div", { style: { borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(239,68,68,0.4)', background: 'linear-gradient(135deg,#2e0a0a,#0f0a0a)', padding: '20px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.6)' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '40px', marginBottom: '10px' } }, "\uD83D\uDC51"), /*#__PURE__*/
+      React.createElement("div", { style: { color: '#fee2e2', fontWeight: 900, fontSize: '17px', marginBottom: '6px' } },
+      lang === 'ar' ? 'هل تريد تفعيل VIP؟' : 'Activate VIP?'
       ), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '18px', marginBottom: '14px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', gap: '10px', justifyContent: 'center' } }, /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '9px 20px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer' } },
+      React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '22px', marginBottom: '18px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', gap: '12px', justifyContent: 'center' } }, /*#__PURE__*/
+      React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '10px 22px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer' } },
       lang === 'ar' ? 'إلغاء' : 'Cancel'
       ), /*#__PURE__*/
-      React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '9px 24px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 0 20px rgba(168,85,247,0.45)', fontSize: '13px' } },
+      React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '10px 28px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg,#ef4444,#b91c1c)', color: '#fff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 0 25px rgba(239,68,68,0.45)', fontSize: '14px' } },
       buying ? '⏳' : lang === 'ar' ? 'تأكيد' : 'Confirm'
       )
       )
       )
-      )
-
       ));
 
   };
@@ -1147,13 +1140,10 @@
     var [showInfoModal, setShowInfoModal] = useState(false);
     var [showBadgePopup, setShowBadgePopup] = useState(false);
     var [customIdEnabled, setCustomIdEnabled] = useState(userData?.vip?.customIdEnabled || false);
-    // VIP custom ID request states
     var [desiredId, setDesiredId] = useState('');
-    var [idCheckStatus, setIdCheckStatus] = useState(null); // null | 'checking' | 'taken' | 'available'
+    var [idCheckStatus, setIdCheckStatus] = useState(null);
     var [idRequestSending, setIdRequestSending] = useState(false);
-    // ✅ Pending request listener — يتابع حالة الطلب في real-time
-    var [pendingRequest, setPendingRequest] = useState(null); // null | { status, adminNote, desiredId }
-    var [seenRequestId, setSeenRequestId] = useState(null); // last request we've shown result for
+    var [pendingRequest, setPendingRequest] = useState(null);
 
     var totalVIPXP = userData?.vip?.xp || 0;
     var level = getVIPLevel(userData);
@@ -1161,468 +1151,134 @@
     var customIdLen = getVIPCustomIdLength(userData);
     var xpInfo = getVIPXPProgress(totalVIPXP);
 
-    // ✅ Real-time listener على آخر طلب ID للمستخدم (بدون orderBy لتجنب index)
     useEffect(() => {
       if (!user || !level || !customIdLen) return;
-      var unsub = vip10IdRequestsCollection.
-      where('uid', '==', user.uid).
-      limit(10).
-      onSnapshot((snap) => {
+      var unsub = vip10IdRequestsCollection.where('uid', '==', user.uid).limit(10).onSnapshot((snap) => {
         if (!snap.empty) {
-          // Sort on client by createdAt descending
           var docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          docs.sort((a, b) => {
-            var aTime = a.createdAt?.toMillis?.() || a.createdAt || 0;
-            var bTime = b.createdAt?.toMillis?.() || b.createdAt || 0;
-            return bTime - aTime;
-          });
+          docs.sort((a, b) => (b.createdAt?.toMillis?.() || b.createdAt || 0) - (a.createdAt?.toMillis?.() || a.createdAt || 0));
           setPendingRequest(docs[0]);
         } else {
           setPendingRequest(null);
         }
-      }, (err) => {console.warn('ID request listener error:', err);});
+      });
       return unsub;
     }, [user?.uid, level]);
 
-    // ✅ Auto-apply customId when admin approves request (status = 1)
-    useEffect(() => {
-      if (!pendingRequest || pendingRequest.status !== 1 || !user) return;
-      // Only apply if the desired ID isn't already set
-      var desiredIdToApply = pendingRequest.desiredId;
-      if (!desiredIdToApply || userData?.customId === desiredIdToApply) return;
-      // Apply the approved ID
-      usersCollection.doc(user.uid).update({ customId: desiredIdToApply, 'vip.customIdEnabled': true }).
-      catch((e) => console.warn('Auto-apply ID failed:', e));
-    }, [pendingRequest?.status, pendingRequest?.desiredId, user?.uid]);
-
-    // For VIP 6-9: random toggle (keep as before)
-    var toggleCustomId = async () => {
-      if (!user || !customIdLen || level === 10) return;
-      var newVal = !customIdEnabled;
-      setCustomIdEnabled(newVal);
-      if (newVal) {
-        var max = Math.pow(10, customIdLen) - 1;
-        var min = Math.pow(10, customIdLen - 1);
-        var newId = Math.floor(min + Math.random() * (max - min + 1)).toString();
-        await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': true, customId: newId });
-      } else {
-        var normalId = Math.floor(100000 + Math.random() * 900000).toString();
-        await usersCollection.doc(user.uid).update({ 'vip.customIdEnabled': false, customId: normalId });
-      }
-      onNotification(lang === 'ar' ? 'تم الحفظ ✓' : 'Saved ✓');
-    };
-
-    // Check if user already made a request this month
-    var canRequestIdThisMonth = () => {
-      var lastReq = userData?.vip?.lastIdRequest;
-      if (!lastReq) return true;
-      var lastDate = lastReq?.toDate ? lastReq.toDate() : new Date(lastReq);
-      var now = new Date();
-      return !(lastDate.getMonth() === now.getMonth() && lastDate.getFullYear() === now.getFullYear());
-    };
-
-    // Validate exact digit count based on VIP level
-    // VIP6=6, VIP7=5, VIP8=4, VIP9=3, VIP10=2
-    var validateIdInput = (id) => {
-      if (!customIdLen || !id) return null;
-      var onlyDigits = /^\d+$/.test(id);
-      if (!onlyDigits) return lang === 'ar' ? `❌ أرقام فقط` : `❌ Digits only`;
-      if (id.length !== customIdLen) return lang === 'ar' ?
-      `❌ يجب أن يكون ${customIdLen} أرقام بالضبط (VIP ${level})` :
-      `❌ Must be exactly ${customIdLen} digits (VIP ${level})`;
-      return null; // valid
-    };
-
-    var idValidationError = validateIdInput(desiredId);
-
-    // Check uniqueness in Firestore
     var checkIdAvailability = async (id) => {
-      var err = validateIdInput(id);
-      if (err) {setIdCheckStatus('invalid');return;}
+      if (!id || id.length !== customIdLen) return;
       setIdCheckStatus('checking');
-      try {
-        var snap = await usersCollection.where('customId', '==', id).limit(1).get();
-        setIdCheckStatus(snap.empty ? 'available' : 'taken');
-      } catch {setIdCheckStatus(null);}
+      var snap = await usersCollection.where('customId', '==', id).limit(1).get();
+      setIdCheckStatus(snap.empty ? 'available' : 'taken');
     };
 
-    // Submit custom ID request — ALL VIP 6-10 go through request system
     var handleIdRequest = async () => {
-      var err = validateIdInput(desiredId.trim());
-      if (err || idCheckStatus !== 'available' || idRequestSending || !user) return;
+      if (idCheckStatus !== 'available' || idRequestSending || !user) return;
       setIdRequestSending(true);
       try {
-        // ✅ Check for existing PENDING requests with same desiredId
-        var pendingSnap = await vip10IdRequestsCollection.
-        where('desiredId', '==', desiredId.trim()).
-        where('status', '==', 0).
-        limit(1).
-        get();
-        if (!pendingSnap.empty) {
-          onNotification(lang === 'ar' ?
-          '❌ هذا الـ ID محجوز حالياً من مستخدم آخر' :
-          '❌ This ID is already reserved by another user');
-          setIdRequestSending(false);
-          return;
-        }
-
         await vip10IdRequestsCollection.add({
-          uid: user.uid,
-          displayName: userData?.displayName || '',
-          desiredId: desiredId.trim(),
-          currentId: userData?.customId || '',
-          vipLevel: level,
-          // 🔧 STATUS FIELD:
-          // 0 = pending (default, طلب قيد المراجعة)
-          // 1 = approved (اتقبل — غيّر القيمة للـ 1 في Firestore لقبول الطلب)
-          // 2 = rejected (اترفض — غيّر القيمة للـ 2 في Firestore لرفض الطلب)
-          status: 0,
-          createdAt: TS()
+          uid: user.uid, displayName: userData?.displayName || '',
+          desiredId: desiredId.trim(), vipLevel: level, status: 0, createdAt: TS()
         });
-        await usersCollection.doc(user.uid).update({ 'vip.lastIdRequest': TS() });
-        onNotification(lang === 'ar' ? '✅ تم إرسال طلب الـ ID!' : '✅ ID request sent!');
+        onNotification(lang === 'ar' ? '✅ تم إرسال الطلب' : '✅ Request Sent');
         setDesiredId('');
         setIdCheckStatus(null);
-      } catch (e) {
-        onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
-      }
+      } catch (e) {}
       setIdRequestSending(false);
     };
 
-    // ─── الألوان بناءً على الليفل ───
     var barColor = cfg ? cfg.nameColor : '#7c3aed';
-    var nextLevel = level < 10 ? level + 1 : 10;
-    var nextCfg = VIP_CONFIG.find((v) => v.level === nextLevel);
 
     return (/*#__PURE__*/
-      React.createElement("div", { className: "settings-section" }, /*#__PURE__*/
+      React.createElement("div", { className: "vip-center-container", style: { display: 'flex', flexDirection: 'column', gap: '20px' } }, /*#__PURE__*/
+        
+        // 👑 VIP Status Header
+        React.createElement("div", { style: { 
+            borderRadius: '24px', padding: '24px 20px',
+            background: 'linear-gradient(135deg,#1a0035 0%,#2d0060 40%,#1a0035 100%)',
+            border: '1.5px solid rgba(168,85,247,0.4)',
+            boxShadow: '0 0 50px rgba(124,58,237,0.25)', position: 'relative', overflow: 'hidden'
+          } },
+          React.createElement("div", { style: { position: 'absolute', top: 0, left: '15%', right: '15%', height: '2.5px', background: 'linear-gradient(90deg,transparent,#a855f7,transparent)' } }), /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' } }, /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '14px' } }, /*#__PURE__*/
+              React.createElement("div", { style: { width: '56px', height: '56px', borderRadius: '18px', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', boxShadow: '0 8px 16px rgba(124,58,237,0.4)' } }, "\uD83D\uDC51"), /*#__PURE__*/
+              React.createElement("div", null, /*#__PURE__*/
+                React.createElement("div", { style: { fontSize: '20px', fontWeight: 900, color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' } }, "VIP STATUS"), /*#__PURE__*/
+                React.createElement("div", { style: { fontSize: '12px', color: '#a78bfa', fontWeight: 600 } }, level ? (lang === 'ar' ? cfg.name_ar : cfg.name_en) : (lang === 'ar' ? 'غير مفضل' : 'Not Active'))
+              )
+            ), /*#__PURE__*/
+            level > 0 && React.createElement("div", { style: { cursor: 'pointer' }, onClick: () => setShowBadgePopup(true) }, /*#__PURE__*/
+              React.createElement(VIPBadge, { userData: userData, size: "lg" })
+            )
+          ), /*#__PURE__*/
+          
+          React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' } }, /*#__PURE__*/
+            React.createElement("span", { style: { fontSize: '13px', color: '#cbd5e1', fontWeight: 700 } }, "VIP XP"), /*#__PURE__*/
+            React.createElement("span", { style: { fontSize: '13px', color: '#fff', fontWeight: 900 } }, totalVIPXP.toLocaleString(), " ", level < 10 && /*#__PURE__*/React.createElement("span", { style: { color: '#64748b', fontWeight: 400 } }, "/ ", VIP_XP_THRESHOLDS[level + 1]?.toLocaleString()))
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { height: '12px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/
+            React.createElement("div", { style: { width: `${xpInfo.progress}%`, height: '100%', background: `linear-gradient(90deg, #7c3aed, ${barColor})`, boxShadow: `0 0 12px ${barColor}` } })
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', marginTop: '6px' } }, /*#__PURE__*/
+            React.createElement("span", { style: { fontSize: '10px', color: '#94a3b8', fontWeight: 600 } }, lang === 'ar' ? `المستوى ${level}` : `Level ${level}`),
+            level < 10 ? /*#__PURE__*/React.createElement("span", { style: { fontSize: '10px', color: barColor, fontWeight: 700 } }, lang === 'ar' ? `باقي ${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP لـ VIP ${level + 1}` : `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP to VIP ${level + 1}`) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '10px', color: '#fbbf24', fontWeight: 900 } }, "\u2728 MAX LEVEL")
+          )
+        ),
 
-      React.createElement("div", { className: "settings-section-title" }, /*#__PURE__*/
-      React.createElement("span", null, "\uD83D\uDC51"), /*#__PURE__*/
-      React.createElement("span", null, "VIP Center"), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => setShowInfoModal(true),
-        style: { marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#60a5fa', fontSize: '16px', padding: '0 2px' },
-        title: lang === 'ar' ? 'معلومات VIP' : 'VIP Info' },
-      "\u2139\uFE0F")
-      ), /*#__PURE__*/
+        // 🛒 Subscription / Buy Section
+        React.createElement("div", { style: { borderRadius: '20px', background: 'rgba(20,20,40,0.6)', border: '1px solid rgba(255,255,255,0.05)', padding: '16px' } },
+          React.createElement(VIPBuySection, { userData: userData, user: user, lang: lang, onNotification: onNotification, isRenew: level > 0 })
+        ),
 
+        // 📊 VIP Levels Table
+        React.createElement("div", { style: { borderRadius: '20px', background: 'rgba(15,10,32,0.8)', border: '1px solid rgba(124,58,237,0.2)', padding: '12px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#a78bfa', marginBottom: '12px', paddingLeft: '8px' } }, "\uD83D\uDCC8 VIP PROGRESSION"),
+          VIP_CONFIG.map((v, i) => /*#__PURE__*/
+            React.createElement("div", { key: v.level, style: { display: 'flex', alignItems: 'center', padding: '10px 12px', background: level === v.level ? 'rgba(124,58,237,0.1)' : 'transparent', borderRadius: '12px', marginBottom: '4px' } }, /*#__PURE__*/
+              React.createElement("div", { style: { width: '45px', fontWeight: 900, color: level >= v.level ? v.nameColor : '#4b5563', fontSize: '13px' } }, "V", v.level), /*#__PURE__*/
+              React.createElement("div", { style: { flex: 1, margin: '0 12px' } }, /*#__PURE__*/
+                React.createElement("div", { style: { height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px' } }, /*#__PURE__*/
+                  React.createElement("div", { style: { width: level > v.level ? '100%' : level === v.level ? `${xpInfo.progress}%` : '0%', height: '100%', background: v.nameColor, borderRadius: '3px', boxShadow: level >= v.level ? `0 0 6px ${v.nameColor}` : 'none' } })
+                )
+              ), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '11px', color: level >= v.level ? '#fff' : '#64748b', fontWeight: 700 } }, VIP_XP_THRESHOLDS[v.level].toLocaleString(), " XP")
+            )
+          )
+        ),
 
-      React.createElement("div", { style: {
-          background: level ?
-          `linear-gradient(135deg, ${barColor}14, rgba(15,15,26,0.97))` :
-          'linear-gradient(135deg,rgba(112,0,255,0.08),rgba(15,15,26,0.97))',
-          border: `1px solid ${level ? barColor + '44' : 'rgba(112,0,255,0.25)'}`,
-          borderRadius: '14px', padding: '14px 16px',
-          display: 'flex', flexDirection: 'column', gap: '10px'
-        } }, /*#__PURE__*/
+        // 🆔 Custom ID Request (VIP 6+)
+        customIdLen && React.createElement("div", { style: { borderRadius: '20px', padding: '20px', background: 'rgba(10,10,25,0.9)', border: `1.5px solid ${level === 10 ? 'rgba(239,68,68,0.3)' : 'rgba(96,165,250,0.3)'}`, boxShadow: '0 15px 35px rgba(0,0,0,0.4)' } }, /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' } }, /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '24px' } }, "\uD83E\uDEAA"), /*#__PURE__*/
+            React.createElement("div", null, /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '16px', fontWeight: 900, color: level === 10 ? '#ef4444' : '#60a5fa' } }, lang === 'ar' ? 'طلب معرف مخصص' : 'Custom ID Request'), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '11px', color: '#94a3b8' } }, lang === 'ar' ? `بصيغة ${customIdLen} أرقام بالضبط` : `Exactly ${customIdLen} digits format`)
+            )
+          ), /*#__PURE__*/
+          !pendingRequest ? /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '12px' } }, /*#__PURE__*/
+              React.createElement("div", { style: { display: 'flex', gap: '10px' } }, /*#__PURE__*/
+                React.createElement("input", { className: "input-dark", value: desiredId, maxLength: customIdLen, onChange: e => { setDesiredId(e.target.value.replace(/\D/g, '')); setIdCheckStatus(null); }, style: { flex: 1, height: '50px', fontSize: '22px', fontWeight: 900, textAlign: 'center', letterSpacing: '8px', borderRadius: '15px' } }), /*#__PURE__*/
+                React.createElement("button", { onClick: () => checkIdAvailability(desiredId), disabled: desiredId.length !== customIdLen, style: { width: '70px', borderRadius: '15px', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' } }, idCheckStatus === 'checking' ? '⏳' : (lang === 'ar' ? 'تحقق' : 'Check'))
+              ),
+              idCheckStatus === 'taken' && React.createElement("div", { style: { color: '#f87171', fontSize: '11px', textAlign: 'center', fontWeight: 700 } }, "❌ ", lang === 'ar' ? 'هذا الرقم محجوز' : 'This ID is taken'),
+              idCheckStatus === 'available' && React.createElement("div", { style: { color: '#4ade80', fontSize: '11px', textAlign: 'center', fontWeight: 700 } }, "✅ ", lang === 'ar' ? 'الرقم متاح' : 'ID is available'), /*#__PURE__*/
+              React.createElement("button", { onClick: handleIdRequest, disabled: idCheckStatus !== 'available', style: { width: '100%', height: '50px', borderRadius: '15px', background: idCheckStatus === 'available' ? (level === 10 ? 'linear-gradient(135deg,#ef4444,#b91c1c)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)') : 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '15px', fontWeight: 900, border: 'none', cursor: idCheckStatus === 'available' ? 'pointer' : 'not-allowed', boxShadow: idCheckStatus === 'available' ? '0 10px 20px rgba(0,0,0,0.3)' : 'none' } }, lang === 'ar' ? 'إرسال الطلب' : 'Submit Request')
+            ) : /*#__PURE__*/
+            React.createElement("div", { style: { padding: '16px', borderRadius: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' } }, /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '18px', color: pendingRequest.status === 1 ? '#4ade80' : pendingRequest.status === 2 ? '#f87171' : '#fbbf24', fontWeight: 900, marginBottom: '4px' } }, pendingRequest.status === 0 ? (lang === 'ar' ? '⏳ قيد الانتظار...' : '⏳ Pending Review...') : pendingRequest.status === 1 ? (lang === 'ar' ? '✅ تم القبول!' : '✅ Approved!') : (lang === 'ar' ? '❌ تم الرفض' : '❌ Rejected')), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '13px', color: '#cbd5e1' } }, lang === 'ar' ? 'الرقم المطلوب: ' : 'Desired: ', /*#__PURE__*/React.createElement("span", { style: { color: '#fff', fontWeight: 900, letterSpacing: '2px' } }, pendingRequest.desiredId))
+            )
+        ),
 
+        // 📝 Exclusive Form (VIP 10)
+        cfg?.exclusiveForm && React.createElement(VIP10RequestForm, { user: user, lang: lang, onNotification: onNotification, userData: userData }),
 
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } },
-      level ? /*#__PURE__*/
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { style: {
-          background: barColor, color: '#000', fontWeight: 900,
-          padding: '4px 12px', borderRadius: '8px', fontSize: '14px',
-          boxShadow: `0 0 10px ${barColor}66`
-        } }, "VIP ", level), /*#__PURE__*/
-      React.createElement("span", { style: { color: barColor, fontWeight: 700, fontSize: '14px' } },
-      lang === 'ar' ? cfg.name_ar : cfg.name_en
-      ), /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowBadgePopup(true),
-        style: { marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' } }, /*#__PURE__*/
-      React.createElement(VIPBadge, { userData: userData, size: "md" })
+        showInfoModal && React.createElement(VIPInfoModal, { onClose: () => setShowInfoModal(false), lang: lang }),
+        showBadgePopup && React.createElement(VIPBadgePopup, { level: level, onClose: () => setShowBadgePopup(false) })
       )
-      ) : /*#__PURE__*/
-
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { style: {
-          background: 'rgba(112,0,255,0.25)', color: '#c4b5fd', fontWeight: 900,
-          padding: '4px 12px', borderRadius: '8px', fontSize: '13px',
-          border: '1px solid rgba(112,0,255,0.4)'
-        } }, "VIP 0"), /*#__PURE__*/
-      React.createElement("span", { style: { color: '#9ca3af', fontSize: '13px' } },
-      lang === 'ar' ? 'غير مُفعَّل' : 'Not Active'
-      )
-      )
-
-      ),
-
-
-      level > 0 ? /*#__PURE__*/
-      React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '11px', color: '#9ca3af' } }, "\uD83D\uDD25 VIP XP"
-
-      ), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '11px', fontWeight: 700, color: barColor } },
-      totalVIPXP.toLocaleString(),
-      level < 10 && /*#__PURE__*/
-      React.createElement("span", { style: { color: '#6b7280', fontWeight: 400 } },
-      ' ', "/ ", VIP_XP_THRESHOLDS[level + 1]?.toLocaleString()
-      )
-
-      )
-      ), /*#__PURE__*/
-
-      React.createElement("div", { style: {
-          width: '100%', height: '10px', borderRadius: '6px',
-          background: 'rgba(255,255,255,0.07)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          overflow: 'hidden', position: 'relative'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: {
-          width: `${xpInfo.progress}%`,
-          height: '100%', borderRadius: '6px',
-          background: level >= 9 ?
-          `linear-gradient(90deg, #ef4444, #fbbf24, #ef4444)` :
-          level >= 6 ?
-          `linear-gradient(90deg, #eab308, #fbbf24)` :
-          `linear-gradient(90deg, #7c3aed, ${barColor})`,
-          transition: 'width 0.6s ease',
-          boxShadow: `0 0 8px ${barColor}88`,
-          animation: level >= 9 ? 'vip-shimmer 2s linear infinite' : 'none',
-          backgroundSize: level >= 9 ? '200% 100%' : 'auto'
-        } })
-      ), /*#__PURE__*/
-
-      React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', marginTop: '4px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#6b7280' } },
-      lang === 'ar' ? `المستوى ${level}` : `Level ${level}`
-      ),
-      level < 10 ? /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: barColor } },
-      lang === 'ar' ?
-      `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP للمستوى ${nextLevel} 👑` :
-      `${(xpInfo.xpNeeded - xpInfo.xpInLevel).toLocaleString()} XP to Level ${nextLevel} 👑`
-
-      ) : /*#__PURE__*/
-
-      React.createElement("span", { style: { fontSize: '9px', color: '#fbbf24', fontWeight: 700 } }, "\u2728 MAX LEVEL"
-
-      )
-
-      )
-      ) : /*#__PURE__*/
-
-      /* No VIP — Buy section */
-      React.createElement(VIPBuySection, { userData: userData, user: user, lang: lang, onNotification: onNotification }),
-
-
-
-      level > 0 && /*#__PURE__*/
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { style: {
-          fontSize: '10px', color: '#6b7280', textAlign: 'center',
-          padding: '6px 10px', background: 'rgba(255,255,255,0.03)',
-          borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)'
-        } }, "\uD83C\uDF81 ",
-      lang === 'ar' ?
-      'أرسل هدايا لتحصل على VIP XP وترتفع لمستوى أعلى!' :
-      'Send gifts to earn VIP XP and level up!'
-      ), /*#__PURE__*/
-
-      React.createElement(VIPBuySection, { userData: userData, user: user, lang: lang, onNotification: onNotification, isRenew: true })
-      ),
-
-
-
-      level > 0 && /*#__PURE__*/
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { color: '#9ca3af' } }, "\u26A1 ", lang === 'ar' ? 'مضاعف XP الألعاب' : 'Game XP Multiplier'), /*#__PURE__*/
-      React.createElement("span", { style: { color: '#fbbf24', fontWeight: 700 } }, "\xD7", cfg.xpMultiplier)
-      ),
-
-
-      customIdLen && /*#__PURE__*/
-      React.createElement("div", { style: {
-          background: level === 10 ?
-          'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(15,15,26,0.95))' :
-          'linear-gradient(135deg,rgba(96,165,250,0.08),rgba(15,15,26,0.95))',
-          border: `1px solid ${level === 10 ? 'rgba(239,68,68,0.3)' : 'rgba(96,165,250,0.3)'}`,
-          borderRadius: '10px', padding: '12px', marginTop: '4px'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', fontWeight: 800, color: level === 10 ? '#ef4444' : '#60a5fa', marginBottom: '8px' } }, "\uD83E\uDEAA ",
-      lang === 'ar' ?
-      `طلب ID مخصص (${customIdLen} أرقام بالضبط) — مرة كل شهر` :
-      `Custom ID Request (exactly ${customIdLen} digits) — once/month`
-      ),
-      userData?.customId && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', marginBottom: '6px' } },
-      lang === 'ar' ? 'الـ ID الحالي:' : 'Current ID:', " ", /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 700 } }, userData.customId)
-      ),
-
-
-
-      !pendingRequest ? /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', gap: '6px', alignItems: 'center' } }, /*#__PURE__*/
-      React.createElement("input", {
-        className: "input-dark",
-        placeholder: lang === 'ar' ? `${customIdLen} أرقام` : `${customIdLen} digits`,
-        value: desiredId,
-        maxLength: customIdLen,
-        inputMode: "numeric",
-        pattern: "[0-9]*",
-        onChange: (e) => {
-          var v = e.target.value.replace(/\D/g, '');
-          setDesiredId(v);
-          setIdCheckStatus(null);
-        },
-        style: { flex: 1, fontSize: '16px', fontWeight: 800, letterSpacing: '4px', textAlign: 'center', padding: '8px' } }
-      ), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => checkIdAvailability(desiredId.trim()),
-        disabled: desiredId.length !== customIdLen || idCheckStatus === 'checking',
-        style: {
-          padding: '6px 10px', borderRadius: '7px', fontSize: '11px',
-          fontWeight: 700, cursor: 'pointer', border: 'none', whiteSpace: 'nowrap',
-          background: desiredId.length === customIdLen ? 'rgba(96,165,250,0.2)' : 'rgba(100,100,100,0.15)',
-          color: desiredId.length === customIdLen ? '#60a5fa' : '#6b7280'
-        } },
-
-      idCheckStatus === 'checking' ? '⏳' : lang === 'ar' ? 'تحقق' : 'Check'
-      )
-      ), /*#__PURE__*/
-
-      React.createElement("div", { style: { display: 'flex', gap: '3px', justifyContent: 'center' } },
-      Array.from({ length: customIdLen }).map((_, i) => /*#__PURE__*/
-      React.createElement("div", { key: i, style: {
-          width: '18px', height: '4px', borderRadius: '2px',
-          background: i < desiredId.length ? '#60a5fa' : 'rgba(255,255,255,0.1)',
-          transition: 'background 0.2s'
-        } })
-      )
-      ),
-
-      desiredId.length > 0 && desiredId.length !== customIdLen && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#fbbf24', fontWeight: 700 } }, "\u26A0\uFE0F ",
-      lang === 'ar' ?
-      `يجب أن يكون ${customIdLen} أرقام بالضبط (أدخلت ${desiredId.length})` :
-      `Must be exactly ${customIdLen} digits (you entered ${desiredId.length})`
-      ),
-
-      idCheckStatus === 'taken' && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#f87171', fontWeight: 700 } }, "\u274C ", lang === 'ar' ? 'هذا الـ ID مأخوذ بالفعل' : 'This ID is already taken'),
-
-      idCheckStatus === 'available' && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#4ade80', fontWeight: 700 } }, "\u2705 ", lang === 'ar' ? 'الـ ID متاح!' : 'ID is available!'), /*#__PURE__*/
-
-      React.createElement("button", {
-        onClick: handleIdRequest,
-        disabled: idCheckStatus !== 'available' || idRequestSending || desiredId.length !== customIdLen,
-        style: {
-          padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
-          cursor: idCheckStatus === 'available' && desiredId.length === customIdLen ? 'pointer' : 'not-allowed',
-          background: idCheckStatus === 'available' && desiredId.length === customIdLen ?
-          level === 10 ? 'linear-gradient(135deg,#ef4444,#b91c1c)' : 'linear-gradient(135deg,#3b82f6,#1d4ed8)' :
-          'rgba(100,100,100,0.2)',
-          color: idCheckStatus === 'available' && desiredId.length === customIdLen ? '#fff' : '#6b7280',
-          border: 'none', opacity: idRequestSending ? 0.6 : 1
-        } },
-
-      idRequestSending ? '⏳' : lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request'
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } },
-      lang === 'ar' ? '⚡ سيتم مراجعة طلبك وتطبيقه خلال 24 ساعة' : '⚡ Request reviewed & applied within 24h'
-      )
-      ) : /*#__PURE__*/
-
-      /* ✅ Real-time Request Status Box */
-      React.createElement("div", { style: {
-          borderRadius: '10px', padding: '12px',
-          background: pendingRequest?.status === 1 ?
-          'rgba(74,222,128,0.08)' :
-          pendingRequest?.status === 2 ?
-          'rgba(248,113,113,0.08)' :
-          'rgba(251,191,36,0.07)',
-          border: `1px solid ${
-          pendingRequest?.status === 1 ? 'rgba(74,222,128,0.35)' :
-          pendingRequest?.status === 2 ? 'rgba(248,113,113,0.35)' :
-          'rgba(251,191,36,0.3)'}`,
-
-          display: 'flex', flexDirection: 'column', gap: '6px'
-        } }, /*#__PURE__*/
-
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '18px' } },
-      pendingRequest?.status === 1 ? '✅' : pendingRequest?.status === 2 ? '❌' : '⏳'
-      ), /*#__PURE__*/
-      React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', fontWeight: 800, color:
-          pendingRequest?.status === 1 ? '#4ade80' :
-          pendingRequest?.status === 2 ? '#f87171' : '#fbbf24'
-        } },
-      pendingRequest?.status === 1 ?
-      lang === 'ar' ? '✅ تم قبول طلبك وتطبيق الـ ID!' : '✅ Request Approved & Applied!' :
-      pendingRequest?.status === 2 ?
-      lang === 'ar' ? '❌ تم رفض طلبك' : '❌ Request Rejected' :
-      lang === 'ar' ? '⏳ طلبك قيد المراجعة…' : '⏳ Request under review…'
-
-      ),
-      pendingRequest?.desiredId && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', marginTop: '2px' } },
-      lang === 'ar' ? 'الـ ID المطلوب:' : 'Requested ID:', ' ', /*#__PURE__*/
-      React.createElement("span", { style: { color: '#fbbf24', fontWeight: 700, letterSpacing: '2px' } },
-      pendingRequest.desiredId
-      )
-      )
-
-      )
-      ),
-
-      pendingRequest?.adminNote && /*#__PURE__*/
-      React.createElement("div", { style: {
-          background: 'rgba(255,255,255,0.04)', borderRadius: '7px',
-          padding: '8px 10px', borderLeft: '3px solid #60a5fa',
-          fontSize: '11px', color: '#e2e8f0', lineHeight: 1.5
-        } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', color: '#60a5fa', fontWeight: 800, display: 'block', marginBottom: '2px' } },
-      lang === 'ar' ? '📋 رسالة من الإدارة:' : '📋 Admin Note:'
-      ),
-      pendingRequest.adminNote
-      ),
-
-      !pendingRequest?.adminNote && pendingRequest?.status === 0 && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } },
-      lang === 'ar' ? 'في انتظار رد من المسؤولين…' : 'Waiting for admin response…'
-      ),
-
-
-      pendingRequest?.status === 2 && canRequestIdThisMonth() && /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => {setDesiredId('');setIdCheckStatus(null);},
-        style: {
-          padding: '6px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
-          background: 'rgba(96,165,250,0.15)', color: '#60a5fa',
-          border: '1px solid rgba(96,165,250,0.3)', cursor: 'pointer'
-        } },
-
-      lang === 'ar' ? '🔄 طلب ID جديد' : '🔄 Request New ID'
-      ), /*#__PURE__*/
-
-      React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '5px' } },
-      lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'You can request once per month'
-      )
-      )
-
-      ),
-
-
-
-      cfg.exclusiveForm && /*#__PURE__*/
-      React.createElement(VIP10RequestForm, { user: user, lang: lang, onNotification: onNotification, userData: userData })
-
-      )
-
-      ),
-
-      showInfoModal && /*#__PURE__*/React.createElement(VIPInfoModal, { onClose: () => setShowInfoModal(false), lang: lang }),
-      showBadgePopup && /*#__PURE__*/React.createElement(VIPBadgePopup, { level: level, onClose: () => setShowBadgePopup(false) })
-      ));
-
+    );
   };
 
   // Export to window

@@ -254,7 +254,8 @@ var FamilyChatModal = (props) => {
 
   if (!show) return null;
 
-  var signLvl = familyData?.signLevel || (familyData ? getFamilySignLevelData(familyData.weeklyActiveness || 0)?.level : 1) || 1;
+  var familyWeeklyAct = familyData?.lastWeekActiveness !== undefined ? familyData.lastWeekActiveness : (familyData?.weeklyActiveness || 0);
+  var signLvl = familyData?.familySignLevel || (familyData ? getFamilySignLevelData(familyWeeklyAct)?.level : 1) || 1;
   var signData = typeof window.FamilyConstants !== 'undefined' && window.FamilyConstants.FAMILY_SIGN_LEVELS?.find((s) => s.level === signLvl) || { level: signLvl, color: '#6b7280' };
   var signImageURL = typeof window.FamilyConstants !== 'undefined' && window.FamilyConstants.getFamilySignImage ? window.FamilyConstants.getFamilySignImage(0, signLvl) : 'icos/Family Sign1.png';
   var fLvl = familyData ? getFamilyLevelConfig(familyData.level || 1) : null;
@@ -285,9 +286,24 @@ var FamilyChatModal = (props) => {
   React.createElement('span', { style: { fontSize: '14px', fontWeight: 800, color: onOpenFamily ? '#00f2ff' : 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: onOpenFamily ? 'underline dotted rgba(0,242,255,0.4)' : 'none' } }, familyData && familyData.name || (lang === 'ar' ? 'شات العائلة' : 'Family Chat')),
   familyData && signData.level >= 1 && FamilySignBadge && React.createElement(FamilySignBadge, { tag: familyData.tag, color: signData.color, small: true, signLevel: signData.level, imageURL: signImageURL })
   ),
-  React.createElement('div', { style: { fontSize: '10px', color: '#6b7280' } },
-  (familyData && familyData.members && familyData.members.length || 0) + ' ' + (lang === 'ar' ? 'عضو' : 'members'),
-  fLvl && React.createElement('span', { style: { color: fLvl.color, marginLeft: '4px' } }, fLvl.icon + ' Lv.' + fLvl.level)
+  React.createElement('div', { style: { fontSize: '10px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '8px' } },
+    React.createElement('span', null, (familyData && familyData.members && familyData.members.length || 0) + ' ' + (lang === 'ar' ? 'عضو' : 'members')),
+    fLvl && React.createElement('span', { style: { color: fLvl.color } }, fLvl.icon + ' Lv.' + fLvl.level),
+    (familyData?.treasuryInventory && familyData.treasuryInventory.length > 0) && React.createElement('div', { 
+      style: { 
+        marginLeft: 'auto', 
+        background: 'rgba(255,215,0,0.12)', 
+        border: '1px solid rgba(255,215,0,0.3)', 
+        borderRadius: '6px', 
+        padding: '2px 6px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '4px',
+        color: '#ffd700',
+        fontWeight: '800',
+        fontSize: '9px'
+      } 
+    }, '📦 ' + familyData.treasuryInventory.length)
   )
   )
   ),

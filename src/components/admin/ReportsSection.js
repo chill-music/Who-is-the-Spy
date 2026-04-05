@@ -61,9 +61,7 @@
 
     useEffect(() => {
       if (myRole === 'moderator') {
-        usersCollection.where('role', 'in', ['admin', 'owner']).get().then((snap) => {
-          setStaffList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        });
+        window.fetchStaffList(['admin', 'owner']).then((list) => setStaffList(list));
       }
     }, [myRole]);
 
@@ -86,6 +84,9 @@
           escalatedBy: currentUser.uid,
           escalatedByName: currentUserData?.displayName || 'Mod'
         });
+        if (window.logStaffAction) {
+          await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'ESCALATE_REPORT', report.reportedUID, report.reportedName, `Report ID: ${report.id}. To: ${selectedEscalateTo}`);
+        }
         onNotification('🚀 Escalated to Admin');
         setEscalating(null);
         setEscalateNote('');
@@ -182,6 +183,7 @@
       ) : /*#__PURE__*/
 
       React.createElement("div", { style: { display: 'flex', gap: '8px' } }, /*#__PURE__*/
+      myRole !== 'moderator' && /*#__PURE__*/
       React.createElement("button", { onClick: () => setBanningUID(r.id),
         style: { flex: 1, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '8px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' } }, "\uD83D\uDD28 ",
       lang === 'ar' ? 'حظر' : 'Ban'

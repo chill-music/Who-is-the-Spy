@@ -73,12 +73,16 @@
             var chosenWord = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
             if (!chosenWord) return;
 
-            roomsCollection.doc(roomId).update({
-                chosenWord, 
-                status: 'discussing',
-                wordSelEndTime: null, 
-                turnEndTime: Date.now() + 30000,
-            }).catch(() => {});
+            (async () => {
+                try {
+                    await roomsCollection.doc(roomId).update({
+                        chosenWord, 
+                        status: 'discussing',
+                        wordSelEndTime: null, 
+                        turnEndTime: Date.now() + 30000,
+                    });
+                } catch (e) { console.error('[PRO SPY ERROR] auto-resolve wordSelection:', e); }
+            })();
         }, [room?.wordVotes, room?.status, currentUID, room?.admin, room?.players, roomId]);
 
         // 3. Auto-resolve final votes (admin only)
@@ -95,7 +99,11 @@
             
             if (topVoted.length > 1) {
                 // Tie → spy escapes
-                roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', votingEndTime: null }).catch(() => {});
+                (async () => {
+                    try {
+                        await roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', votingEndTime: null });
+                    } catch (e) { console.error('[PRO SPY ERROR] auto-resolve vote tie:', e); }
+                })();
                 return;
             }
             
@@ -104,13 +112,17 @@
             var ejectedRole = ejectedPlayer?.role;
             var sysMsg = { sender: 'system', name: 'SYSTEM', text: `🚨 ${ejectedPlayer?.name || ejectedUID} was ejected!`, time: Date.now() };
             
-            if (ejectedRole === 'spy') {
-                roomsCollection.doc(roomId).update({ status: 'spy_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
-            } else if (ejectedRole === 'mrwhite') {
-                roomsCollection.doc(roomId).update({ status: 'mrwhite_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
-            } else {
-                roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) }).catch(() => {});
-            }
+            (async () => {
+                try {
+                    if (ejectedRole === 'spy') {
+                        await roomsCollection.doc(roomId).update({ status: 'spy_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) });
+                    } else if (ejectedRole === 'mrwhite') {
+                        await roomsCollection.doc(roomId).update({ status: 'mrwhite_guessing', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) });
+                    } else {
+                        await roomsCollection.doc(roomId).update({ status: 'finished_spy_escaped', ejectedUID, votingEndTime: null, messages: firebase.firestore.FieldValue.arrayUnion(sysMsg) });
+                    }
+                } catch (e) { console.error('[PRO SPY ERROR] auto-resolve vote result:', e); }
+            })();
         }, [room?.votes, room?.status, currentUID, room?.admin, room?.players, roomId]);
     };
 })();

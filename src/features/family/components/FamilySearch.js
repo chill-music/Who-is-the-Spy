@@ -106,11 +106,18 @@ var FamilySearch = ({
         }, () => {if (onClose) onClose();});
       }
     } catch (e) {
-      console.error(e);
+      if (!(e.message || "").startsWith('COOLDOWN:')) console.error(e);
+      var msg = e.message || "";
       var errorMsg = lang === 'ar' ? 'حدث خطأ أثناء الانضمام' : 'Error joining family';
-      if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';else
-      if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';else
-      if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة' : 'This family no longer exists';
+      if (msg.startsWith('COOLDOWN:')) {
+        var hours = msg.split(':')[1];
+        errorMsg = lang === 'ar' 
+          ? `⏳ يجب الانتظار ${hours} ساعة قبل الانضمام لقبيلة أخرى` 
+          : `⏳ You must wait ${hours} hours before joining another family`;
+      } else if (e.message === 'Family is full') errorMsg = lang === 'ar' ? 'القبيلة ممتلئة' : 'Family is full';
+      else if (e.message === 'Already requested') errorMsg = lang === 'ar' ? 'تم إرسال طلب سابقاً' : 'Request already sent';
+      else if (e.message === 'Already in a family') errorMsg = lang === 'ar' ? 'أنت بالفعل عضو في قبيلة' : 'You are already in a family';
+      else if (e.message === 'Family not found') errorMsg = lang === 'ar' ? 'هذه القبيلة لم تعد موجودة' : 'This family no longer exists';
 
       _alert({
         icon: 'error',
@@ -153,8 +160,10 @@ var FamilySearch = ({
       // Successful creation should trigger user doc update listener in 19-family.js 
       // and naturally close this view.
     } catch (e) {
-      console.error(e);
-      onNotification(e.message);
+      setCreating(false);
+      var msg = (e.message || "");
+      if (!msg.startsWith('COOLDOWN:') && msg !== 'Family exists') console.error(e);
+      onNotification(msg);
     }
     setCreating(false);
   };
@@ -192,11 +201,56 @@ var FamilySearch = ({
       React.createElement("button", { onClick: () => setView(isSearch ? 'home' : 'join'), style: { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#9ca3af', padding: 0 } },
       isSearch ? '✕' : '🔍'
       ), /*#__PURE__*/
-      React.createElement("button", { onClick: () => setView('create'), style: { padding: '6px 16px', borderRadius: '20px', background: 'rgba(0,219,222,0.1)', border: '1px solid #00dbde', color: '#00dbde', fontSize: '14px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,219,222,0.15)' } },
-      lang === 'ar' ? 'إنشاء' : 'Create'
+      (() => {
+        var isCooldown = false;
+        if (currentUserData?.leftFamilyAt) {
+          var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+          if (Date.now() - leftAt < 24 * 60 * 60 * 1000) isCooldown = true;
+        }
+        
+        return React.createElement("button", { 
+          onClick: () => {
+            if (isCooldown) {
+              onNotification(lang === 'ar' ? '⏳ لا يمكنك إنشاء قبيلة أثناء فترة الانتظار' : '⏳ You cannot create a family during cooldown');
+              return;
+            }
+            if (currentUserData?.familyId) {
+              onNotification(lang === 'ar' ? 'أنت بالفعل عضو في قبيلة' : 'You are already in a family');
+              return;
+            }
+            setView('create');
+          }, 
+          style: { 
+            padding: '6px 16px', borderRadius: '20px', 
+            background: (isCooldown || currentUserData?.familyId) ? 'rgba(255,255,255,0.05)' : 'rgba(0,219,222,0.1)', 
+            border: (isCooldown || currentUserData?.familyId) ? '1px solid rgba(255,255,255,0.1)' : '1px solid #00dbde', 
+            color: (isCooldown || currentUserData?.familyId) ? '#6b7280' : '#00dbde', 
+            fontSize: '14px', fontWeight: 600, cursor: 'pointer', 
+            boxShadow: (isCooldown || currentUserData?.familyId) ? 'none' : '0 2px 8px rgba(0,219,222,0.15)' 
+          } 
+        },
+        lang === 'ar' ? 'إنشاء' : 'Create'
+        );
+      })()
       )
-      )
-      ),
+      ), /*#__PURE__*/
+      (() => {
+        if (!currentUserData?.leftFamilyAt) return null;
+        var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+        var diff = Date.now() - leftAt;
+        var cooldown = 24 * 60 * 60 * 1000;
+        if (diff >= cooldown) return null;
+        var hoursLeft = Math.ceil((cooldown - diff) / (60 * 60 * 1000));
+        
+        return React.createElement("div", { style: { padding: '12px 16px', background: 'rgba(251,191,36,0.1)', borderBottom: '1px solid rgba(251,191,36,0.2)', display: 'flex', alignItems: 'center', gap: '10px', color: '#fbbf24' } },
+          React.createElement("span", { style: { fontSize: '18px' } }, "⏳"),
+          React.createElement("div", { style: { display: 'flex', flexDirection: 'column' } },
+            React.createElement("span", { style: { fontSize: '13px', fontWeight: 800 } }, lang === 'ar' ? 'فترة الانتظار نشطة' : 'Cooldown Active'),
+            React.createElement("span", { style: { fontSize: '11px', opacity: 0.8 } }, 
+              lang === 'ar' ? `متبقي ${hoursLeft} ساعة قبل أن تتمكن من الانضمام لقبيلة` : `${hoursLeft} hours remaining before you can join a family`)
+          )
+        );
+      })(),
 
 
       isSearch && /*#__PURE__*/
@@ -267,7 +321,24 @@ var FamilySearch = ({
 
           i === 0 && /*#__PURE__*/React.createElement("span", { style: { display: 'inline-block', fontSize: '10px', fontWeight: 800, color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', padding: '2px 8px', borderRadius: '10px' } }, "Top1 active")
           ), /*#__PURE__*/
-          React.createElement("button", { onClick: (e) => {e.stopPropagation();handleJoin(f);}, style: { padding: '8px 20px', borderRadius: '20px', background: 'linear-gradient(135deg, #00dbde, #fc00ff)', border: 'none', color: 'white', fontSize: '14px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' } },
+          React.createElement("button", { 
+            onClick: (e) => {
+              e.stopPropagation();
+              handleJoin(f);
+            }, 
+            style: { 
+              padding: '8px 20px', borderRadius: '20px', 
+              background: (() => {
+                if (currentUserData?.familyId) return '#374151';
+                if (currentUserData?.leftFamilyAt) {
+                  var leftAt = currentUserData.leftFamilyAt.toDate ? currentUserData.leftFamilyAt.toDate().getTime() : currentUserData.leftFamilyAt;
+                  if (Date.now() - leftAt < 24 * 60 * 60 * 1000) return '#374151';
+                }
+                return 'linear-gradient(135deg, #00dbde, #fc00ff)';
+              })(), 
+              border: 'none', color: 'white', fontSize: '14px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' 
+            } 
+          },
           lang === 'ar' ? 'انضمام' : 'Join'
           )
           ));

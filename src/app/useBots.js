@@ -28,7 +28,11 @@
                     if (!room.wordVotes?.[bot.uid] && bot.role !== 'spy' && bot.role !== 'mrwhite') {
                         var w = words[Math.floor(Math.random() * words.length)];
                         var upd = {}; upd[`wordVotes.${bot.uid}`] = w;
-                        setTimeout(() => roomsCollection.doc(roomId).update(upd).catch(() => {}), 1500 + Math.random() * 2000);
+                        setTimeout(async () => {
+                            try {
+                                await roomsCollection.doc(roomId).update(upd);
+                            } catch (e) { console.error('[PRO SPY ERROR] bot word vote:', e); }
+                        }, 1500 + Math.random() * 2000);
                     }
                 });
             }
@@ -47,7 +51,9 @@
                         if (shouldChat) {
                             var msg = msgs[Math.floor(Math.random() * msgs.length)];
                             var chatMsg = { sender: currentBot.uid, name: currentBot.name, text: msg, time: Date.now(), isBot: true };
-                            await roomsCollection.doc(roomId).update({ messages: firebase.firestore.FieldValue.arrayUnion(chatMsg) }).catch(() => {});
+                            try {
+                                await roomsCollection.doc(roomId).update({ messages: firebase.firestore.FieldValue.arrayUnion(chatMsg) });
+                            } catch (e) { console.error('[PRO SPY ERROR] bot chat message:', e); }
                         }
                         if (typeof nextTurn === 'function') await nextTurn();
                     }, delay);
@@ -62,7 +68,11 @@
                     if (!room.votes?.[bot.uid] && humanPlayers.length > 0) {
                         var target = humanPlayers[Math.floor(Math.random() * humanPlayers.length)];
                         var upd = {}; upd[`votes.${bot.uid}`] = target.uid;
-                        setTimeout(() => roomsCollection.doc(roomId).update(upd).catch(() => {}), 2000 + Math.random() * 3000);
+                        setTimeout(async () => {
+                            try {
+                                await roomsCollection.doc(roomId).update(upd);
+                            } catch (e) { console.error('[PRO SPY ERROR] bot final vote:', e); }
+                        }, 2000 + Math.random() * 3000);
                     }
                 });
             }

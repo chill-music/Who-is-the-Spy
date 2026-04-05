@@ -35,6 +35,8 @@
   var rootEl = null;
   var soundOn = true;
   var unsubscribeSync = null;
+  var currencyUnsub = null;
+  var resultsUnsub = null;
 
   /* ── 3. TRANSLATIONS ── */
   var STRINGS = {
@@ -86,7 +88,7 @@
       arr.unshift(rec);
       if (arr.length > 100) arr = arr.slice(0, 100);
       localStorage.setItem(key, JSON.stringify(arr));
-    } catch(e) {}
+    } catch(e) { console.error('[PRO SPY ERROR] saveWinRecord failed:', e); }
   }
   function getWinRecords() {
     try { return JSON.parse(localStorage.getItem(_recKey()) || '[]'); }
@@ -134,7 +136,7 @@
           o.start(now + i * 0.18); o.stop(now + i * 0.18 + 0.35);
         });
       }
-    } catch(e) {}
+    } catch(e) { console.error('[PRO SPY ERROR] playSound failed:', e); }
   }
 
   /* ── 7. SYNC ENGINE ── */
@@ -161,12 +163,12 @@
     }
 
     if (window.usersCollection && S.currentUser && S.currentUser.uid) {
-      window.usersCollection.doc(S.currentUser.uid).onSnapshot(function(d) {
+      currencyUnsub = window.usersCollection.doc(S.currentUser.uid).onSnapshot(function(d) {
         if (d.exists) { S.balance = d.data().currency || 0; updateUI(); }
       });
     }
 
-    sessDoc.collection('results').orderBy('timestamp', 'desc').limit(10).onSnapshot(function(snap) {
+    resultsUnsub = sessDoc.collection('results').orderBy('timestamp', 'desc').limit(10).onSnapshot(function(snap) {
       var list = $('gc-results-list');
       if (!list) return;
       list.innerHTML = '';
@@ -245,10 +247,10 @@
           var endMs = data.endTime && typeof data.endTime.toMillis === 'function' ? data.endTime.toMillis() : 0;
           if (endMs > (now - 1000)) return; /* round still active – do nothing */
           if (data.winningId) {
-            docRef.collection('results').add({
+            await docRef.collection('results').add({
               winningId: data.winningId, roundId: data.roundId,
               timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(function() {});
+            });
           }
         }
         var nextWin = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
@@ -283,12 +285,12 @@
   }
 
   /* ── 11. RESOLVE ROUND ── */
-  function resolveRound(data) {
+  async function resolveRound(data) {
     S.phase = 'reveal';
     if ($('gc-spin-indicator')) $('gc-spin-indicator').classList.add('spinning');
     if ($('gc-cat')) $('gc-cat').textContent = '🎯';
 
-    setTimeout(function() {
+    setTimeout(async function() {
       var winner = SYMBOLS.find(function(s) { return s.id === data.winningId; });
       if (!winner) return;
 
@@ -317,11 +319,15 @@
         showWin(winner.emoji, gained);
         if ($('gc-cat')) $('gc-cat').textContent = '😸';
         if (window.SecurityService && S.currentUser && S.currentUser.uid) {
-          window.SecurityService.applyCurrencyTransaction(
-            S.currentUser.uid, gained,
-            'GreedyCat Win Round #' + data.roundId,
-            { roundId: data.roundId }
-          );
+          try {
+            await window.SecurityService.applyCurrencyTransaction(
+              S.currentUser.uid, gained,
+              'GreedyCat Win Round #' + data.roundId,
+              { roundId: data.roundId }
+            );
+          } catch (e) {
+            console.error('[PRO SPY ERROR] resolveRound win transaction failed:', e);
+          }
         }
         saveWinRecord({ roundId: data.roundId, amount: gained, emoji: winner.emoji, time: Date.now() });
         _writeRoundWinner(data.roundId, gained, winner.emoji);
@@ -348,13 +354,13 @@
   }
 
   /* ── 12. WINNER HELPERS ── */
-  function _writeRoundWinner(roundId, amount, emoji) {
+  async function _writeRoundWinner(roundId, amount, emoji) {
     if (!window.db || !S.currentUser || !S.currentUser.uid) return;
     try {
       var sessDoc = window.db.collection('artifacts').doc(window.appId)
         .collection('public').doc('data').collection('lucky_games_sessions').doc('greedy_cat');
       /* Write to round_winners subcollection — rule deployed: uid must match auth.uid */
-      sessDoc.collection('round_winners').add({
+      await sessDoc.collection('round_winners').add({
         roundId:     roundId,
         uid:         S.currentUser.uid,
         displayName: S.currentUser.displayName || '',
@@ -362,8 +368,8 @@
         amount:      amount,
         emoji:       emoji,
         timestamp:   window.firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(function() {});
-    } catch(e) {}
+      });
+    } catch(e) { console.error('[PRO SPY ERROR] _writeRoundWinner failed:', e); }
   }
 
   function _showRoundWinners(roundId) {
@@ -652,34 +658,51 @@
   }
 
   /* ── 18. BET ACTIONS ── */
-  window.GreedyCatGame.toggleBet = function(name) {
+  window.GreedyCatGame.toggleBet = async function(name) {
+    if (window._firestoreOnline === false) {
+      if (window.showToast) window.showToast(typeof lang !== 'undefined' && lang === 'ar' ? '⚠️ لا يوجد اتصال' : '⚠️ No connection');
+      return;
+    }
     if (S.phase !== 'betting') return;
     var cost    = S.selectedCoin;
     var current = S.bets[name] || 0;
     if (S.balance < cost) { if (window.showToast) window.showToast(T('NO_COINS')); return; }
     if (current + cost > MAX_BET) { if (window.showToast) window.showToast(T('MAX_BET')); return; }
     if (window.SecurityService && S.currentUser && S.currentUser.uid) {
-      window.SecurityService.applyCurrencyTransaction(
-        S.currentUser.uid, -cost, 'GreedyCat Bet: ' + name, { roundId: S.roundId }
-      );
-      S.bets[name] = current + cost;
-      var badge = $('gc-bet-' + name);
-      if (badge) { badge.textContent = fmtNum(S.bets[name]); badge.style.display = 'block'; }
-      playSound('bet');
+      var prevBalance = S.balance;
+      try {
+        var result = await window.SecurityService.applyCurrencyTransaction(
+          S.currentUser.uid, -cost, 'GreedyCat Bet: ' + name, { roundId: S.roundId }
+        );
+        if (result && result.success === false) {
+          S.balance = prevBalance; updateUI(); return;
+        }
+        S.bets[name] = current + cost;
+        var badge = $('gc-bet-' + name);
+        if (badge) { badge.textContent = fmtNum(S.bets[name]); badge.style.display = 'block'; }
+        playSound('bet');
+      } catch (e) {
+        console.error('[PRO SPY ERROR] toggleBet failed:', e);
+        S.balance = prevBalance; updateUI();
+      }
     }
   };
 
-  window.GreedyCatGame.toggleSpecial = function(type) {
+  window.GreedyCatGame.toggleSpecial = async function(type) {
     if (S.phase !== 'betting' || S.specialBets[type]) return;
     if (S.balance < 1000) { if (window.showToast) window.showToast(T('NO_COINS')); return; }
     if (window.SecurityService && S.currentUser && S.currentUser.uid) {
-      window.SecurityService.applyCurrencyTransaction(
-        S.currentUser.uid, -1000, 'GreedyCat ' + type + ' Bonus', { roundId: S.roundId }
-      );
-      S.specialBets[type] = true;
-      var btn = $('gc-special-' + type);
-      if (btn) btn.classList.add('selected');
-      playSound('bet');
+      try {
+        await window.SecurityService.applyCurrencyTransaction(
+          S.currentUser.uid, -1000, 'GreedyCat ' + type + ' Bonus', { roundId: S.roundId }
+        );
+        S.specialBets[type] = true;
+        var btn = $('gc-special-' + type);
+        if (btn) btn.classList.add('selected');
+        playSound('bet');
+      } catch (e) {
+        console.error('[PRO SPY ERROR] toggleSpecial failed:', e);
+      }
     }
   };
 
@@ -765,27 +788,42 @@
     };
     $('gc-btn-record').onclick = function() { GreedyCatGame.openRecord(); };
 
-    /* Render Avatar — plain img only, no React component conflict with #gc-avatar-mount */
-    var mount = $('gc-avatar-mount');
-    if (mount) {
-      var photo = S.currentUser && S.currentUser.photoURL ? S.currentUser.photoURL : '';
-      /* Simple <img> fills #gc-avatar-mount exactly.
-         Golden ring = #gc-avatar-box conic-gradient (box) + inset:3px (mount) */
-      mount.innerHTML = photo
-        ? '<img src="' + photo.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" onerror="this.src=\'https://ui-avatars.com/api/?name=U&background=6366f1&color=fff\'" />'
-        : '<div style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:20px;">😺</div>';
-    }
+    /* Render Avatar — React component */
+    syncUserAvatar();
 
     subscribeSync();
   };
 
   window.GreedyCatGame.stop = function() {
-    if (unsubscribeSync) unsubscribeSync();
+    if (unsubscribeSync) { unsubscribeSync(); unsubscribeSync = null; }
+    if (currencyUnsub) { currencyUnsub(); currencyUnsub = null; }
+    if (resultsUnsub) { resultsUnsub(); resultsUnsub = null; }
     if (window.GreedyCatGame._ticker) {
       clearInterval(window.GreedyCatGame._ticker);
       window.GreedyCatGame._ticker = null;
     }
     if (rootEl) rootEl.innerHTML = '';
   };
+
+  function syncUserAvatar() {
+    var mount = $('gc-avatar-mount');
+    if (!mount) return;
+    var photoURL = S.currentUser ? S.currentUser.photoURL : null;
+    if (window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+      window.ReactDOM.render(
+        window.React.createElement(window.AvatarWithFrameV11, {
+          photoURL: photoURL,
+          equipped: S.currentUser ? S.currentUser.equipped : null,
+          size: 'sm',
+          lang: lang
+        }),
+        mount
+      );
+    } else {
+      mount.innerHTML = photoURL 
+        ? '<img src="' + photoURL + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />'
+        : '<div style="width:100%;height:100%;border-radius:50%;background:#ccc;display:flex;align-items:center;justify-content:center;">😺</div>';
+    }
+  }
 
 })();

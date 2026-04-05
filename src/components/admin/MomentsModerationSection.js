@@ -14,25 +14,28 @@
       return unsub;
     }, []);
 
-    var toggleHideMoment = async (id, currentHidden) => {
+    var toggleHideMoment = async (id, userId, userName, currentHidden) => {
       try {
         await momentsCollection.doc(id).update({ hidden: !currentHidden });
-        onNotification(`✅ ${!currentHidden ? 'Moment Hidden' : 'Moment Restored'}`);
-      } catch (e) {onNotification('❌ Error');}
+        if (window.logStaffAction) await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'HIDE_MOMENT', userId, userName, `Moment ${id} — ${!currentHidden ? 'hidden' : 'restored'}`);
+        onNotification(`✅ ${!currentHidden ? (lang === 'ar' ? 'تم إخفاء المنشور' : 'Moment Hidden') : (lang === 'ar' ? 'تم إظهار المنشور' : 'Moment Restored')}`);
+      } catch (e) { onNotification('❌ Error'); }
     };
 
-    var deleteMoment = async (id) => {
+    var deleteMoment = async (id, userId, userName) => {
       if (!confirm(lang === 'ar' ? 'حذف هذا المنشور نهائياً؟' : 'Delete this moment permanently?')) return;
       try {
         await momentsCollection.doc(id).delete();
+        if (window.logStaffAction) await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'DELETE_MOMENT', userId, userName, `Deleted moment ${id}`);
         onNotification('✅ Success');
-      } catch (e) {onNotification('❌ Error');}
+      } catch (e) { onNotification('❌ Error'); }
     };
 
     return (/*#__PURE__*/
       React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: '#8b5cf6', marginBottom: '16px' } }, "\uD83D\uDCF8 ",
-      lang === 'ar' ? 'مراجعة اللحظات' : 'Moments Moderation'
+      React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: '#8b5cf6' } }, "\uD83D\uDCF8 ", lang === 'ar' ? 'مراجعة اللحظات' : 'Moments Moderation'), /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '11px', color: '#6b7280' } }, `${moments.length} ${lang === 'ar' ? 'منشور' : 'posts'} • ${moments.filter(m => m.hidden).length} ${lang === 'ar' ? 'مخفي' : 'hidden'}`)      
       ),
       loading ? /*#__PURE__*/React.createElement("div", { style: { textAlign: 'center', padding: '20px' } }, "\u23F3") : /*#__PURE__*/
       React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' } },
@@ -63,11 +66,11 @@
       ) : /*#__PURE__*/
 
       React.createElement("div", { style: { display: 'flex', gap: '5px' } }, /*#__PURE__*/
-      React.createElement("button", { onClick: () => toggleHideMoment(m.id, m.hidden),
+      React.createElement("button", { onClick: () => toggleHideMoment(m.id, m.userId, m.userName, m.hidden),
         style: { flex: 1, padding: '5px', borderRadius: '6px', border: 'none', fontSize: '10px', cursor: 'pointer', background: 'rgba(245,158,11,0.2)', color: '#f59e0b' } },
       m.hidden ? '👁️' : '🚫'
       ), /*#__PURE__*/
-      React.createElement("button", { onClick: () => deleteMoment(m.id),
+      React.createElement("button", { onClick: () => deleteMoment(m.id, m.userId, m.userName),
         style: { flex: 1, padding: '5px', borderRadius: '6px', border: 'none', fontSize: '10px', cursor: 'pointer', background: 'rgba(239,68,68,0.2)', color: '#ef4444' } }, "\uD83D\uDDD1\uFE0F"
 
       ), /*#__PURE__*/

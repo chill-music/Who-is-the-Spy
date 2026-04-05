@@ -7,16 +7,16 @@
     position: relative;
     display: inline-block;
 }
+
 .vip-name-gradient-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255,255,255,0.55) 40%,
-        rgba(255,220,0,0.65) 55%,
-        rgba(255,255,255,0.55) 70%,
-        transparent 100%
-    );
+            transparent 0%,
+            rgba(255, 255, 255, 0.55) 40%,
+            var(--vip-shimmer-color, rgba(255, 220, 0, 0.65)) 55%,
+            rgba(255, 255, 255, 0.55) 70%,
+            transparent 100%);
     background-size: 200% 100%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -24,9 +24,26 @@
     animation: vip-shimmer 2.2s linear infinite;
     pointer-events: none;
 }
+
 @keyframes vip-shimmer {
-    0%   { background-position: 200% center; }
-    100% { background-position: -200% center; }
+    0% {
+        background-position: 200% center;
+    }
+
+    100% {
+        background-position: -200% center;
+    }
+}
+
+/* ── VIP Special Variants ── */
+.mp-vip-transparent {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.mp-vip-text-only .vip-name-gradient-overlay {
+    display: none !important;
 }
 
 /* ── VIP Badge Icon ── */
@@ -39,7 +56,10 @@
     font-size: 12px;
     transition: transform 0.15s ease;
 }
-.vip-badge-icon:hover { transform: scale(1.15); }
+
+.vip-badge-icon:hover {
+    transform: scale(1.15);
+}
 
 /* ── VIP Chat Title Container ── */
 .vip-chat-title-container {
@@ -53,6 +73,7 @@
 .vip-info-card {
     transition: transform 0.15s ease;
 }
+
 .vip-info-card:hover {
     transform: translateX(-2px);
 }
@@ -99,6 +120,7 @@
     pointer-events: none;
     z-index: 2;
 }
+
 .shop-limited-tag {
     position: absolute;
     top: 3px;
@@ -113,10 +135,11 @@
     pointer-events: none;
     z-index: 2;
 }
+
 .shop-event-only-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.45);
+    background: rgba(0, 0, 0, 0.45);
     border-radius: inherit;
     display: flex;
     align-items: center;
@@ -124,6 +147,7 @@
     z-index: 3;
     pointer-events: none;
 }
+
 .shop-event-only-lock {
     font-size: 18px;
     opacity: 0.9;
@@ -138,8 +162,15 @@
     overflow-y: auto;
     padding: 4px;
 }
-.country-picker-grid::-webkit-scrollbar { width: 4px; }
-.country-picker-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+.country-picker-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.country-picker-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
 
 .country-item {
     display: flex;
@@ -150,19 +181,26 @@
     border-radius: 8px;
     cursor: pointer;
     border: 1.5px solid transparent;
-    background: rgba(255,255,255,0.04);
+    background: rgba(255, 255, 255, 0.04);
     transition: all 0.15s ease;
     min-width: 0;
 }
+
 .country-item:hover {
-    background: rgba(0,242,255,0.08);
-    border-color: rgba(0,242,255,0.25);
+    background: rgba(0, 242, 255, 0.08);
+    border-color: rgba(0, 242, 255, 0.25);
 }
+
 .country-item.selected {
-    background: rgba(0,242,255,0.12);
-    border-color: rgba(0,242,255,0.5);
+    background: rgba(0, 242, 255, 0.12);
+    border-color: rgba(0, 242, 255, 0.5);
 }
-.country-item .flag { font-size: 22px; line-height: 1; }
+
+.country-item .flag {
+    font-size: 22px;
+    line-height: 1;
+}
+
 .country-item .cname {
     font-size: 8px;
     color: #9ca3af;
@@ -172,19 +210,21 @@
     white-space: nowrap;
     width: 100%;
 }
+
 .country-search-input {
     width: 100%;
     padding: 8px 10px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     color: #fff;
     font-size: 12px;
     margin-bottom: 8px;
     outline: none;
 }
+
 .country-search-input:focus {
-    border-color: rgba(0,242,255,0.4);
+    border-color: rgba(0, 242, 255, 0.4);
 }
 
 /* ── Gift Log Avatar Clickable ── */
@@ -192,9 +232,10 @@
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
 .profile-gift-log-avatar:hover {
     transform: scale(1.12);
-    box-shadow: 0 0 8px rgba(0,242,255,0.5);
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.5);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -203,17 +244,45 @@
 
 /* ── AURORA (VIP 7) — شفق قطبي: أخضر/بنفسجي/فيروزي متموج ── */
 @keyframes aurora-shift {
-    0%   { box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5,  0 0 5px #7c3aed;  border-color: #00f5a0aa; }
-    33%  { box-shadow: 0 0 16px #7c3aed, 0 0 28px #00f5a0,  0 0 8px #00d9f5;  border-color: #7c3aedaa; }
-    66%  { box-shadow: 0 0 14px #00d9f5, 0 0 22px #7c3aed,  0 0 6px #00f5a0;  border-color: #00d9f5aa; }
-    100% { box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5,  0 0 5px #7c3aed;  border-color: #00f5a0aa; }
+    0% {
+        box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5, 0 0 5px #7c3aed;
+        border-color: #00f5a0aa;
+    }
+
+    33% {
+        box-shadow: 0 0 16px #7c3aed, 0 0 28px #00f5a0, 0 0 8px #00d9f5;
+        border-color: #7c3aedaa;
+    }
+
+    66% {
+        box-shadow: 0 0 14px #00d9f5, 0 0 22px #7c3aed, 0 0 6px #00f5a0;
+        border-color: #00d9f5aa;
+    }
+
+    100% {
+        box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5, 0 0 5px #7c3aed;
+        border-color: #00f5a0aa;
+    }
 }
+
 @keyframes aurora-bg {
-    0%   { background: linear-gradient(135deg, rgba(0,245,160,0.13),  rgba(0,217,245,0.08),  rgba(124,58,237,0.10)); }
-    33%  { background: linear-gradient(135deg, rgba(124,58,237,0.13), rgba(0,245,160,0.10),  rgba(0,217,245,0.08)); }
-    66%  { background: linear-gradient(135deg, rgba(0,217,245,0.13),  rgba(124,58,237,0.10), rgba(0,245,160,0.08)); }
-    100% { background: linear-gradient(135deg, rgba(0,245,160,0.13),  rgba(0,217,245,0.08),  rgba(124,58,237,0.10)); }
+    0% {
+        background: linear-gradient(135deg, rgba(0, 245, 160, 0.13), rgba(0, 217, 245, 0.08), rgba(124, 58, 237, 0.10));
+    }
+
+    33% {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.13), rgba(0, 245, 160, 0.10), rgba(0, 217, 245, 0.08));
+    }
+
+    66% {
+        background: linear-gradient(135deg, rgba(0, 217, 245, 0.13), rgba(124, 58, 237, 0.10), rgba(0, 245, 160, 0.08));
+    }
+
+    100% {
+        background: linear-gradient(135deg, rgba(0, 245, 160, 0.13), rgba(0, 217, 245, 0.08), rgba(124, 58, 237, 0.10));
+    }
 }
+
 .glow-aurora {
     animation: aurora-shift 3s ease-in-out infinite, aurora-bg 3s ease-in-out infinite !important;
     border: 1.5px solid #00f5a0aa !important;
@@ -221,16 +290,44 @@
 
 /* ── INFERNO (VIP 8) — جهنم: أحمر/برتقال/أصفر مشتعل ── */
 @keyframes inferno-blaze {
-    0%   { box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px  #ffd700; border-color: #ff4500cc; }
-    25%  { box-shadow: 0 0 20px #ffd700, 0 0 36px #ff4500, 0 0 10px #ff8c00; border-color: #ffd700cc; }
-    50%  { box-shadow: 0 0 16px #ff8c00, 0 0 32px #ffd700, 0 0 8px  #ff4500; border-color: #ff8c00cc; }
-    75%  { box-shadow: 0 0 22px #ff4500, 0 0 40px #ff8c00, 0 0 12px #ffd700; border-color: #ff4500cc; }
-    100% { box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px  #ffd700; border-color: #ff4500cc; }
+    0% {
+        box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px #ffd700;
+        border-color: #ff4500cc;
+    }
+
+    25% {
+        box-shadow: 0 0 20px #ffd700, 0 0 36px #ff4500, 0 0 10px #ff8c00;
+        border-color: #ffd700cc;
+    }
+
+    50% {
+        box-shadow: 0 0 16px #ff8c00, 0 0 32px #ffd700, 0 0 8px #ff4500;
+        border-color: #ff8c00cc;
+    }
+
+    75% {
+        box-shadow: 0 0 22px #ff4500, 0 0 40px #ff8c00, 0 0 12px #ffd700;
+        border-color: #ff4500cc;
+    }
+
+    100% {
+        box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px #ffd700;
+        border-color: #ff4500cc;
+    }
 }
+
 @keyframes inferno-bg {
-    0%,100% { background: linear-gradient(135deg, rgba(255,69,0,0.15),  rgba(255,140,0,0.10), rgba(255,215,0,0.08)); }
-    50%      { background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,69,0,0.12),  rgba(255,140,0,0.10)); }
+
+    0%,
+    100% {
+        background: linear-gradient(135deg, rgba(255, 69, 0, 0.15), rgba(255, 140, 0, 0.10), rgba(255, 215, 0, 0.08));
+    }
+
+    50% {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 69, 0, 0.12), rgba(255, 140, 0, 0.10));
+    }
 }
+
 .glow-inferno {
     animation: inferno-blaze 1.8s ease-in-out infinite, inferno-bg 1.8s ease-in-out infinite !important;
     border: 1.5px solid #ff4500cc !important;
@@ -238,15 +335,39 @@
 
 /* ── COSMIC (VIP 9) — فضاء: أزرق عميق/بنفسجي/أبيض pulse ── */
 @keyframes cosmic-pulse {
-    0%   { box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa; border-color: #6d28d9bb; }
-    33%  { box-shadow: 0 0 18px #6d28d9, 0 0 35px #1e3a8a, 0 0 60px #6d28d933, 0 0 8px #fff9;      border-color: #1e3a8abb; }
-    66%  { box-shadow: 0 0 14px #2563eb, 0 0 28px #7c3aed, 0 0 50px #2563eb33, 0 0 6px #fff8;       border-color: #2563ebbb; }
-    100% { box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa; border-color: #6d28d9bb; }
+    0% {
+        box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa;
+        border-color: #6d28d9bb;
+    }
+
+    33% {
+        box-shadow: 0 0 18px #6d28d9, 0 0 35px #1e3a8a, 0 0 60px #6d28d933, 0 0 8px #fff9;
+        border-color: #1e3a8abb;
+    }
+
+    66% {
+        box-shadow: 0 0 14px #2563eb, 0 0 28px #7c3aed, 0 0 50px #2563eb33, 0 0 6px #fff8;
+        border-color: #2563ebbb;
+    }
+
+    100% {
+        box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa;
+        border-color: #6d28d9bb;
+    }
 }
+
 @keyframes cosmic-bg {
-    0%,100% { background: linear-gradient(135deg, rgba(30,58,138,0.18),  rgba(109,40,217,0.12), rgba(37,99,235,0.08)); }
-    50%      { background: linear-gradient(135deg, rgba(109,40,217,0.18), rgba(37,99,235,0.14),  rgba(30,58,138,0.10)); }
+
+    0%,
+    100% {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.18), rgba(109, 40, 217, 0.12), rgba(37, 99, 235, 0.08));
+    }
+
+    50% {
+        background: linear-gradient(135deg, rgba(109, 40, 217, 0.18), rgba(37, 99, 235, 0.14), rgba(30, 58, 138, 0.10));
+    }
 }
+
 .glow-cosmic {
     animation: cosmic-pulse 2.5s ease-in-out infinite, cosmic-bg 2.5s ease-in-out infinite !important;
     border: 1.5px solid #6d28d9bb !important;
@@ -254,26 +375,461 @@
 
 /* ── GODLIKE (VIP 10) — إله: rainbow shimmer نهائي ── */
 @keyframes godlike-rainbow {
-    0%   { box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533; border-color: #ff0055; }
-    16%  { box-shadow: 0 0 20px #ff8c00, 0 0 40px #ff8c00aa, 0 0 60px #ff8c0033; border-color: #ff8c00; }
-    33%  { box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700aa, 0 0 60px #ffd70033; border-color: #ffd700; }
-    50%  { box-shadow: 0 0 20px #00f5a0, 0 0 40px #00f5a0aa, 0 0 60px #00f5a033; border-color: #00f5a0; }
-    66%  { box-shadow: 0 0 20px #00d9f5, 0 0 40px #00d9f5aa, 0 0 60px #00d9f533; border-color: #00d9f5; }
-    83%  { box-shadow: 0 0 20px #b300ff,  0 0 40px #b300ffaa, 0 0 60px #b300ff33; border-color: #b300ff; }
-    100% { box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533; border-color: #ff0055; }
+    0% {
+        box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533;
+        border-color: #ff0055;
+    }
+
+    16% {
+        box-shadow: 0 0 20px #ff8c00, 0 0 40px #ff8c00aa, 0 0 60px #ff8c0033;
+        border-color: #ff8c00;
+    }
+
+    33% {
+        box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700aa, 0 0 60px #ffd70033;
+        border-color: #ffd700;
+    }
+
+    50% {
+        box-shadow: 0 0 20px #00f5a0, 0 0 40px #00f5a0aa, 0 0 60px #00f5a033;
+        border-color: #00f5a0;
+    }
+
+    66% {
+        box-shadow: 0 0 20px #00d9f5, 0 0 40px #00d9f5aa, 0 0 60px #00d9f533;
+        border-color: #00d9f5;
+    }
+
+    83% {
+        box-shadow: 0 0 20px #b300ff, 0 0 40px #b300ffaa, 0 0 60px #b300ff33;
+        border-color: #b300ff;
+    }
+
+    100% {
+        box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533;
+        border-color: #ff0055;
+    }
 }
+
 @keyframes godlike-bg {
-    0%   { background: linear-gradient(135deg, rgba(255,0,85,0.15),  rgba(255,140,0,0.10)); }
-    25%  { background: linear-gradient(135deg, rgba(0,245,160,0.15), rgba(0,217,245,0.10)); }
-    50%  { background: linear-gradient(135deg, rgba(179,0,255,0.15), rgba(255,215,0,0.10)); }
-    75%  { background: linear-gradient(135deg, rgba(0,217,245,0.15), rgba(255,0,85,0.10));  }
-    100% { background: linear-gradient(135deg, rgba(255,0,85,0.15),  rgba(255,140,0,0.10)); }
+    0% {
+        background: linear-gradient(135deg, rgba(255, 0, 85, 0.15), rgba(255, 140, 0, 0.10));
+    }
+
+    25% {
+        background: linear-gradient(135deg, rgba(0, 245, 160, 0.15), rgba(0, 217, 245, 0.10));
+    }
+
+    50% {
+        background: linear-gradient(135deg, rgba(179, 0, 255, 0.15), rgba(255, 215, 0, 0.10));
+    }
+
+    75% {
+        background: linear-gradient(135deg, rgba(0, 217, 245, 0.15), rgba(255, 0, 85, 0.10));
+    }
+
+    100% {
+        background: linear-gradient(135deg, rgba(255, 0, 85, 0.15), rgba(255, 140, 0, 0.10));
+    }
 }
+
 @keyframes godlike-scale {
-    0%,100% { transform: scale(1); }
-    50%      { transform: scale(1.02); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
 }
+
 .glow-godlike {
     animation: godlike-rainbow 2s linear infinite, godlike-bg 2s linear infinite, godlike-scale 2s ease-in-out infinite !important;
     border: 2px solid #ff0055 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   🛍️ SHOP REDESIGN — UNIFIED DESIGN SYSTEM
+   ══════════════════════════════════════════════════════════ */
+
+:root {
+    --shop-card-bg: rgba(255, 255, 255, 0.05);
+    --shop-card-border: rgba(255, 255, 255, 0.1);
+    --shop-card-hover: rgba(0, 242, 255, 0.08);
+    --shop-card-selected: rgba(0, 242, 255, 0.15);
+
+    /* Rarity Colors */
+    --rarity-common: #9ca3af;
+    --rarity-uncommon: #10b981;
+    --rarity-rare: #3b82f6;
+    --rarity-epic: #a855f7;
+    --rarity-legendary: #f59e0b;
+    --rarity-mythic: #ef4444;
+}
+
+/* ── Unified Shop Item Card ── */
+.shop-standard-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--shop-card-bg);
+    border: 1.5px solid var(--shop-card-border);
+    border-radius: 12px;
+    padding: 8px;
+    aspect-ratio: 1;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.shop-standard-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    background: var(--shop-card-hover);
+    border-color: rgba(0, 242, 255, 0.4);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 242, 255, 0.2);
+}
+
+.shop-standard-item.selected {
+    background: var(--shop-card-selected);
+    border-color: #00f2ff;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+}
+
+/* ── Rarity Glows ── */
+.shop-rarity-common {
+    border-color: rgba(156, 163, 175, 0.3) !important;
+}
+
+.shop-rarity-uncommon {
+    border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.shop-rarity-rare {
+    border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.shop-rarity-epic {
+    border-color: rgba(168, 85, 247, 0.4) !important;
+}
+
+.shop-rarity-legendary {
+    border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.shop-rarity-mythic {
+    border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+/* ── Portrait Effect Container (9:16) ── */
+.portrait-effect-container {
+    position: relative;
+    width: 60%;
+    aspect-ratio: 9/16;
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portrait-effect-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ══════════════════════════════════════════════════════════
+   🏆 RANKING REDESIGN — PODIUM & FRAMES
+   ══════════════════════════════════════════════════════════ */
+
+.podium-container-new {
+    display: flex;
+    flex-direction: row !important;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 8px 10px;
+    margin-top: 6px;
+    width: 100%;
+}
+
+.podium-item-new {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    /* ranks 2 & 3 are narrower, rank 1 is widest */
+    flex: 1;
+    max-width: 120px;
+}
+
+.podium-item-new:hover {
+    transform: translateY(-6px) scale(1.04);
+}
+
+/* Rank stacking order & vertical offsets */
+.podium-rank-1 {
+    order: 2;
+    z-index: 10;
+}
+
+.podium-rank-2 {
+    order: 1;
+    margin-bottom: -10px;
+}
+
+.podium-rank-3 {
+    order: 3;
+    margin-bottom: -14px;
+}
+
+/* ── The frame image + avatar overlay container ── */
+.podium-asset-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* The big badge / medal image */
+.podium-frame-asset {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55));
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+    /* rank-1 default — overridden per rank below */
+}
+
+/* Avatar sits INSIDE the circular cutout of the badge image.
+   top / width are tuned per rank to match the actual badge asset. */
+.podium-avatar-wrapper {
+    position: absolute;
+    z-index: 1;
+    /* behind the frame overlay */
+    border-radius: 50%;
+    overflow: hidden;
+    aspect-ratio: 1;
+    /* always a perfect circle */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.podium-avatar-wrapper img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.podium-avatar-wrapper span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 22px;
+}
+
+/* rank-1: TOP1 badge */
+.podium-rank-1 .podium-asset-container {
+    width: 115%;
+    margin: 0 auto;
+}
+
+.podium-rank-1 .podium-avatar-wrapper {
+    width: 32%;
+    top: 45%;
+    left: 50%;
+}
+
+.podium-rank-1 .podium-frame-asset {
+    filter: drop-shadow(0 8px 24px rgba(255, 200, 0, 0.45));
+}
+
+/* rank-2: TOP2 badge */
+.podium-rank-2 .podium-asset-container {
+    width: 96%;
+}
+
+.podium-rank-2 .podium-avatar-wrapper {
+    width: 38%;
+    top: 38.5%;
+    left: 50%;
+}
+
+/* rank-3: TOP3 badge */
+.podium-rank-3 .podium-asset-container {
+    width: 90%;
+}
+
+.podium-rank-3 .podium-avatar-wrapper {
+    width: 39%;
+    top: 39.5%;
+    left: 50%;
+}
+
+/* ── Name & score below the badge ── */
+.podium-name,
+.podium-info-new .podium-name-new {
+    font-size: 11px;
+    font-weight: 900;
+    color: #fff;
+    margin-top: 6px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.podium-rank-1 .podium-name,
+.podium-rank-1 .podium-info-new .podium-name-new {
+    font-size: 12px;
+    color: #fde68a;
+}
+
+.podium-score,
+.podium-info-new .podium-score-new {
+    font-size: 11px;
+    color: #00f2ff;
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+.podium-info-new {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* backward-compat: wins/charisma tabs don't use asset-container */
+.podium-avatar-img {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    z-index: 1;
+    position: relative;
+}
+
+.podium-rank-1 .podium-avatar-img {
+    width: 82px;
+    height: 82px;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+}
+
+.podium-frame-overlay {
+    position: absolute;
+    inset: -25%;
+    width: 150%;
+    height: 150%;
+    z-index: 5;
+    pointer-events: none;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+/* Shop and Grid Centering */
+.shop-standard-item {
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Center vertically */
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    overflow: hidden;
+    min-height: 115px;
+    /* Consistent height */
+    text-align: center;
+}
+
+.shop-standard-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 242, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Profile Effects Container */
+.portrait-effect-container {
+    position: relative;
+    width: 100%;
+    max-width: 50px;
+    aspect-ratio: 9/16;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.portrait-effect-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Fill the vertical space */
+}
+
+/* ══════════════════════════════════════════════════════════
+   ⭐ UNIFIED PODIUM AVATAR POSITIONING 
+   (Adjust these while looking at Bot Accounts! Bots have pure edge-to-edge images without hidden padding).
+   ══════════════════════════════════════════════════════════ */
+.podium-rank-1 .podium-avatar-wrapper {
+    width: 26%;
+    /* Adjusted to fit the Top 1 badge hole */
+    top: 42%;
+    /* Adjusted to lift it to the proper hole level */
+    left: 50%;
+}
+
+.podium-rank-2 .podium-avatar-wrapper {
+    width: 43%;
+    /* Adjusted for the smaller Top 2 badge */
+    top: 31%;
+    left: 50%;
+}
+
+.podium-rank-3 .podium-avatar-wrapper {
+    width: 44%;
+    /* Top 3 uses the same dimensions as Top 2 usually */
+    top: 31%;
+    left: 50%;
 }

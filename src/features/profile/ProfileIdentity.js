@@ -7,6 +7,7 @@ var ProfileIdentity = ({
   lang,
   onOpenFamily,
   onOpenProfile,
+  onOpenVIPCenter,
   setShowRoleInfoPopup,
   copiedId,
   setCopiedId,
@@ -31,11 +32,17 @@ var ProfileIdentity = ({
 
     React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' } }, /*#__PURE__*/
     React.createElement(window.VIPName, {
-      displayName: targetData?.displayName || 'Unknown',
       userData: targetData,
+      displayName: targetData?.displayName,
       className: "profile-name" }
     ), /*#__PURE__*/
-    React.createElement(window.VIPBadge, { userData: targetData, size: "md", onClick: (lvl) => {} })
+    React.createElement(window.VIPBadge, {
+      userData: targetData,
+      size: "md",
+      onClick: (lvl) => {
+        if (isOwnProfile && onOpenVIPCenter) onOpenVIPCenter();
+      }
+    })
     ), /*#__PURE__*/
 
 
@@ -89,6 +96,7 @@ var ProfileIdentity = ({
           signLevel: flvl,
           imageURL: fImg,
           small: true,
+          isLarge: true,
           onClick: (onOpenFamily || window.onOpenFamily) ? () => (onOpenFamily || window.onOpenFamily)(targetData?.familyId) : undefined }
         ));
 

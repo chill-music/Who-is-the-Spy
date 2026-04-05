@@ -85,14 +85,15 @@
           borderBottom: '1px solid rgba(255,255,255,0.06)'
         } }, /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { position: 'relative' } }, /*#__PURE__*/
-      React.createElement("img", {
-        src: photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7000ff&color=fff&size=80`,
-        alt: "",
-        style: { width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,242,255,0.4)' } }
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { position: 'absolute', bottom: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: '#4ade80', border: '2px solid #0f0f1a' } })
-      ), /*#__PURE__*/
+      React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
+        React.createElement(window.AvatarWithFrame, {
+          photoURL: photoURL,
+          equipped: (currentUser || userData)?.equipped,
+          size: "sm",
+          lang: lang
+        }),
+        React.createElement("div", { style: { position: 'absolute', bottom: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: '#4ade80', border: '2px solid #0f0f1a', zIndex: 11 } })
+      ),
       React.createElement("div", null, /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '14px', fontWeight: 800, color: 'white' } },
       displayName

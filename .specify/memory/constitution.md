@@ -1,50 +1,45 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- 
+Sync Impact Report:
+- Version change: [CONSTITUTION_VERSION] → 1.0.0
+- List of modified principles:
+  - [PRINCIPLE_1_NAME] → 🔴 Dead Code Prevention
+  - [PRINCIPLE_2_NAME] → 🟠 Logic & Async Accountability
+  - [PRINCIPLE_3_NAME] → 🟡 Structural Discipline (SOLID)
+  - [PRINCIPLE_4_NAME] → 🔵 Dependency Sanitization
+  - [PRINCIPLE_5_NAME] → ⚪ Type & Null Robustness
+- Added sections: Core Requirements
+- Removed sections: N/A
+- Templates requiring updates:
+  - .specify/templates/plan-template.md (✅ updated)
+  - .specify/templates/spec-template.md (✅ updated)
+-->
+
+# PRO SPY | Covert Arena Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### 🔴 Dead Code Prevention
+Codebase hygiene is a priority. Unused functions, variables, constants, imports, and exports are strictly forbidden. Unreachable code blocks (e.g., after return/throw statements) and commented-out code blocks must be avoided. React components and CSS classes must be pruned if they no longer serve a functional purpose.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### 🟠 Logic & Async Accountability
+All asynchronous functions must be properly awaited to prevent race conditions. Empty `catch` blocks that silently swallow errors are prohibited; every exception must at least be logged with sufficient context. Contradictory conditions and functions that return static values regardless of input must be refactored.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### 🟡 Structural Discipline (SOLID)
+Functions must adhere to the Single Responsibility Principle (SRP). Deeply nested logic should be flattened using guard clauses. Duplicate logic spread across multiple files must be centralized. Inconsistent naming (mixing camelCase with snake_case) is disallowed; camelCase is the project standard. No magic numbers or strings are permitted without explanation in constants.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### 🔵 Dependency Sanitization
+Imported packages and modules should reflect actual usage only. Packages listed in `package.json` that are not referenced in the code must be removed. Circular dependencies are strictly forbidden. Redundant multiple imports of the same module in different formats must be consolidated.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### ⚪ Type & Null Robustness
+Public functions must include type annotations (JSDoc or TypeScript). Null and undefined values must be explicitly handled, particularly when dealing with external API payloads or user inputs. The use of `any` types is a last resort and requires explicit justification.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Core Requirements
+The technical stack is built on React and Firebase. Performance metrics and bundle size are secondary only to security and data integrity.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+All changes must be specified via Spec-Kit before implementation. A technical plan and breakdown are mandatory for non-trivial features.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+This constitution supersedes all other informal practices. Amendments require a version increment and impact report documented in the project log. All Pull Requests must be validated against these five core principles.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-03-31

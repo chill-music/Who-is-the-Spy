@@ -16,9 +16,22 @@
         var [user, setUser] = useState(null);
         var [userData, setUserData] = useState(null);
         var [authLoading, setAuthLoading] = useState(true);
+        var [userDataLoading, setUserDataLoading] = useState(true);
+
+        useEffect(() => {
+            // Only log + act when all conditions for a new-user are potentially met
+            if (!authLoading && !userDataLoading && user !== null && user && !user.isAnonymous && !userData && !window._googleLoginInProgress) {
+                console.log("[Auth] Confirmed new user — showing onboarding (uid=" + user.uid + ")");
+                var userRef = usersCollection.doc(user.uid);
+                setOnboardingGoogleUser(user);
+                setPendingNewUserRef(userRef);
+                setShowOnboarding(true);
+            }
+        }, [authLoading, userDataLoading, user, userData]);
 
         useEffect(() => {
             setAuthLoading(true);
+            setUserDataLoading(true);
 
             /* ── 1. Handle Google Redirect Result (mobile / PWA) ─────────────
                Must be called INSIDE React so onAuthStateChanged fires first
@@ -42,64 +55,181 @@
                     }
                     /* All other errors (including auth/invalid-action) are safe to ignore */
                 });
+            var unsubSnapGlobal = null;
 
             /* ── 2. Primary auth state listener ────────────────────────────── */
             var unsubAuth = auth.onAuthStateChanged(async (u) => {
+                // Debug logs removed for cleanliness
+                if (u === null && window._googleLoginInProgress) {
+                    console.log("Ignored null auth state because Google Login is in progress");
+                    return;
+                }
+
                 if (u && !u.isAnonymous) {
+                    window._googleLoginInProgress = false;
                     setUser(u);
+                    setAuthLoading(false);
+                    setUserDataLoading(true); // ← CRITICAL: reset before async server read;
+                                              //   the null-auth branch may have set this false,
+                                              //   which would let the onboarding effect fire
+                                              //   immediately before we get the real answer.
                     var userRef = usersCollection.doc(u.uid);
-                    var doc = await userRef.get();
-                    if (!doc.exists) {
-                        // New user - show onboarding modal
-                        setOnboardingGoogleUser(u);
-                        setPendingNewUserRef(userRef);
-                        setAuthLoading(false);
-                        setShowOnboarding(true);
-                    } else {
-                        var existingData = doc.data();
-                        setUserData(existingData);
-                        if (existingData.displayName) setNickname(existingData.displayName);
-                        
-                        // Load saved language from Firestore
-                        if (existingData.lang && (existingData.lang === 'ar' || existingData.lang === 'en')) {
-                            setLang(existingData.lang);
-                            localStorage.setItem('pro_spy_lang', existingData.lang);
-                        }
 
-                        // Check login rewards cycle
-                        if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(existingData)) {
-                            await userRef.update({ 
-                                'loginRewards.currentDay': 0, 
-                                'loginRewards.streak': 0, 
-                                'loginRewards.cycleMonth': getCurrentCycleMonth() 
-                            });
-                        }
+                    if (unsubSnapGlobal) { unsubSnapGlobal(); unsubSnapGlobal = null; }
 
-                        // Real-time user data sync
-                        var unsubSnap = userRef.onSnapshot(snap => {
+                    /* ── 3. Two-phase user data load ──────────────────────────────────
+                       Phase A — Force server read ({ source: 'server' }):
+                         After clearing browser data, Firestore's local cache is empty.
+                         Both onSnapshot() and get() without { source: 'server' } hit
+                         that empty cache first and return doc.exists=false — even when
+                         the document EXISTS on the server. This caused returning users
+                         to be treated as new users and shown the onboarding screen.
+                         Forcing { source: 'server' } bypasses the cache completely.
+
+                       Phase B — Real-time listener (onSnapshot):
+                         Set up AFTER the authoritative server read, so live profile
+                         updates (avatar changes, currency, etc.) are still reflected.
+                         Also fires when a genuine new user finishes onboarding and
+                         the document is created for the first time.
+                    ─────────────────────────────────────────────────────────────── */
+
+                    /* Helper: write user data fields into React state */
+                    var applyUserData = function(data) {
+                        setUserData(data);
+                        if (data.displayName) setNickname(data.displayName);
+                        if (data.lang && (data.lang === 'ar' || data.lang === 'en')) {
+                            setLang(data.lang);
+                            localStorage.setItem('pro_spy_lang', data.lang);
+                        }
+                        if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(data)) {
+                            userRef.update({
+                                'loginRewards.currentDay': 0,
+                                'loginRewards.streak': 0,
+                                'loginRewards.cycleMonth': getCurrentCycleMonth()
+                            }).catch(() => {});
+                        }
+                    };
+
+                    /* Helper: activate real-time listener for live profile updates */
+                    var setupRealtimeListener = function(isNewUser) {
+                        unsubSnapGlobal = userRef.onSnapshot(function(snap) {
                             if (snap.exists) {
-                                var d = snap.data();
-                                setUserData(d);
-                                if (d.displayName) setNickname(d.displayName);
+                                var data = snap.data();
+                                // Ignore stale ghost accounts from local cache (no name & no customId = empty shell)
+                                if (!data.customId && !data.displayName) {
+                                    console.warn('[Auth] Ignoring stale cached ghost document — treating as new user.');
+                                    setUserData(null);
+                                    // Re-trigger onboarding via the effect
+                                    return;
+                                }
+                                applyUserData(data);
+                            } else if (isNewUser) {
+                                // doc deleted after we started listening — re-open onboarding
+                                setUserData(null);
                             }
+                        }, function(error) {
+                            console.error('[Auth] Firestore listener error:', error);
                         });
-                        setAuthLoading(false);
-                        /* ── Hide boot screen when user data is ready ── */
-                        if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
-                        return () => unsubSnap();
-                    }
-                } else {
+                    };
+
+                    /* Phase A: server-forced read — the definitive existence check */
+                    userRef.get({ source: 'server' })
+                        .then(function(serverDoc) {
+                            if (serverDoc.exists) {
+                                var existingData = serverDoc.data();
+                                // If the doc exists but is a ghost (no name/id = DB was wiped and re-created empty shell)
+                                if (!existingData.customId && !existingData.displayName) {
+                                    console.warn('[Auth] Server doc is a ghost shell (no customId/displayName) — treating as new user.');
+                                    setUserData(null);
+                                    setUserDataLoading(false);
+                                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                    // Directly trigger onboarding — don't wait for effect
+                                    var userRef2 = usersCollection.doc(u.uid);
+                                    setOnboardingGoogleUser(u);
+                                    setPendingNewUserRef(userRef2);
+                                    setShowOnboarding(true);
+                                    setupRealtimeListener(true);
+                                    return;
+                                }
+                                applyUserData(existingData);
+                                setUserDataLoading(false);
+                                if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                setupRealtimeListener(false);
+                            } else {
+                                // Confirmed absent on server — genuinely new user
+                                console.log('[Auth] Confirmed no doc on server — new user, opening onboarding.');
+                                setUserData(null);
+                                setUserDataLoading(false);
+                                if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                // Directly open onboarding here (don't wait for effect race)
+                                setOnboardingGoogleUser(u);
+                                setPendingNewUserRef(userRef);
+                                setShowOnboarding(true);
+                                // Phase B: real-time listener (also fires when onboarding creates the doc)
+                                setupRealtimeListener(true);
+                            }
+                        })
+                        .catch(function(err) {
+                            // Server unreachable (offline / network error) — fall back to default read
+                            console.warn('[Auth] Server read failed, falling back to default source:', err.message);
+                            userRef.get()
+                                .then(function(fallbackDoc) {
+                                    if (fallbackDoc.exists) {
+                                        var fallbackData = fallbackDoc.data();
+                                        // Ignore if fallback is an old ghost account
+                                        if (!fallbackData.customId && !fallbackData.displayName) {
+                                            console.log('userData received (fallback): ghost document ignored');
+                                            setUserData(null);
+                                            setUserDataLoading(false);
+                                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                            setupRealtimeListener(true);
+                                        } else {
+                                            console.log('userData received (fallback): ' + JSON.stringify(fallbackData).slice(0, 100) + '...');
+                                            applyUserData(fallbackData);
+                                            setUserDataLoading(false);
+                                            if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                            setupRealtimeListener(false);
+                                        }
+                                    } else {
+                                        console.log('userData received (fallback): null');
+                                        setUserData(null);
+                                        setUserDataLoading(false);
+                                        if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                        setupRealtimeListener(true);
+                                    }
+                                })
+                                .catch(function(fallbackErr) {
+                                    console.error('[Auth] Fallback read also failed:', fallbackErr);
+                                    setUserDataLoading(false);
+                                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                                });
+                        });
+
+                } else if (u === null) {
+                    // Not authenticated — show login screen only, never trigger onboarding
+                    console.log('[Auth] No user session — showing login screen');
                     setUser(null);
                     setUserData(null);
+                    setAuthLoading(false);
+                    setUserDataLoading(false);
+                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
+                    return; // Stop here — do not fall through to any further logic
+                } else {
+                    // Anonymous / guest user — no Firestore listener needed
+                    setUser(null);
+                    setUserData(null);
+                    setAuthLoading(false);
+                    setUserDataLoading(false);
+                    if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
                 }
-                setAuthLoading(false);
-                /* ── Hide boot screen (guest or no user) ── */
-                if (typeof window.__hideBootScreen === 'function') window.__hideBootScreen();
             });
-            return unsubAuth;
+            return () => {
+                unsubAuth();
+                if (unsubSnapGlobal) unsubSnapGlobal();
+            };
         }, []);
 
         var isLoggedIn = !!user;
-        return { user, userData, authLoading, isLoggedIn, setUser, setUserData, setAuthLoading };
+        return { user, userData, authLoading, userDataLoading, isLoggedIn, setUser, setUserData, setAuthLoading, setUserDataLoading };
     };
 })();

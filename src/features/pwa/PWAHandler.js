@@ -72,12 +72,7 @@
             });
         });
 
-        // Automatically reload when a new service worker takes over
-        var refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-            if (refreshing) return;
-            refreshing = true;
-            window.location.reload();
-        });
+        // Auto-reload disabled intentionally.
+        // Waiting for the next natural page load avoids interrupting Firebase Auth's initialization flow.
     }
 })();
