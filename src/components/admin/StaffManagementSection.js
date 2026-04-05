@@ -5,13 +5,14 @@
   var ROLE_ICONS  = { owner: '👑', admin: '🛡️', moderator: '🔰' };
 
   var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    var [staff, setStaff]         = useState([]);
-    var [loading, setLoading]     = useState(true);
-    var [editing, setEditing]     = useState(null);
-    var [newRole, setNewRole]     = useState('');
+    var [staff, setStaff]             = useState([]);
+    var [loading, setLoading]         = useState(true);
+    var [editing, setEditing]         = useState(null);
+    var [newRole, setNewRole]         = useState('');
     var [searchTerm, setSearchTerm]   = useState('');
     var [addRole, setAddRole]         = useState('moderator');
     var [searching, setSearching]     = useState(false);
+    var [confirmRemove, setConfirmRemove] = useState(null); // docId pending removal
 
     var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : currentUserData?.role;
 
@@ -48,19 +49,36 @@
 
     useEffect(() => { var unsub = loadStaff(); return unsub; }, []);
 
-    // ── Update role ──────────────────────────────────────────────────────────
+    // ── Update role (change only — not removal) ──────────────────────────────
     var updateRole = async (docId, targetName) => {
       if (myRole !== 'owner') { onNotification('⛔ Only Owners can change roles'); return; }
+      if (newRole === 'user') { onNotification('⚠️ Use the Remove button to remove staff'); return; }
       try {
         await usersCollection.doc(docId).update({ role: newRole });
         if (window.logStaffAction) {
           await window.logStaffAction(currentUser.uid, currentUserData?.displayName,
-            newRole === 'user' ? 'REMOVE_STAFF' : 'ASSIGN_ROLE',
-            docId, targetName, `Changed role to: ${newRole}`);
+            'ASSIGN_ROLE', docId, targetName, 'Changed role to: ' + newRole);
         }
-        onNotification('✅ Role updated');
+        onNotification('✅ ' + (lang === 'ar' ? 'تم تحديث الدور' : 'Role updated'));
         setEditing(null);
-      } catch (e) { onNotification('❌ Error'); }
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+    };
+
+    // ── Remove staff (sets role to 'user') ───────────────────────────────────
+    var handleRemove = async (docId, targetName) => {
+      if (myRole !== 'owner') return;
+      // Guard: never remove the hardcoded owner
+      var ownerUID = window.OWNER_UID || (window.ADMIN_UIDS && window.ADMIN_UIDS[0]);
+      if (docId === ownerUID) { onNotification('⛔ Cannot remove the Owner'); return; }
+      try {
+        await usersCollection.doc(docId).update({ role: 'user' });
+        if (window.logStaffAction) {
+          await window.logStaffAction(currentUser.uid, currentUserData?.displayName,
+            'REMOVE_STAFF', docId, targetName, 'Removed from staff via Admin Panel');
+        }
+        onNotification('✅ ' + (lang === 'ar' ? 'تم إزالة عضو الفريق' : 'Staff member removed'));
+        setConfirmRemove(null);
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
     };
 
     // ── Add staff by search (UID / customId / name) ──────────────────────────
@@ -137,24 +155,57 @@
                     )
                   ),
 
-                  myRole === 'owner' && !isMe && /*#__PURE__*/
-                  React.createElement('div', { style: { display: 'flex', gap: '6px', flexShrink: 0 } },
-                    editing === s.id
-                      ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-                          React.createElement('select', { value: newRole || s.role, onChange: (e) => setNewRole(e.target.value),
-                            className: 'input-dark', style: { fontSize: '11px', padding: '4px 8px' } }, /*#__PURE__*/
-                            React.createElement('option', { value: 'moderator' }, 'MODERATOR'), /*#__PURE__*/
-                            React.createElement('option', { value: 'admin' }, 'ADMIN'), /*#__PURE__*/
-                            React.createElement('option', { value: 'owner' }, 'OWNER'), /*#__PURE__*/
-                            React.createElement('option', { value: 'user' }, 'REMOVE STAFF')
-                          ), /*#__PURE__*/
-                          React.createElement('button', { onClick: () => updateRole(s.id, s.displayName), style: { padding: '4px 8px', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer' } }, '💾'), /*#__PURE__*/
-                          React.createElement('button', { onClick: () => setEditing(null), style: { padding: '4px 8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer' } }, '✕')
-                        )
-                      : /*#__PURE__*/React.createElement('button', { onClick: () => { setEditing(s.id); setNewRole(s.role); },
-                          className: 'btn-neon', style: { padding: '5px 12px', fontSize: '11px' } }, '✏️ ',
-                          lang === 'ar' ? 'تعديل' : 'Edit'
-                        )
+                  myRole === 'owner' && !isMe &&
+                  React.createElement('div', { style: { display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' } },
+
+                    /* ── Confirm remove prompt ── */
+                    confirmRemove === s.id
+                    ? React.createElement('div', { style: { display: 'flex', gap: '6px', alignItems: 'center', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '4px 8px' } },
+                        React.createElement('span', { style: { fontSize: '11px', color: '#ef4444' } },
+                          lang === 'ar' ? 'تأكيد الإزالة؟' : 'Remove?'
+                        ),
+                        React.createElement('button', {
+                          onClick: () => handleRemove(s.id, s.displayName),
+                          style: { padding: '3px 8px', background: '#dc2626', color: '#fff', borderRadius: '5px', fontSize: '11px', border: 'none', cursor: 'pointer', fontWeight: 700 }
+                        }, lang === 'ar' ? 'نعم' : 'Yes'),
+                        React.createElement('button', {
+                          onClick: () => setConfirmRemove(null),
+                          style: { padding: '3px 8px', background: 'rgba(255,255,255,0.1)', color: '#9ca3af', borderRadius: '5px', fontSize: '11px', border: 'none', cursor: 'pointer' }
+                        }, '✕')
+                      )
+
+                    /* ── Normal edit + remove buttons ── */
+                    : React.createElement(React.Fragment, null,
+                        editing === s.id
+                        ? React.createElement(React.Fragment, null,
+                            React.createElement('select', { value: newRole || s.role, onChange: (e) => setNewRole(e.target.value),
+                              className: 'input-dark', style: { fontSize: '11px', padding: '4px 8px', color: '#e5e7eb', background: '#1e293b' } },
+                              React.createElement('option', { value: 'moderator', style: { background: '#1e293b', color: '#e5e7eb' } }, 'MODERATOR'),
+                              React.createElement('option', { value: 'admin',     style: { background: '#1e293b', color: '#e5e7eb' } }, 'ADMIN'),
+                              React.createElement('option', { value: 'owner',     style: { background: '#1e293b', color: '#e5e7eb' } }, 'OWNER')
+                            ),
+                            React.createElement('button', {
+                              onClick: () => updateRole(s.id, s.displayName),
+                              style: { padding: '4px 8px', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer' }
+                            }, '💾'),
+                            React.createElement('button', {
+                              onClick: () => { setEditing(null); setNewRole(''); },
+                              style: { padding: '4px 8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer' }
+                            }, '✕')
+                          )
+                        : React.createElement(React.Fragment, null,
+                            React.createElement('button', {
+                              onClick: () => { setEditing(s.id); setNewRole(s.role); setConfirmRemove(null); },
+                              className: 'btn-neon', style: { padding: '5px 10px', fontSize: '11px' }
+                            }, '✏️ ', lang === 'ar' ? 'تعديل' : 'Edit'),
+                            /* Red Remove button — triggers confirmation prompt */
+                            s.role !== 'owner' &&
+                            React.createElement('button', {
+                              onClick: () => { setConfirmRemove(s.id); setEditing(null); },
+                              style: { padding: '5px 10px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: 700 }
+                            }, '🗑️')
+                          )
+                      )
                   )
                   ));
               })
