@@ -4,10 +4,13 @@
   var ROLE_COLORS = { owner: '#f59e0b', admin: '#3b82f6', moderator: '#8b5cf6' };
   var ROLE_ICONS  = { owner: '👑', admin: '🛡️', moderator: '🪪' };
 
+  // 5-minute online threshold (hardcoded per spec)
+  var ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
+
   var OverviewSection = ({ currentUser, lang }) => {
-    var [stats, setStats] = useState({ users: 0, today: 0, reports: 0, tickets: 0 });
-    var [loading, setLoading] = useState(true);
-    var [staff, setStaff] = useState([]);
+    var [stats, setStats]             = useState({ users: 0, today: 0, reports: 0, tickets: 0 });
+    var [loading, setLoading]         = useState(true);
+    var [staff, setStaff]             = useState([]);
     var [staffLoading, setStaffLoading] = useState(true);
 
     // ── Stats ────────────────────────────────────────────────
@@ -26,21 +29,25 @@
       fetchStats();
     }, []);
 
-    // ── Staff list ───────────────────────────────────────────
+    // ── Staff list — real-time onSnapshot (T014) ─────────────
     useEffect(() => {
-      usersCollection.where('role', 'in', ['owner', 'admin', 'moderator'])
-        .get().then(async (snap) => {
-          var list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      var unsub = usersCollection
+        .where('role', 'in', ['owner', 'admin', 'moderator'])
+        .onSnapshot(async (snap) => {
+          var list = snap.docs.map((d) => {
+            var data = d.data();
+            // Normalize legacy nested staffRole.role field
+            if (!data.role && data.staffRole?.role) data.role = data.staffRole.role;
+            return { id: d.id, ...data };
+          });
 
-          // Include hardcoded AdminConfig owners
-          if (window.AdminConfig && window.AdminConfig.OWNERS) {
-            var missing = window.AdminConfig.OWNERS.filter((uid) => !list.find((s) => s.uid === uid));
-            for (var uid of missing) {
-              try {
-                var doc = await usersCollection.doc(uid).get();
-                if (doc.exists) list.push({ id: doc.id, role: 'owner', ...doc.data() });
-              } catch (_) {}
-            }
+          // Always include the hardcoded owner UID
+          var ownerUID = window.OWNER_UID || (window.ADMIN_UIDS && window.ADMIN_UIDS[0]);
+          if (ownerUID && !list.find((s) => s.uid === ownerUID || s.id === ownerUID)) {
+            try {
+              var oDoc = await usersCollection.doc(ownerUID).get();
+              if (oDoc.exists) list.push({ id: oDoc.id, role: 'owner', ...oDoc.data() });
+            } catch (_) {}
           }
 
           // Sort: owner → admin → moderator
@@ -48,7 +55,9 @@
           list.sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9));
           setStaff(list);
           setStaffLoading(false);
-        }).catch(() => setStaffLoading(false));
+        }, (err) => { console.error('[AdminOverview] staff snapshot error:', err); setStaffLoading(false); });
+
+      return unsub; // cleanup on unmount
     }, []);
 
     return (/*#__PURE__*/
@@ -74,24 +83,54 @@
         staffLoading ? /*#__PURE__*/React.createElement("div", { style: { textAlign: 'center', padding: '16px', color: '#6b7280', fontSize: '12px' } }, "\u23F3") :
         staff.length === 0 ? /*#__PURE__*/React.createElement("div", { style: { textAlign: 'center', padding: '16px', color: '#6b7280', fontSize: '12px' } }, lang === 'ar' ? 'لا يوجد فريق عمل' : 'No staff found') : /*#__PURE__*/
 
-        React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
+        React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
           staff.map((s) => {
             var color = ROLE_COLORS[s.role] || '#9ca3af';
             var icon  = ROLE_ICONS[s.role]  || '👤';
-            var isMe  = s.uid === currentUser?.uid;
-            return (/*#__PURE__*/
-              React.createElement("div", { key: s.id, style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', background: isMe ? `${color}15` : 'rgba(255,255,255,0.02)', border: `1px solid ${isMe ? color + '40' : 'rgba(255,255,255,0.06)'}` } }, /*#__PURE__*/
-                React.createElement("img", { src: s.photoURL || 'https://via.placeholder.com/36', style: { width: '36px', height: '36px', borderRadius: '50%', border: `2px solid ${color}`, objectFit: 'cover', flexShrink: 0 } }), /*#__PURE__*/
-                React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /*#__PURE__*/
-                  React.createElement("div", { style: { fontSize: '12px', fontWeight: 700, color: '#e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-                    s.displayName || 'Unknown', isMe ? ` (${lang === 'ar' ? 'أنت' : 'You'})` : ''
-                  ), /*#__PURE__*/
-                  React.createElement("div", { style: { fontSize: '10px', color: '#6b7280', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.uid)
-                ), /*#__PURE__*/
-                React.createElement("span", { style: { fontSize: '11px', fontWeight: 800, color, background: `${color}20`, padding: '3px 8px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0 } },
-                  icon, ' ', (s.role || 'user').toUpperCase()
+            var isMe  = s.uid === currentUser?.uid || s.id === currentUser?.uid;
+
+            // T015 — Online indicator: compare lastActive to 5-minute threshold
+            var lastActiveMs = s.lastActive?.toDate
+              ? s.lastActive.toDate().getTime()
+              : (s.lastActive?.seconds ? s.lastActive.seconds * 1000 : 0);
+            var isOnline = lastActiveMs > 0 && (Date.now() - lastActiveMs) < ONLINE_THRESHOLD_MS;
+
+            return React.createElement('div', { key: s.id, style: {
+              display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
+              borderRadius: '10px',
+              background: isMe ? color + '15' : 'rgba(255,255,255,0.02)',
+              border: '1px solid ' + (isMe ? color + '40' : 'rgba(255,255,255,0.06)')
+            } },
+              /* Avatar */
+              React.createElement('div', { style: { position: 'relative', flexShrink: 0 } },
+                React.createElement('img', { src: s.photoURL || 'https://via.placeholder.com/36', style: { width: '36px', height: '36px', borderRadius: '50%', border: '2px solid ' + color, objectFit: 'cover', display: 'block' } }),
+                /* Online dot — bottom-right of avatar */
+                React.createElement('span', { style: {
+                  position: 'absolute', bottom: '0', right: '0',
+                  width: '10px', height: '10px', borderRadius: '50%',
+                  background: isOnline ? '#10b981' : '#4b5563',
+                  border: '2px solid #0f172a',
+                  boxShadow: isOnline ? '0 0 0 2px rgba(16,185,129,0.3)' : 'none'
+                } })
+              ),
+
+              /* Name + UID */
+              React.createElement('div', { style: { flex: 1, minWidth: 0 } },
+                React.createElement('div', { style: { fontSize: '12px', fontWeight: 700, color: '#e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+                  s.displayName || 'Unknown', isMe ? ' (' + (lang === 'ar' ? 'أنت' : 'You') + ')' : ''
+                ),
+                React.createElement('div', { style: { fontSize: '10px', color: isOnline ? '#10b981' : '#6b7280', marginTop: '1px' } },
+                  isOnline
+                    ? (lang === 'ar' ? '🟢 متصل الآن' : '🟢 Online')
+                    : (lang === 'ar' ? '⚫ غير متصل' : '⚫ Offline')
                 )
-              ));
+              ),
+
+              /* Role badge */
+              React.createElement('span', { style: { fontSize: '11px', fontWeight: 800, color, background: color + '20', padding: '3px 8px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0 } },
+                icon, ' ', (s.role || 'user').toUpperCase()
+              )
+            );
           })
         )
       ),
