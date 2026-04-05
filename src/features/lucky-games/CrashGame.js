@@ -581,14 +581,10 @@ input[type=number]{-moz-appearance:textfield;}
   }
 
   // ── Main Component ───────────────────────────────────────────────
-  function CrashGame() {
+  function CrashGame(props) {
     // T001: Firebase hooks
-    const useAuthState = window.AppHooks?.useAuthState || (() => ({
-      user: null
-    }));
-    const {
-      user
-    } = useAuthState();
+    const user = props?.user || window.auth?.currentUser;
+    const userData = props?.userData || window.currentUserData;
     const db = window.db;
     const [phase, setPhase] = useState("betting");
     const [countdown, setCd] = useState(BET_SECS);

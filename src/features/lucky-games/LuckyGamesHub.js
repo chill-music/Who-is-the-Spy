@@ -417,7 +417,11 @@
 
             activeGame === 'crash_game' && window.CrashGame &&
             React.createElement('div', { style: { position: 'relative', width: '100%', height: 'calc(100vh - 120px)' } },
-              React.createElement(window.CrashGame, {})
+              React.createElement(window.CrashGame, {
+                user: window.auth?.currentUser,
+                userData: props.userData,
+                lang: lang
+              })
             ),
 
             /* ── GAMES GRID (hub view) ── */
