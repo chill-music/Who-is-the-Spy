@@ -48,10 +48,10 @@
       if (!replyText.trim()) return;
       try {
         var role = myRole || 'user';
-        var msg = { senderId: currentUser.uid, senderName: currentUserData?.displayName || 'Support', senderRole: role, text: replyText.trim(), timestamp: new Date() };
+        var msg = { by: currentUser.uid, byName: currentUserData?.displayName || 'Support', byRole: role, message: replyText.trim(), timestamp: new Date().toISOString() };
         await ticketsCollection.doc(ticket.id).update({
-          messages: firebase.firestore.FieldValue.arrayUnion(msg),
-          status: 'replied', updatedAt: TS(), lastMessageBy: currentUser.uid
+          responses: firebase.firestore.FieldValue.arrayUnion(msg),
+          status: 'answered', updatedAt: TS(), lastMessageBy: currentUser.uid
         });
         // fire-and-forget — don't crash on permission error
         if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPLY_TICKET', ticket.userId, ticket.userName, 'Ticket: ' + ticket.id).catch(() => {});
@@ -193,18 +193,22 @@
 
             /* Messages */
             React.createElement('div', { style: { background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '10px', marginBottom: '12px' } },
-              React.createElement('div', { style: { fontSize: '12px', color: '#d1d5db', marginBottom: '8px', lineHeight: 1.5 } }, t.subject),
-              (t.messages || []).map((m, idx) => {
-                var isMine = m.senderId !== t.userId;
+              React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '4px' } }, t.subject),
+              React.createElement('div', { style: { fontSize: '12px', color: '#d1d5db', marginBottom: '12px', lineHeight: 1.5, background: 'rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px' } }, t.message || 'No description provided'),
+              (t.responses || t.messages || []).map((m, idx) => {
+                var senderId = m.by || m.senderId;
+                var isMine = senderId !== t.userId;
+                var tDate = m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
+                var timeStr = isNaN(tDate) ? '' : tDate.toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'en-US');
                 return /*#__PURE__*/React.createElement('div', { key: idx, style: { marginTop: '6px', padding: '8px 10px', borderRadius: '8px',
                   background: isMine ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.05)',
                   marginLeft: isMine ? '12px' : '0', marginRight: isMine ? '0' : '12px' } },
                   React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '3px' } },
-                    React.createElement('span', { style: { fontSize: '9px', color: '#6b7280', fontWeight: 600 } }, m.senderName || 'User'),
-                    /*#__PURE__*/React.createElement(RoleBadge, { role: m.senderRole }),
-                    React.createElement('span', { style: { fontSize: '9px', color: '#4b5563' } }, ' • ', m.timestamp?.toDate?.()?.toLocaleTimeString() || '')
+                    React.createElement('span', { style: { fontSize: '9px', color: '#6b7280', fontWeight: 600 } }, m.byName || m.senderName || 'User'),
+                    /*#__PURE__*/React.createElement(RoleBadge, { role: m.byRole || m.senderRole }),
+                    React.createElement('span', { style: { fontSize: '9px', color: '#4b5563' } }, ' • ', timeStr)
                   ),
-                  React.createElement('div', { style: { fontSize: '11px', color: '#e5e7eb' } }, m.text)
+                  React.createElement('div', { style: { fontSize: '11px', color: '#e5e7eb', whiteSpace: 'pre-wrap' } }, m.message || m.text)
                 );
               })
             ),
