@@ -57,7 +57,7 @@
       gradient: 'linear-gradient(135deg, #29bde8, #1a9ec7)',
       glowColor: 'rgba(26,158,199,0.5)'
     },
-    { id: 'game4', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '🎲', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' },
+    { id: 'crash_game', nameAr: 'صاروخ الحظ', nameEn: 'Rocket Crash', emoji: '🚀', active: true, gradient: 'linear-gradient(135deg,#4A00E0,#8E2DE2)', glowColor: 'rgba(142,45,226,0.5)' },
     { id: 'game5', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '🎯', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' },
     { id: 'game6', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '🏆', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' },
     { id: 'game7', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '⚡', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' }];
@@ -415,6 +415,10 @@
               style: { width: '100%', minHeight: '60vh', position: 'relative' }
             }),
 
+            activeGame === 'crash_game' && window.CrashGame &&
+            React.createElement('div', { style: { position: 'relative', width: '100%', height: 'calc(100vh - 120px)' } },
+              React.createElement(window.CrashGame, {})
+            ),
 
             /* ── GAMES GRID (hub view) ── */
             !activeGame &&
