@@ -73,4 +73,45 @@ window.logStaffAction  = logStaffAction;
 window.fetchStaffList  = fetchStaffList;
 window.searchUser      = searchUser;
 
+// ─── Send a bot message to a specific user ────────────────────────────────
+/**
+ * @param {string} botId       - The bot ID (e.g. 'pro_spy_bot', 'staff_command_bot')
+ * @param {string} toUserId    - The recipient's Firestore UID
+ * @param {string} message     - The message body text
+ * @param {Object} [options]   - Optional overrides: { fromName, type, imageURL }
+ * @returns {Promise<void>}
+ */
+var sendBotMessage = async (botId, toUserId, message, options) => {
+    if (!botId || !toUserId || !message) return;
+    options = options || {};
+    try {
+        await botChatsCollection.add({
+            botId:     botId,
+            toUserId:  toUserId,
+            message:   message,
+            fromName:  options.fromName  || botId,
+            type:      options.type      || 'system',
+            imageURL:  options.imageURL  || null,
+            read:      false,
+            timestamp: TS()
+        });
+    } catch (e) {
+        console.error('[sendBotMessage] failed for botId=' + botId + ' toUserId=' + toUserId, e);
+    }
+};
+
+/** Wrapper: PRO SPY bot — broadcast & feedback acknowledgements */
+var sendProSpyBotMessage = function (toUserId, message, options) {
+    return sendBotMessage('pro_spy_bot', toUserId, message, Object.assign({}, options, { fromName: 'PRO SPY' }));
+};
+
+/** Wrapper: Admin HQ bot — staff-only escalation alerts */
+var sendStaffCommandBotMessage = function (toUserId, message, options) {
+    return sendBotMessage('staff_command_bot', toUserId, message, Object.assign({}, options, { fromName: '🔒 Admin HQ' }));
+};
+
+window.sendBotMessage            = sendBotMessage;
+window.sendProSpyBotMessage      = sendProSpyBotMessage;
+window.sendStaffCommandBotMessage = sendStaffCommandBotMessage;
+
 })();
