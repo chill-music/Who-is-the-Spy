@@ -96,6 +96,7 @@
         var [showDetectiveBot, setShowDetectiveBot] = useState(false);
         var [showLoveBot, setShowLoveBot] = useState(false);
         var [showStaffCommandBot, setShowStaffCommandBot] = useState(false);
+        var [showProSpyBot, setShowProSpyBot] = useState(false);
         var [detectiveBotUnread, setDetectiveBotUnread] = useState(0);
         var [loveBotUnread, setLoveBotUnread] = useState(0);
         var [staffCommandBotUnread, setStaffCommandBotUnread] = useState(0);
@@ -189,6 +190,7 @@
             showDetectiveBot, setShowDetectiveBot,
             showLoveBot, setShowLoveBot,
             showStaffCommandBot, setShowStaffCommandBot,
+            showProSpyBot, setShowProSpyBot,
             detectiveBotUnread, setDetectiveBotUnread,
             loveBotUnread, setLoveBotUnread,
             staffCommandBotUnread, setStaffCommandBotUnread,

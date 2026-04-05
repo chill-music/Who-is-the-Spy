@@ -108,7 +108,10 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       incomingProposalFrom, setIncomingProposalFrom, showIncomingProposal, setShowIncomingProposal,
       showWeddingHall, setShowWeddingHall, showBFFModal, setShowBFFModal, bffInitialTab, setBffInitialTab,
       bffUnreadCount, setBffUnreadCount, showDetectiveBot, setShowDetectiveBot, showLoveBot, setShowLoveBot,
+      showStaffCommandBot, setShowStaffCommandBot,
+      showProSpyBot, setShowProSpyBot,
       detectiveBotUnread, setDetectiveBotUnread, loveBotUnread, setLoveBotUnread,
+      staffCommandBotUnread, setStaffCommandBotUnread,
       showVIPCenter, setShowVIPCenter, showHelpCenter, setShowHelpCenter, showPublicChat, setShowPublicChat,
       showGuestMenu, setShowGuestMenu, gameChatInput, setGameChatInput,
       showGameChat, setShowGameChat, gameChatRef,
@@ -350,6 +353,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           showBFFModal: showBFFModal, setShowBFFModal: setShowBFFModal,
           showDetectiveBot: showDetectiveBot, setShowDetectiveBot: setShowDetectiveBot,
           showLoveBot: showLoveBot, setShowLoveBot: setShowLoveBot,
+          showStaffCommandBot: showStaffCommandBot, setShowStaffCommandBot: setShowStaffCommandBot,
+          showProSpyBot: showProSpyBot, setShowProSpyBot: setShowProSpyBot,
           showMyAccount: showMyAccount, setShowMyAccount: setShowMyAccount,
           showUserProfile: showUserProfile, setShowUserProfile: setShowUserProfile, targetProfileUID: targetProfileUID, setTargetProfileUID: setTargetProfileUID,
           showBrowseRooms: showBrowseRooms, setShowBrowseRooms: setShowBrowseRooms,
@@ -597,6 +602,39 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                     )
                   )
                 ),
+
+                /* ── PRO SPY Bot row (all logged-in users) ── */
+                React.createElement("div", { onClick: () => setShowProSpyBot(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: 'transparent' }, className: "me-friend-row" },
+                  React.createElement("div", { style: { position: 'relative', flexShrink: 0 } },
+                    React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(168,85,247,0.25),rgba(168,85,247,0.1))', border: '1.5px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83D\uDD75\uFE0F")
+                  ),
+                  React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                    React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '5px' } },
+                      React.createElement("span", { style: { fontSize: '13px', fontWeight: 600, color: '#9ca3af' } }, "PRO SPY"),
+                      React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: '#a855f7', color: '#fff', padding: '1px 4px', borderRadius: '3px' } }, "OFFICIAL")
+                    ),
+                    React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, lang === 'ar' ? 'رسائل النظام والإذاعة' : 'System & Broadcast Messages')
+                  )
+                ),
+
+                /* ── Admin HQ bot row (staff only) ── */
+                (() => {
+                  var role = currentUserData?.role;
+                  if (!role || !['owner','admin','moderator'].includes(role)) return null;
+                  return React.createElement("div", { onClick: () => setShowStaffCommandBot(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: staffCommandBotUnread > 0 ? 'rgba(239,68,68,0.05)' : 'transparent' }, className: "me-friend-row" },
+                    React.createElement("div", { style: { position: 'relative', flexShrink: 0 } },
+                      React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.1))', border: '1.5px solid rgba(239,68,68,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83D\uDD12"),
+                      staffCommandBotUnread > 0 && React.createElement("div", { style: { position: 'absolute', top: '-2px', right: '-2px', width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', border: '1.5px solid var(--bg-main)' } })
+                    ),
+                    React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '5px' } },
+                        React.createElement("span", { style: { fontSize: '13px', fontWeight: staffCommandBotUnread > 0 ? 800 : 600, color: staffCommandBotUnread > 0 ? '#e2e8f0' : '#9ca3af' } }, lang === 'ar' ? 'المقر الإداري' : 'Admin HQ'),
+                        React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: '#ef4444', color: '#fff', padding: '1px 4px', borderRadius: '3px' } }, "STAFF")
+                      ),
+                      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, lang === 'ar' ? 'التصعيدات والتنبيهات الإدارية' : 'Escalations & Admin Alerts')
+                    )
+                  );
+                })(),
 
 
 

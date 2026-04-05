@@ -31,6 +31,7 @@
       showDetectiveBot, setShowDetectiveBot,
       showLoveBot, setShowLoveBot,
       showStaffCommandBot, setShowStaffCommandBot,
+      showProSpyBot, setShowProSpyBot,
       showBrowseRooms, setShowBrowseRooms,
       showPrivateChat, closePrivateChat, chatFriend,
       showSelfChat, setShowSelfChat,
@@ -460,6 +461,19 @@
         lang: lang,
         onOpenWeddingHall: (tab) => {setShowLoveBot(false);if (setShowWeddingHall) setShowWeddingHall(true);},
         onOpenBFFModal: (tab) => {setShowLoveBot(false);setShowBFFModal(true);if (setBffInitialTab) setBffInitialTab(tab || 'requests');} }
+      ),
+
+
+
+      // 🕵️ PRO SPY Bot — broadcast & system messages (all users)
+      showProSpyBot && window.BotChatModal && /*#__PURE__*/
+      React.createElement(window.BotChatModal, {
+        show: showProSpyBot,
+        onClose: () => setShowProSpyBot(false),
+        botId: "pro_spy_bot",
+        currentUID: currentUID,
+        currentUserData: currentUserData,
+        lang: lang }
       ),
 
 
