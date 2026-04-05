@@ -637,7 +637,7 @@ input[type=number]{-moz-appearance:textfield;}
       const unsub = window.usersCollection.doc(user.uid).onSnapshot(doc => {
         if (doc.exists) {
           const data = doc.data();
-          const fbBalance = typeof data.coins === 'number' ? data.coins : 0;
+          const fbBalance = typeof data.currency === 'number' ? data.currency : 0;
           setBalance(fbBalance);
           rBal.current = fbBalance;
         }
@@ -676,7 +676,7 @@ input[type=number]{-moz-appearance:textfield;}
         const increment = window.firebase?.firestore?.FieldValue?.increment || db.FieldValue?.increment;
         if (increment) {
           window.usersCollection.doc(user.uid).update({
-            coins: increment(won),
+            currency: window.firebase.firestore.FieldValue.increment(won),
             crash_jackpot_prog: increment(Math.round(atMult * 100) / 100)
           }).catch(err => console.error("[CrashGame] Claim error:", err));
 
@@ -775,64 +775,60 @@ input[type=number]{-moz-appearance:textfield;}
       if (!db) return;
       const stateRef = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('state');
       const historyRef = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('history');
+      let scheduledTimers = [];
       const checkAndRepairState = data => {
         const now = Date.now();
-        if (data.phase === 'betting' && now > data.betEndTime + 2000) {
-          setTimeout(() => {
+        if (data.phase === 'betting') {
+          const delay = Math.max(0, data.betEndTime - now) + 1500;
+          const tmr = setTimeout(() => {
             stateRef.get().then(d => {
-              if (d.data().phase === 'betting') {
-                const start = Date.now();
+              if (d.exists && d.data().phase === 'betting') {
                 const flyMs = Math.log(data.crashMult) / 0.075 * 1000;
                 stateRef.update({
-                  phase: 'flying',
-                  flyStartTime: start,
-                  flyEndTime: start + flyMs
+                  phase: 'flying', flyStartTime: Date.now(), flyEndTime: Date.now() + flyMs
                 }).catch(() => {});
               }
             }).catch(() => {});
-          }, Math.random() * 1000);
-        } else if (data.phase === 'flying' && now > data.flyEndTime + 1500) {
-          setTimeout(() => {
+          }, delay + Math.random() * 1000);
+          scheduledTimers.push(tmr);
+        } else if (data.phase === 'flying') {
+          const delay = Math.max(0, data.flyEndTime - now) + 1000;
+          const tmr = setTimeout(() => {
             stateRef.get().then(d => {
-              if (d.data().phase === 'flying') {
+              if (d.exists && d.data().phase === 'flying') {
                 stateRef.update({
-                  phase: 'crashed',
-                  crashedAt: Date.now()
+                  phase: 'crashed', crashedAt: Date.now()
                 }).catch(() => {});
               }
             }).catch(() => {});
-          }, Math.random() * 1000);
-        } else if (data.phase === 'crashed' && now > data.crashedAt + 3200 + 1500) {
-          setTimeout(() => {
+          }, delay + Math.random() * 1000);
+          scheduledTimers.push(tmr);
+        } else if (data.phase === 'crashed') {
+          const delay = Math.max(0, data.crashedAt + 3200 - now) + 1500;
+          const tmr = setTimeout(() => {
             stateRef.get().then(async d => {
-              if (d.data().phase === 'crashed') {
+              if (d.exists && d.data().phase === 'crashed') {
                 const nextMult = genCrash();
                 await stateRef.update({
-                  phase: 'betting',
-                  roundNo: data.roundNo + 1,
-                  betEndTime: Date.now() + 16000,
-                  crashMult: nextMult
-                });
-                // Synchronize history (T011)
+                  phase: 'betting', roundNo: data.roundNo + 1, betEndTime: Date.now() + 16000, crashMult: nextMult
+                }).catch(() => {});
                 const hDoc = await historyRef.get();
                 let results = hDoc.exists ? hDoc.data().results || [] : [];
                 results.unshift(data.crashMult);
                 if (results.length > 20) results = results.slice(0, 20);
-                historyRef.set({
-                  results
-                }).catch(() => {});
+                historyRef.set({ results }).catch(() => {});
               }
             }).catch(() => {});
-          }, Math.random() * 1000);
+          }, delay + Math.random() * 1000);
+          scheduledTimers.push(tmr);
         }
       };
       const unsub = stateRef.onSnapshot(doc => {
+        scheduledTimers.forEach(clearTimeout);
+        scheduledTimers = [];
         if (!doc.exists) {
           stateRef.set({
-            phase: 'betting',
-            roundNo: rRound.current || 641,
-            betEndTime: Date.now() + 16000,
-            crashMult: genCrash()
+            phase: 'betting', roundNo: rRound.current || 641, betEndTime: Date.now() + 16000, crashMult: genCrash()
           }).catch(() => {});
           return;
         }
@@ -842,9 +838,9 @@ input[type=number]{-moz-appearance:textfield;}
         if (data.phase === 'betting') {
           const remain = Math.max(0, Math.ceil((data.betEndTime - now) / 1000));
           setCd(remain);
+          setRound(data.roundNo || 641);
+          rRound.current = data.roundNo || 641;
           if (rPhase.current !== 'betting') {
-            setRound(data.roundNo || 641);
-            rRound.current = data.roundNo || 641;
             resetRef.current();
           }
         } else if (data.phase === 'flying') {
@@ -918,7 +914,7 @@ input[type=number]{-moz-appearance:textfield;}
         const increment = window.firebase?.firestore?.FieldValue?.increment || db.FieldValue?.increment;
         if (increment) {
           window.usersCollection.doc(user.uid).update({
-            coins: increment(-input)
+            currency: window.firebase.firestore.FieldValue.increment(-input)
           }).catch(err => console.error("[CrashGame] Bet error:", err));
         }
       }
@@ -1433,7 +1429,7 @@ input[type=number]{-moz-appearance:textfield;}
         marginTop: 4,
         letterSpacing: 1
       }
-    }, "COINS AT STAKE")))) :
+    }, "INTEL AT STAKE")))) :
     /*#__PURE__*/
     /* Canvas flight view */
     React.createElement("div", {
@@ -1565,7 +1561,7 @@ input[type=number]{-moz-appearance:textfield;}
         color: result.win ? "#4ade80" : "#f87171",
         fontSize: 14
       }
-    }, result.win ? `🎉 WON ${result.amount.toLocaleString()} @ ${result.at?.toFixed(2)}x` : `💸 LOST ${result.amount.toLocaleString()} COINS`)) : null), /*#__PURE__*/React.createElement("div", {
+    }, result.win ? `🎉 WON ${result.amount.toLocaleString()} @ ${result.at?.toFixed(2)}x` : `💸 LOST ${result.amount.toLocaleString()} INTEL`)) : null), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: "4px 10px 10px",
         background: "rgba(0,0,0,0.35)",
@@ -1588,7 +1584,7 @@ input[type=number]{-moz-appearance:textfield;}
       style: {
         fontSize: 18
       }
-    }, "\u2B50"), /*#__PURE__*/React.createElement("span", {
+    }, "\uD83E\uDDE0"), /*#__PURE__*/React.createElement("span", {
       style: {
         fontFamily: "'Orbitron',monospace",
         color: "#fcd34d",

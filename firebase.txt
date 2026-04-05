@@ -327,6 +327,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /artifacts/{appId}/public/data/crash_game/{docId} {
+      allow read:   if true;
+      allow create: if isLoggedIn();
+      allow update: if isLoggedIn();
+      allow delete: if false;
+    }
+
     match /artifacts/{appId}/public/data/lucky_games_sessions/{sessionId} {
       allow read:   if isLoggedIn();
       allow create: if isLoggedIn();
