@@ -588,6 +588,34 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                     )
                   ), /*#__PURE__*/
 
+                  React.createElement("div", { onClick: () => setShowProSpyBot(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: 'transparent' }, className: "me-friend-row" },
+                    React.createElement("div", { style: { position: 'relative', flexShrink: 0 } },
+                      React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(168,85,247,0.25),rgba(168,85,247,0.1))', border: '1.5px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83D\uDD75\uFE0F")
+                    ),
+                    React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '5px' } },
+                        React.createElement("span", { style: { fontSize: '13px', fontWeight: 600, color: '#9ca3af' } }, "PRO SPY"),
+                        React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: '#a855f7', color: '#fff', padding: '1px 4px', borderRadius: '3px' } }, "OFFICIAL")
+                      ),
+                      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, lang === 'ar' ? 'رسائل النظام والإذاعة' : 'System & Broadcast Messages')
+                    )
+                  ),
+
+                  (['owner','admin','moderator'].includes(currentUserData?.role)) &&
+                  React.createElement("div", { onClick: () => setShowStaffCommandBot(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: staffCommandBotUnread > 0 ? 'rgba(239,68,68,0.05)' : 'transparent' }, className: "me-friend-row" },
+                    React.createElement("div", { style: { position: 'relative', flexShrink: 0 } },
+                      React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(239,68,68,0.25),rgba(239,68,68,0.1))', border: '1.5px solid rgba(239,68,68,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83D\uDD12"),
+                      staffCommandBotUnread > 0 && React.createElement("div", { style: { position: 'absolute', top: '-2px', right: '-2px', width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444', border: '1.5px solid var(--bg-main)' } })
+                    ),
+                    React.createElement("div", { style: { flex: 1, minWidth: 0 } },
+                      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '5px' } },
+                        React.createElement("span", { style: { fontSize: '13px', fontWeight: staffCommandBotUnread > 0 ? 800 : 600, color: staffCommandBotUnread > 0 ? '#e2e8f0' : '#9ca3af' } }, lang === 'ar' ? 'المقر الإداري' : 'Admin HQ'),
+                        React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: '#ef4444', color: '#fff', padding: '1px 4px', borderRadius: '3px' } }, "STAFF")
+                      ),
+                      React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, lang === 'ar' ? 'التصعيدات والتنبيهات الإدارية' : 'Escalations & Admin Alerts')
+                    )
+                  ),
+
                   React.createElement("div", { onClick: () => setShowLoveBot(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: loveBotUnread > 0 ? 'rgba(249,168,212,0.05)' : 'transparent' }, className: "me-friend-row" }, /*#__PURE__*/
                     React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
                       React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg,rgba(249,168,212,0.25),rgba(249,168,212,0.1))', border: '1.5px solid rgba(249,168,212,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83D\uDC8C"),
