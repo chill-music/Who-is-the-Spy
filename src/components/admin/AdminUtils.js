@@ -1,13 +1,21 @@
 (function() {
 
 // ─── Log a staff action ──────────────────────────────────────────────────
-var logStaffAction = async (staffUID, staffName, action, targetUID, targetName, details) => {
+// @param {string} staffUID    - UID of the staff member taking the action
+// @param {string} staffName   - Display name of the staff member
+// @param {string} action      - Action type e.g. 'BAN_USER', 'REPLY_TICKET'
+// @param {string} targetUID   - UID of the target user (optional)
+// @param {string} targetName  - Display name of the target user (optional)
+// @param {string} details     - Human-readable detail string (optional)
+// @param {string} staffRole   - Role of the staff member e.g. 'admin', 'moderator' (optional, T019)
+var logStaffAction = async (staffUID, staffName, action, targetUID, targetName, details, staffRole) => {
     targetUID  = targetUID  || null;
     targetName = targetName || null;
     details    = details    || '';
+    staffRole  = staffRole  || 'staff';
     try {
         await staffLogCollection.add({
-            staffUID, staffName, action, targetUID, targetName, details,
+            staffUID, staffName, staffRole, action, targetUID, targetName, details,
             timestamp: TS()
         });
     } catch(e) { console.error('[StaffLog]', e); }
@@ -72,5 +80,46 @@ var searchUser = async (term) => {
 window.logStaffAction  = logStaffAction;
 window.fetchStaffList  = fetchStaffList;
 window.searchUser      = searchUser;
+
+// ─── Send a bot message to a specific user ────────────────────────────────
+/**
+ * @param {string} botId       - The bot ID (e.g. 'pro_spy_bot', 'staff_command_bot')
+ * @param {string} toUserId    - The recipient's Firestore UID
+ * @param {string} message     - The message body text
+ * @param {Object} [options]   - Optional overrides: { fromName, type, imageURL }
+ * @returns {Promise<void>}
+ */
+var sendBotMessage = async (botId, toUserId, message, options) => {
+    if (!botId || !toUserId || !message) return;
+    options = options || {};
+    try {
+        await botChatsCollection.add({
+            botId:     botId,
+            toUserId:  toUserId,
+            message:   message,
+            fromName:  options.fromName  || botId,
+            type:      options.type      || 'system',
+            imageURL:  options.imageURL  || null,
+            read:      false,
+            timestamp: TS()
+        });
+    } catch (e) {
+        console.error('[sendBotMessage] failed for botId=' + botId + ' toUserId=' + toUserId, e);
+    }
+};
+
+/** Wrapper: PRO SPY bot — broadcast & feedback acknowledgements */
+var sendProSpyBotMessage = function (toUserId, message, options) {
+    return sendBotMessage('pro_spy_bot', toUserId, message, Object.assign({}, options, { fromName: 'PRO SPY' }));
+};
+
+/** Wrapper: Admin HQ bot — staff-only escalation alerts */
+var sendStaffCommandBotMessage = function (toUserId, message, options) {
+    return sendBotMessage('staff_command_bot', toUserId, message, Object.assign({}, options, { fromName: '🔒 Admin HQ' }));
+};
+
+window.sendBotMessage            = sendBotMessage;
+window.sendProSpyBotMessage      = sendProSpyBotMessage;
+window.sendStaffCommandBotMessage = sendStaffCommandBotMessage;
 
 })();

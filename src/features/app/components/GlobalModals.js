@@ -30,6 +30,7 @@
       showBFFModal, setShowBFFModal, bffInitialTab, setBffInitialTab,
       showDetectiveBot, setShowDetectiveBot,
       showLoveBot, setShowLoveBot,
+      showStaffCommandBot, setShowStaffCommandBot,
       showBrowseRooms, setShowBrowseRooms,
       showPrivateChat, closePrivateChat, chatFriend,
       showSelfChat, setShowSelfChat,
@@ -459,6 +460,20 @@
         lang: lang,
         onOpenWeddingHall: (tab) => {setShowLoveBot(false);if (setShowWeddingHall) setShowWeddingHall(true);},
         onOpenBFFModal: (tab) => {setShowLoveBot(false);setShowBFFModal(true);if (setBffInitialTab) setBffInitialTab(tab || 'requests');} }
+      ),
+
+
+
+      // 🔒 ADMIN HQ — Staff-only bot: only renders for admin / moderator / owner
+      showStaffCommandBot && window.BotChatModal &&
+      ['owner','admin','moderator'].includes(currentUserData?.role) && /*#__PURE__*/
+      React.createElement(window.BotChatModal, {
+        show: showStaffCommandBot,
+        onClose: () => setShowStaffCommandBot(false),
+        botId: "staff_command_bot",
+        currentUID: currentUID,
+        currentUserData: currentUserData,
+        lang: lang }
       ),
 
 

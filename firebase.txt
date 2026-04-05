@@ -89,7 +89,7 @@ service cloud.firestore {
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/staff_activity_log/{logId} {
       allow read:   if isLoggedIn() && isOwnerUID();
-      allow create: if isLoggedIn() && isOwnerUID();
+      allow create: if isLoggedIn() && isStaff();   // ✅ All staff can log their own actions
       allow update: if false;
       allow delete: if false;
     }

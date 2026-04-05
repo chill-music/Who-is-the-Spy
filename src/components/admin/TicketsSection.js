@@ -11,17 +11,17 @@
   };
 
   var TicketsSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
-    var [tickets, setTickets]         = useState([]);
-    var [loading, setLoading]         = useState(true);
-    var [filter, setFilter]           = useState('open');
-    var [replyingTo, setReplyingTo]   = useState(null);
-    var [replyText, setReplyText]     = useState('');
-    var [banningUID, setBanningUID]   = useState(null);
-    var [escalating, setEscalating]   = useState(null);  // ticket being escalated
-    var [escalateTo, setEscalateTo]   = useState('');
+    var [tickets, setTickets]           = useState([]);
+    var [loading, setLoading]           = useState(true);
+    var [filter, setFilter]             = useState('open');
+    var [replyingTo, setReplyingTo]     = useState(null);
+    var [replyText, setReplyText]       = useState('');
+    var [banningUID, setBanningUID]     = useState(null);
+    var [escalating, setEscalating]     = useState(null);
+    var [escalateTo, setEscalateTo]     = useState('admin');  // 'admin' | 'owner'
     var [escalateNote, setEscalateNote] = useState('');
-    var [staffList, setStaffList]     = useState([]);
 
+    // T018: no hidden role filter — all queries use the same onSnapshot, access controlled by Firestore rules
     var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : currentUserData?.role;
 
     // ── Load tickets ──────────────────────────────────────────────────────
@@ -32,13 +32,6 @@
       );
       return unsub;
     }, []);
-
-    // ── Load escalation targets (admin + owner) for moderators ────────────
-    useEffect(() => {
-      if (myRole === 'moderator') {
-        window.fetchStaffList(['admin', 'owner']).then(setStaffList);
-      }
-    }, [myRole]);
 
     // ── Actions ───────────────────────────────────────────────────────────
     var sendReply = async (ticket) => {
@@ -64,17 +57,73 @@
       } catch (e) { onNotification('❌ Error'); }
     };
 
+    // ── Escalate (T016 + T017 + T037 + T038) ────────────────────────────
     var handleEscalate = async (ticket) => {
       if (!escalateTo || !escalateNote.trim()) { onNotification('⚠️ Choose a target and write a note.'); return; }
+
+      var targetRole = escalateTo; // 'admin' | 'owner'
+      var roleLabel  = targetRole === 'owner'
+        ? (lang === 'ar' ? 'المالك' : 'Owner')
+        : (lang === 'ar' ? 'فريق الإدارة' : 'Admin Team');
+
+      // T037 — No-admin guard: if escalating to admins but none exist, prompt to send to owner
+      if (targetRole === 'admin') {
+        try {
+          var adminSnap = await usersCollection.where('role', '==', 'admin').limit(1).get();
+          if (adminSnap.empty) {
+            var fallback = confirm(
+              lang === 'ar'
+                ? '⚠️ لا يوجد مديرون حالياً. هل تريد تصعيد إلى المالك بدلاً?'
+                : '⚠️ No Admins are currently assigned. Escalate to Owner instead?'
+            );
+            if (!fallback) return;
+            targetRole = 'owner';
+            roleLabel  = lang === 'ar' ? 'المالك' : 'Owner';
+          }
+        } catch (e) { /* Firestore error — continue with original target */ }
+      }
+
       try {
+        // Write ticket update
         await ticketsCollection.doc(ticket.id).update({
-          escalated: true, escalatedTo: escalateTo, escalateNote: escalateNote.trim(),
-          escalatedAt: TS(), escalatedBy: currentUser.uid, escalatedByName: currentUserData?.displayName || 'Mod'
+          escalated: true,
+          escalatedTo: targetRole,
+          escalatedToName: roleLabel,
+          escalateNote: escalateNote.trim(),
+          escalatedAt: TS(),
+          escalatedBy: currentUser.uid,
+          escalatedByName: currentUserData?.displayName || 'Mod'
         });
-        if (window.logStaffAction) await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'ESCALATE_TICKET', ticket.userId, ticket.userName, `Ticket ${ticket.id} → ${escalateTo}`);
-        onNotification('🚀 Escalated');
-        setEscalating(null); setEscalateTo(''); setEscalateNote('');
-      } catch (e) { onNotification('❌ Error'); }
+        if (window.logStaffAction) {
+          await window.logStaffAction(
+            currentUser.uid, currentUserData?.displayName,
+            'ESCALATE_TICKET', ticket.userId, ticket.userName,
+            'Ticket ' + ticket.id + ' → ' + targetRole
+          );
+        }
+
+        // T038 — Notify all staff of target role via Staff Command Bot
+        if (window.sendStaffCommandBotMessage) {
+          try {
+            var staffSnap = await usersCollection.where('role', '==', targetRole).get();
+            var notifMsg = (
+              '🚨 ' + (lang === 'ar' ? 'تصعيد تذكرة: ' : 'Ticket Escalation: ') +
+              (ticket.subject || ticket.id) + '\n' +
+              '👤 ' + (lang === 'ar' ? 'من: ' : 'From: ') + (currentUserData?.displayName || 'Mod') + '\n' +
+              '📝 ' + (lang === 'ar' ? 'السبب: ' : 'Reason: ') + escalateNote.trim() + '\n' +
+              '→ ' + (lang === 'ar' ? 'افتح تبويب التذاكر للمراجعة.' : 'Open the Tickets tab to review.')
+            );
+            var notifPromises = staffSnap.docs.map((d) => window.sendStaffCommandBotMessage(d.id, notifMsg, { type: 'escalation' }));
+            // Also always notify the owner
+            var ownerUID = window.OWNER_UID || (window.ADMIN_UIDS && window.ADMIN_UIDS[0]);
+            if (ownerUID && targetRole !== 'owner') notifPromises.push(window.sendStaffCommandBotMessage(ownerUID, notifMsg, { type: 'escalation' }));
+            await Promise.allSettled(notifPromises);
+          } catch (notifErr) { console.warn('[Tickets] escalation notify error:', notifErr); }
+        }
+
+        onNotification('🚀 ' + (lang === 'ar' ? 'تم التصعيد' : 'Escalated'));
+        setEscalating(null); setEscalateTo('admin'); setEscalateNote('');
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
     };
 
     var filtered = tickets.filter((t) => filter === 'open' ? (t.status === 'open' || t.status === 'replied') : t.status === 'closed');
@@ -157,12 +206,15 @@
                 /* Escalate panel (moderator) */
                 : escalating === t.id
                   ? /*#__PURE__*/React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } }, /*#__PURE__*/
+                      /* T016 + T017: Static role-based dropdown with proper dark styling */
                       React.createElement('select', { value: escalateTo, onChange: (e) => setEscalateTo(e.target.value),
-                        className: 'input-dark', style: { width: '100%', padding: '8px', fontSize: '12px' } }, /*#__PURE__*/
-                        React.createElement('option', { value: '' }, lang === 'ar' ? '-- اختر مسؤول --' : '-- Select Admin --'),
-                        staffList.map((s) => /*#__PURE__*/
-                          React.createElement('option', { key: s.id, value: s.uid || s.id },
-                            `${s.displayName || 'Admin'} (${(s.role || '').toUpperCase()})`)
+                        className: 'input-dark',
+                        style: { width: '100%', padding: '8px', fontSize: '12px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', cursor: 'pointer' } },
+                        React.createElement('option', { value: 'admin', style: { background: '#1e293b', color: '#e5e7eb' } },
+                          lang === 'ar' ? '🛡️ فريق الإدارة' : '🛡️ Admin Team'
+                        ),
+                        React.createElement('option', { value: 'owner', style: { background: '#1e293b', color: '#e5e7eb' } },
+                          lang === 'ar' ? '👑 المالك' : '👑 Owner'
                         )
                       ), /*#__PURE__*/
                       React.createElement('textarea', { className: 'input-dark', style: { width: '100%', padding: '8px', borderRadius: '8px', fontSize: '11px', minHeight: '50px' },

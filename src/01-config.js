@@ -250,6 +250,43 @@ var BOT_CHATS_CONFIG = [
         official: true,
         readOnly: true,
     },
+    // ─────────────────────────────────────────────────────────
+    // 🕵️ PRO SPY — Broadcast & Feedback Acknowledgements
+    // Visible to all users. No real Firestore user doc required.
+    // ─────────────────────────────────────────────────────────
+    {
+        id: 'pro_spy_bot',
+        name_ar: 'PRO SPY',
+        name_en: 'PRO SPY',
+        emoji: '🕵️',
+        description_ar: 'البث الرسمي والإعلانات من فريق PRO SPY',
+        description_en: 'Official broadcasts & announcements from the PRO SPY team',
+        color: '#8b5cf6',
+        glow: 'rgba(139,92,246,0.4)',
+        photoURL: null,
+        official: true,
+        readOnly: true,
+    },
+    // ─────────────────────────────────────────────────────────
+    // 🔒 ADMIN HQ — Staff-only administrative alerts
+    // Hidden from regular users (staffOnly: true, minRole: 'moderator').
+    // Used for ticket escalation notifications to admin/mod/owner only.
+    // ─────────────────────────────────────────────────────────
+    {
+        id: 'staff_command_bot',
+        name_ar: 'المقر الإداري',
+        name_en: 'Admin HQ',
+        emoji: '🔒',
+        description_ar: 'تنبيهات التصعيد والإشعارات الإدارية الداخلية',
+        description_en: 'Escalation alerts & internal admin notifications',
+        color: '#f59e0b',
+        glow: 'rgba(245,158,11,0.4)',
+        photoURL: null,
+        official: true,
+        readOnly: true,
+        staffOnly: true,    // ← Hidden from regular users
+        minRole: 'moderator', // ← Minimum role required to see this bot
+    },
 ];
 
 // --- Constants ---
