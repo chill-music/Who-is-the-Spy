@@ -58,6 +58,29 @@
       setProcessing(false);
     };
 
+    // ── Verify ─────────────────────────────────────────────────────────
+    var handleVerify = async () => {
+      if (!searchResult || processing) return;
+      setProcessing(true);
+      try {
+        await usersCollection.doc(searchResult.id).update({
+          verified: true,
+          verifiedBy: currentUser.uid,
+          verifiedAt: TS()
+        });
+        if (window.logStaffAction) {
+          await window.logStaffAction(
+            currentUser.uid, currentUserData?.displayName,
+            'VERIFY_USER', searchResult.id, searchResult.displayName,
+            'Account verified via Admin Panel'
+          );
+        }
+        setSearchResult({ ...searchResult, verified: true });
+        onNotification('✅ ' + (lang === 'ar' ? 'تم توثيق الحساب' : 'Account verified'));
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+      setProcessing(false);
+    };
+
     // ── Ban ─────────────────────────────────────────────────────────────
     var handleBan = async () => {
       if (!searchResult || processing || !banReason.trim()) return;
@@ -182,6 +205,18 @@
         isOwner && !searchResult.ban?.isBanned &&
         searchResult.id !== window.OWNER_UID && searchResult.uid !== window.OWNER_UID &&
         React.createElement('div', { style: { borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '14px' } },
+
+          /* Verify Account button */
+          searchResult.verified
+          ? React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '10px', background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.25)', color: '#10b981', fontSize: '12px', fontWeight: 700, marginBottom: '10px' } },
+              '✅ ', lang === 'ar' ? 'موثّق بالفعل' : 'Already Verified'
+            )
+          : React.createElement('button', {
+              onClick: handleVerify, disabled: processing,
+              style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.3)',
+                background: 'rgba(16,185,129,0.07)', color: '#10b981', fontSize: '12px', fontWeight: 700,
+                cursor: 'pointer', marginBottom: '10px' }
+            }, processing ? '⏳' : '✅ ' + (lang === 'ar' ? 'توثيق الحساب' : 'Verify Account')),
 
           /* Ban toggle button */
           React.createElement('button', {

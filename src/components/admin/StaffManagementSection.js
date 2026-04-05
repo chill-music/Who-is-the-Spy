@@ -5,12 +5,13 @@
   var ROLE_ICONS  = { owner: '👑', admin: '🛡️', moderator: '🔰' };
 
   var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
-    var [staff, setStaff]       = useState([]);
-    var [loading, setLoading]   = useState(true);
-    var [editing, setEditing]   = useState(null);
-    var [newRole, setNewRole]   = useState('');
-    var [searchTerm, setSearchTerm] = useState('');
-    var [searching, setSearching]   = useState(false);
+    var [staff, setStaff]         = useState([]);
+    var [loading, setLoading]     = useState(true);
+    var [editing, setEditing]     = useState(null);
+    var [newRole, setNewRole]     = useState('');
+    var [searchTerm, setSearchTerm]   = useState('');
+    var [addRole, setAddRole]         = useState('moderator');
+    var [searching, setSearching]     = useState(false);
 
     var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : currentUserData?.role;
 
@@ -19,7 +20,12 @@
       var unsub = usersCollection
         .where('role', 'in', ['owner', 'admin', 'moderator'])
         .onSnapshot(async (snap) => {
-          var list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          var list = snap.docs.map((d) => {
+            var data = d.data();
+            // Normalize: handle legacy accounts where role may be nested in staffRole.role
+            if (!data.role && data.staffRole?.role) data.role = data.staffRole.role;
+            return { id: d.id, ...data };
+          });
 
           // Always include the hardcoded owner
           var ownerUID = window.OWNER_UID || (window.ADMIN_UIDS && window.ADMIN_UIDS[0]);
@@ -33,9 +39,10 @@
           // Sort: owner → admin → moderator
           var order = { owner: 0, admin: 1, moderator: 2 };
           list.sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9));
+          console.log('[StaffMgmt] loaded:', list.length, 'staff members', list.map(s => s.role + ':' + s.displayName));
           setStaff(list);
           setLoading(false);
-        }, () => setLoading(false));
+        }, (err) => { console.error('[StaffMgmt] snapshot error:', err); setLoading(false); });
       return unsub;
     };
 
@@ -65,14 +72,17 @@
         onNotification(lang === 'ar' ? '❌ المستخدم غير موجود' : '❌ User not found');
       } else {
         try {
-          await usersCollection.doc(found.id).update({ role: 'moderator' });
+          await usersCollection.doc(found.id).update({ role: addRole });
           if (window.logStaffAction) {
             await window.logStaffAction(currentUser.uid, currentUserData?.displayName,
-              'ASSIGN_ROLE', found.id, found.displayName || 'User', 'Changed role to: moderator');
+              'ASSIGN_ROLE', found.id, found.displayName || 'User', 'Changed role to: ' + addRole);
           }
-          onNotification(lang === 'ar' ? '✅ تمت إضافة المشرف' : '✅ Added as Moderator');
+          var roleLabel = addRole === 'admin'
+            ? (lang === 'ar' ? 'مدير' : 'Admin')
+            : (lang === 'ar' ? 'مشرف' : 'Moderator');
+          onNotification('✅ ' + (lang === 'ar' ? 'تمت إضافة ' : 'Added as ') + roleLabel);
           setSearchTerm('');
-        } catch (e) { onNotification('❌ Error'); }
+        } catch (e) { onNotification('❌ Error: ' + e.message); }
       }
       setSearching(false);
     };
@@ -84,11 +94,17 @@
       React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#8b5cf6', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' } }, /*#__PURE__*/
         React.createElement('span', null, '🛡️ ', lang === 'ar' ? 'إدارة فريق العمل' : 'Staff Management'),
 
-        myRole === 'owner' && /*#__PURE__*/
-        React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } }, /*#__PURE__*/
-          React.createElement('input', { className: 'input-dark', style: { width: '150px', padding: '5px 10px', fontSize: '11px' },
+        /* Owner controls: UID search + role picker + Add button */
+        myRole === 'owner' &&
+        React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } },
+          React.createElement('input', { className: 'input-dark', style: { width: '130px', padding: '5px 10px', fontSize: '11px' },
             placeholder: lang === 'ar' ? 'UID / ID / الاسم' : 'UID / ID / Name',
-            value: searchTerm, onChange: (e) => setSearchTerm(e.target.value) }), /*#__PURE__*/
+            value: searchTerm, onChange: (e) => setSearchTerm(e.target.value) }),
+          React.createElement('select', { value: addRole, onChange: (e) => setAddRole(e.target.value),
+            style: { padding: '5px 8px', fontSize: '11px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer' } },
+            React.createElement('option', { value: 'moderator', style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'مشرف' : 'Moderator'),
+            React.createElement('option', { value: 'admin',     style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'مدير' : 'Admin')
+          ),
           React.createElement('button', { onClick: addStaff, disabled: searching || !searchTerm,
             className: 'btn-neon', style: { padding: '5px 12px', fontSize: '11px' } },
             searching ? '⏳' : `➕ ${lang === 'ar' ? 'إضافة' : 'Add'}`
