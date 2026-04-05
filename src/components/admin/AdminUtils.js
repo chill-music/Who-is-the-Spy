@@ -1,13 +1,21 @@
 (function() {
 
 // ─── Log a staff action ──────────────────────────────────────────────────
-var logStaffAction = async (staffUID, staffName, action, targetUID, targetName, details) => {
+// @param {string} staffUID    - UID of the staff member taking the action
+// @param {string} staffName   - Display name of the staff member
+// @param {string} action      - Action type e.g. 'BAN_USER', 'REPLY_TICKET'
+// @param {string} targetUID   - UID of the target user (optional)
+// @param {string} targetName  - Display name of the target user (optional)
+// @param {string} details     - Human-readable detail string (optional)
+// @param {string} staffRole   - Role of the staff member e.g. 'admin', 'moderator' (optional, T019)
+var logStaffAction = async (staffUID, staffName, action, targetUID, targetName, details, staffRole) => {
     targetUID  = targetUID  || null;
     targetName = targetName || null;
     details    = details    || '';
+    staffRole  = staffRole  || 'staff';
     try {
         await staffLogCollection.add({
-            staffUID, staffName, action, targetUID, targetName, details,
+            staffUID, staffName, staffRole, action, targetUID, targetName, details,
             timestamp: TS()
         });
     } catch(e) { console.error('[StaffLog]', e); }
