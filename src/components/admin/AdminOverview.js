@@ -7,7 +7,7 @@
   // 5-minute online threshold (hardcoded per spec)
   var ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
 
-  var OverviewSection = ({ currentUser, lang }) => {
+  var OverviewSection = ({ currentUser, currentUserData, lang }) => {
     var [stats, setStats]             = useState({ users: 0, today: 0, reports: 0, tickets: 0 });
     var [loading, setLoading]         = useState(true);
     var [staff, setStaff]             = useState([]);
@@ -114,7 +114,7 @@
                 } })
               ),
 
-              /* Name + UID */
+            /* Name + status */
               React.createElement('div', { style: { flex: 1, minWidth: 0 } },
                 React.createElement('div', { style: { fontSize: '12px', fontWeight: 700, color: '#e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
                   s.displayName || 'Unknown', isMe ? ' (' + (lang === 'ar' ? 'أنت' : 'You') + ')' : ''
@@ -129,7 +129,29 @@
               /* Role badge */
               React.createElement('span', { style: { fontSize: '11px', fontWeight: 800, color, background: color + '20', padding: '3px 8px', borderRadius: '6px', whiteSpace: 'nowrap', flexShrink: 0 } },
                 icon, ' ', (s.role || 'user').toUpperCase()
-              )
+              ),
+
+              /* Chat button — send via Staff Command Bot */
+              !isMe && window.sendStaffCommandBotMessage && /*#__PURE__*/
+              React.createElement('button', {
+                title: lang === 'ar' ? 'إرسال رسالة' : 'Send message',
+                onClick: async () => {
+                  var prompt = window.prompt ? window.prompt(lang === 'ar' ? 'اكتب رسالتك لـ' + (s.displayName || '?') : 'Message to ' + (s.displayName || '?'), '') : null;
+                  if (!prompt || !prompt.trim()) return;
+                  try {
+                    var senderName = currentUserData?.displayName || currentUser?.uid?.slice(0, 6) || 'Staff';
+                    await window.sendStaffCommandBotMessage(
+                      s.uid || s.id,
+                      '💬 ' + senderName + ' → ' + (s.displayName || '?') + ':\n' + prompt.trim(),
+                      { type: 'staff_direct_msg', fromUID: currentUser?.uid }
+                    );
+                    window.alert && window.alert(lang === 'ar' ? '✅ تم الإرسال' : '✅ Sent!');
+                  } catch (e) {
+                    window.alert && window.alert('❌ Error: ' + e.message);
+                  }
+                },
+                style: { padding: '5px 9px', borderRadius: '8px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', color: '#a78bfa', fontSize: '13px', cursor: 'pointer', flexShrink: 0 }
+              }, '💬')
             );
           })
         )

@@ -26,11 +26,21 @@
     var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : currentUserData?.role;
 
     useEffect(() => {
-      var unsub = ticketsCollection.orderBy('createdAt', 'desc').limit(100).onSnapshot(
-        (snap) => { setTickets(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); setLoading(false); },
-        (err)  => { console.warn('[Tickets]', err.code, err.message); setLoading(false); }
-      );
-      return unsub;
+      var unsubscribed = false;
+      var unsub;
+      try {
+        unsub = ticketsCollection.orderBy('createdAt', 'desc').limit(100).onSnapshot(
+          (snap) => { if (!unsubscribed) { setTickets(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); setLoading(false); } },
+          async (err) => {
+            console.warn('[Tickets] onSnapshot failed, falling back to get():', err?.message);
+            try {
+              var snap = await ticketsCollection.orderBy('createdAt', 'desc').limit(100).get();
+              if (!unsubscribed) { setTickets(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); setLoading(false); }
+            } catch (e2) { if (!unsubscribed) setLoading(false); }
+          }
+        );
+      } catch (e) { console.error('[Tickets] listener error:', e?.message); setLoading(false); }
+      return () => { unsubscribed = true; if (unsub) unsub(); };
     }, []);
 
     var sendReply = async (ticket) => {
@@ -42,18 +52,19 @@
           messages: firebase.firestore.FieldValue.arrayUnion(msg),
           status: 'replied', updatedAt: TS(), lastMessageBy: currentUser.uid
         });
-        if (window.logStaffAction) await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPLY_TICKET', ticket.userId, ticket.userName, `Ticket: ${ticket.id}`);
-        onNotification('✅ Reply sent');
+        // fire-and-forget — don't crash on permission error
+        if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'REPLY_TICKET', ticket.userId, ticket.userName, 'Ticket: ' + ticket.id).catch(() => {});
+        onNotification('✅ ' + (lang === 'ar' ? 'تم إرسال الرد' : 'Reply sent'));
         setReplyingTo(null); setReplyText('');
-      } catch (e) { onNotification('❌ Error'); }
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
     };
 
     var closeTicket = async (id, userId, userName) => {
       try {
         await ticketsCollection.doc(id).update({ status: 'closed', closedAt: TS() });
-        if (window.logStaffAction) await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'CLOSE_TICKET', userId, userName, `Ticket: ${id}`);
-        onNotification('✅ Ticket closed');
-      } catch (e) { onNotification('❌ Error'); }
+        if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'CLOSE_TICKET', userId, userName, 'Ticket: ' + id).catch(() => {});
+        onNotification('✅ ' + (lang === 'ar' ? 'تم إغلاق التذكرة' : 'Ticket closed'));
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
     };
 
     // Core escalation writer (shared between normal + no-admin fallback)
