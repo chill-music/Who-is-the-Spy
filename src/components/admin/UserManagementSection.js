@@ -73,11 +73,11 @@
         React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' } }, /*#__PURE__*/
           React.createElement('div', { style: { background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '10px' } }, /*#__PURE__*/
             React.createElement('div', { style: { fontSize: '10px', color: '#6b7280' } }, lang === 'ar' ? 'الذهب' : 'Gold'), /*#__PURE__*/
-            React.createElement('div', { style: { fontSize: '14px', fontWeight: 700, color: '#f59e0b' } }, searchResult.gold || 0)
+            React.createElement('div', { style: { fontSize: '14px', fontWeight: 700, color: '#f59e0b' } }, searchResult.currency ?? 0)
           ), /*#__PURE__*/
           React.createElement('div', { style: { background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '10px' } }, /*#__PURE__*/
             React.createElement('div', { style: { fontSize: '10px', color: '#6b7280' } }, lang === 'ar' ? 'المستوى' : 'Level'), /*#__PURE__*/
-            React.createElement('div', { style: { fontSize: '14px', fontWeight: 700, color: '#3b82f6' } }, searchResult.level || 1)
+            React.createElement('div', { style: { fontSize: '14px', fontWeight: 700, color: '#3b82f6' } }, searchResult.level ?? 1)
           )
         ),
 
