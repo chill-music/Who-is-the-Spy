@@ -48,7 +48,7 @@
       if (!replyText.trim()) return;
       try {
         var role = myRole || 'user';
-        var msg = { senderId: currentUser.uid, senderName: currentUserData?.displayName || 'Support', senderRole: role, text: replyText.trim(), timestamp: TS() };
+        var msg = { senderId: currentUser.uid, senderName: currentUserData?.displayName || 'Support', senderRole: role, text: replyText.trim(), timestamp: new Date() };
         await ticketsCollection.doc(ticket.id).update({
           messages: firebase.firestore.FieldValue.arrayUnion(msg),
           status: 'replied', updatedAt: TS(), lastMessageBy: currentUser.uid

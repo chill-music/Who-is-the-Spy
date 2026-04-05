@@ -15,12 +15,23 @@ service cloud.firestore {
     }
 
     function isStaffInApp(appId) {
-      let role = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid)).data.role;
-      return isOwnerUID() || role == 'moderator' || role == 'admin' || role == 'owner';
+      let isOwner = isOwnerUID();
+      let userDoc = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid));
+      let data = userDoc != null ? userDoc.data : {};
+      let r1 = ('role' in data && data.role != null) ? data.role : '';
+      let r2 = ('staffRole' in data && data.staffRole is map && 'role' in data.staffRole && data.staffRole.role != null) ? data.staffRole.role : '';
+      let role = r1 != '' ? r1 : r2;
+      return isOwner || role == 'moderator' || role == 'admin' || role == 'owner';
     }
 
     function getUserRole(appId) {
-      return get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid)).data.role;
+      let isOwner = isOwnerUID();
+      let userDoc = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid));
+      let data = userDoc != null ? userDoc.data : {};
+      let r1 = ('role' in data && data.role != null) ? data.role : '';
+      let r2 = ('staffRole' in data && data.staffRole is map && 'role' in data.staffRole && data.staffRole.role != null) ? data.staffRole.role : '';
+      let role = r1 != '' ? r1 : r2;
+      return isOwner ? 'owner' : role;
     }
 
     // ══════════════════════════════════════════════════════════
