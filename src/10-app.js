@@ -608,7 +608,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                   ),
 
                   (() => {
-                    var userRole = currentUserData?.role;
+                    // Normalize role: support flat `role` or nested `staffRole.role`
+                    var userRole = currentUserData?.role || currentUserData?.staffRole?.role;
                     // Also check OWNER_UID directly in case role field is missing
                     var isStaffUser = ['owner','admin','moderator'].includes(userRole) ||
                       (window.OWNER_UID && currentUID === window.OWNER_UID);

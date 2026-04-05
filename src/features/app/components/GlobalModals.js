@@ -480,7 +480,9 @@
 
       // 🔒 ADMIN HQ — Staff-only bot: only renders for admin / moderator / owner
       showStaffCommandBot && window.BotChatModal &&
-      ['owner','admin','moderator'].includes(currentUserData?.role) && /*#__PURE__*/
+      (['owner','admin','moderator'].includes(currentUserData?.role) ||
+       ['owner','admin','moderator'].includes(currentUserData?.staffRole?.role) ||
+       (window.OWNER_UID && currentUID === window.OWNER_UID)) && /*#__PURE__*/
       React.createElement(window.BotChatModal, {
         show: showStaffCommandBot,
         onClose: () => setShowStaffCommandBot(false),

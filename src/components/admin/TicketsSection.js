@@ -23,7 +23,8 @@
     // In-app fallback dialog state (replaces confirm())
     var [noAdminDialog, setNoAdminDialog] = useState(null); // { ticket }
 
-    var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid) : currentUserData?.role;
+    var myRole = window.getUserRole ? window.getUserRole(currentUserData, currentUser?.uid)
+      : (currentUserData?.role || currentUserData?.staffRole?.role);
 
     useEffect(() => {
       var unsubscribed = false;

@@ -7,11 +7,14 @@
     var [filter,             setFilter]             = useState('open');
     var [escalating,         setEscalating]         = useState(null);
     var [escalateNote,       setEscalateNote]       = useState('');
-    var [staffList,          setStaffList]          = useState([]);
     var [selectedEscalateTo, setSelectedEscalateTo] = useState('');
     var [banningUID,         setBanningUID]         = useState(null);
+    var [warnTarget,         setWarnTarget]         = useState(null); // { r, uid, name }
+    var [warnMsg,            setWarnMsg]            = useState('');
+    var [warnSending,        setWarnSending]        = useState(false);
 
-    var myRole = currentUserData?.role || 'user';
+    // Normalize role: support both flat `role` and nested `staffRole.role`
+    var myRole = currentUserData?.role || currentUserData?.staffRole?.role || 'user';
 
     useEffect(function () {
       var unsub;
@@ -48,53 +51,107 @@
       return function () { unsubscribed = true; if (unsub) unsub(); };
     }, []);
 
-    useEffect(function () {
-      if (myRole !== 'moderator') return;
-      if (window.fetchStaffList) {
-        window.fetchStaffList(['admin', 'owner']).then(function (list) { setStaffList(list); }).catch(function () {});
-      } else {
-        usersCollection.where('role', 'in', ['admin', 'owner']).get()
-          .then(function (snap) { setStaffList(snap.docs.map(function (d) { return Object.assign({ uid: d.id, id: d.id }, d.data()); })); })
-          .catch(function () {});
-      }
-    }, [myRole]);
-
     var resolveReport = function (id, targetUID, targetName) {
       reportsCollection.doc(id).update({ resolved: true, resolvedAt: TS() }).then(function () {
         if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData && currentUserData.displayName, 'RESOLVE_REPORT', targetUID, targetName, 'Report: ' + id).catch(function () {});
-        onNotification('OK ' + (lang === 'ar' ? 'تم الحل' : 'Resolved'));
-      }).catch(function (e) { onNotification('Error: ' + e.message); });
+        onNotification('✅ ' + (lang === 'ar' ? 'تم التجاهل' : 'Dismissed'));
+      }).catch(function (e) { onNotification('❌ Error: ' + e.message); });
     };
 
-    var handleEscalate = function (report) {
+    // Role-based escalation: resolves 'admin_team' / 'owner' to an actual UID
+    var handleEscalate = async function (report) {
       if (!selectedEscalateTo || !escalateNote.trim()) {
-        onNotification('! ' + (lang === 'ar' ? 'اختر شخصاً واكتب سبباً' : 'Select a target and write a reason'));
+        onNotification('⚠️ ' + (lang === 'ar' ? 'اختر جهة واكتب سبباً' : 'Select a target and write a reason'));
         return;
       }
-      var target = staffList.find(function (s) { return (s.uid || s.id) === selectedEscalateTo; });
+
+      var resolvedUID  = null;
+      var resolvedName = '';
+      var resolvedRole = '';
+
+      if (selectedEscalateTo === 'owner') {
+        resolvedUID = window.OWNER_UID || null;
+        if (!resolvedUID) {
+          try {
+            var ownerSnap = await usersCollection.where('role', '==', 'owner').limit(1).get();
+            if (!ownerSnap.empty) { resolvedUID = ownerSnap.docs[0].id; resolvedName = ownerSnap.docs[0].data().displayName || 'Owner'; }
+          } catch (_) {}
+        } else {
+          resolvedName = 'Owner';
+        }
+        resolvedRole = 'owner';
+        if (!resolvedUID) { onNotification('❌ ' + (lang === 'ar' ? 'لم يُعثر على المالك' : 'Owner not found')); return; }
+
+      } else if (selectedEscalateTo === 'admin_team') {
+        try {
+          var adminSnap = await usersCollection.where('role', '==', 'admin').limit(1).get();
+          if (!adminSnap.empty) {
+            resolvedUID  = adminSnap.docs[0].id;
+            resolvedName = adminSnap.docs[0].data().displayName || 'Admin';
+            resolvedRole = 'admin';
+          } else {
+            // Fall back to owner
+            resolvedUID = window.OWNER_UID || null;
+            if (!resolvedUID) {
+              var ownerFallback = await usersCollection.where('role', '==', 'owner').limit(1).get();
+              if (!ownerFallback.empty) { resolvedUID = ownerFallback.docs[0].id; resolvedName = ownerFallback.docs[0].data().displayName || 'Owner'; }
+            } else {
+              resolvedName = 'Owner';
+            }
+            resolvedRole = 'owner';
+            if (!resolvedUID) { onNotification('❌ ' + (lang === 'ar' ? 'لا يوجد مديرون' : 'No admins or owner found')); return; }
+            onNotification('ℹ️ ' + (lang === 'ar' ? 'لا يوجد أدمن — سيصل للمالك' : 'No admins — escalated to Owner'));
+          }
+        } catch (e) { onNotification('❌ Error: ' + e.message); return; }
+      } else {
+        // Legacy fallback
+        resolvedUID = selectedEscalateTo;
+        resolvedName = selectedEscalateTo;
+        resolvedRole = 'admin';
+      }
+
       reportsCollection.doc(report.id).update({
         escalated: true,
-        escalatedTo: selectedEscalateTo,
-        escalatedToName: (target && target.displayName) || selectedEscalateTo,
-        escalatedToRole: (target && target.role) || 'admin',
+        escalatedTo: resolvedUID,
+        escalatedToName: resolvedName,
+        escalatedToRole: resolvedRole,
         escalateNote: escalateNote.trim(),
         escalatedAt: TS(),
         escalatedBy: currentUser.uid,
         escalatedByName: (currentUserData && currentUserData.displayName) || 'Mod'
       }).then(function () {
         if (window.sendStaffCommandBotMessage) {
-          var msg = (lang === 'ar' ? 'تصعيد بلاغ: ' : 'Report Escalation: ') +
+          var msg = '🚨 ' + (lang === 'ar' ? 'تصعيد بلاغ: ' : 'Report Escalation: ') +
             (report.reportedName || 'User') + '\n' +
             (lang === 'ar' ? 'من: ' : 'From: ') + ((currentUserData && currentUserData.displayName) || 'Mod') + '\n' +
             (lang === 'ar' ? 'السبب: ' : 'Reason: ') + escalateNote.trim();
-          window.sendStaffCommandBotMessage(selectedEscalateTo, msg, { type: 'report_escalation' }).catch(function () {});
+          window.sendStaffCommandBotMessage(resolvedUID, msg, { type: 'report_escalation' }).catch(function () {});
         }
         if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData && currentUserData.displayName, 'ESCALATE_REPORT', report.reportedUID, report.reportedName, 'Report: ' + report.id).catch(function () {});
-        onNotification('Escalated');
-        setEscalating(null);
-        setEscalateNote('');
-        setSelectedEscalateTo('');
-      }).catch(function (e) { onNotification('Error: ' + e.message); });
+        onNotification('🚀 ' + (lang === 'ar' ? 'تم التصعيد' : 'Escalated'));
+        setEscalating(null); setEscalateNote(''); setSelectedEscalateTo('');
+      }).catch(function (e) { onNotification('❌ Error: ' + e.message); });
+    };
+
+    // Warn user via Detective bot (moderator action)
+    var sendWarn = async function () {
+      if (!warnTarget || !warnMsg.trim()) return;
+      setWarnSending(true);
+      try {
+        var staffName = currentUserData?.displayName || 'Staff';
+        var finalMsg  = '⚠️ ' + (lang === 'ar' ? 'تحذير رسمي' : 'Official Warning') + '\n' + warnMsg.trim() + '\n— ' + staffName;
+        if (window.sendDetectiveBotMessage) {
+          await window.sendDetectiveBotMessage(warnTarget.uid, finalMsg, { type: 'official_warning' });
+        } else if (window.sendProSpyBotMessage) {
+          await window.sendProSpyBotMessage(warnTarget.uid, finalMsg, { type: 'official_warning' });
+        }
+        // Optionally mark report as warned
+        if (warnTarget.reportId) reportsCollection.doc(warnTarget.reportId).update({ warned: true, warnedAt: TS(), warnedBy: currentUser?.uid }).catch(function () {});
+        if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'WARN_USER', warnTarget.uid, warnTarget.name, warnMsg).catch(function () {});
+        onNotification('⚠️ ' + (lang === 'ar' ? 'تم إرسال التحذير' : 'Warning sent'));
+        setWarnTarget(null); setWarnMsg('');
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+      setWarnSending(false);
     };
 
     var openCount      = reports.filter(function (r) { return !r.resolved && !r.escalated; }).length;
@@ -109,10 +166,10 @@
     });
 
     var filterTabs = [
-      { id: 'all',       labelAr: '\u0627\u0644\u0643\u0644',    labelEn: 'ALL',       count: reports.length, color: '#64748b' },
-      { id: 'open',      labelAr: '\u0645\u0641\u062a\u0648\u062d\u0629',  labelEn: 'OPEN',      count: openCount,      color: '#ef4444' },
-      { id: 'escalated', labelAr: '\u0645\u064f\u0635\u0639\u062f\u0629',  labelEn: 'ESCALATED', count: escalatedCount, color: '#8b5cf6' },
-      { id: 'resolved',  labelAr: '\u0645\u062d\u0644\u0648\u0644\u0629',  labelEn: 'RESOLVED',  count: resolvedCount,  color: '#10b981' }
+      { id: 'all',       labelAr: 'الكل',     labelEn: 'ALL',       count: reports.length, color: '#64748b' },
+      { id: 'open',      labelAr: 'مفتوحة',    labelEn: 'OPEN',      count: openCount,      color: '#ef4444' },
+      { id: 'escalated', labelAr: 'مُصعَّدة',  labelEn: 'ESCALATED', count: escalatedCount, color: '#8b5cf6' },
+      { id: 'resolved',  labelAr: 'محلولة',   labelEn: 'RESOLVED',  count: resolvedCount,  color: '#10b981' }
     ];
 
     var optStyle = { background: '#1e293b', color: '#e5e7eb' };
@@ -132,19 +189,16 @@
       if (escalating === r.id) {
         return React.createElement('div', { style: { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', padding: '12px', borderRadius: '10px' } },
           React.createElement('div', { style: { fontSize: '11px', color: '#8b5cf6', fontWeight: 700, marginBottom: '8px' } },
-            lang === 'ar' ? 'تصعيد البلاغ' : 'Escalate Report'),
+            lang === 'ar' ? '🚀 تصعيد البلاغ' : '🚀 Escalate Report'),
           React.createElement('select', {
             value: selectedEscalateTo,
             onChange: function (e) { setSelectedEscalateTo(e.target.value); },
             style: { width: '100%', padding: '8px', fontSize: '11px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', outline: 'none', marginBottom: '8px' }
           },
-            React.createElement('option', { value: '', style: optStyle }, lang === 'ar' ? '--- اختر ---' : '--- Select ---'),
-            staffList.map(function (s) {
-              var ts = s.lastSeen && (s.lastSeen.toMillis ? s.lastSeen.toMillis() : (s.lastSeen.seconds * 1000));
-              var isOnline = ts && (Date.now() - ts) < 5 * 60 * 1000;
-              var label = (isOnline ? '[Online] ' : '[Offline] ') + (s.displayName || s.id) + ' (' + (s.role || '?') + ')';
-              return React.createElement('option', { key: s.uid || s.id, value: s.uid || s.id, style: optStyle }, label);
-            })
+            React.createElement('option', { value: '', style: optStyle }, lang === 'ar' ? '--- اختر الجهة ---' : '--- Select Target ---'),
+            /* Role-based targets — not individual UIDs */
+            React.createElement('option', { value: 'admin_team', style: optStyle }, lang === 'ar' ? '🛡️ فريق الإدارة (أدمن)' : '🛡️ Admin Team'),
+            React.createElement('option', { value: 'owner',      style: optStyle }, lang === 'ar' ? '👑 المالك'              : '👑 Owner')
           ),
           React.createElement('textarea', {
             className: 'input-dark',
@@ -159,37 +213,99 @@
               style: { flex: 1, padding: '7px', background: '#8b5cf6', color: '#fff', borderRadius: '7px', border: 'none', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
             }, lang === 'ar' ? 'إرسال' : 'Submit'),
             React.createElement('button', {
-              onClick: function () { setEscalating(null); },
+              onClick: function () { setEscalating(null); setSelectedEscalateTo(''); setEscalateNote(''); },
               style: { padding: '7px 12px', background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: '7px', border: 'none', fontSize: '11px', cursor: 'pointer' }
-            }, 'X')
+            }, '✕')
           )
         );
       }
 
       return React.createElement('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
+        /* Dismiss — all staff can dismiss */
         React.createElement('button', {
           onClick: function () { resolveReport(r.id, r.reportedUID, r.reportedName); },
           style: { flex: 1, minWidth: '70px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', padding: '7px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
         }, lang === 'ar' ? 'تجاهل' : 'Dismiss'),
+
+        /* Warn (⚠️) — moderator/admin/owner via Detective bot */
+        r.reportedUID && !r.warned
+          ? React.createElement('button', {
+              onClick: function () {
+                setWarnTarget({ uid: r.reportedUID, name: r.reportedName || 'User', reportId: r.id });
+                setWarnMsg('');
+              },
+              style: { flex: 1, minWidth: '70px', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b', padding: '7px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
+            }, lang === 'ar' ? '⚠️ تحذير' : '⚠️ Warn')
+          : r.warned
+            ? React.createElement('span', { style: { fontSize: '10px', color: '#f59e0b', padding: '7px', alignSelf: 'center' } }, '⚠️ Warned')
+            : null,
+
+        /* Escalate — all staff can escalate */
+        !r.escalated
+          ? React.createElement('button', {
+              onClick: function () { setEscalating(r.id); setSelectedEscalateTo(''); setEscalateNote(''); },
+              style: { flex: 1, minWidth: '70px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', color: '#8b5cf6', padding: '7px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
+            }, lang === 'ar' ? '🚀 تصعيد' : '🚀 Escalate')
+          : null,
+
+        /* Ban — ONLY Owner and Admin */
         myRole !== 'moderator'
           ? React.createElement('button', {
               onClick: function () { setBanningUID(r.id); },
               style: { flex: 1, minWidth: '70px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '7px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
-            }, lang === 'ar' ? 'حظر' : 'Ban')
-          : null,
-        myRole === 'moderator' && !r.escalated
-          ? React.createElement('button', {
-              onClick: function () { setEscalating(r.id); setSelectedEscalateTo(''); setEscalateNote(''); },
-              style: { flex: 1, minWidth: '70px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', color: '#8b5cf6', padding: '7px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
-            }, lang === 'ar' ? 'تصعيد' : 'Escalate')
+            }, lang === 'ar' ? '🚫 حظر' : '🚫 Ban')
           : null
       );
     };
 
     return React.createElement('div', null,
 
+      /* ── Warn user modal (in-app, replaces window.prompt) ─── */
+      warnTarget && React.createElement('div', {
+        style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' },
+        onClick: function () { setWarnTarget(null); setWarnMsg(''); }
+      },
+        React.createElement('div', {
+          style: { background: '#1e293b', border: '1px solid rgba(245,158,11,0.4)', borderRadius: '18px', padding: '24px', maxWidth: '340px', width: '90%', boxShadow: '0 24px 48px rgba(0,0,0,0.6)' },
+          onClick: function (e) { e.stopPropagation(); }
+        },
+          React.createElement('div', { style: { fontSize: '24px', textAlign: 'center', marginBottom: '8px' } }, '⚠️'),
+          React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#f59e0b', textAlign: 'center', marginBottom: '4px' } },
+            lang === 'ar' ? 'إرسال تحذير إلى' : 'Send warning to',
+            ' ',
+            React.createElement('span', { style: { color: '#f1f5f9' } }, warnTarget.name)
+          ),
+          React.createElement('div', { style: { fontSize: '10px', color: '#64748b', textAlign: 'center', marginBottom: '14px' } },
+            lang === 'ar' ? 'سيتم التسليم عبر بوت Detective' : 'Delivered via The Detective bot'
+          ),
+          React.createElement('textarea', {
+            className: 'input-dark',
+            style: { width: '100%', padding: '10px', borderRadius: '10px', fontSize: '12px', minHeight: '80px', marginBottom: '12px', resize: 'vertical', boxSizing: 'border-box' },
+            placeholder: lang === 'ar' ? 'سبب التحذير...' : 'Reason for warning...',
+            value: warnMsg,
+            onChange: function (e) { setWarnMsg(e.target.value); },
+            autoFocus: true
+          }),
+          React.createElement('div', { style: { display: 'flex', gap: '8px' } },
+            React.createElement('button', {
+              onClick: sendWarn,
+              disabled: !warnMsg.trim() || warnSending,
+              style: {
+                flex: 1, padding: '10px', background: warnMsg.trim() && !warnSending ? 'linear-gradient(135deg,#f59e0b,#d97706)' : '#374151',
+                color: '#000', borderRadius: '10px', border: 'none', fontSize: '12px', fontWeight: 700,
+                cursor: warnMsg.trim() && !warnSending ? 'pointer' : 'not-allowed'
+              }
+            }, warnSending ? '⏳…' : (lang === 'ar' ? '⚠️ إرسال' : '⚠️ Send Warning')),
+            React.createElement('button', {
+              onClick: function () { setWarnTarget(null); setWarnMsg(''); },
+              style: { padding: '10px 16px', background: 'rgba(255,255,255,0.07)', color: '#9ca3af', borderRadius: '10px', border: 'none', fontSize: '12px', cursor: 'pointer' }
+            }, lang === 'ar' ? 'إلغاء' : 'Cancel')
+          )
+        )
+      ),
+
       React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' } },
-        React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#ef4444' } }, lang === 'ar' ? 'البلاغات' : 'Reports List'),
+        React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#ef4444' } }, lang === 'ar' ? '🚩 البلاغات' : '🚩 Reports List'),
         React.createElement('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap' } },
           filterTabs.map(function (f) {
             return React.createElement('button', {
@@ -211,7 +327,7 @@
       ),
 
       loading
-        ? React.createElement('div', { style: { textAlign: 'center', padding: '20px' } }, 'Loading...')
+        ? React.createElement('div', { style: { textAlign: 'center', padding: '20px' } }, '⏳')
         : React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } },
             filtered.length === 0
               ? React.createElement('div', { style: { textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '12px' } }, lang === 'ar' ? 'لا توجد بلاغات' : 'No reports found')
@@ -227,7 +343,8 @@
                   React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' } },
                     React.createElement('div', { style: { background: 'rgba(239,68,68,0.2)', color: '#ef4444', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 800 } }, (r.category && r.category.toUpperCase()) || 'REPORT'),
                     r.escalated && !r.resolved ? React.createElement('span', { style: { fontSize: '9px', fontWeight: 800, background: 'rgba(139,92,246,0.2)', color: '#a78bfa', padding: '1px 6px', borderRadius: '4px' } }, 'ESCALATED') : null,
-                    r.resolved ? React.createElement('span', { style: { fontSize: '9px', fontWeight: 800, background: 'rgba(16,185,129,0.15)', color: '#10b981', padding: '1px 6px', borderRadius: '4px' } }, 'RESOLVED') : null,
+                    r.warned     ? React.createElement('span', { style: { fontSize: '9px', fontWeight: 800, background: 'rgba(245,158,11,0.2)',  color: '#f59e0b', padding: '1px 6px', borderRadius: '4px' } }, 'WARNED') : null,
+                    r.resolved   ? React.createElement('span', { style: { fontSize: '9px', fontWeight: 800, background: 'rgba(16,185,129,0.15)',  color: '#10b981', padding: '1px 6px', borderRadius: '4px' } }, 'RESOLVED') : null,
                     React.createElement('span', { style: { fontSize: '10px', color: '#6b7280' } }, r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleString() : '')
                   ),
                   React.createElement('div', { style: { fontSize: '10px', color: '#4b5563' } }, '#', r.id && r.id.slice(-5))
@@ -253,7 +370,7 @@
                   ? React.createElement('div', { style: { background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px', fontSize: '11px' } },
                       React.createElement('div', { style: { color: '#a78bfa', fontWeight: 700 } },
                         lang === 'ar' ? 'صُعِّد بواسطة: ' : 'Escalated by: ',
-                        r.escalatedByName || '?', ' -> ', r.escalatedToName || r.escalatedTo),
+                        r.escalatedByName || '?', ' → ', r.escalatedToName || r.escalatedTo),
                       r.escalateNote ? React.createElement('div', { style: { color: '#94a3b8', marginTop: '2px' } }, r.escalateNote) : null
                     )
                   : null,

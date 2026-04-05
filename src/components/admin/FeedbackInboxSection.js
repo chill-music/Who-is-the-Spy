@@ -11,7 +11,7 @@
     var [acking,     setAcking]     = useState({});
 
     // Moderator escalation state
-    var myRole = currentUserData?.role || 'user';
+    var myRole = currentUserData?.role || currentUserData?.staffRole?.role || 'user';
     var [escalating,  setEscalating]  = useState(null); // feedback.id
     var [escalateTo,  setEscalateTo]  = useState('');
     var [escalateNote, setEscalateNote] = useState('');
@@ -109,17 +109,46 @@
 
     var handleEscalateFeedback = async (f) => {
       if (!escalateTo || !escalateNote.trim()) {
-        onNotification('⚠️ ' + (lang === 'ar' ? 'اختر مدير واكتب السبب' : 'Select a target and write a reason'));
+        onNotification('⚠️ ' + (lang === 'ar' ? 'اختر جهة واكتب السبب' : 'Select a target and write a reason'));
         return;
       }
-      // Check if admin exists when targeting admin
-      var target = staffList.find((s) => (s.uid || s.id) === escalateTo);
-      if (target?.role === 'admin') {
-        var hasAdmins = staffList.some((s) => s.role === 'admin');
-        if (!hasAdmins) { setNoAdminDialog({ f }); return; }
+
+      // Resolve role-based target to actual UIDs (T027 — role-based escalation)
+      var resolvedUID = null;
+      if (escalateTo === 'owner') {
+        resolvedUID = window.OWNER_UID || null;
+        if (!resolvedUID) {
+          try {
+            var ownerSnap = await usersCollection.where('role', '==', 'owner').limit(1).get();
+            if (!ownerSnap.empty) resolvedUID = ownerSnap.docs[0].id;
+          } catch (_) {}
+        }
+        if (!resolvedUID) { onNotification('❌ ' + (lang === 'ar' ? 'لم يُعثر على المالك' : 'Owner not found')); return; }
+      } else if (escalateTo === 'admin_team') {
+        // pick first available admin
+        try {
+          var adminSnap = await usersCollection.where('role', '==', 'admin').limit(1).get();
+          if (!adminSnap.empty) {
+            resolvedUID = adminSnap.docs[0].id;
+          } else {
+            // fall back to owner
+            resolvedUID = window.OWNER_UID || null;
+            if (!resolvedUID) {
+              var ownerFallback = await usersCollection.where('role', '==', 'owner').limit(1).get();
+              if (!ownerFallback.empty) resolvedUID = ownerFallback.docs[0].id;
+            }
+            if (!resolvedUID) { onNotification('❌ ' + (lang === 'ar' ? 'لا يوجد مديرون متاحون' : 'No admins available')); return; }
+            onNotification('ℹ️ ' + (lang === 'ar' ? 'لا يوجد أدمن — تم التصعيد للمالك' : 'No admins — escalated to Owner'));
+          }
+        } catch (e) { onNotification('❌ Error: ' + e.message); return; }
+      } else {
+        // Legacy: individual UID (shouldn't happen with new dropdown, but keep for safety)
+        resolvedUID = escalateTo;
       }
-      await doEscalateFeedback(f, escalateTo);
+
+      await doEscalateFeedback(f, resolvedUID);
     };
+
 
     var optStyle = { background: '#1e293b', color: '#e5e7eb' };
 
@@ -237,16 +266,14 @@
                     style: { padding: '5px 10px', borderRadius: '8px', fontSize: '10px', fontWeight: 700, border: 'none', background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', cursor: 'pointer' }
                   }, '🚀 ' + (lang === 'ar' ? 'تصعيد' : 'Escalate')),
 
-                  /* Admin/owner: acknowledge button */
-                  myRole !== 'moderator' && (
-                    isAcked
+                  /* All staff can acknowledge (T027/T028) */
+                  isAcked
                     ? React.createElement('div', { style: { fontSize: '10px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' } }, '✅ ', lang === 'ar' ? 'تم إبلاغ المستخدم' : 'User notified')
                     : React.createElement('button', {
                         onClick: () => handleAcknowledge(f),
                         disabled: inFlight,
                         style: { padding: '5px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700, border: 'none', background: inFlight ? 'rgba(59,130,246,0.07)' : 'rgba(59,130,246,0.12)', color: '#60a5fa', cursor: inFlight ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }
                       }, inFlight ? '⏳' : '👁️ ' + (lang === 'ar' ? 'إشعار بالاستلام' : 'Acknowledge'))
-                  )
                 )
               ),
 
@@ -259,10 +286,10 @@
                   onChange: (e) => setEscalateTo(e.target.value),
                   style: { width: '100%', padding: '8px', fontSize: '11px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', outline: 'none' }
                 },
-                  React.createElement('option', { value: '', style: optStyle }, lang === 'ar' ? '--- اختر ---' : '--- Select ---'),
-                  staffList.map((s) => React.createElement('option', { key: s.uid || s.id, value: s.uid || s.id, style: optStyle },
-                    s.displayName, ' (', s.role, ')'
-                  ))
+                  React.createElement('option', { value: '', style: optStyle }, lang === 'ar' ? '--- اختر الجهة ---' : '--- Select Target ---'),
+                  /* Role-based targets (T027) — not individual UIDs */
+                  React.createElement('option', { value: 'admin_team', style: optStyle }, lang === 'ar' ? '🛡️ فريق الإدارة (أدمن)' : '🛡️ Admin Team'),
+                  React.createElement('option', { value: 'owner', style: optStyle }, lang === 'ar' ? '👑 المالك' : '👑 Owner')
                 ),
                 React.createElement('textarea', {
                   className: 'input-dark',

@@ -241,18 +241,18 @@ service cloud.firestore {
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/bot_chats/{msgId} {
 
-      // القراءة: المستخدم يقدر يقرأ رسائله هو فقط + الأونر يقرأ الكل
+      // Read: the recipient, the owner, or any staff member can read
       allow read: if isLoggedIn()
-        && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+        && (resource.data.toUserId == request.auth.uid || isStaffInApp(appId));
 
-      // الإنشاء: أي مستخدم مسجّل يقدر يكتب (السيستم والسيرفر يكتبوا رسائل للمستخدمين)
+      // Create: any logged-in user (system/server writes messages for users)
       allow create: if isLoggedIn();
 
-      // التعديل: فقط المستخدم اللي الرسالة موجهة له (عشان mark as read)
+      // Update: recipient marks as read, or any staff member
       allow update: if isLoggedIn()
-        && (resource.data.toUserId == request.auth.uid || isOwnerUID());
+        && (resource.data.toUserId == request.auth.uid || isStaffInApp(appId));
 
-      // الحذف: الأونر فقط
+      // Delete: owner only
       allow delete: if isLoggedIn() && isOwnerUID();
     }
 
