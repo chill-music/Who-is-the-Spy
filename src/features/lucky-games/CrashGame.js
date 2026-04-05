@@ -602,7 +602,7 @@ input[type=number]{-moz-appearance:textfield;}
     const [autoVal, setAutoVal] = useState(1.10);
     const [showHist, setShowHist] = useState(false);
     const [showJackpot, setShowJackpot] = useState(false);
-    const [jackpot, setJackpot] = useState(10615785);
+    const [jackpot, setJackpot] = useState(0);
     const [showHelp, setShowHelp] = useState(false);
     const [helpPage, setHelpPage] = useState(1);
     const [shaking, setShaking] = useState(false);
@@ -872,7 +872,12 @@ input[type=number]{-moz-appearance:textfield;}
       // Jackpot Listener (T013)
       const jpRef = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('jackpot');
       const unsubJp = jpRef.onSnapshot(doc => {
-        if (doc.exists) setJackpot(doc.data().amount || 0);
+        if (!doc.exists) {
+          jpRef.set({ amount: 1000000 }).catch(() => {});
+          setJackpot(1000000);
+        } else {
+          setJackpot(doc.data().amount || 0);
+        }
       });
       return () => {
         unsub();
