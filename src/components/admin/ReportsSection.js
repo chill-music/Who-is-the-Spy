@@ -61,7 +61,15 @@
 
     useEffect(() => {
       if (myRole === 'moderator') {
-        window.fetchStaffList(['admin', 'owner']).then((list) => setStaffList(list));
+        // Fetch both admin and owner as escalation targets
+        if (window.fetchStaffList) {
+          window.fetchStaffList(['admin', 'owner']).then((list) => setStaffList(list));
+        } else {
+          // Fallback: query directly
+          usersCollection.where('role', 'in', ['admin', 'owner']).get().then((snap) => {
+            setStaffList(snap.docs.map((d) => ({ uid: d.id, ...d.data() })));
+          });
+        }
       }
     }, [myRole]);
 
@@ -148,8 +156,8 @@
       ),
 
       r.escalated && !r.resolved && /*#__PURE__*/
-      React.createElement("div", { style: { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', padding: '10px', borderRadius: '8px', marginBottom: '12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', fontWeight: 700, color: '#f59e0b' } }, "\u26A0\uFE0F ", lang === 'ar' ? 'تم تصعيده بواسطة:' : 'Escalated by:', " ", r.escalatedByName), /*#__PURE__*/
+      React.createElement("div", { style: { background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', padding: '10px', borderRadius: '8px', marginBottom: '12px' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '10px', fontWeight: 700, color: '#a78bfa' } }, "\uD83D\uDE80 ", lang === 'ar' ? 'صُعِّدت بواسطة: ' : 'Escalated by: ', r.escalatedByName || '?'), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '10px', color: '#d1d5db', marginTop: '2px' } }, r.escalateNote)
       ),
 
@@ -169,10 +177,10 @@
       ) :
       escalating === r.id ? /*#__PURE__*/
       React.createElement("div", { style: { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', padding: '12px', borderRadius: '10px', marginTop: '8px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#8b5cf6', fontWeight: 700, marginBottom: '8px' } }, "\uD83D\uDE80 ", lang === 'ar' ? 'تصعيد للإدارة الأعلى' : 'Escalate to Admin'), /*#__PURE__*/
-      React.createElement("select", { className: "input-dark", style: { width: '100%', marginBottom: '8px', fontSize: '11px' }, value: selectedEscalateTo, onChange: (e) => setSelectedEscalateTo(e.target.value) }, /*#__PURE__*/
-      React.createElement("option", { value: "" }, lang === 'ar' ? 'اختر المدير...' : 'Select Admin...'),
-      staffList.map((s) => /*#__PURE__*/React.createElement("option", { key: s.uid, value: s.uid }, s.displayName, " (", s.role, ")"))
+      React.createElement("div", { style: { fontSize: '11px', color: '#8b5cf6', fontWeight: 700, marginBottom: '8px' } }, "\uD83D\uDE80 ", lang === 'ar' ? 'تصعيد للإدارة الأعلى' : 'Escalate to Admin/Owner'), /*#__PURE__*/
+      React.createElement("select", { style: { width: '100%', marginBottom: '8px', fontSize: '11px', padding: '8px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', outline: 'none' }, value: selectedEscalateTo, onChange: (e) => setSelectedEscalateTo(e.target.value) }, /*#__PURE__*/
+      React.createElement("option", { value: "", style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'اختر المدير...' : 'Select Admin...'),
+      staffList.map((s) => /*#__PURE__*/React.createElement("option", { key: s.uid, value: s.uid, style: { background: '#1e293b', color: '#e5e7eb' } }, s.displayName, " (", s.role, ")"))
       ), /*#__PURE__*/
       React.createElement("textarea", { className: "input-dark", style: { width: '100%', padding: '8px', borderRadius: '8px', fontSize: '11px', minHeight: '60px', marginBottom: '8px' },
         placeholder: lang === 'ar' ? 'سبب التصعيد...' : 'Reason for escalation...', value: escalateNote, onChange: (e) => setEscalateNote(e.target.value) }), /*#__PURE__*/

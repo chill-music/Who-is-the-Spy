@@ -11,11 +11,15 @@ service cloud.firestore {
     }
 
     function isStaff() {
-      // Check hardcoded owner or fetch from user document
-      return isOwnerUID() || getUserRole() == 'moderator' || getUserRole() == 'admin' || getUserRole() == 'owner';
+      return isOwnerUID();
     }
 
-    function getUserRole() {
+    function isStaffInApp(appId) {
+      let role = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid)).data.role;
+      return isOwnerUID() || role == 'moderator' || role == 'admin' || role == 'owner';
+    }
+
+    function getUserRole(appId) {
       return get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid)).data.role;
     }
 
@@ -88,8 +92,8 @@ service cloud.firestore {
     //  STAFF ACTIVITY LOG
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/staff_activity_log/{logId} {
-      allow read:   if isLoggedIn() && isOwnerUID();
-      allow create: if isLoggedIn() && isStaff();   // ✅ All staff can log their own actions
+      allow read:   if isLoggedIn() && isStaffInApp(appId);   // All staff can view logs
+      allow create: if isLoggedIn() && isStaffInApp(appId);   // All staff can write logs
       allow update: if false;
       allow delete: if false;
     }
@@ -98,9 +102,9 @@ service cloud.firestore {
     //  SUPPORT TICKETS
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/support_tickets/{ticketId} {
-      allow read:   if isLoggedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow read:   if isLoggedIn() && (resource.data.userId == request.auth.uid || isStaffInApp(appId));
       allow create: if isLoggedIn();
-      allow update: if isLoggedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow update: if isLoggedIn() && (resource.data.userId == request.auth.uid || isStaffInApp(appId));
       allow delete: if isLoggedIn() && isOwnerUID();
     }
 
@@ -286,9 +290,9 @@ service cloud.firestore {
     //  📝 FEEDBACK
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/feedback/{fbId} {
-      allow read:   if isLoggedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow read:   if isLoggedIn() && (resource.data.userId == request.auth.uid || isStaffInApp(appId));
       allow create: if isLoggedIn();
-      allow update: if isLoggedIn() && isStaff();
+      allow update: if isLoggedIn() && isStaffInApp(appId);
       allow delete: if isLoggedIn() && isOwnerUID();
     }
 

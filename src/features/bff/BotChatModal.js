@@ -167,11 +167,20 @@
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', paddingBottom: '6px', borderBottom: `1px solid ${botCfg.color}20` } },
       msg.fromPhoto && /*#__PURE__*/
       React.createElement("img", { src: msg.fromPhoto, alt: "", style: { width: '18px', height: '18px', borderRadius: '50%', objectFit: 'cover' } }), /*#__PURE__*/
-
       React.createElement("span", { style: { fontSize: '10px', fontWeight: 700, color: botCfg.color } }, msg.fromName)
       ), /*#__PURE__*/
 
-      React.createElement("div", { style: { wordBreak: 'break-word' } }, msg.message),
+      /* ── Image attachment (broadcast imageURL) ── */
+      msg.imageURL && /*#__PURE__*/
+      React.createElement("img", { src: msg.imageURL, alt: "broadcast", onClick: () => window.open(msg.imageURL),
+        style: { width: '100%', borderRadius: '8px', marginBottom: '8px', cursor: 'pointer', display: 'block', maxHeight: '220px', objectFit: 'cover' } }),
+
+      /* ── Message text: prefer language-specific field ── */
+      React.createElement("div", { style: { wordBreak: 'break-word', direction: lang === 'ar' ? 'rtl' : 'ltr', textAlign: lang === 'ar' ? 'right' : 'left' } },
+        lang === 'ar'
+          ? (msg.message_ar || msg.message || '')
+          : (msg.message_en || msg.message || '')
+      ),
 
       (msg.bffDocId || msg.coupleDocId) && /*#__PURE__*/
       React.createElement("button", {

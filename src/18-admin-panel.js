@@ -21,21 +21,30 @@
     };
 
     var renderSection = () => {
-      var props = { currentUser, currentUserData, lang, onNotification };
+      // onOpenProfile: closes admin panel, then opens user profile modal via window helpers
+      var onOpenProfile = (uid) => {
+        if (!uid) return;
+        onClose(); // close admin panel first
+        setTimeout(() => {
+          if (window._setTargetProfileUID) window._setTargetProfileUID(uid);
+          if (window._setShowUserProfile) window._setShowUserProfile(true);
+        }, 120);
+      };
+      var props = { currentUser, currentUserData, lang, onNotification, onOpenProfile };
       switch (activeTab) {
-        case 'overview':return /*#__PURE__*/React.createElement(window.AdminOverview, { ...props, currentUser });
-        case 'staff':return /*#__PURE__*/React.createElement(window.StaffManagementSection, props);
-        case 'users':return /*#__PURE__*/React.createElement(window.UserManagementSection, props);
-        case 'broadcast':return /*#__PURE__*/React.createElement(window.BroadcastSection, props);
-        case 'logs':return /*#__PURE__*/React.createElement(window.ActivityLogSection, props);
-        case 'reports':return /*#__PURE__*/React.createElement(window.ReportsSection, props);
-        case 'tickets':return /*#__PURE__*/React.createElement(window.TicketsSection, props);
-        case 'moments':return /*#__PURE__*/React.createElement(window.MomentsModerationSection, props);
-        case 'financial':return /*#__PURE__*/React.createElement(window.FinancialLogSection, props);
-        case 'faq':return /*#__PURE__*/React.createElement(window.FAQManagementSection, props);
-        case 'feedback':return /*#__PURE__*/React.createElement(window.FeedbackInboxSection, props);
-        case 'fake':return /*#__PURE__*/React.createElement(window.FakeProfilesSection, props);
-        default:return /*#__PURE__*/React.createElement(window.AdminOverview, props);
+        case 'overview':  return /*#__PURE__*/React.createElement(window.AdminOverview, { ...props, currentUser });
+        case 'staff':     return /*#__PURE__*/React.createElement(window.StaffManagementSection, props);
+        case 'users':     return /*#__PURE__*/React.createElement(window.UserManagementSection, props);
+        case 'broadcast': return /*#__PURE__*/React.createElement(window.BroadcastSection, props);
+        case 'logs':      return /*#__PURE__*/React.createElement(window.ActivityLogSection, props);
+        case 'reports':   return /*#__PURE__*/React.createElement(window.ReportsSection, props);
+        case 'tickets':   return /*#__PURE__*/React.createElement(window.TicketsSection, props);
+        case 'moments':   return /*#__PURE__*/React.createElement(window.MomentsModerationSection, props);
+        case 'financial': return /*#__PURE__*/React.createElement(window.FinancialLogSection, props);
+        case 'faq':       return /*#__PURE__*/React.createElement(window.FAQManagementSection, props);
+        case 'feedback':  return /*#__PURE__*/React.createElement(window.FeedbackInboxSection, props);
+        case 'fake':      return /*#__PURE__*/React.createElement(window.FakeProfilesSection, props);
+        default:          return /*#__PURE__*/React.createElement(window.AdminOverview, props);
       }
     };
 
