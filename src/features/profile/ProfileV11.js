@@ -73,7 +73,6 @@
     var [guardLockedUntil, setGuardLockedUntil] = useState(null); // timestamp of next unlock
     var guardCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('guard_log');
 
-    var [activeTab, setActiveTab] = useState('about');
     var optionsRef = useRef(null);
 
     useEffect(() => {
@@ -492,108 +491,96 @@
         isOwnProfile: isOwnProfile }
       ), /*#__PURE__*/
 
-      React.createElement(ProfileTabs, { activeTab: activeTab, setActiveTab: setActiveTab, lang: lang }),
+      /* unified scrollable profile container */
+      React.createElement("div", { className: "profile-scroll-container", style: { overflowY: 'auto', overflowX: 'hidden', flex: 1, paddingBottom: '24px' } },
 
-      activeTab === 'about' && /*#__PURE__*/
-      React.createElement("div", { className: "profile-tab-content animate-fade-in" }, /*#__PURE__*/
-      React.createElement(ProfileStats, { wins: wins, losses: losses, charismaRank: charismaRank, level: level, lang: lang }),
-      !loading && targetData && /*#__PURE__*/
-      React.createElement(BFFStripProfile, {
-        targetUID: targetUID,
-        currentUID: currentUserUID,
-        currentUserData: userData,
-        lang: lang,
-        onNotification: onNotification,
-        friendsData: null,
-        onOpenBFFModal: onOpenBFFModal }
-      ),
+        /* 1. Moments */
+        React.createElement("div", { style: { marginTop: '8px' } },
+          React.createElement(MomentsSection, { ownerUID: targetUID, ownerName: targetData?.displayName, ownerPhoto: targetData?.photoURL, currentUser: userData, isOwnProfile: isOwnProfile, lang: lang, onOpenProfile: onOpenProfile })
+        ),
 
-      !loading && targetData && /*#__PURE__*/
-      React.createElement("div", {
-        onClick: () => setShowGuardModal(true),
-        style: {
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '8px 12px',
-          margin: '0',
-          background: 'linear-gradient(135deg,rgba(0,212,255,0.05),rgba(112,0,255,0.05))',
-          borderTop: '1px solid rgba(0,212,255,0.08)',
-          borderBottom: '1px solid rgba(0,212,255,0.08)',
-          cursor: 'pointer',
-          transition: 'background 0.15s'
-        },
-        onMouseEnter: (e) => {e.currentTarget.style.background = 'linear-gradient(135deg,rgba(0,212,255,0.09),rgba(112,0,255,0.09))';},
-        onMouseLeave: (e) => {e.currentTarget.style.background = 'linear-gradient(135deg,rgba(0,212,255,0.05),rgba(112,0,255,0.05))';} }, /*#__PURE__*/
+        /* 2. Gift Wall */
+        React.createElement("div", { style: { marginTop: '8px' } },
+          React.createElement(GiftWallV11, { gifts: gifts, lang: lang, isOwnProfile: isOwnProfile, userData: userData, onOpenProfile: onOpenProfile, onSendGiftToSelf: isGuestProp ? null : (gift) => {setSelfGift(gift);setShowSelfGiftModal(true);} })
+        ),
 
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', flex: 1 } }, /*#__PURE__*/
-      React.createElement("div", null, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '12px', fontWeight: 800, color: '#e5e7eb', letterSpacing: '-0.2px' } }, "Guard"),
-      !isOwnProfile && isLoggedInProp && currentUserFriends?.includes(targetUID) && /*#__PURE__*/
-      React.createElement("div", {
-        onClick: (e) => {e.stopPropagation();handleGiveGuard();},
-        style: {
-          display: 'inline-flex', alignItems: 'center', gap: '3px',
-          fontSize: '9px', fontWeight: 700, marginTop: '2px',
-          padding: '2px 7px', borderRadius: '5px', cursor: guardGiven ? 'default' : 'pointer',
-          background: guardGiven ? 'rgba(107,114,128,0.15)' : 'linear-gradient(135deg,rgba(0,212,255,0.2),rgba(112,0,255,0.2))',
-          border: guardGiven ? '1px solid rgba(107,114,128,0.2)' : '1px solid rgba(0,212,255,0.35)',
-          color: guardGiven ? '#6b7280' : '#00f2ff',
-          transition: 'all 0.15s'
-        } },
+        /* 3. Stats & About */
+        React.createElement("div", { style: { marginTop: '8px' } },
+          React.createElement(ProfileStats, { wins: wins, losses: losses, charismaRank: charismaRank, level: level, lang: lang }),
+          
+          !loading && targetData && /*#__PURE__*/
+          React.createElement(BFFStripProfile, {
+            targetUID: targetUID,
+            currentUID: currentUserUID,
+            currentUserData: userData,
+            lang: lang,
+            onNotification: onNotification,
+            friendsData: null,
+            onOpenBFFModal: onOpenBFFModal }
+          ),
 
-      guardGiven ? /*#__PURE__*/React.createElement(React.Fragment, null, "\uD83D\uDD12 ", lang === 'ar' ? 'غداً' : 'Tomorrow') : /*#__PURE__*/React.createElement(React.Fragment, null, "\u2728 ", lang === 'ar' ? 'أعطِ حماية' : 'Give Guard')
-      )
+          !loading && targetData && /*#__PURE__*/
+          React.createElement("div", {
+            onClick: () => setShowGuardModal(true),
+            style: {
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 12px',
+              margin: '0',
+              background: 'linear-gradient(135deg,rgba(0,212,255,0.05),rgba(112,0,255,0.05))',
+              borderTop: '1px solid rgba(0,212,255,0.08)',
+              borderBottom: '1px solid rgba(0,212,255,0.08)',
+              cursor: 'pointer',
+              transition: 'background 0.15s'
+            },
+            onMouseEnter: (e) => {e.currentTarget.style.background = 'linear-gradient(135deg,rgba(0,212,255,0.09),rgba(112,0,255,0.09))';},
+            onMouseLeave: (e) => {e.currentTarget.style.background = 'linear-gradient(135deg,rgba(0,212,255,0.05),rgba(112,0,255,0.05))';} }, /*#__PURE__*/
 
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', direction: 'ltr' } },
-      [0, 1, 2].map((i) => {
-        var g = guardData[i];
-        var colors = ['#f5a623', '#b0b8c8', '#e07b9a'];
-        return (/*#__PURE__*/
-          React.createElement("div", { key: i, style: {
-              width: '38px', height: '38px', borderRadius: '50%',
-              border: `2.5px solid ${colors[i]}`,
-              overflow: 'hidden', flexShrink: 0,
-              marginLeft: i > 0 ? '-10px' : '0',
-              background: '#1a1a2e',
-              zIndex: 10 - i
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', flex: 1 } }, /*#__PURE__*/
+          React.createElement("div", null, /*#__PURE__*/
+          React.createElement("div", { style: { fontSize: '12px', fontWeight: 800, color: '#e5e7eb', letterSpacing: '-0.2px' } }, "Guard"),
+          !isOwnProfile && isLoggedInProp && currentUserFriends?.includes(targetUID) && /*#__PURE__*/
+          React.createElement("div", {
+            onClick: (e) => {e.stopPropagation();handleGiveGuard();},
+            style: {
+              display: 'inline-flex', alignItems: 'center', gap: '3px',
+              fontSize: '9px', fontWeight: 700, marginTop: '2px',
+              padding: '2px 7px', borderRadius: '5px', cursor: guardGiven ? 'default' : 'pointer',
+              background: guardGiven ? 'rgba(107,114,128,0.15)' : 'linear-gradient(135deg,rgba(0,212,255,0.2),rgba(112,0,255,0.2))',
+              border: guardGiven ? '1px solid rgba(107,114,128,0.2)' : '1px solid rgba(0,212,255,0.35)',
+              color: guardGiven ? '#6b7280' : '#00f2ff',
+              transition: 'all 0.15s'
             } },
-          g?.photo ? /*#__PURE__*/React.createElement("img", { src: g.photo, style: { width: '100%', height: '100%', objectFit: 'cover' }, alt: "" }) : /*#__PURE__*/React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4b5563', fontSize: '14px' } }, "\uD83D\uDC64")
-          ));
 
-      })
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '16px', color: '#6b7280', marginLeft: '4px' } }, "\u203A")
-      )
-      )
+          guardGiven ? /*#__PURE__*/React.createElement(React.Fragment, null, "\uD83D\uDD12 ", lang === 'ar' ? 'غداً' : 'Tomorrow') : /*#__PURE__*/React.createElement(React.Fragment, null, "\u2728 ", lang === 'ar' ? 'أعطِ حماية' : 'Give Guard')
+          )
 
-      ),
+          )
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px' } }, /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', direction: 'ltr' } },
+          [0, 1, 2].map((i) => {
+            var g = guardData[i];
+            var colors = ['#f5a623', '#b0b8c8', '#e07b9a'];
+            return (/*#__PURE__*/
+              React.createElement("div", { key: i, style: {
+                  width: '38px', height: '38px', borderRadius: '50%',
+                  border: `2.5px solid ${colors[i]}`,
+                  overflow: 'hidden', flexShrink: 0,
+                  marginLeft: i > 0 ? '-10px' : '0',
+                  background: '#1a1a2e',
+                  zIndex: 10 - i
+                } },
+              g?.photo ? /*#__PURE__*/React.createElement("img", { src: g.photo, style: { width: '100%', height: '100%', objectFit: 'cover' }, alt: "" }) : /*#__PURE__*/React.createElement("div", { style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4b5563', fontSize: '14px' } }, "\uD83D\uDC64")
+              ));
 
-
-      activeTab === 'games' && /*#__PURE__*/
-      React.createElement("div", { className: "profile-tab-content animate-fade-in" }, /*#__PURE__*/
-      React.createElement(ProfileStats, { wins: wins, losses: losses, charismaRank: charismaRank, level: level, lang: lang }), /*#__PURE__*/
-      React.createElement(AchievementsDisplayV11, { userData: targetData, lang: lang, showAll: true })
-      ),
-
-
-      activeTab === 'friends' && /*#__PURE__*/
-      React.createElement("div", { className: "profile-tab-content animate-fade-in" }, /*#__PURE__*/
-      React.createElement(ProfileFriendsSection, { targetData: targetData, friendsData: friendsData, lang: lang, onOpenProfile: onOpenProfile })
-      ),
-
-
-      activeTab === 'gifts' && /*#__PURE__*/
-      React.createElement("div", { className: "profile-tab-content animate-fade-in" }, /*#__PURE__*/
-      React.createElement(GiftWallV11, { gifts: gifts, lang: lang, isOwnProfile: isOwnProfile, userData: userData, onOpenProfile: onOpenProfile, onSendGiftToSelf: isGuestProp ? null : (gift) => {setSelfGift(gift);setShowSelfGiftModal(true);} })
-      ),
-
-
-      activeTab === 'moments' && /*#__PURE__*/
-      React.createElement("div", { className: "profile-tab-content animate-fade-in" }, /*#__PURE__*/
-      React.createElement(MomentsSection, { ownerUID: targetUID, ownerName: targetData?.displayName, ownerPhoto: targetData?.photoURL, currentUser: userData, isOwnProfile: isOwnProfile, lang: lang, onOpenProfile: onOpenProfile })
-      ),
+          })
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { fontSize: '16px', color: '#6b7280', marginLeft: '4px' } }, "\u203A")
+          ) // Closes Right side
+          ), /*#__PURE__*/ // Closes Guard outer div
+          React.createElement(AchievementsDisplayV11, { userData: targetData, lang: lang, showAll: true })
+        ) // Closes Stats & About div
+      ), /* End of profile-scroll-container */
 
 
 
@@ -757,9 +744,7 @@
       )
       )
       ), /*#__PURE__*/
-
-
-      React.createElement(AchievementsDisplayV11, { userData: targetData, lang: lang }),
+      /* Achievements removed from here and moved into Stats div */
 
       isBlocked && !isOwnProfile && /*#__PURE__*/
       React.createElement("div", { className: "profile-blocked-notice" }, /*#__PURE__*/

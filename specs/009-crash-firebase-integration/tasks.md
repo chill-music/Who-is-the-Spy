@@ -79,7 +79,7 @@
 - [x] T012 [P] [US5] Build the exact Jackpot dialog (`<JackpotModal />`) capturing text definitions, standard percentage distribution boxes (10%, 30%, 70%), and layout logic identically as outlined in the image reference.
 - [x] T013 [US5] Bind the Jackpot top bar counter functionally to `crash_game/jackpot`.
 - [x] T014 [US5] Program mathematical accumulator (`+0.68x` logic) into user success claims, saving to `users/{uid}/jackpot_progress`.
-- [x] T015 [US5] Build the active `Leaderboard` internal representation feeding top 3 profiles internally into the UI per image reference.
+- [ ] T015 [US5] Build the dynamic `Leaderboard` UI component by replacing placeholders (#1 Ninja2, etc.) and fetch the real top 3 highest-multiplier winners from a new database section.
 
 ---
 
@@ -103,6 +103,7 @@
 - [x] T018 [P] [US7] Modify `drawScene()` mathematically to calculate the tangential arc slope `Math.atan2(dy, dx)`.
 - [x] T019 [US7] Update stroke translation `ctx.rotate(angle)` so the rocket nose perfectly tracks the rising trajectory line.
 - [x] T020 [US7] Adjust exhaust and `halo` gradient renders locally strictly onto `lx, ly` reflecting fire shooting backward relative to trajectory.
+- [ ] T020a [US7] Adjust canvas translation coordinates to ensure the rocket draws exactly on top of the path line (not sideways) matching the image.
 
 ---
 
@@ -114,3 +115,13 @@
 
 - [x] T021 [P] [US8] Update global routing in `16-main.js` (or appropriate layout file) to link the `CrashGame` naturally into the 'Luck Games' unified UI panel.
 - [x] T022 [P] [US8] Embed `Avatar` component (or `img`) bound to `user.avatar` with their explicit `avatarFrame` mapping clicking behavior natively to `openProfile(uid)` inside `CrashGame`.
+
+---
+
+## Phase 11: User Story 9 - Arabic Language Localization (Priority: P2)
+
+**Goal**: Support real-time Arabic text switching using the `lang` prop.
+
+### Implementation for User Story 9
+
+- [ ] T023 [US9] Audit all English strings in `CrashGame` and replace with ternary `lang === 'ar' ? '...' : '...'` logic, without causing data loss or modifying active logic.

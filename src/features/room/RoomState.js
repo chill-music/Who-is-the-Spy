@@ -171,21 +171,34 @@
                         return; 
                     }
                     
-                    var players = data.players || [];
-                    var exists = players.find(function(p) { return p.uid === uid; });
+                    // Normalize players list for search (Compatible with Array or Object)
+                    var playersData = data.players || {};
+                    var playersArray = Array.isArray(playersData) ? playersData : Object.values(playersData);
+                    var exists = playersArray.find(function(p) { return p.uid === uid; });
                     
                     if (!exists) { 
-                        await ref.update({ 
-                            players: firebase.firestore.FieldValue.arrayUnion({ 
-                                uid: uid, 
-                                name: nickname, 
-                                status: 'active', 
-                                photo: this.getDefaultPhoto(tempUserData, nickname), 
-                                role: null, 
-                                equipped: tempUserData?.equipped || {}, 
-                                vip: tempUserData?.vip || {} 
-                            }) 
-                        }); 
+                        var newPlayerData = { 
+                            uid: uid, 
+                            name: nickname, 
+                            status: 'active', 
+                            photo: this.getDefaultPhoto(tempUserData, nickname), 
+                            role: null, 
+                            equipped: tempUserData?.equipped || {}, 
+                            vip: tempUserData?.vip || {} 
+                        };
+
+                        if (Array.isArray(playersData)) {
+                            // Legacy Array update
+                            await ref.update({ 
+                                players: firebase.firestore.FieldValue.arrayUnion(newPlayerData) 
+                            }); 
+                        } else {
+                            // Rebuild Object (Map) update
+                            await ref.update({
+                                [`players.${uid}`]: newPlayerData,
+                                playerOrder: firebase.firestore.FieldValue.arrayUnion(uid)
+                            });
+                        }
                     }
                     
                     if (typeof setRoomId === 'function') setRoomId(roomIdClean);
@@ -229,13 +242,23 @@
                     // Admin leaves → delete room
                     await roomsCollection.doc(roomId).delete(); 
                 } else { 
-                    // Member leaves → remove from players array
-                    var updatedPlayers = (room.players || []).filter(function(p) { 
-                        return p.uid !== currentUID; 
-                    });
-                    await roomsCollection.doc(roomId).update({ 
-                        players: updatedPlayers 
-                    }); 
+                    // Member leaves → remove from players structure
+                    var playersData = room.players || {};
+                    if (Array.isArray(playersData)) {
+                        // Legacy Array remove
+                        var updatedPlayers = playersData.filter(function(p) { 
+                            return p.uid !== currentUID; 
+                        });
+                        await roomsCollection.doc(roomId).update({ 
+                            players: updatedPlayers 
+                        }); 
+                    } else {
+                        // Rebuild Object (Map) remove
+                        await roomsCollection.doc(roomId).update({
+                            [`players.${currentUID}`]: firebase.firestore.FieldValue.delete(),
+                            playerOrder: firebase.firestore.FieldValue.arrayRemove(currentUID)
+                        });
+                    }
                 }
                 
                 if (typeof setRoom === 'function') setRoom(null);

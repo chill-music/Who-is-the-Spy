@@ -37,6 +37,7 @@ As a community member, I want to contribute to and potentially win a massive glo
 1. Clicking "Jackpot" opens a modal perfectly matching the provided reference image (UI/design layout).
 2. Users see their `jackpot_progress` accumulate (e.g. +0.68x) aiming towards 80,000x.
 3. The system maps the 10%, 30%, 70% bet distribution bounds accurately to the prize pools.
+4. The Global Jackpot box fetches and displays real users from a new database section tracking the top three highest-multiplier winners, replacing the placeholder names.
 
 ### User Story 6 - Historical Records Viewer (Priority: P2)
 As a strategist, I want a log of the last 20 outcomes clearly tagged with the newest events.
@@ -45,10 +46,11 @@ As a strategist, I want a log of the last 20 outcomes clearly tagged with the ne
 2. The most recent log receives a distinct "NEW" tag exactly matching requirements.
 
 ### User Story 7 - Tilted Rocket Visual Overhaul (Priority: P2)
-As an immersed player, I expect the rocket to physically tilt along its calculated trajectory rather than moving horizontally.
+As an immersed player, I expect the rocket to physically tilt along its calculated trajectory and rest directly on top of the plotted line, matching the reference image perfectly.
 **Acceptance**
 1. Canvas computes tangential arc paths so the rocket rotates diagonally upwards.
-2. The exhaust flames strictly align behind the rotated nose vector.
+2. The rocket is positioned directly on top of the path line itself (not below it or sideways).
+3. The exhaust flames strictly align behind the rotated nose vector.
 
 ### User Story 8 - Consistent Player Immersion and Avatar Integration (Priority: P3)
 As a user, I want my active platform Avatar and Avatar-Frame substituted into the game removing legacy static elements.
@@ -56,6 +58,12 @@ As a user, I want my active platform Avatar and Avatar-Frame substituted into th
 1. Global `16-main.js` Luck Games routing injects safely to Crash.
 2. Static "309MS" design string and `🏠` icon are deleted.
 3. `<Avatar>` component loads with frame logic and triggers `openProfile()` on click.
+
+### User Story 9 - Arabic Language Localization (Priority: P2)
+As a player, I want all textual elements in the interface translated so that I can play comfortably if I switch the platform language to Arabic.
+**Acceptance**
+1. Every English string is accompanied by an Arabic equivalent.
+2. The UI instantly updates to reflect the active language selection (`lang === 'ar'`).
 
 ## Requirements *(mandatory)*
 

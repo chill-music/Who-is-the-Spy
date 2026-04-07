@@ -6,7 +6,7 @@
 
 var _criticalComponents = [
 'App', 'ErrorBoundary',
-'LobbyView', 'RoomView', 'GlobalModals', 'BannedScreen',
+'LobbyView', 'GlobalModals', 'BannedScreen',
 'AvatarWithFrame', 'AvatarComponent',
 'useAuthState', 'useAppUIState', 'useOnboarding',
 'useGameActions', 'useUserListeners',
@@ -19,7 +19,8 @@ var _secondaryComponents = [
   'SettingsModal', 'BrowseRoomsModal', 'PrivateChatModal',
   'SelfChatModal', 'FunPassModal', 'FamilyModal', 'FamilyChatModal',
   'LoginRewards', 'WeddingHallModal', 'BFFModal', 'BotChatModal',
-  'LuckyGamesHubModal', 'TutorialModal', 'HelpCenterModal', 'PublicChatModal'
+  'LuckyGamesHubModal', 'TutorialModal', 'HelpCenterModal', 'PublicChatModal',
+  'SpyGame'
 ];
 
 var _allComponents = _criticalComponents.concat(_secondaryComponents);

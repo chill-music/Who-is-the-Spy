@@ -651,60 +651,15 @@
 
 
 
-      showSetupModal && /*#__PURE__*/
-      React.createElement("div", { className: "modal-overlay", onClick: () => setShowSetupModal(false) }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
-      React.createElement("h2", { className: "modal-title" }, t.create),
-      window.ModalCloseBtn && /*#__PURE__*/React.createElement(window.ModalCloseBtn, { onClose: () => setShowSetupModal(false) })
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-body" }, /*#__PURE__*/
-      React.createElement("div", { className: "space-y-3" }, /*#__PURE__*/
-      React.createElement("div", null, /*#__PURE__*/
-      React.createElement("label", { className: "text-[10px] text-gray-400 block mb-1" }, t.nickname), /*#__PURE__*/
-      React.createElement("input", {
-        className: "input-dark w-full p-2 rounded font-bold text-sm",
-        value: nickname,
-        onChange: (e) => {setNickname(e.target.value);localStorage.setItem('pro_spy_nick', e.target.value);},
-        placeholder: t.nickname }
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "flex gap-2" }, /*#__PURE__*/
-      React.createElement("button", { onClick: () => setSetupMode('normal'), className: `flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'normal' ? 'btn-neon' : 'btn-ghost'}` }, t.normalMode), /*#__PURE__*/
-      React.createElement("button", { onClick: () => setSetupMode('advanced'), className: `flex-1 py-2 rounded-lg text-xs font-bold ${setupMode === 'advanced' ? 'btn-neon' : 'btn-ghost'}` }, t.advancedMode)
-      ), /*#__PURE__*/
-      React.createElement("p", { className: "text-[10px] text-gray-400 text-center" }, setupMode === 'normal' ? t.modeNormalDesc : t.modeAdvDesc), /*#__PURE__*/
-      React.createElement("div", { className: "flex items-center gap-2" }, /*#__PURE__*/
-      React.createElement("input", { type: "checkbox", checked: isPrivate, onChange: (e) => setIsPrivate(e.target.checked), id: "privateCheck" }), /*#__PURE__*/
-      React.createElement("label", { htmlFor: "privateCheck", className: "text-xs" }, t.privateRoom)
-      ),
-      isPrivate && /*#__PURE__*/
-      React.createElement("div", { className: "relative" }, /*#__PURE__*/
-      React.createElement("input", {
-        type: showPassword ? 'text' : 'password',
-        value: password,
-        onChange: (e) => setPassword(e.target.value),
-        placeholder: t.password,
-        className: "input-dark w-full p-2 pr-10 rounded text-sm" }
-      ), /*#__PURE__*/
-      React.createElement("button", { type: "button", onClick: () => setShowPassword(!showPassword), className: "absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" },
-      showPassword ? '🙈' : '👁️'
-      )
-      )
-
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-footer" }, /*#__PURE__*/
-      React.createElement("button", {
-        onClick: handleCreateGame,
-        disabled: loading || !nickname.trim(),
-        className: "btn-neon w-full py-2 rounded-lg text-sm font-bold" },
-
-      loading ? t.loading : t.create
-      )
-      )
-      )
-      ),
+      showSetupModal && window.SpyModeSelector && /*#__PURE__*/
+      React.createElement(window.SpyModeSelector, {
+        user: user,
+        nickname: nickname,
+        onClose: () => setShowSetupModal(false),
+        onSelectMode: (mode, options) => {
+          handleCreateGame(mode, options);
+        }
+      }),
 
 
       showLuckyGames && window.LuckyGamesHubModal && /*#__PURE__*/

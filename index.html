@@ -25,7 +25,7 @@
     <!-- ⚡ ULTIMATE CACHE-BUSTING INTERCEPTOR ⚡ -->
     <script>
         /* Change this version number whenever you update the site to force all mobile caches to flush! */
-        window.PRO_SPY_VERSION = "2.5";
+        window.PRO_SPY_VERSION = "2.7";
 
         // Intercept XMLHttpRequest (legacy compatibility)
         var originalXHROpen = XMLHttpRequest.prototype.open;
@@ -237,13 +237,11 @@
 
     <!-- App Feature Modules -->
     <script defer src="src/features/room/RoomState.js?v=2.5"></script>
-    <script defer src="src/features/game/GameLogic.js?v=2.5"></script>
     <script defer src="src/features/chat/ChatManager.js?v=2.5"></script>
 
     <script defer src="src/features/app/components/BannedScreen.js?v=2.5"></script>
     <script defer src="src/features/app/components/RankingView.js?v=2.5"></script>
     <script defer src="src/features/app/components/LobbyView.js?v=2.5"></script>
-    <script defer src="src/features/app/components/RoomView.js?v=2.5"></script>
 
     <!-- 11 · Self Chat Modal -->
     <script defer src="src/11-modal-selfchat.js?v=2.5"></script>
@@ -271,7 +269,6 @@
     <script defer src="src/features/profile/GiftWallDetailModal.js?v=2.5"></script>
     <script defer src="src/features/profile/GiftWall.js?v=2.5"></script>
     <script defer src="src/features/profile/ProfileStats.js?v=2.5"></script>
-    <script defer src="src/features/profile/ProfileTabs.js?v=2.5"></script>
     <script defer src="src/features/profile/AchievementsDisplay.js?v=2.5"></script>
     <script defer src="src/features/profile/ProfileEffects.js?v=2.5"></script>
     <script defer src="src/features/profile/ProfileIdentityElements.js?v=2.5"></script>
@@ -352,6 +349,14 @@
     <script defer src="src/features/lucky-games/SoccerStarGame.js?v=2.5"></script>
     <script defer src="src/features/lucky-games/CrashGame.js?v=2.5"></script>
     <script defer src="src/features/lucky-games/LuckyGamesHub.js?v=2.5"></script>
+
+    <!-- Features: Spy Game Rebuild (5-File Architecture) -->
+    <script defer src="src/features/spy-rebuild/SpyGame-config.js?v=2.7"></script>
+    <script defer src="src/features/spy-rebuild/SpyGame-firebase.js?v=2.7"></script>
+    <script defer src="src/features/spy-rebuild/SpyGame-offline.js?v=2.7"></script>
+    <script defer src="src/features/spy-rebuild/SpyGame-online.js?v=2.7"></script>
+    <script defer src="src/features/spy-rebuild/SpyGame-ui.js?v=2.7"></script>
+
 
     <!-- App Shell: GlobalModals + App (must come AFTER all feature scripts) -->
     <script defer src="src/features/app/components/GlobalModals.js?v=2.5"></script>

@@ -17,6 +17,7 @@
         setRoom,
         setRoomId,
         setShowSummary,
+        setShowSpyRebuild,
         incrementMissionProgress,
         checkAndUnlockAchievements
     }) => {
@@ -27,6 +28,10 @@
                 if (doc.exists) {
                     var data = doc.data();
                     setRoom(data);
+
+                    if (data.isAdvanced && typeof setShowSpyRebuild === 'function') {
+                        setShowSpyRebuild(true);
+                    }
 
                     // 🛡️ Guard: only write history ONCE per room per session
                     var alreadyWritten = (historyWrittenRooms && historyWrittenRooms.current) 

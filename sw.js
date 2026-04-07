@@ -7,8 +7,8 @@
    SW install timing out while caching 100+ files.
 ═══════════════════════════════════════════════════════════════════ */
 
-var CACHE_V       = 'pro-spy-v11';
-var CACHE_LAZY_V  = 'pro-spy-lazy-v11';
+var CACHE_V       = 'pro-spy-v12';
+var CACHE_LAZY_V  = 'pro-spy-lazy-v12';
 
 /* ── Critical files (must cache on install) ───────────────────── */
 var CRITICAL = [
@@ -57,7 +57,6 @@ var LAZY = [
   './src/features/app/components/BannedScreen.js',
   './src/features/app/components/LobbyView.js',
   './src/features/app/components/RankingView.js',
-  './src/features/app/components/RoomView.js',
   './src/11-modal-selfchat.js',
   './src/12-modal-funpass.js',
   './src/13-modal-chat.js',
@@ -159,7 +158,15 @@ var LAZY = [
   './src/features/lucky-games/soccer-star.css',
   './src/features/lucky-games/super777.css',
   './src/app/AppHooks.js',
-  './src/features/game/GameLogic.js',
+  './src/features/spy-rebuild/services/RoleEngine.js',
+  './src/features/spy-rebuild/services/OnlineService.js',
+  './src/features/spy-rebuild/components/ModeSelector.js',
+  './src/features/spy-rebuild/components/PassPlayView.js',
+  './src/features/spy-rebuild/components/LobbyView.js',
+  './src/features/spy-rebuild/components/GamePanel.js',
+  './src/features/spy-rebuild/components/RoleCard.js',
+  './src/features/spy-rebuild/components/TransitionScreen.js',
+  './src/features/spy-rebuild/SpyGameRebuild.js',
   './icos/icon-48.png',
   './icos/icon-72.png',
   './icos/icon-96.png',

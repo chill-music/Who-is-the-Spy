@@ -115,7 +115,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       showVIPCenter, setShowVIPCenter, showHelpCenter, setShowHelpCenter, showPublicChat, setShowPublicChat,
       showGuestMenu, setShowGuestMenu, gameChatInput, setGameChatInput,
       showGameChat, setShowGameChat, gameChatRef,
-      showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget
+      showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
+      showSpyRebuild, setShowSpyRebuild
     } = uiState;
 
     // ── Auth & Logic Hooks ──
@@ -233,7 +234,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
     useRoom({
       roomId, user, isLoggedIn, userData, coupleData, historyWrittenRooms,
-      setRoom, setRoomId, setShowSummary,
+      setRoom, setRoomId, setShowSummary, setShowSpyRebuild,
       incrementMissionProgress: gameActions.incrementMissionProgress,
       checkAndUnlockAchievements: gameActions.checkAndUnlockAchievements
     });
@@ -320,7 +321,9 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     // ── Computed values needed for render ──
     var fmtNum = window.fmtNum || ((n) => (n || 0).toLocaleString());
     var isMyTurn = room?.currentTurnUID === currentUID;
-    var me = room?.players?.find((p) => p.uid === currentUID);
+    var me = Array.isArray(room?.players) 
+      ? room.players.find((p) => (p.uid || p.id) === currentUID) 
+      : (room?.players ? room.players[currentUID] : null);
     var myRole = me?.role;
     var isSpectator = me?.status === 'spectator' || me?.status === 'ghost';
     var hasVoted = room?.votes?.[currentUID];
@@ -508,7 +511,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             loading: loading, joinError: joinError,
             handleJoinGame: gameActions.handleJoinGame,
             handleCreateGame: gameActions.handleCreateGame,
-            setShowSetupModal: setShowSetupModal,
+            setShowSetupModal: (v) => v ? setShowSpyRebuild(true) : setShowSetupModal(false),
             setShowBrowseRooms: setShowBrowseRooms,
             setShowMyAccount: setShowMyAccount,
             setShowPublicChat: setShowPublicChat,
@@ -1006,7 +1009,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             room: room, roomId: roomId, currentUID: currentUID, OWNER_UID: OWNER_UID, lang: lang, t: t,
             myRole: window.GameService ? window.GameService.getMyRole(room, currentUID) : myRole,
             isMyTurn: isMyTurn,
-            isSpectator: !room.players.find((p) => p.uid === currentUID),
+            isSpectator: !me,
             me: me,
             turnTimer: turnTimer, wordSelTimer: wordSelTimer, votingTimer: votingTimer,
             hasVoted: hasVoted,
@@ -1055,7 +1058,22 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
 
         showPWAInstall && /*#__PURE__*/
-        React.createElement(PWAInstallPopup, { lang: lang, onClose: () => setShowPWAInstall(false) })
+        React.createElement(PWAInstallPopup, { lang: lang, onClose: () => setShowPWAInstall(false) }),
+
+        showSpyRebuild && window.SpyGameRebuild && /*#__PURE__*/
+        React.createElement(window.SpyGameRebuild, { 
+          user: user,
+          userData: currentUserData,
+          initialRoomCode: roomId,
+          onClose: () => {
+            setShowSpyRebuild(false);
+            if (roomId) {
+              setRoomId('');
+              setRoom(null);
+            }
+          },
+          setShowBrowseRooms: setShowBrowseRooms
+        })
 
       ));
 

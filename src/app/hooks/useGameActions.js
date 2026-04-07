@@ -206,9 +206,14 @@
         }, [isLoggedIn, user, userData]);
 
         // ── Room & Game Actions ──
-        var handleCreateGame = useCallback(async () => {
+        var handleCreateGame = useCallback(async (mode, options = {}) => {
             window.RoomService.handleCreateGame({
-                nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang,
+                nickname, 
+                isPrivate: options.isPrivate !== undefined ? options.isPrivate : isPrivate, 
+                password: (options.isPasswordProtected && options.password) ? options.password : (isPrivate ? password : null), 
+                currentUID, currentUserData, 
+                setupMode: mode || setupMode, 
+                t, lang,
                 setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound
             });
         }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound]);

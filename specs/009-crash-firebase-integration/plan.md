@@ -36,7 +36,7 @@ Integrate the currently isolated CrashGame client with the unified Firebase stac
 - **UI Exact Match**: Clicking the Jackpot value will open a new modal exactly matching the provided image:
   - Header: "jackpot" with a blue gradient and close X.
   - Multiplier Track: Progress bar showing x2, x40, x280, x1000, x10000, x80000 with a rocket icon.
-  - Top Players: A leaderboard showing the top 3 players' current accumulated multipliers and progress bars.
+  - Top Players: Real users fetched from a new database section tracking the top three highest-multiplier winners, replacing placeholders (e.g., #1 Ninja2). When a player wins with a high multiplier, they populate this list.
   - Rules Text: Word-for-word copy of the accumulation rules provided in the image.
   - Prize Distribution Boxes: 
     - 10% (Bet 10~1000)
@@ -54,13 +54,18 @@ Integrate the currently isolated CrashGame client with the unified Firebase stac
 
 ### 5. Canvas Graphics Upgrade (Tilted Rocket)
 - Modify the `drawScene` function inside `CrashGame.jsx` to dynamically calculate the tangential angle of the curve path.
-- Rotate the rocket emoji/graphic `Math.atan2(dy, dx)` so the nose points along the travel vector.
-- Align the exhaust glow and flame streaks precisely linearly behind the rocket to ensure visual accuracy to the provided reference picture.
+- Rotate the rocket image/graphic `Math.atan2(dy, dx)` so the nose points along the travel vector.
+- Apply a translation offset so the rocket appears physically *on top of* the drawn trajectory line, not below or sideways, precisely matching the uploaded reference image.
+- Align the exhaust glow and flame streaks precisely linearly behind the rocket.
 
 ### 6. Immersion & Navigation updates
 - Replace the static text `309MS` and the `🏠` icon with the avatar component pointing to `user.avatar` and `user.avatarFrame`. 
 - Clicking the avatar fires the `openProfile` modal.
 - Append CrashGame routing to the standard `Luck Games` entrypoint.
+
+### 7. Arabic Language Localization
+- Map all hardcoded English strings in the UI to ternary expressions checking the `lang` prop (e.g., `lang === 'ar' ? 'العربية' : 'English'`).
+- Ensure NO logic is deleted or altered; only the textual presentation is translated dynamically.
 
 ## User Review Required
 
