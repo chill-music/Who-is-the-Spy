@@ -1010,14 +1010,15 @@
         if (!user) return;
         const db = window.firebase?.firestore ? window.firebase.firestore() : null;
         if (!db) { setLoading(false); return; }
+        const usersRef = window.usersCollection || db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('users');
         // Try reading from the current user's friend list sub-collection or the users doc
-        db.collection('users').doc(user.uid).get().then(snap => {
+        usersRef.doc(user.uid).get().then(snap => {
             const data = snap.data() || {};
             const friendIds = data.friends || data.bffs || [];
             if (!friendIds.length) { setLoading(false); return; }
             // Fetch friend profiles in batch
             const chunks = friendIds.slice(0, 20);
-            db.collection('users').where(window.firebase.firestore.FieldPath.documentId(), 'in', chunks).get()
+            usersRef.where(window.firebase.firestore.FieldPath.documentId(), 'in', chunks).get()
                 .then(qs => {
                     setFriends(qs.docs.map(d => ({ uid: d.id, ...d.data() })));
                 })
@@ -1030,7 +1031,7 @@
         if (!user || !room) return;
         const db = window.firebase?.firestore ? window.firebase.firestore() : null;
         if (!db) return;
-        const chatsRef = window.chatsCollection || db.collection('private_chats');
+        const chatsRef = window.chatsCollection || db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('private_chats');
         // Build chat ID (sorted UIDs)
         const chatId = [user.uid, friend.uid].sort().join('_');
         const msgRef = chatsRef.doc(chatId).collection('messages').doc();
