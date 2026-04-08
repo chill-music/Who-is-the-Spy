@@ -1,5 +1,5 @@
 // ==========================================
-window.PRO_SPY_VERSION = "2.9";
+window.PRO_SPY_VERSION = "0.1";
 window._activeListeners = 0;
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
