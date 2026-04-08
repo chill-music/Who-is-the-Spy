@@ -803,6 +803,28 @@
             style: { background: 'rgba(0,242,255,0.2)', border: '1px solid rgba(0,242,255,0.4)', borderRadius: '8px', padding: '5px 8px', color: '#00f2ff', cursor: 'pointer', fontSize: '12px', fontWeight: 800 } }, "\u2713"), /*#__PURE__*/
           React.createElement("button", { onClick: () => {setEditingMsgId(null);setEditMsgText('');},
             style: { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '5px 8px', color: '#9ca3af', cursor: 'pointer', fontSize: '12px' } }, "\u2715")
+          ) :
+          msg.type === 'spy_room_invite' ? /*#__PURE__*/
+          React.createElement("div", { style: {
+            background: 'linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,0,0,0.4))',
+            border: '1px solid rgba(0,212,170,0.3)',
+            borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+            padding: '12px', minWidth: '200px'
+          } },
+            React.createElement("div", { style: { fontSize: '24px', marginBottom: '4px' } }, "🕵️"),
+            React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#fff', marginBottom: '4px' } }, "Spy Game Invite!"),
+            React.createElement("div", { style: { fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '8px' } }, msg.text),
+            React.createElement("button", {
+                onClick: () => {
+                    onClose && onClose();
+                    setTimeout(() => window.SpyGameCore && window.SpyGameCore.online && window.SpyGameCore.online.joinAndGo(msg.roomCode, msg.password), 300);
+                },
+                style: {
+                    width: '100%', padding: '8px', background: 'var(--spy-gold, #f5a623)',
+                    color: '#000', fontWeight: 900, fontSize: '11px', textTransform: 'uppercase',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer', letterSpacing: '1px'
+                }
+            }, "JOIN MISSION")
           ) : /*#__PURE__*/
 
           React.createElement("div", { style: {

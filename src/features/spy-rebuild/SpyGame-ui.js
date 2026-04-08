@@ -147,6 +147,23 @@
     const [isExiting, setIsExiting] = React.useState(false);
     const [showModePicker, setShowModePicker] = React.useState(false);
 
+    // Auto-open mode picker or offline when flagged from main page
+    React.useEffect(() => {
+        if (window._autoOpenGameModePicker) {
+            delete window._autoOpenGameModePicker;
+            setTimeout(() => setShowModePicker(true), 200);
+        }
+        if (window._autoOpenOffline) {
+            delete window._autoOpenOffline;
+            setTimeout(() => window.SpyGameCore.navigate && window.SpyGameCore.navigate('OFFLINE_SETUP'), 200);
+        }
+        if (window._spyGamePendingNav) {
+            const pending = window._spyGamePendingNav;
+            delete window._spyGamePendingNav;
+            setTimeout(() => window.SpyGameCore.navigate && window.SpyGameCore.navigate(pending.view, pending.params), 200);
+        }
+    }, []);
+
     React.useEffect(() => {
         window.SpyGameCore.navigate = (newView, newParams) => {
             setIsExiting(true);
@@ -235,34 +252,27 @@
   /**
    * T021: HOME SCREEN
    */
-  window.SpyGameCore.components.HomeScreen = ({ setShowBrowseRooms, openModePicker }) => {
+  window.SpyGameCore.components.HomeScreen = ({ openModePicker }) => {
     const el = React.createElement;
     return el('div', { className: "flex flex-col items-center justify-center min-h-screen p-6 text-center animate-in fade-in duration-500" },
-        el('div', { className: "mb-12" },
-            el('div', { className: "text-8xl mb-6 drop-shadow-2xl animate-bounce" }, "🕵️"),
+        el('div', { className: "mb-14" },
+            el('div', { className: "text-8xl mb-6 drop-shadow-2xl", style: { animation: 'spy-float 3s ease-in-out infinite' } }, "🕵️"),
             el('h1', { className: "text-4xl font-black tracking-tighter text-white uppercase italic" }, "Who is the Spy?"),
             el('div', { className: "text-[10px] text-[var(--spy-gold)] uppercase tracking-[0.5em] font-black mt-2" }, "Covert Intelligence • Online")
         ),
         el('div', { className: "w-full max-w-xs space-y-4" },
             el('button', {
+                id: "spy-home-create-btn",
                 onClick: () => { SoundEngine.playClick(); openModePicker && openModePicker(); },
-                className: "w-full py-6 bg-[var(--spy-gold)] text-black font-black rounded-3xl uppercase tracking-widest shadow-[var(--spy-glow-gold)] active:scale-95 transition-transform"
+                className: "w-full py-6 bg-[var(--spy-gold)] text-black font-black rounded-3xl uppercase tracking-widest shadow-[var(--spy-glow-gold)] active:scale-95 transition-transform text-lg"
             }, "+ Create Game"),
             el('button', {
-                onClick: () => { SoundEngine.playClick(); window.SpyGameCore.navigate('JOIN'); },
-                className: "w-full py-5 bg-transparent border-2 border-[rgba(255,255,255,0.1)] text-white font-black rounded-3xl uppercase tracking-widest hover:border-[var(--spy-gold)] active:scale-95 transition-transform"
-            }, "JOIN OPS"),
-            el('div', { className: "grid grid-cols-2 gap-4" },
-                el('button', {
-                    onClick: () => { SoundEngine.playClick(); window.SpyGameCore.navigate('OFFLINE_SETUP'); },
-                    className: "py-4 bg-[var(--spy-card)] text-[var(--spy-muted)] font-black rounded-3xl uppercase tracking-widest text-[10px] active:scale-95 transition-transform"
-                }, "🎭 Party Mode"),
-                el('button', {
-                    onClick: () => { SoundEngine.playClick(); if (setShowBrowseRooms) setShowBrowseRooms(true); },
-                    className: "py-4 bg-[var(--spy-card)] text-[var(--spy-muted)] font-black rounded-3xl uppercase tracking-widest text-[10px] active:scale-95 transition-transform"
-                }, "🔎 Rooms")
-            )
+                id: "spy-home-party-btn",
+                onClick: () => { SoundEngine.playClick(); window.SpyGameCore.navigate('OFFLINE_SETUP'); },
+                className: "w-full py-5 bg-[var(--spy-card)] border border-[var(--spy-border)] text-white font-black rounded-3xl uppercase tracking-widest active:scale-95 transition-transform"
+            }, "🎭 Party Mode")
         ),
+        el('style', null, `@keyframes spy-float { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-12px) rotate(2deg)} }`),
         el('div', { className: "mt-20 text-[var(--spy-muted)] text-[9px] uppercase tracking-widest font-bold" },
             "v" + (window.PRO_SPY_VERSION || '2.7') + " • Online Ready"
         )
@@ -406,6 +416,7 @@
     const { room, players, chatMessages, typingUsers, error } = window.SpyGameCore.online.useRoom(roomId);
     const user = window.auth.currentUser;
     const el = React.createElement;
+    const [showInviteModal, setShowInviteModal] = React.useState(false);
 
     React.useEffect(() => {
         if (room && (room.status === 'DISTRIBUTING' || room.status === 'PLAYING')) {
@@ -418,25 +429,47 @@
 
     const isHost = room.hostUid === user.uid;
     const categories = state.WORD_BANK ? Object.keys(state.WORD_BANK) : [];
-
-    // Copy room code
     const copyCode = () => { navigator.clipboard?.writeText(room.id); SoundEngine.playChime(); };
 
     return el('div', { className: "flex flex-col min-h-screen max-w-lg mx-auto" },
         // ── Header ──
-        el('div', { className: "text-center pt-20 pb-6 px-6" },
+        el('div', { className: "text-center pt-20 pb-4 px-6" },
             el('div', { className: "text-[10px] uppercase tracking-[0.4em] text-[var(--spy-muted)] mb-2 font-black" }, "Secure Mission Code"),
             el('button', { onClick: copyCode, className: "text-5xl font-black text-white hover:text-[var(--spy-gold)] transition-colors tracking-widest" }, room.id),
             el('div', { className: "text-[9px] text-[var(--spy-muted)] mt-1" }, "Tap to copy • Share this code")
         ),
 
-        // ── Room type badge ──
-        room.isPrivate && el('div', { className: "mx-6 mb-4 py-2 px-4 bg-[rgba(168,85,247,0.1)] border border-[rgba(168,85,247,0.3)] rounded-2xl text-center text-xs text-purple-400 font-bold" },
-            "🔒 Private Room"
+        // ── Private badge + password reveal ──
+        room.isPrivate && el('div', { className: "mx-6 mb-3 overflow-hidden rounded-2xl", style: { background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.3)' } },
+            el('div', { className: "flex items-center justify-between px-4 py-3" },
+                el('div', { className: "flex items-center gap-2" },
+                    el('span', { className: "text-purple-400 text-lg" }, "🔒"),
+                    el('div', null,
+                        el('div', { className: "text-purple-300 font-black text-xs uppercase tracking-widest" }, "Private Room"),
+                        room.password && el('div', { className: "text-purple-200/70 text-[10px] font-bold mt-0.5" }, "Password: ", el('span', { className: "font-black text-purple-200" }, room.password))
+                    )
+                ),
+                el('button', {
+                    onClick: () => navigator.clipboard?.writeText(room.password || ''),
+                    className: "text-[9px] text-purple-400 font-bold uppercase hover:text-purple-200"
+                }, "Copy")
+            )
+        ),
+
+        // ── Invite Friend button row ──
+        el('div', { className: "mx-6 mb-3" },
+            el('button', {
+                onClick: () => setShowInviteModal(true),
+                className: "w-full py-3 rounded-2xl text-sm font-black uppercase tracking-widest active:scale-95 transition-transform flex items-center justify-center gap-2",
+                style: { background: 'linear-gradient(135deg,rgba(0,212,170,0.12),rgba(0,212,170,0.05))', border: '1px solid rgba(0,212,170,0.25)', color: 'var(--spy-teal)' }
+            },
+                el('span', null, "📨"),
+                el('span', null, "Invite a Friend")
+            )
         ),
 
         // ── Host Settings ──
-        isHost && el('div', { className: "mx-6 mb-6 animate-in slide-in-from-top duration-500" },
+        isHost && el('div', { className: "mx-6 mb-4 animate-in slide-in-from-top duration-500" },
             el('div', { className: "p-4 bg-[var(--spy-card)] border border-[var(--spy-border)] rounded-3xl" },
                 el('div', { className: "text-[9px] uppercase tracking-widest text-[var(--spy-gold)] mb-3 font-black" }, "⚙️ Mission Parameters"),
                 el('div', { className: "flex gap-3" },
@@ -461,7 +494,7 @@
         // ── Players ──
         el('div', { className: "px-6 mb-4" },
             el('div', { className: "text-[9px] uppercase tracking-widest text-[var(--spy-muted)] mb-3 font-black" }, `Operators (${players.length}/12)`),
-            el('div', { className: "grid grid-cols-2 gap-3 max-h-[32vh] overflow-y-auto" },
+            el('div', { className: "grid grid-cols-2 gap-3 max-h-[28vh] overflow-y-auto" },
                 players.map(p => el(window.SpyGameCore.components.PlayerCard, {
                     key: p.uid || p.id,
                     name: p.name,
@@ -491,7 +524,14 @@
                 : el('div', { className: "p-5 bg-[rgba(245,166,35,0.05)] border border-dashed border-[var(--spy-gold)] rounded-[2.5rem] text-center" },
                     el('div', { className: "text-[var(--spy-gold)] font-bold animate-pulse text-sm" }, "⏳ Waiting for host to deploy...")
                   )
-        )
+        ),
+
+        // ── Friend Invite Modal ──
+        showInviteModal && el(window.SpyGameCore.components.FriendInviteModal, {
+            room,
+            user,
+            onClose: () => setShowInviteModal(false)
+        })
     );
   };
 
@@ -846,7 +886,7 @@
   };
 
   // ═══════════════════════════════════════════
-  //  GAME MODE PICKER DIALOG
+  //  GAME MODE PICKER DIALOG  (Online / Private / Offline)
   // ═══════════════════════════════════════════
   window.SpyGameCore.components.GameModePickerDialog = ({ onClose }) => {
     const [showPrivate, setShowPrivate] = React.useState(false);
@@ -860,67 +900,228 @@
         SoundEngine.playChime();
         try {
             await createAndGo({ isPrivate, password: isPrivate ? privatePassword : null });
+            onClose();
         } catch(e) { alert(e.message); }
         finally { setLoading(false); }
     };
 
     return el('div', {
         className: "fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in duration-200",
-        style: { background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)' },
+        style: { background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' },
         onClick: (e) => { if(e.target === e.currentTarget) onClose(); }
     },
         el('div', {
             className: "w-full max-w-sm animate-in zoom-in-95 duration-300",
-            style: { background: 'linear-gradient(145deg,rgba(20,20,40,0.95),rgba(10,10,25,0.98))', border: '1px solid rgba(245,166,35,0.2)', borderRadius: '2.5rem', padding: '2rem', boxShadow: '0 40px 80px rgba(0,0,0,0.8)' }
+            style: {
+                background: 'linear-gradient(145deg,rgba(16,16,36,0.85),rgba(8,8,20,0.9))',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '2.5rem',
+                padding: '2rem',
+                boxShadow: '0 40px 100px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05)'
+            }
         },
             el('div', { className: "text-center mb-8" },
-                el('div', { className: "text-5xl mb-4" }, "🕵️"),
+                el('div', { className: "text-5xl mb-4", style: { filter: 'drop-shadow(0 0 20px rgba(245,166,35,0.5))' } }, "🕵️"),
                 el('h2', { className: "text-2xl font-black text-white uppercase tracking-tighter" }, "Choose Your Cover"),
-                el('p', { className: "text-[var(--spy-muted)] text-xs mt-2" }, "Select how you want to run this operation")
+                el('p', { className: "text-[var(--spy-muted)] text-xs mt-2" }, "How do you want to run this operation?")
             ),
-            !showPrivate ? el('div', { className: "space-y-4" },
+            !showPrivate ? el('div', { className: "space-y-3" },
+                // Online
                 el('button', {
                     onClick: () => handleCreate(false),
                     disabled: loading,
-                    className: "w-full p-6 rounded-3xl text-left transition-all active:scale-95 group",
-                    style: { background: 'linear-gradient(135deg,rgba(0,212,170,0.15),rgba(0,212,170,0.05))', border: '1px solid rgba(0,212,170,0.3)' }
+                    className: "w-full p-5 rounded-2xl text-left transition-all active:scale-95 group",
+                    style: { background: 'rgba(0,212,170,0.08)', border: '1px solid rgba(0,212,170,0.25)' }
                 },
                     el('div', { className: "flex items-center gap-4" },
-                        el('div', { className: "text-4xl" }, "🌐"),
-                        el('div', null,
-                            el('div', { className: "text-white font-black text-lg uppercase" }, "Online"),
-                            el('div', { className: "text-[var(--spy-muted)] text-xs mt-0.5" }, "Public room — anyone with the code can join")
+                        el('div', { className: "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl", style: { background: 'rgba(0,212,170,0.15)' } }, "🌐"),
+                        el('div', { className: "flex-1" },
+                            el('div', { className: "text-white font-black uppercase" }, "Online"),
+                            el('div', { className: "text-[var(--spy-muted)] text-xs mt-0.5" }, "Public — anyone with the code joins")
                         ),
-                        el('div', { className: "ml-auto text-[var(--spy-teal)] text-xl" }, "→")
+                        el('div', { className: "text-[var(--spy-teal)] text-xl" }, loading ? "..." : "→")
                     )
                 ),
+                // Private
                 el('button', {
                     onClick: () => setShowPrivate(true),
-                    className: "w-full p-6 rounded-3xl text-left transition-all active:scale-95",
-                    style: { background: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(168,85,247,0.05))', border: '1px solid rgba(168,85,247,0.3)' }
+                    className: "w-full p-5 rounded-2xl text-left transition-all active:scale-95",
+                    style: { background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }
                 },
                     el('div', { className: "flex items-center gap-4" },
-                        el('div', { className: "text-4xl" }, "🔒"),
-                        el('div', null,
-                            el('div', { className: "text-white font-black text-lg uppercase" }, "Private"),
+                        el('div', { className: "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl", style: { background: 'rgba(168,85,247,0.15)' } }, "🔒"),
+                        el('div', { className: "flex-1" },
+                            el('div', { className: "text-white font-black uppercase" }, "Private"),
                             el('div', { className: "text-[var(--spy-muted)] text-xs mt-0.5" }, "Password-protected — invite only")
                         ),
-                        el('div', { className: "ml-auto text-purple-400 text-xl" }, "→")
+                        el('div', { className: "text-purple-400 text-xl" }, "→")
+                    )
+                ),
+                // Offline divider
+                el('div', { className: "flex items-center gap-3 my-1" },
+                    el('div', { className: "flex-1 h-px bg-[rgba(255,255,255,0.06)]" }),
+                    el('span', { className: "text-[9px] text-[var(--spy-muted)] font-bold uppercase" }, "or play locally"),
+                    el('div', { className: "flex-1 h-px bg-[rgba(255,255,255,0.06)]" })
+                ),
+                // Offline / Party Mode
+                el('button', {
+                    onClick: () => { onClose(); window.SpyGameCore.navigate('OFFLINE_SETUP'); },
+                    className: "w-full p-5 rounded-2xl text-left transition-all active:scale-95",
+                    style: { background: 'rgba(245,166,35,0.06)', border: '1px solid rgba(245,166,35,0.15)' }
+                },
+                    el('div', { className: "flex items-center gap-4" },
+                        el('div', { className: "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl", style: { background: 'rgba(245,166,35,0.12)' } }, "🎭"),
+                        el('div', { className: "flex-1" },
+                            el('div', { className: "text-white font-black uppercase" }, "Party Mode"),
+                            el('div', { className: "text-[var(--spy-muted)] text-xs mt-0.5" }, "Offline — same device, multiple players")
+                        ),
+                        el('div', { className: "text-[var(--spy-gold)] text-xl" }, "→")
                     )
                 )
             ) : el('div', { className: "animate-in slide-in-from-right duration-300 space-y-4" },
-                el('div', { className: "text-[10px] text-purple-400 font-black uppercase mb-2" }, "🔑 Set a Password"),
+                el('div', { className: "text-[10px] text-purple-400 font-black uppercase mb-2" }, "🔑 Set a Room Password"),
                 el('input', {
-                    type: "text", placeholder: "Room Password", value: privatePassword, maxLength: 20,
+                    type: "text", placeholder: "Choose a password", value: privatePassword, maxLength: 20,
                     onChange: (e) => setPrivatePassword(e.target.value),
-                    className: "w-full p-4 bg-[var(--spy-bg-deep)] border border-purple-500/40 rounded-2xl text-center font-bold text-white focus:border-purple-400 outline-none text-lg mb-2"
+                    className: "w-full p-4 bg-[rgba(168,85,247,0.08)] border border-purple-500/30 rounded-2xl text-center font-bold text-white focus:border-purple-400 outline-none text-lg mb-2"
                 }),
                 el('button', {
                     onClick: () => handleCreate(true),
                     disabled: loading || !privatePassword.trim(),
-                    className: `w-full py-5 font-black rounded-3xl uppercase tracking-widest active:scale-95 transition-all ${privatePassword.trim() ? 'bg-purple-600 text-white' : 'bg-[var(--spy-card)] text-[var(--spy-muted)] opacity-50'}`
+                    className: `w-full py-5 font-black rounded-2xl uppercase tracking-widest active:scale-95 transition-all ${privatePassword.trim() ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'bg-[var(--spy-card)] text-[var(--spy-muted)] opacity-50'}`
                 }, loading ? "Creating..." : "🔒 Create Private Room"),
                 el('button', { onClick: () => setShowPrivate(false), className: "w-full text-[var(--spy-muted)] text-xs font-bold hover:text-white" }, "← Back")
+            )
+        )
+    );
+  };
+
+  // ═══════════════════════════════════════════
+  //  FRIEND INVITE MODAL
+  // ═══════════════════════════════════════════
+  window.SpyGameCore.components.FriendInviteModal = ({ room, user, onClose }) => {
+    const [friends, setFriends] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [sentTo, setSentTo] = React.useState({});
+    const el = React.createElement;
+
+    // Load user's friends (BFF / friends list)
+    React.useEffect(() => {
+        if (!user) return;
+        const db = window.firebase?.firestore ? window.firebase.firestore() : null;
+        if (!db) { setLoading(false); return; }
+        // Try reading from the current user's friend list sub-collection or the users doc
+        db.collection('users').doc(user.uid).get().then(snap => {
+            const data = snap.data() || {};
+            const friendIds = data.friends || data.bffs || [];
+            if (!friendIds.length) { setLoading(false); return; }
+            // Fetch friend profiles in batch
+            const chunks = friendIds.slice(0, 20);
+            db.collection('users').where(window.firebase.firestore.FieldPath.documentId(), 'in', chunks).get()
+                .then(qs => {
+                    setFriends(qs.docs.map(d => ({ uid: d.id, ...d.data() })));
+                })
+                .catch(() => {})
+                .finally(() => setLoading(false));
+        }).catch(() => setLoading(false));
+    }, [user?.uid]);
+
+    const sendInvite = async (friend) => {
+        if (!user || !room) return;
+        const db = window.firebase?.firestore ? window.firebase.firestore() : null;
+        if (!db) return;
+        const chatsRef = window.chatsCollection || db.collection('private_chats');
+        // Build chat ID (sorted UIDs)
+        const chatId = [user.uid, friend.uid].sort().join('_');
+        const msgRef = chatsRef.doc(chatId).collection('messages').doc();
+        await msgRef.set({
+            type: 'spy_room_invite',
+            text: `🕵️ ${user.displayName || 'A friend'} invites you to play Who is the Spy!`,
+            roomId: room.id,
+            roomCode: room.id,
+            isPrivate: room.isPrivate || false,
+            password: room.password || null,
+            senderId: user.uid,
+            senderName: user.displayName || 'Agent',
+            senderPhoto: user.photoURL || null,
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            read: false
+        });
+        // Also ensure chat doc exists
+        await chatsRef.doc(chatId).set({
+            members: [user.uid, friend.uid],
+            lastMessage: `🕵️ Spy Game Invitation`,
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
+            [`unread.${friend.uid}`]: window.firebase.firestore.FieldValue.increment(1)
+        }, { merge: true });
+        setSentTo(prev => ({ ...prev, [friend.uid]: true }));
+        SoundEngine.playChime();
+    };
+
+    return el('div', {
+        className: "fixed inset-0 z-[300] flex items-end justify-center animate-in fade-in duration-200",
+        style: { background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(16px)' },
+        onClick: (e) => { if (e.target === e.currentTarget) onClose(); }
+    },
+        el('div', {
+            className: "w-full max-w-md animate-in slide-in-from-bottom duration-300",
+            style: { background: 'linear-gradient(180deg,rgba(14,14,30,0.98),rgba(8,8,20,1))', borderRadius: '2rem 2rem 0 0', border: '1px solid rgba(0,212,170,0.15)', borderBottom: 'none', paddingBottom: 'env(safe-area-inset-bottom,16px)', maxHeight: '70vh', display: 'flex', flexDirection: 'column' }
+        },
+            // Handle
+            el('div', { className: "flex justify-center pt-3 pb-2" },
+                el('div', { className: "w-10 h-1 rounded-full bg-[rgba(255,255,255,0.15)]" })
+            ),
+            // Header
+            el('div', { className: "px-6 pb-4 flex items-center justify-between" },
+                el('div', null,
+                    el('div', { className: "text-white font-black text-lg" }, "📨 Invite Friends"),
+                    el('div', { className: "text-[var(--spy-muted)] text-xs mt-0.5" }, "Send a join invitation to private chat")
+                ),
+                el('button', { onClick: onClose, className: "w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] text-white flex items-center justify-center" }, "✕")
+            ),
+            // Room code display
+            el('div', { className: "mx-6 mb-4 p-3 rounded-2xl flex items-center justify-between", style: { background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.2)' } },
+                el('div', null,
+                    el('div', { className: "text-[9px] text-[var(--spy-muted)] font-bold uppercase" }, "Room Code"),
+                    el('div', { className: "text-[var(--spy-gold)] font-black text-xl tracking-widest" }, room.id),
+                    room.isPrivate && room.password && el('div', { className: "text-[9px] text-purple-400 font-bold mt-0.5" }, "Password: " + room.password)
+                ),
+                el('button', {
+                    onClick: () => navigator.clipboard?.writeText(room.isPrivate ? `Code: ${room.id}  Pass: ${room.password}` : room.id),
+                    className: "text-xs text-[var(--spy-gold)] font-bold"
+                }, "Copy")
+            ),
+            // Friends list
+            el('div', { className: "flex-1 overflow-y-auto px-6 pb-4 space-y-3" },
+                loading && el('div', { className: "text-center text-[var(--spy-muted)] py-8 animate-pulse" }, "Loading friends..."),
+                !loading && friends.length === 0 && el('div', { className: "text-center py-8" },
+                    el('div', { className: "text-4xl mb-3" }, "👥"),
+                    el('div', { className: "text-[var(--spy-muted)] text-sm font-bold" }, "No friends yet"),
+                    el('div', { className: "text-[var(--spy-muted)] text-xs mt-1" }, "Add friends from the Chat tab first")
+                ),
+                friends.map(f => el('div', {
+                    key: f.uid,
+                    className: "flex items-center gap-3 p-3 rounded-2xl",
+                    style: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
+                },
+                    // Avatar
+                    f.photoURL && window.AvatarWithFrame
+                        ? el(window.AvatarWithFrame, { photoURL: f.photoURL, equipped: f.equipped || {}, size: 'sm', lang: 'en' })
+                        : el('div', { className: "w-10 h-10 rounded-full flex items-center justify-center font-black text-sm", style: { background: 'rgba(0,212,170,0.15)', color: 'var(--spy-teal)' } }, (f.displayName || f.name || '?').charAt(0)),
+                    el('div', { className: "flex-1 min-w-0" },
+                        el('div', { className: "text-white font-bold text-sm truncate" }, f.displayName || f.name || 'Agent'),
+                        el('div', { className: "text-[var(--spy-muted)] text-[10px]" }, f.uid === user?.uid ? 'You' : 'Friend')
+                    ),
+                    el('button', {
+                        onClick: () => sendInvite(f),
+                        disabled: !!sentTo[f.uid],
+                        className: `px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-90 ${
+                            sentTo[f.uid]
+                                ? 'bg-[rgba(0,212,170,0.15)] text-[var(--spy-teal)] cursor-default'
+                                : 'bg-[var(--spy-gold)] text-black shadow-[var(--spy-glow-gold)]'
+                        }`
+                    }, sentTo[f.uid] ? '✓ Sent' : 'Invite')
+                ))
             )
         )
     );

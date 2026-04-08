@@ -13,11 +13,20 @@
       if (!show) return;
       setLoading(true);
       setPasswordError('');
-      var unsub = roomsCollection.where('status', '==', 'waiting').onSnapshot((snap) => {
-        var roomsData = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter((room) => room.players?.length < 10);
+      
+      var spyRoomsRef = window.spyRoomsCollection || (window.db && window.db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('spy_rooms'));
+      
+      if (!spyRoomsRef) {
+        setLoading(false);
+        return;
+      }
+      
+      var unsub = spyRoomsRef.where('status', '==', 'LOBBY').onSnapshot((snap) => {
+        var roomsData = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setRooms(roomsData);
         setLoading(false);
-      }, (error) => {setLoading(false);});
+      }, (error) => { setLoading(false); });
+      
       return unsub;
     }, [show]);
 
@@ -56,9 +65,9 @@
       React.createElement("div", { className: "browse-rooms-container" },
       rooms.map((room) => /*#__PURE__*/
       React.createElement("div", { key: room.id, className: "room-card" }, /*#__PURE__*/
-      React.createElement("div", { className: "room-card-header" }, /*#__PURE__*/React.createElement("span", { className: "room-card-code" }, room.id), /*#__PURE__*/React.createElement("span", { className: "room-card-mode" }, room.mode === 'advanced' ? lang === 'ar' ? 'متقدم' : 'Advanced' : lang === 'ar' ? 'عادي' : 'Normal')), /*#__PURE__*/
+      React.createElement("div", { className: "room-card-header" }, /*#__PURE__*/React.createElement("span", { className: "room-card-code" }, room.id), /*#__PURE__*/React.createElement("span", { className: "room-card-mode" }, room.category === 'custom' ? (lang === 'ar' ? 'مخصص' : 'Custom') : (lang === 'ar' ? 'عادي' : 'Normal'))), /*#__PURE__*/
       React.createElement("div", { className: "room-card-info" }, /*#__PURE__*/
-      React.createElement("div", { className: "room-card-players" }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDC65 ", room.players?.length || 0, "/10"), room.isPrivate && /*#__PURE__*/React.createElement("span", { className: "room-card-private ml-2" }, "\uD83D\uDD12")), /*#__PURE__*/
+      React.createElement("div", { className: "room-card-players" }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDC65 ", "?", "/10"), room.isPrivate && /*#__PURE__*/React.createElement("span", { className: "room-card-private ml-2" }, "\uD83D\uDD12")), /*#__PURE__*/
       React.createElement("button", { onClick: () => handleJoinClick(room), className: "room-card-join-btn" }, t.join)
       )
       )

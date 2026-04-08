@@ -350,15 +350,23 @@
     leaveRoom: async (roomId, uid) => {
         if (!roomId || !uid) return;
         const roomRef = spyRoomsCollection.doc(roomId);
+        
+        const roomDoc = await roomRef.get().catch(() => null);
+        if (!roomDoc || !roomDoc.exists) return;
+        const isHost = roomDoc.data().hostUid === uid;
+        const status = roomDoc.data().status;
+
         await roomRef.collection('players').doc(uid).delete().catch(e => console.warn("Player removal failed", e));
 
         // Check if room is now empty
         const snap = await roomRef.collection('players').limit(1).get().catch(() => null);
-        if (snap && snap.empty) {
-            // Delete room and its chat (cleanup)
+        if ((snap && snap.empty) || (isHost && status === 'LOBBY')) {
+            // Delete room, chat, and any remaining players (cleanup)
             const chatSnap = await roomRef.collection('chat').limit(50).get().catch(() => null);
+            const playersSnap = await roomRef.collection('players').limit(50).get().catch(() => null);
             const batch = db.batch();
             if (chatSnap) chatSnap.docs.forEach(d => batch.delete(d.ref));
+            if (playersSnap) playersSnap.docs.forEach(d => batch.delete(d.ref));
             batch.delete(roomRef);
             await batch.commit().catch(e => console.warn("Room cleanup failed", e));
         } else {

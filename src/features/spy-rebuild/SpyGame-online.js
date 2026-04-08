@@ -146,7 +146,11 @@
     try {
         const uppercaseCode = code.toUpperCase();
         await services.joinRoom(uppercaseCode, password);
-        window.SpyGameCore.navigate('ONLINE_LOBBY', { roomId: uppercaseCode });
+        if (typeof window.SpyGameCore.navigate === 'function') {
+            window.SpyGameCore.navigate('ONLINE_LOBBY', { roomId: uppercaseCode });
+        } else {
+            window._spyGamePendingNav = { view: 'ONLINE_LOBBY', params: { roomId: uppercaseCode } };
+        }
     } catch (e) {
         if (e.message === 'WRONG_PASSWORD') {
             throw e; // Re-throw so UI can handle

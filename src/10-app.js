@@ -330,6 +330,30 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     var hasVotedWord = room?.wordVotes?.[currentUID];
     var totalFriendsUnread = (totalUnread || 0) + (friendRequests?.length || 0);
 
+    var customHandleJoinGame = async (id, pwd) => {
+        if (!id) return;
+        var upperId = id.toUpperCase();
+        var spyRoomsRef = window.spyRoomsCollection || (window.db && window.db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('spy_rooms'));
+        if (spyRoomsRef && window.SpyGameCore && window.SpyGameCore.online) {
+            try {
+                var snap = await spyRoomsRef.doc(upperId).get();
+                if (snap.exists) {
+                    try {
+                        await window.SpyGameCore.online.joinAndGo(upperId, pwd);
+                        if (typeof setShowBrowseRooms === 'function') setShowBrowseRooms(false);
+                        if (typeof setShowSpyRebuild === 'function') setShowSpyRebuild(true);
+                    } catch(e) {
+                        if (typeof setJoinError === 'function') {
+                            setJoinError(e.message === 'WRONG_PASSWORD' ? (lang === 'ar' ? 'كلمة السر غير صحيحة' : 'Incorrect Password') : e.message);
+                        }
+                    }
+                    return;
+                }
+            } catch(e) { console.error("Error checking spy_rooms", e); }
+        }
+        gameActions.handleJoinGame(id, pwd);
+    };
+
     return (/*#__PURE__*/
       React.createElement("div", { className: "app-shell", dir: lang === 'ar' ? 'rtl' : 'ltr' }, /*#__PURE__*/
 
@@ -341,7 +365,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
         React.createElement(window.NotificationToast, { message: notification, onClose: () => setNotification(null) }), /*#__PURE__*/
 
         React.createElement(window.GlobalModals, _extends({},
-          gameActions, {
+          gameActions, { handleJoinGame: customHandleJoinGame }, {
           user: user, userData: userData, currentUID: currentUID, currentUserData: currentUserData,
           isLoggedIn: isLoggedIn, isGuest: isGuest, lang: lang, setLang: setLang, t: t,
           friendsData: friendsData, coupleData: coupleData, partnerData: partnerData, userFamily: userFamily,
@@ -509,9 +533,16 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             showFunPass: showFunPass, setShowFunPass: setShowFunPass,
             inputCode: inputCode, setInputCode: setInputCode,
             loading: loading, joinError: joinError,
-            handleJoinGame: gameActions.handleJoinGame,
+            handleJoinGame: customHandleJoinGame,
             handleCreateGame: gameActions.handleCreateGame,
-            setShowSetupModal: (v) => v ? setShowSpyRebuild(true) : setShowSetupModal(false),
+            setShowSetupModal: (v) => {
+                if (v) {
+                    window._autoOpenGameModePicker = true;
+                    setShowSpyRebuild(true);
+                } else {
+                    setShowSetupModal(false);
+                }
+            },
             setShowBrowseRooms: setShowBrowseRooms,
             setShowMyAccount: setShowMyAccount,
             setShowPublicChat: setShowPublicChat,
