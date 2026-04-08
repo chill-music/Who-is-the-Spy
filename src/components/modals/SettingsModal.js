@@ -441,21 +441,73 @@
 
               React.createElement("div", { style: { height: '8px' } }),
 
-              /* --- [VERSION FOOTER] --- */
+              /* --- [VERSION FOOTER & UPDATE CHECK] --- */
               React.createElement("div", {
                 style: {
                   textAlign: 'center',
-                  marginTop: '8px',
-                  marginBottom: '4px',
-                  opacity: 0.35,
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: '#9ca3af',
-                  letterSpacing: '0.5px',
-                  textTransform: 'uppercase'
+                  marginTop: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px'
                 }
               },
-                `Who is the Spy? v${remoteVersion || window.PRO_SPY_VERSION || '...'}`
+                /* Version Number */
+                React.createElement("div", {
+                  style: {
+                    opacity: 0.35,
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    color: '#9ca3af',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
+                  }
+                }, `Who is the Spy? v${remoteVersion || window.PRO_SPY_VERSION || '...'}`),
+
+                /* Dynamic Action Button */
+                (() => {
+                  const isNewer = window.VersionManager && window.VersionManager.shouldUpdate(window.PRO_SPY_VERSION, remoteVersion);
+                  
+                  if (isNewer) {
+                    return React.createElement("button", {
+                      onClick: () => {
+                        if (window.VersionManager) {
+                          window.VersionManager.markUpdateAttempted(remoteVersion);
+                          window.VersionManager.clearCacheAndReload(remoteVersion);
+                        }
+                      },
+                      style: {
+                        background: 'rgba(0, 242, 255, 0.1)',
+                        border: '1px solid rgba(0, 242, 255, 0.4)',
+                        color: '#00f2ff',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '9px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        textTransform: 'uppercase',
+                        transition: 'all 0.2s'
+                      }
+                    }, `🚀 ${t.updateNow}`);
+                  }
+
+                  return React.createElement("button", {
+                    onClick: () => {
+                      onNotification(t.upToDate);
+                    },
+                    style: {
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#9ca3af',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '9px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textTransform: 'uppercase'
+                    }
+                  }, t.checkUpdate);
+                })()
               )
             )
           )

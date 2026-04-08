@@ -701,7 +701,6 @@
       ),
 
 
-      /* --- [VERSION UPDATE MODAL] --- */
       window.UpdateModal && React.createElement(window.UpdateModal, {
         show: showUpdateModal,
         remoteVersion: remoteVersion,
@@ -711,6 +710,12 @@
           if (window.VersionManager) {
             window.VersionManager.markUpdateAttempted(remoteVersion);
             window.VersionManager.clearCacheAndReload(remoteVersion);
+          }
+        },
+        onSnooze: () => {
+          if (window.VersionManager) {
+            window.VersionManager.snoozeUpdate(5);
+            setShowUpdateModal(false);
           }
         }
       })

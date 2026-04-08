@@ -22,6 +22,8 @@ var TRANSLATIONS = {
         giftWall: "Gift Wall", giftBadge: "Gift Badge", comingSoon: "Coming Soon", receivedGiftsCount: "received gifts",
         // Settings & Block
         settings: "Settings", blockUser: "Block User", unblock: "Unblock", blockedUsers: "Blocked Users", noBlockedUsers: "No blocked users.", blockSuccess: "User blocked!", unblockSuccess: "User unblocked!",
+        // Updates
+        checkUpdate: "Check for Update", updateNow: "Update Now", upToDate: "You are on the latest version",
         // Sound
         sound: "Sound", soundOn: "ON", soundOff: "OFF",
         // Charisma Rank
@@ -175,6 +177,8 @@ var TRANSLATIONS = {
         giftWall: "جدار الهدايا", giftBadge: "شارة الهدايا", comingSoon: "قريباً", receivedGiftsCount: "هدية مستلمة",
         // Settings & Block
         settings: "الإعدادات", blockUser: "حظر المستخدم", unblock: "إلغاء الحظر", blockedUsers: "المحظورين", noBlockedUsers: "لا يوجد مستخدمين محظورين.", blockSuccess: "تم حظر المستخدم!", unblockSuccess: "تم إلغاء الحظر!",
+        // Updates
+        checkUpdate: "التحقق من التحديثات", updateNow: "تحديث الآن", upToDate: "أنت على أحدث نسخة",
         // Sound
         sound: "الصوت", soundOn: "تشغيل", soundOff: "كتم",
         achFirstGift: "أول هدية", achFirstGiftDesc: "استقبل هديتك الأولى",

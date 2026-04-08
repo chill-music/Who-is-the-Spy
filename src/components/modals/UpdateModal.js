@@ -5,7 +5,7 @@
      * UpdateModal Component
      * Notifies users when a new version of the app is available.
      */
-    const UpdateModal = ({ show, remoteVersion, updateNotes, lang, onUpdate }) => {
+    const UpdateModal = ({ show, remoteVersion, updateNotes, lang, onUpdate, onSnooze }) => {
         if (!show) return null;
 
         const t = {
@@ -14,6 +14,7 @@
                 subtitle: "نسخة " + (remoteVersion || ""),
                 description: "هناك تحديث جديد متاح للعبة. يرجى التحديث للحصول على آخر المميزات والتحسينات.",
                 button: "تحديث الآن",
+                later: "تحديث لاحقاً",
                 notesTitle: "ما الجديد:"
             },
             en: {
@@ -21,6 +22,7 @@
                 subtitle: "Version " + (remoteVersion || ""),
                 description: "A new version of the game is available. Please update to get the latest features and fixes.",
                 button: "Update Now",
+                later: "Update Later",
                 notesTitle: "What's New:"
             }
         };
@@ -70,11 +72,19 @@
                             }, updateNotes)
                         ),
 
-                        React.createElement("button", {
-                            className: "btn-neon",
-                            onClick: onUpdate,
-                            style: { width: '100%', padding: '16px', borderRadius: '12px', fontSize: '16px', fontWeight: 900, boxShadow: '0 0 20px rgba(0, 242, 255, 0.3)' }
-                        }, content.button)
+                        React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '12px' } },
+                            React.createElement("button", {
+                                className: "btn-neon",
+                                onClick: onUpdate,
+                                style: { width: '100%', padding: '16px', borderRadius: '12px', fontSize: '16px', fontWeight: 900, boxShadow: '0 0 20px rgba(0, 242, 255, 0.3)' }
+                            }, content.button),
+
+                            React.createElement("button", {
+                                className: "btn-ghost",
+                                onClick: onSnooze,
+                                style: { width: '100%', padding: '12px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, color: '#9ca3af', border: '1px solid rgba(156, 163, 175, 0.2)' }
+                            }, content.later)
+                        )
                     )
                 )
             )

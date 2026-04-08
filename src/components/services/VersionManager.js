@@ -114,21 +114,49 @@
         },
 
         /**
-         * Triggers the UI Update Modal, respecting session-based silencing.
+         * Triggers the UI Update Modal, respecting session-based silencing and snooze.
          */
         triggerUpdateModal: function (remoteVersion, updateNotes) {
-            // SILENCER: Check if we've already tried to update this version in this session
+            // 1. Check if already applied this session
             const attempted = sessionStorage.getItem('pro_spy_update_attempted');
             if (attempted === String(remoteVersion)) {
-                console.log("[VersionManager] Update modal silenced for version " + remoteVersion + " (already attempted this session)");
+                console.log("[VersionManager] Update silenced: already attempted this session.");
                 return;
             }
 
+            // 2. Check if snoozed
+            const snoozeUntil = sessionStorage.getItem('pro_spy_update_snooze');
+            if (snoozeUntil && Date.now() < parseInt(snoozeUntil)) {
+                const remaining = Math.ceil((parseInt(snoozeUntil) - Date.now()) / 1000);
+                console.log("[VersionManager] Update snoozed. Remaining seconds:", remaining);
+                return;
+            }
+
+            // 3. Trigger Modal
             if (typeof window.showGlobalUpdateModal === 'function') {
                 window.showGlobalUpdateModal(remoteVersion, updateNotes);
             } else {
                 setTimeout(() => this.triggerUpdateModal(remoteVersion, updateNotes), 2000);
             }
+        },
+
+        /**
+         * Snoozes the current update notification for a specific duration.
+         */
+        snoozeUpdate: function (minutes) {
+            const snoozeUntil = Date.now() + (minutes * 60 * 1000);
+            sessionStorage.setItem('pro_spy_update_snooze', snoozeUntil);
+            console.log("[VersionManager] Update snoozed for " + minutes + " mins until:", new Date(snoozeUntil).toLocaleTimeString());
+            
+            // Set a timer to automatically re-trigger the check when snooze expires
+            setTimeout(() => {
+                console.log("[VersionManager] Snooze expired. Re-checking version...");
+                // We re-trigger the listener logic or wait for next snapshot
+                // For immediate effect, we can force a re-eval if we have the data
+                if (this._lastData) {
+                    this.initListener(); // This will re-trigger the snapshot logic
+                }
+            }, minutes * 60 * 1000);
         }
     };
 
