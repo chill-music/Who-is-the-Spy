@@ -91,18 +91,8 @@
         setUpdateNotes(notes);
         setShowUpdateModal(true);
       };
-    }, []);
-
-    // --- [VERSION UPDATE STATE] ---
-    var [showUpdateModal, setShowUpdateModal] = useState(false);
-    var [remoteVersion, setRemoteVersion] = useState('');
-    var [updateNotes, setUpdateNotes] = useState('');
-
-    useEffect(() => {
-      window.showGlobalUpdateModal = (v, notes) => {
+      window.setRemoteVersion = (v) => {
         setRemoteVersion(v);
-        setUpdateNotes(notes);
-        setShowUpdateModal(true);
       };
     }, []);
 
@@ -272,6 +262,7 @@
         },
         userData: userData,
         user: user,
+        remoteVersion: remoteVersion,
         onNotification: setNotification,
         isGuest: isGuest,
         onLoginGoogle: handleGoogleLogin,
@@ -719,7 +710,7 @@
         onUpdate: () => {
           if (window.VersionManager) {
             window.VersionManager.markUpdateAttempted(remoteVersion);
-            window.VersionManager.clearCacheAndReload();
+            window.VersionManager.clearCacheAndReload(remoteVersion);
           }
         }
       })

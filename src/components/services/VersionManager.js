@@ -10,9 +10,14 @@
          * Clears all browser asset caches, unregisters service workers, and reloads the page.
          * Specifically targets window.caches without touching localStorage or IndexedDB.
          */
-        clearCacheAndReload: async function () {
-            console.log("[VersionManager] Initiating cache clear and SW unregistration...");
+        clearCacheAndReload: async function (newVersion) {
+            console.log("[VersionManager] Initiating cache clear for version:", newVersion || "manual");
             try {
+                // 0. Persist the new version so index.html picks it up on next load
+                if (newVersion) {
+                    localStorage.setItem('pro_spy_version', String(newVersion));
+                }
+
                 // 1. Unregister Service Workers to bypass sw.js caching
                 if ('serviceWorker' in navigator) {
                     const registrations = await navigator.serviceWorker.getRegistrations();
@@ -61,7 +66,7 @@
 
             if (this._unsubscribe) return;
             
-            console.log("[VersionManager] Monitoring remote version... (Local: " + (window.PRO_SPY_VERSION || 'unknown') + ")");
+            console.log("[VersionManager] Monitoring remote version... (Active: " + (window.PRO_SPY_VERSION || '...') + ")");
             
             try {
                 this._unsubscribe = window.versioningCollection.doc('versioning').onSnapshot((doc) => {
@@ -70,6 +75,18 @@
                         const remote = data.remote_version;
                         const notes = data.update_notes || "";
                         
+                        // Always update the UI state for the Settings footer
+                        if (window.setRemoteVersion) {
+                            window.setRemoteVersion(remote);
+                        }
+
+                        // SELF-SEED: If the app has no stored version yet, adopt the DB version immediately
+                        if (!localStorage.getItem('pro_spy_version') || window.PRO_SPY_VERSION === '...') {
+                            localStorage.setItem('pro_spy_version', remote);
+                            window.PRO_SPY_VERSION = remote;
+                            console.log("[VersionManager] Initialized session version from database:", remote);
+                        }
+
                         if (this.shouldUpdate(window.PRO_SPY_VERSION, remote)) {
                             this.triggerUpdateModal(remote, notes);
                         }

@@ -1,5 +1,4 @@
-// ==========================================
-window.PRO_SPY_VERSION = "0.1";
+// window.PRO_SPY_VERSION is now managed dynamically in index.html via localStorage.
 window._activeListeners = 0;
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
