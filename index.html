@@ -25,7 +25,7 @@
     <!-- ⚡ ULTIMATE CACHE-BUSTING INTERCEPTOR ⚡ -->
     <script>
         /* Change this version number whenever you update the site to force all mobile caches to flush! */
-        window.PRO_SPY_VERSION = "2.7";
+        window.PRO_SPY_VERSION = "2.9";
 
         // Intercept XMLHttpRequest (legacy compatibility)
         var originalXHROpen = XMLHttpRequest.prototype.open;
@@ -234,6 +234,7 @@
     <script defer src="src/app/hooks/useGameActions.js?v=2.8"></script>
     <!-- Hooks Registry: consolidates all useXxx hooks + sets window.__hooksReady -->
     <script defer src="src/app/AppHooks.js?v=2.8"></script>
+    <script defer src="src/components/services/VersionManager.js?v=2.8"></script>
 
     <!-- App Feature Modules -->
     <script defer src="src/features/room/RoomState.js?v=2.8"></script>
@@ -262,6 +263,7 @@
     <script defer src="src/components/modals/VIPCenterModal.js?v=2.8"></script>
     <script defer src="src/components/modals/HelpCenterModal.js?v=2.8"></script>
     <script defer src="src/components/modals/PublicChatModal.js?v=2.8"></script>
+    <script defer src="src/components/modals/UpdateModal.js?v=2.8"></script>
 
     <!-- 15 · Profile System -->
     <script defer src="src/features/profile/ProfileFamilySignBadge.js?v=2.8"></script>

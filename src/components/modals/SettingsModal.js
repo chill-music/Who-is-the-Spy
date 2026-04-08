@@ -383,6 +383,23 @@
       ),
 
 
+      /* --- [CLEAR CACHE BUTTON] --- */
+      React.createElement("div", { style: { marginBottom: '10px', background: 'rgba(255,165,0,0.04)', border: '1px solid rgba(255,165,0,0.15)', borderRadius: '14px', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, /*#__PURE__*/
+      React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,165,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' } }, "\uD83E\uDDF9"), /*#__PURE__*/
+      React.createElement("div", null, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: '#e2e8f0' } }, lang === 'ar' ? 'مسح التخزين المؤقت' : 'Clear Cache'), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '10px', color: '#ffa500', marginTop: '1px' } }, lang === 'ar' ? 'لحل مشاكل التحميل والتحديث' : 'Fix load and update issues')
+      )
+      ), /*#__PURE__*/
+      React.createElement("button", {
+        onClick: () => { if (window.VersionManager) window.VersionManager.clearCacheAndReload(); },
+        style: { padding: '6px 14px', borderRadius: '10px', background: 'rgba(255,165,0,0.15)', border: '1px solid rgba(255,165,0,0.3)', color: '#ffa500', fontSize: '11px', fontWeight: 800, cursor: 'pointer' } },
+      lang === 'ar' ? 'مسح الآن' : 'Clear Now'
+      )
+      ),
+
+
       user && !isGuestPropForSettings && /*#__PURE__*/
       React.createElement("div", { style: { marginBottom: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '14px 16px' } }, /*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' } }, /*#__PURE__*/

@@ -380,6 +380,15 @@
     updateRoom: (roomId, data) => {
         return _withRetry(() => spyRoomsCollection.doc(roomId).update(data));
     },
+    /**
+     * Toggles player ready status in the lobby
+     */
+    togglePlayerReadyStatus: async (roomId, uid, currentStatus) => {
+        if (!roomId || !uid) return;
+        return spyRoomsCollection.doc(roomId)
+            .collection('players').doc(uid)
+            .update({ isReady: !currentStatus });
+    },
 
     // ═══════════════════════════════════════════
     //  CHAT SERVICES (New - Feature 3)

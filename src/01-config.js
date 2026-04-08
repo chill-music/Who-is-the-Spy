@@ -1,14 +1,14 @@
 // ==========================================
-window.PRO_SPY_VERSION = "2.4";
+window.PRO_SPY_VERSION = "2.9";
 window._activeListeners = 0;
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 // 🛡️ [STABILITY] Initialize GameService early to prevent getMyRole crash in 10-app.js
 window.GameService = window.GameService || {
-    getMyRole: function() { return null; },
-    isGameActive: function() { return false; },
-    getCurrentRoom: function() { return null; }
+    getMyRole: function () { return null; },
+    isGameActive: function () { return false; },
+    getCurrentRoom: function () { return null; }
 };
 
 // 🎯 Z-INDEX CONSTANTS - Layer Management
@@ -57,13 +57,13 @@ var auth = firebase.auth();
 var db = firebase.firestore();
 
 // Enable offline persistence — queues writes (including refunds) across sessions via IndexedDB
-db.enablePersistence({ synchronizeTabs: true }).catch(function(err) {
-  if (err.code === 'failed-precondition') {
-    // Multiple tabs open — persistence only works in one tab at a time
-    console.warn('[PRO SPY] Firestore persistence limited to one tab');
-  } else if (err.code === 'unimplemented') {
-    console.warn('[PRO SPY] Firestore persistence not available in this browser');
-  }
+db.enablePersistence({ synchronizeTabs: true }).catch(function (err) {
+    if (err.code === 'failed-precondition') {
+        // Multiple tabs open — persistence only works in one tab at a time
+        console.warn('[PRO SPY] Firestore persistence limited to one tab');
+    } else if (err.code === 'unimplemented') {
+        console.warn('[PRO SPY] Firestore persistence not available in this browser');
+    }
 });
 
 var storage = firebase.storage();
@@ -100,6 +100,7 @@ var staffLogCollection = db.collection('artifacts').doc(appId).collection('publi
 var ticketsCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('support_tickets');
 var goldLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('gold_transactions');
 var pendingFinancesCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('pending_finances');
+var versioningCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('config');
 
 // ════════════════════════════════════════════════════════
 // 🧧 RED PACKETS SYSTEM CONFIG
@@ -583,6 +584,7 @@ window.BOT_CHATS_CONFIG = BOT_CHATS_CONFIG;
 window.MAX_BADGES = MAX_BADGES;
 window.ADMIN_UIDS = ADMIN_UIDS;
 window.OWNER_UID = OWNER_UID;
+window.versioningCollection = versioningCollection;
 window.ROLE_CONFIG = ROLE_CONFIG;
 window.FAMILY_COINS_SYMBOL = FAMILY_COINS_SYMBOL;
 window.FAMILY_SIGN_IMAGES = FAMILY_SIGN_IMAGES;
@@ -709,18 +711,18 @@ var resolveRewardItem = function (reward) {
                 resolved.icon = resolved.icon || '🖼️';
                 resolved.label_en = (frame.name_en || 'Frame');
                 resolved.label_ar = (frame.name_ar || 'إطار');
-                
+
                 var durSfx_en = resolved.duration ? ' · ' + resolved.duration + 'd' : '';
                 var durSfx_ar = resolved.duration ? ' · ' + resolved.duration + ' أيام' : '';
                 resolved.label_en += durSfx_en;
                 resolved.label_ar += durSfx_ar;
-                
+
                 // Fix frame asset resolution: Fallback to preview if imageUrl is missing
                 var frameAsset = frame.imageUrl || frame.preview;
                 if (frameAsset) {
                     resolved.imageURL = frameAsset;
                     if (!frameAsset.includes('linear-gradient')) {
-                        resolved.icon = frameAsset; 
+                        resolved.icon = frameAsset;
                     }
                 }
                 if (frame.preview) resolved.preview = frame.preview;
@@ -813,9 +815,9 @@ if (typeof PortalModal !== 'undefined') window.PortalModal = PortalModal;
 
 // 🛡️ SECURITY SERVICE — Centralized Economy Protection
 window.SecurityService = {
-    applyCurrencyTransaction: async function(uid, amount, reason, meta = {}) {
+    applyCurrencyTransaction: async function (uid, amount, reason, meta = {}) {
         if (!uid || typeof amount !== 'number' || amount === 0) return { success: false };
-        
+
         // UID validation: abort if window global UID diverges from authenticated user
         var authUID = firebase.auth().currentUser && firebase.auth().currentUser.uid;
         if (authUID && uid !== authUID) {
@@ -826,17 +828,17 @@ window.SecurityService = {
         // 🛡️ CLEANING: Remove undefined values from meta to prevent Firestore crashes
         var cleanMeta = {};
         if (meta && typeof meta === 'object') {
-            Object.keys(meta).forEach(function(key) {
+            Object.keys(meta).forEach(function (key) {
                 if (meta[key] !== undefined) cleanMeta[key] = meta[key];
             });
         }
 
         // 1. Sanity Check
         var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777'));
-        var MAX_SINGLE_REWARD = isGameWin ? 500000000 : 100000; 
-        
+        var MAX_SINGLE_REWARD = isGameWin ? 500000000 : 100000;
+
         if (amount > MAX_SINGLE_REWARD) {
-            var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random()*1000);
+            var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
             console.error(`[SEC] Transaction blocked: Amount ${amount} is suspicious. ID: ${transId}`);
             try {
                 if (typeof pendingFinancesCollection !== 'undefined') {
@@ -853,7 +855,7 @@ window.SecurityService = {
                         timestamp: firebase.firestore.FieldValue.serverTimestamp(), ua: navigator.userAgent
                     });
                 }
-            } catch(e) { console.error('[SEC] Failed to log pending transaction:', e); }
+            } catch (e) { console.error('[SEC] Failed to log pending transaction:', e); }
 
             return { success: false, error: 'Safety limit exceeded', transId: transId };
         }
@@ -862,7 +864,7 @@ window.SecurityService = {
             var batch = db.batch();
             var userRef = usersCollection.doc(uid);
             var logRef = goldLogCollection.doc();
-            
+
             batch.update(userRef, { currency: firebase.firestore.FieldValue.increment(amount) });
             batch.set(logRef, {
                 uid: uid, amount: amount, reason: reason, meta: cleanMeta,
@@ -897,12 +899,12 @@ window.SecurityService = {
  * @param {number}   [interval=50]   Poll interval in ms
  * @param {number}   [maxWait=6000]  Maximum total wait in ms
  */
-window.__waitForGlobal = function(name, callback, interval, maxWait) {
+window.__waitForGlobal = function (name, callback, interval, maxWait) {
     interval = interval || 50;
-    maxWait  = maxWait  || 6000;
+    maxWait = maxWait || 6000;
     var elapsed = 0;
     if (window[name] !== undefined) { callback(window[name]); return; }
-    var poll = setInterval(function() {
+    var poll = setInterval(function () {
         elapsed += interval;
         if (window[name] !== undefined) {
             clearInterval(poll);
@@ -922,14 +924,14 @@ window.__waitForGlobal = function(name, callback, interval, maxWait) {
  * @param {Function} callback  Called once ALL are available
  * @param {number}   [maxWait=6000]
  */
-window.__waitForGlobals = function(names, callback, maxWait) {
+window.__waitForGlobals = function (names, callback, maxWait) {
     maxWait = maxWait || 6000;
-    var start   = Date.now();
-    var result  = {};
+    var start = Date.now();
+    var result = {};
     var pending = names.slice();
 
-    var poll = setInterval(function() {
-        pending = pending.filter(function(n) {
+    var poll = setInterval(function () {
+        pending = pending.filter(function (n) {
             if (window[n] !== undefined) { result[n] = window[n]; return false; }
             return true;
         });
@@ -940,7 +942,7 @@ window.__waitForGlobals = function(names, callback, maxWait) {
             clearInterval(poll);
             console.warn('[__waitForGlobals] Timeout. Still missing:', pending.join(', '));
             // Call anyway with whatever is available to avoid full deadlock
-            names.forEach(function(n) { result[n] = window[n]; });
+            names.forEach(function (n) { result[n] = window[n]; });
             callback(result);
         }
     }, 50);

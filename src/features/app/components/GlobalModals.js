@@ -80,6 +80,32 @@
       shopInitialTab, setShopInitialTab
     } = props;
 
+    // --- [VERSION UPDATE STATE] ---
+    var [showUpdateModal, setShowUpdateModal] = useState(false);
+    var [remoteVersion, setRemoteVersion] = useState('');
+    var [updateNotes, setUpdateNotes] = useState('');
+
+    useEffect(() => {
+      window.showGlobalUpdateModal = (v, notes) => {
+        setRemoteVersion(v);
+        setUpdateNotes(notes);
+        setShowUpdateModal(true);
+      };
+    }, []);
+
+    // --- [VERSION UPDATE STATE] ---
+    var [showUpdateModal, setShowUpdateModal] = useState(false);
+    var [remoteVersion, setRemoteVersion] = useState('');
+    var [updateNotes, setUpdateNotes] = useState('');
+
+    useEffect(() => {
+      window.showGlobalUpdateModal = (v, notes) => {
+        setRemoteVersion(v);
+        setUpdateNotes(notes);
+        setShowUpdateModal(true);
+      };
+    }, []);
+
     // Re-export some setters to window so non-React code can use them
     window.setTargetProfileUID = setTargetProfileUID;
     window.setShowUserProfile = setShowUserProfile;
@@ -680,9 +706,23 @@
         currentUser: currentUserData,
         lang: lang,
         onSendGift: handleSendGiftToUser,
-        currency: currentUserData?.currency || 0,
         friendsData: friendsData }
-      )
+      ),
+
+
+      /* --- [VERSION UPDATE MODAL] --- */
+      window.UpdateModal && React.createElement(window.UpdateModal, {
+        show: showUpdateModal,
+        remoteVersion: remoteVersion,
+        updateNotes: updateNotes,
+        lang: lang,
+        onUpdate: () => {
+          if (window.VersionManager) {
+            window.VersionManager.markUpdateAttempted(remoteVersion);
+            window.VersionManager.clearCacheAndReload();
+          }
+        }
+      })
 
 
       ));

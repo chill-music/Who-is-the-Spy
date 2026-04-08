@@ -815,9 +815,30 @@
             React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#fff', marginBottom: '4px' } }, "Spy Game Invite!"),
             React.createElement("div", { style: { fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '8px' } }, msg.text),
             React.createElement("button", {
-                onClick: () => {
+                onClick: async () => {
                     onClose && onClose();
-                    setTimeout(() => window.SpyGameCore && window.SpyGameCore.online && window.SpyGameCore.online.joinAndGo(msg.roomCode, msg.password), 300);
+                    // 1. Activate the Spy Game Rebuild UI
+                    if (window.setShowSpyRebuild) window.setShowSpyRebuild(true);
+                    if (window.setRoomId) window.setRoomId(msg.roomCode);
+                    
+                    // 2. Attempt to join with a recursive password prompt if needed
+                    const joinWithPrompt = async (pass) => {
+                        if (!window.SpyGameCore?.online?.joinAndGo) return;
+                        try {
+                            await window.SpyGameCore.online.joinAndGo(msg.roomCode, pass);
+                        } catch(e) {
+                            if (e.message === 'WRONG_PASSWORD' || (e.message && e.message.toLowerCase().includes('password'))) {
+                                const promptLabel = lang === 'ar' ? '🔐 هذه المهمة مشفرة. أدخل كلمة السر:' : '🔐 Mission encrypted. Enter password:';
+                                const userPass = prompt(promptLabel);
+                                if (userPass !== null) {
+                                    joinWithPrompt(userPass);
+                                }
+                            }
+                        }
+                    };
+
+                    // Delay slightly to allow the UI to mount so window.SpyGameCore.navigate is ready
+                    setTimeout(() => joinWithPrompt(msg.password), 500);
                 },
                 style: {
                     width: '100%', padding: '8px', background: 'var(--spy-gold, #f5a623)',

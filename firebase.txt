@@ -348,6 +348,14 @@ service cloud.firestore {
     }
 
     // ══════════════════════════════════════════════════════════
+    //  APP CONFIG (Versioning & System Settings)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/config/{docId} {
+      allow read:   if true;
+      allow write: if isLoggedIn() && isStaffInApp(appId);
+    }
+
+    // ══════════════════════════════════════════════════════════
     //  LUCKY GAMES (Jackpots & Sessions)
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/lucky_fruit_jackpot/{docId} {

@@ -192,12 +192,19 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           console.error('[PRO SPY] Unblock error:', e);
         }
       };
+
+      // Expose Spy Game Rebuild state for external triggers (e.g. Chat invitations)
+      window.setShowSpyRebuild = setShowSpyRebuild;
+      window.setRoomId = setRoomId;
+
       return () => {
         delete window.setGlobalNotification;
         delete window.onOpenFamily;
         delete window.openGiftModal;
         delete window.handleBlockUser;
         delete window.handleUnblockUser;
+        delete window.setShowSpyRebuild;
+        delete window.setRoomId;
       };
     }, [setNotification, setViewFamilyId, setShowFamilyModal, setShowMyAccount, setShowUserProfile, setShowFamilyChat, currentUID, isGuest, lang]);
 

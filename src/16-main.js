@@ -20,12 +20,13 @@ var _secondaryComponents = [
   'SelfChatModal', 'FunPassModal', 'FamilyModal', 'FamilyChatModal',
   'LoginRewards', 'WeddingHallModal', 'BFFModal', 'BotChatModal',
   'LuckyGamesHubModal', 'TutorialModal', 'HelpCenterModal', 'PublicChatModal',
-  'SpyGame'
+  'SpyGame', 'UpdateModal', 'VersionManager'
 ];
 
 var _allComponents = _criticalComponents.concat(_secondaryComponents);
 
 function _mountApp() {
+  if (window.VersionManager) window.VersionManager.initListener();
   var AppWithErrorBoundary = function () {
     return React.createElement(ErrorBoundary, null, React.createElement(App, null));
   };
@@ -36,7 +37,7 @@ function _mountApp() {
 
 function _waitForComponents(attempt) {
   attempt = attempt || 0;
-  var missing = _allComponents.filter(function (c) {return typeof window[c] !== 'function';});
+  var missing = _allComponents.filter(function (c) {return !window[c];});
   if (missing.length === 0) {
     _mountApp();
   } else if (attempt < 200) {// max ~10 seconds
