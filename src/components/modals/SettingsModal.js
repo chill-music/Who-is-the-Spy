@@ -422,7 +422,24 @@
       ), /*#__PURE__*/
 
 
-      React.createElement("div", { style: { height: '8px' } })
+      React.createElement("div", { style: { height: '8px' } }),
+      
+      /* --- [VERSION FOOTER] --- */
+      React.createElement("div", { 
+        style: { 
+          textAlign: 'center', 
+          marginTop: '8px', 
+          marginBottom: '4px',
+          opacity: 0.35,
+          fontSize: '10px',
+          fontWeight: 600,
+          color: '#9ca3af',
+          letterSpacing: '0.5px',
+          textTransform: 'uppercase'
+        } 
+      }, 
+        `Who is the Spy? v${window.PRO_SPY_VERSION || '2.9'}`
+      )
       )
       )
       )));
