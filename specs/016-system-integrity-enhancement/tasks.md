@@ -119,3 +119,14 @@
 - [x] T023 [P] Modify `VersionManager.js`: Store message/version in localStorage during `clearCacheAndReload`.
 - [x] T024 [P] Update `GlobalModals.js`: Check for post-update alert state on mount and trigger modal.
 - [x] T025 [P] Register `ApologyModal.js` in `index.html` and `16-main.js`.
+
+---
+
+## Phase 9: Maintenance Mode
+
+**Goal**: Full-screen lockout controlled by Firestore with admin bypass.
+
+- [x] T026 [P] Create `src/features/app/components/MaintenanceScreen.js`: High-fidelity lockout UI.
+- [x] T027 [P] Update `VersionManager.js`: Listen for `under_maintenance` and `maintenance_bypass`.
+- [x] T028 [P] Update `10-app.js`: Implement conditional rendering for Maintenance mode with bypass logic.
+- [x] T029 [P] Register `MaintenanceScreen.js` in `index.html` and `16-main.js`.

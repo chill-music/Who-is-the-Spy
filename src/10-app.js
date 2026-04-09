@@ -309,7 +309,37 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       return cleanup;
     }, []);
 
+    var [maintenanceState, setMaintenanceState] = useState({ 
+      active: !!window.UNDER_MAINTENANCE, 
+      msgAr: window.MAINTENANCE_MSG_AR || "", 
+      msgEn: window.MAINTENANCE_MSG_EN || "" 
+    });
+
+    useEffect(() => {
+      window.refreshAppMaintenance = () => {
+        setMaintenanceState({
+          active: !!window.UNDER_MAINTENANCE,
+          msgAr: window.MAINTENANCE_MSG_AR || "",
+          msgEn: window.MAINTENANCE_MSG_EN || ""
+        });
+      };
+      return () => { delete window.refreshAppMaintenance; };
+    }, []);
+
+    // ── Computed values needed for render ──
+    const isMaintenanceBypassed = currentUID === OWNER_UID || (window.MAINTENANCE_BYPASS && window.MAINTENANCE_BYPASS.includes(currentUID));
+    const showMaintenanceLockout = maintenanceState.active && !isMaintenanceBypassed;
+    var fmtNum = window.fmtNum || ((n) => (n || 0).toLocaleString());
+
     // ── App Rendering ──
+    // 🔒 [MAINTENANCE] Lockout check
+    if (showMaintenanceLockout && window.MaintenanceScreen) {
+        return React.createElement(window.MaintenanceScreen, { 
+            lang, 
+            customMessage: lang === 'ar' ? maintenanceState.msgAr : maintenanceState.msgEn 
+        });
+    }
+
     // 🔒 Critical components readiness guard
     var _criticalReady = window.LobbyView && window.GlobalModals && window.AvatarWithFrame && window.BannedScreen;
     if (!_criticalReady) {
@@ -325,7 +355,6 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', border: '3px solid rgba(0,242,255,0.15)', borderTop: '3px solid #00f2ff', animation: 'spin 0.8s linear infinite' } }), /*#__PURE__*/
           React.createElement("style", null, `@keyframes spin{to{transform:rotate(360deg)}}@keyframes gw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`)
         ));
-
     }
 
     // 🔒 authLoading & userDataLoading screen
@@ -336,13 +365,9 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           React.createElement("div", { style: { width: '40px', height: '40px', borderRadius: '50%', border: '3px solid rgba(0,242,255,0.15)', borderTop: '3px solid #00f2ff', animation: 'spin 0.8s linear infinite' } }), /*#__PURE__*/
           React.createElement("style", null, `@keyframes spin{to{transform:rotate(360deg)}}@keyframes gw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`)
         ));
-
     }
 
     if (isBanned) return /*#__PURE__*/React.createElement(window.BannedScreen, { userData: userData, lang: lang });
-
-    // ── Computed values needed for render ──
-    var fmtNum = window.fmtNum || ((n) => (n || 0).toLocaleString());
     var isMyTurn = room?.currentTurnUID === currentUID;
     var me = Array.isArray(room?.players) 
       ? room.players.find((p) => (p.uid || p.id) === currentUID) 

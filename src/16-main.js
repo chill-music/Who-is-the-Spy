@@ -6,7 +6,7 @@
 
 var _criticalComponents = [
 'App', 'ErrorBoundary',
-'LobbyView', 'GlobalModals', 'BannedScreen',
+'LobbyView', 'GlobalModals', 'BannedScreen', 'MaintenanceScreen',
 'AvatarWithFrame', 'AvatarComponent',
 'useAuthState', 'useAppUIState', 'useOnboarding',
 'useGameActions', 'useUserListeners',

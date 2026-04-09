@@ -81,10 +81,26 @@
                         const remote = data.remote_version;
                         const notes = data.update_notes || "";
                         const isCritical = data.critical === true;
+
+                        // 🚧 Maintenance Mode Logic
+                        const underMaintenance = data.under_maintenance === true;
+                        const maintenanceBypass = Array.isArray(data.maintenance_bypass) ? data.maintenance_bypass : [];
+                        const maintenanceMsgAr = data.maintenance_msg_ar || "";
+                        const maintenanceMsgEn = data.maintenance_msg_en || "";
+
+                        window.UNDER_MAINTENANCE = underMaintenance;
+                        window.MAINTENANCE_BYPASS = maintenanceBypass;
+                        window.MAINTENANCE_MSG_AR = maintenanceMsgAr;
+                        window.MAINTENANCE_MSG_EN = maintenanceMsgEn;
                         
                         // Always update the UI state for the Settings footer
                         if (window.setRemoteVersion) {
                             window.setRemoteVersion(remote);
+                        }
+
+                        // Trigger re-render of App if it's already mounted
+                        if (window.refreshAppMaintenance) {
+                            window.refreshAppMaintenance();
                         }
 
                         // SELF-SEED: If the app has no stored version yet, adopt the DB version immediately
