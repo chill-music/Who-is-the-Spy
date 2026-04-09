@@ -144,6 +144,22 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       if (onboardingStates.show) setShowOnboarding(onboardingStates.show);
     }, [onboardingStates]);
 
+    // 🔄 [RECOVERY] Auto-rejoin last active room
+    useEffect(() => {
+        if (!authLoading && (isLoggedIn || isGuest)) {
+            const savedRoomId = localStorage.getItem('pro_spy_active_room_id');
+            if (savedRoomId && !roomId) {
+                console.log("[PRO SPY] Attempting room recovery for:", savedRoomId);
+                // We use the customHandleJoinGame defined later, or just setRoomId directly 
+                // if we want the useRoom hook to pick it up.
+                setRoomId(savedRoomId);
+                
+                // If it was a Spy Rebuild room, we might need to trigger that view
+                // For now, setting roomId is enough as useRoom will fetch the doc.
+            }
+        }
+    }, [authLoading, isLoggedIn, isGuest, roomId]);
+
     // ── Logic Variables & Helpers ──
     var t = TRANSLATIONS[lang];
     var isGuest = useMemo(() => guestData !== null, [guestData]);
@@ -370,6 +386,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           React.createElement("div", { className: "bg-blob-item bg-blob-3" })
         ), /*#__PURE__*/
         React.createElement(window.NotificationToast, { message: notification, onClose: () => setNotification(null) }), /*#__PURE__*/
+        window.ConnectivityMonitor && React.createElement(window.ConnectivityMonitor, null), /*#__PURE__*/
 
         React.createElement(window.GlobalModals, _extends({},
           gameActions, { handleJoinGame: customHandleJoinGame }, {

@@ -74,6 +74,7 @@
                         const data = doc.data();
                         const remote = data.remote_version;
                         const notes = data.update_notes || "";
+                        const isCritical = data.critical === true;
                         
                         // Always update the UI state for the Settings footer
                         if (window.setRemoteVersion) {
@@ -88,7 +89,13 @@
                         }
 
                         if (this.shouldUpdate(window.PRO_SPY_VERSION, remote)) {
-                            this.triggerUpdateModal(remote, notes);
+                            if (isCritical) {
+                                console.warn("[VersionManager] CRITICAL UPDATE DETECTED. Forcing reload...");
+                                window.PRO_SPY_CRITICAL = true;
+                                this.clearCacheAndReload(remote);
+                            } else {
+                                this.triggerUpdateModal(remote, notes);
+                            }
                         }
                     }
                 }, (error) => {

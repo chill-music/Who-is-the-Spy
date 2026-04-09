@@ -1,4 +1,5 @@
-// window.PRO_SPY_VERSION is now managed dynamically in index.html via localStorage.
+window.PRO_SPY_VERSION = window.PRO_SPY_VERSION || localStorage.getItem('pro_spy_version'); // Inherit from index.html or storage
+window.PRO_SPY_CRITICAL = false; 
 window._activeListeners = 0;
 
 var { useState, useEffect, useRef, useCallback, useMemo } = React;

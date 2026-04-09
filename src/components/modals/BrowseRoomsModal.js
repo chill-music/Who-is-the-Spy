@@ -21,7 +21,7 @@
         return;
       }
       
-      var unsub = spyRoomsRef.where('status', '==', 'LOBBY').onSnapshot((snap) => {
+      var unsub = spyRoomsRef.where('status', '==', 'LOBBY').limit(50).onSnapshot((snap) => {
         var roomsData = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setRooms(roomsData);
         setLoading(false);

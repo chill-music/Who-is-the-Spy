@@ -22,7 +22,14 @@
         checkAndUnlockAchievements
     }) => {
         useEffect(() => {
-            if (!roomId) return;
+            if (!roomId) {
+                // If we're not in a room, ensure the active room ID is cleared
+                // (Unless we want to keep it for retry logic, but usually blankroomId means we left)
+                return;
+            }
+
+            // 💾 [PERSISTENCE] Store current room ID for auto-rejoin
+            localStorage.setItem('pro_spy_active_room_id', roomId);
 
             var unsub = roomsCollection.doc(roomId).onSnapshot(async doc => {
                 if (doc.exists) {
@@ -31,6 +38,11 @@
 
                     if (data.isAdvanced && typeof setShowSpyRebuild === 'function') {
                         setShowSpyRebuild(true);
+                    }
+
+                    // If room is finished, clear from home screen context
+                    if (data.status?.includes('finished')) {
+                        localStorage.removeItem('pro_spy_active_room_id');
                     }
 
                     // 🛡️ Guard: only write history ONCE per room per session
@@ -104,12 +116,13 @@
                         }
                     }
                 } else {
+                    localStorage.removeItem('pro_spy_active_room_id');
                     setRoom(null);
                     setRoomId('');
                 }
             });
 
             return () => unsub();
-        }, [roomId, isLoggedIn, user?.uid, userData, coupleData, incrementMissionProgress, checkAndUnlockAchievements]);
+        }, [roomId, isLoggedIn, user?.uid, incrementMissionProgress, checkAndUnlockAchievements]);
     };
 })();

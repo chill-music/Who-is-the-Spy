@@ -30,26 +30,49 @@
            The app reads its current version from localStorage. 
            This is automatically updated whenever you change the version in Firestore.
         */
-        window.PRO_SPY_VERSION = localStorage.getItem('pro_spy_version') || "...";
+        window.PRO_SPY_VERSION = localStorage.getItem('pro_spy_version') || null;
 
-        // Intercept XMLHttpRequest (legacy compatibility)
+        function shouldBust(url) {
+            if (typeof url !== 'string' || !window.PRO_SPY_VERSION) return false;
+            if (url.includes('?v=') || url.includes('&v=')) return false;
+            
+            // Normalize path for check (strip leading slash/dot)
+            var cleanUrl = url.replace(/^\.\//, '').replace(/^\//, '');
+            
+            // Only bust specific local resources
+            var isLocal = cleanUrl.startsWith('src/') || cleanUrl.startsWith('icos/') || cleanUrl.endsWith('.css');
+            
+            // Explicitly ignore Firebase and third-party APIs to prevent latency
+            var isApi = url.indexOf('firebase') !== -1 || url.indexOf('googleapis') !== -1 || url.indexOf('http') === 0 && url.indexOf(window.location.host) === -1;
+            
+            return isLocal && !isApi;
+        }
+
+        // Intercept XMLHttpRequest (Fix for Babel script loading)
         var originalXHROpen = XMLHttpRequest.prototype.open;
         XMLHttpRequest.prototype.open = function (method, url) {
-            if (typeof url === 'string' && url.startsWith('src/') && !url.includes('?v=')) {
-                var sep = url.includes('?') ? '&' : '?';
+            if (shouldBust(url)) {
+                var sep = url.indexOf('?') !== -1 ? '&' : '?';
                 url = url + sep + 'v=' + window.PRO_SPY_VERSION;
             }
-            return originalXHROpen.apply(this, arguments);
+            return originalXHROpen.apply(this, [method, url].concat(Array.prototype.slice.call(arguments, 2)));
         };
 
-        // Intercept Fetch API (for regular assets)
+        // Intercept Fetch API (for modern assets)
         var originalFetch = window.fetch;
-        window.fetch = function (url, options) {
-            if (typeof url === 'string' && url.startsWith('src/') && !url.includes('?v=')) {
-                var sep = url.includes('?') ? '&' : '?';
+        window.fetch = function (resource, options) {
+            var url = (resource instanceof Request) ? resource.url : resource;
+            if (shouldBust(url)) {
+                var sep = url.indexOf('?') !== -1 ? '&' : '?';
                 url = url + sep + 'v=' + window.PRO_SPY_VERSION;
+                if (resource instanceof Request) {
+                    // Update the request object URL
+                    resource = new Request(url, resource);
+                } else {
+                    resource = url;
+                }
             }
-            return originalFetch.call(this, url, options);
+            return originalFetch.call(this, resource, options);
         };
     </script>
 
@@ -240,6 +263,7 @@
     <!-- Hooks Registry: consolidates all useXxx hooks + sets window.__hooksReady -->
     <script defer src="src/app/AppHooks.js"></script>
     <script defer src="src/components/services/VersionManager.js"></script>
+    <script defer src="src/components/ui/ConnectivityMonitor.js"></script>
 
     <!-- App Feature Modules -->
     <script defer src="src/features/room/RoomState.js"></script>
