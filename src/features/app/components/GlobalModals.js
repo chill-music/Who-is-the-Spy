@@ -85,6 +85,11 @@
     var [remoteVersion, setRemoteVersion] = useState('');
     var [updateNotes, setUpdateNotes] = useState('');
 
+    // --- [POST-CRITICAL APOLOGY STATE] ---
+    var [showApologyModal, setShowApologyModal] = useState(false);
+    var [postCritVer, setPostCritVer] = useState('');
+    var [postCritMsg, setPostCritMsg] = useState('');
+
     useEffect(() => {
       window.showGlobalUpdateModal = (v, notes) => {
         setRemoteVersion(v);
@@ -94,6 +99,16 @@
       window.setRemoteVersion = (v) => {
         setRemoteVersion(v);
       };
+
+      // 🚩 Check for pending critical update apology
+      const pendingMsg = localStorage.getItem('pro_spy_post_crit_msg');
+      const pendingVer = localStorage.getItem('pro_spy_post_crit_ver');
+      if (pendingMsg && pendingVer) {
+          setPostCritMsg(pendingMsg);
+          setPostCritVer(pendingVer);
+          setShowApologyModal(true);
+          // Don't clear yet, clear when modal is confirmed
+      }
     }, []);
 
     // Re-export some setters to window so non-React code can use them
@@ -718,8 +733,19 @@
             setShowUpdateModal(false);
           }
         }
-      })
+      }),
 
+      window.ApologyModal && React.createElement(window.ApologyModal, {
+        show: showApologyModal,
+        remoteVersion: postCritVer,
+        adminMessage: postCritMsg,
+        lang: lang,
+        onConfirm: () => {
+          localStorage.removeItem('pro_spy_post_crit_msg');
+          localStorage.removeItem('pro_spy_post_crit_ver');
+          setShowApologyModal(false);
+        }
+      })
 
       ));
 

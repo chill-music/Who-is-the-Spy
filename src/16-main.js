@@ -20,7 +20,7 @@ var _secondaryComponents = [
   'SelfChatModal', 'FunPassModal', 'FamilyModal', 'FamilyChatModal',
   'LoginRewards', 'WeddingHallModal', 'BFFModal', 'BotChatModal',
   'LuckyGamesHubModal', 'TutorialModal', 'HelpCenterModal', 'PublicChatModal',
-  'SpyGame', 'UpdateModal', 'VersionManager', 'ConnectivityMonitor'
+  'SpyGame', 'UpdateModal', 'VersionManager', 'ConnectivityMonitor', 'ApologyModal'
 ];
 
 var _allComponents = _criticalComponents.concat(_secondaryComponents);

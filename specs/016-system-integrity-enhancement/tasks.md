@@ -108,3 +108,14 @@
 - [x] T019 [P] Stabilize `src/app/useRoom.js` listener: Remove `userData` dependency to stop listener thrashing.
 - [x] T020 [P] Refactor `src/components/ui/ConnectivityMonitor.js`: Move style tag outside render.
 - [x] T021 [P] Sync `PRO_SPY_VERSION` initialization in `src/01-config.js` with `localStorage`.
+
+---
+
+## Phase 8: Post-Update Apology System
+
+**Goal**: Show a red apology box after a forced critical update.
+
+- [x] T022 [P] Create `src/components/modals/ApologyModal.js`: Red-themed alert for critical updates.
+- [x] T023 [P] Modify `VersionManager.js`: Store message/version in localStorage during `clearCacheAndReload`.
+- [x] T024 [P] Update `GlobalModals.js`: Check for post-update alert state on mount and trigger modal.
+- [x] T025 [P] Register `ApologyModal.js` in `index.html` and `16-main.js`.

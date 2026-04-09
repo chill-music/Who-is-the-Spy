@@ -10,12 +10,18 @@
          * Clears all browser asset caches, unregisters service workers, and reloads the page.
          * Specifically targets window.caches without touching localStorage or IndexedDB.
          */
-        clearCacheAndReload: async function (newVersion) {
+        clearCacheAndReload: async function (newVersion, majorMsg) {
             console.log("[VersionManager] Initiating cache clear for version:", newVersion || "manual");
             try {
                 // 0. Persist the new version so index.html picks it up on next load
                 if (newVersion) {
                     localStorage.setItem('pro_spy_version', String(newVersion));
+                    
+                    // 🚩 [CRITICAL] Store apology info for post-reload display
+                    if (majorMsg) {
+                        localStorage.setItem('pro_spy_post_crit_msg', majorMsg);
+                        localStorage.setItem('pro_spy_post_crit_ver', String(newVersion));
+                    }
                 }
 
                 // 1. Unregister Service Workers to bypass sw.js caching
@@ -92,7 +98,7 @@
                             if (isCritical) {
                                 console.warn("[VersionManager] CRITICAL UPDATE DETECTED. Forcing reload...");
                                 window.PRO_SPY_CRITICAL = true;
-                                this.clearCacheAndReload(remote);
+                                this.clearCacheAndReload(remote, notes || "Maintenance update.");
                             } else {
                                 this.triggerUpdateModal(remote, notes);
                             }
