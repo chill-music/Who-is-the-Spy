@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Defuse Master - Standalone Test</title>
+
+    <!-- 🛡️ SECURITY HARDENING (CSP + ANTI-CLICKJACKING) -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://*.firebaseio.com https://*.firebaseapp.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.googleapis.com https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://www.gstatic.com https://unpkg.com wss://*.firebaseio.com;">
+    <script>
+        /* Anti-Clickjacking Frame-Buster */
+        (function () {
+            if (self !== top) {
+                top.location.replace(self.location.href);
+            }
+        })();
+    </script>
+
     
     <!-- React & ReactDOM (Matching Project Versions) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -35,7 +48,7 @@
     <div id="root"></div>
 
     <!-- The Game Component (IIFE) -->
-    <script type="text/babel" src="DefuseMaster.jsx?v=standalone"></script>
+    <script type="text/babel" src="./DefuseMaster.jsx?v=standalone"></script>
 
     <!-- Mount Script -->
     <script type="text/babel">
