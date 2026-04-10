@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Defuse Master - Standalone Test</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- 🛡️ SECURITY HARDENING (CSP + ANTI-CLICKJACKING) -->
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' https://*.firebaseio.com https://*.firebaseapp.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.googleapis.com https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com wss://*.firebaseio.com;">
+        content="default-src 'self' https://*.firebaseio.com https://*.firebaseapp.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.googleapis.com https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://www.gstatic.com https://unpkg.com wss://*.firebaseio.com;">
     <script>
         /* Anti-Clickjacking Frame-Buster */
         (function () {
@@ -16,72 +17,471 @@
             }
         })();
     </script>
+    <title>PRO SPY | Covert Arena</title>
 
-    
-    <!-- React & ReactDOM (Matching Project Versions) -->
+    <!-- ═══════════════════════════════════════════════
+         PWA — Manifest + Icons (Android + iOS + Win)
+    ═══════════════════════════════════════════════ -->
+    <script>
+        var m = document.createElement('link');
+        m.rel = 'manifest';
+        m.href = 'manifest.json?v=' + (localStorage.getItem('pro_spy_version') || Date.now());
+        document.head.appendChild(m);
+    </script>
+
+
+    <!-- Android Chrome -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="PRO SPY">
+    <meta name="theme-color" content="#7000ff">
+
+    <!-- ⚡ BOOTSTRAPPER: Fast Version Check (FVC) ⚡ -->
+    <script>
+        (function () {
+            // Configuration matching src/01-config.js
+            var APP_ID = 'pro_spy_v25_final_fix_complete';
+            var FIREBASE_PROJECT = 'who-is-the-spy-919b9';
+            var LOCAL_VER = localStorage.getItem('pro_spy_version');
+
+            // Only run FVC if we are NOT already snoozing or just reloaded
+            if (sessionStorage.getItem('pro_spy_fvc_check_running')) return;
+
+            // Minimal Firestore REST Fetch
+            var docUrl = 'https://firestore.googleapis.com/v1/projects/' + FIREBASE_PROJECT +
+                '/databases/(default)/documents/artifacts/' + APP_ID +
+                '/public/data/config/versioning';
+
+            window.PRO_SPY_FVC_ACTIVE = true;
+
+            fetch(docUrl).then(function (r) { return r.json(); }).then(function (res) {
+                var data = res.fields || {};
+                var remoteVer = data.remote_version ? data.remote_version.stringValue : null;
+                var isCritical = data.critical ? data.critical.booleanValue : false;
+
+                if (remoteVer && remoteVer !== LOCAL_VER) {
+                    console.warn("[FVC] Version mismatch detected early:", LOCAL_VER, "->", remoteVer);
+
+                    // If critical or first time, force update immediately
+                    if (isCritical || !LOCAL_VER) {
+                        localStorage.setItem('pro_spy_version', remoteVer);
+
+                        // Clear PWA caches immediately
+                        if ('caches' in window) caches.keys().then(function (keys) {
+                            keys.forEach(function (k) { caches.delete(k); });
+                        });
+
+                        // Unregister SW
+                        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function (regs) {
+                            regs.forEach(function (r) { r.unregister(); });
+                        });
+
+                        // Important: Clear sessionStorage update flags to allow new logic to run
+                        sessionStorage.removeItem('pro_spy_update_attempted');
+
+                        // Show "Updating" status on boot screen
+                        var progress = document.getElementById('boot-progress');
+                        if (progress) {
+                            progress.style.width = '100%';
+                            progress.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
+                        }
+
+                        // Reload with cache buster
+                        setTimeout(function () {
+                            window.location.href = window.location.origin + window.location.pathname + '?v=' + Date.now();
+                        }, 500);
+
+                        // Block further script execution
+                        window.stop();
+                    }
+                }
+            }).catch(function (err) {
+                console.warn("[FVC] Version check skipped (offline or error)");
+            }).finally(function () {
+                window.PRO_SPY_FVC_ACTIVE = false;
+                sessionStorage.setItem('pro_spy_fvc_check_running', 'done');
+            });
+        })();
+    </script>
+
+    <!-- ⚡ ULTIMATE CACHE-BUSTING INTERCEPTOR ⚡ -->
+    <script>
+        window.PRO_SPY_VERSION = localStorage.getItem('pro_spy_version') || null;
+
+        /**
+         * Dynamic Script Loader with Order Preservation
+         * Replaces static script tags to ensure every single source file is version-busted.
+         */
+        window.loadAppScript = function (src) {
+            var s = document.createElement('script');
+            var sep = src.indexOf('?') !== -1 ? '&' : '?';
+            s.src = src + (window.PRO_SPY_VERSION ? sep + 'v=' + window.PRO_SPY_VERSION : '');
+            s.defer = true;
+            s.async = false; // ⚠️ CRITICAL: Preserves loading order
+            document.head.appendChild(s);
+        };
+
+        /**
+         * Dynamic Style Loader
+         */
+        window.loadAppStyle = function (src) {
+            var l = document.createElement('link');
+            var sep = src.indexOf('?') !== -1 ? '&' : '?';
+            l.rel = 'stylesheet';
+            l.href = src + (window.PRO_SPY_VERSION ? sep + 'v=' + window.PRO_SPY_VERSION : '');
+            document.head.appendChild(l);
+        };
+
+
+        function shouldBust(url) {
+            if (typeof url !== 'string' || !window.PRO_SPY_VERSION) return false;
+            // Normalize path for check (strip leading slash/dot)
+            var cleanUrl = url.replace(/^\.\//, '').replace(/^\//, '');
+            var isLocal = cleanUrl.startsWith('src/') || cleanUrl.startsWith('icos/') || cleanUrl.endsWith('.css');
+            var isApi = url.indexOf('firebase') !== -1 || url.indexOf('googleapis') !== -1 || url.indexOf('http') === 0 && url.indexOf(window.location.host) === -1;
+            return isLocal && !isApi;
+        }
+
+        // Intercept XMLHttpRequest
+        var originalXHROpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (method, url) {
+            if (shouldBust(url)) {
+                var sep = url.indexOf('?') !== -1 ? '&' : '?';
+                url = url + sep + 'v=' + (window.PRO_SPY_VERSION || Date.now());
+            }
+            return originalXHROpen.apply(this, [method, url].concat(Array.prototype.slice.call(arguments, 2)));
+        };
+
+        // Intercept Fetch API
+        var originalFetch = window.fetch;
+        window.fetch = function (resource, options) {
+            var url = (resource instanceof Request) ? resource.url : resource;
+            if (shouldBust(url)) {
+                var sep = url.indexOf('?') !== -1 ? '&' : '?';
+                url = url + sep + 'v=' + (window.PRO_SPY_VERSION || Date.now());
+                if (resource instanceof Request) resource = new Request(url, resource);
+                else resource = url;
+            }
+            return originalFetch.call(this, resource, options);
+        };
+    </script>
+
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PRO SPY">
+    <link rel="apple-touch-icon" href="icos/icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icos/icon-192.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icos/icon-144.png">
+
+    <!-- Windows Tiles -->
+    <meta name="msapplication-TileImage" content="icos/icon-144.png">
+    <meta name="msapplication-TileColor" content="#7000ff">
+    <meta name="msapplication-config" content="none">
+
+    <!-- SEO -->
+    <meta name="description" content="PRO SPY | Covert Arena — لعبة الجاسوس الاجتماعية الأكثر إثارة">
+    <meta name="robots" content="index, follow">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icos/icon-192.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icos/icon-96.png">
+    <link rel="shortcut icon" href="icos/icon-192.png">
+
+    <!-- ⚡ Speed: Pre-establish connections to all external origins ASAP -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+
+    <!-- Libraries (crossorigin enables better CDN caching) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <!-- Babel for JSX (Needed because we are loading .jsx directly in standalone mode) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Outfit:wght@300;500;700;900&family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap"
+        rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <script>loadAppStyle("style.css");</script>
+
+    <!-- 👑 VIP System CSS -->
+    <script>loadAppStyle("vip.css");</script>
+
+    <!-- 🟢 Mini Profile New Style CSS -->
+    <script>loadAppStyle("mini-profile.css");</script>
+
+</head>
+
+<body>
+    <!-- ⚡ Instant loading screen — appears before ANY JS loads, hidden when React mounts -->
+    <div id="app-boot-screen" style="
+        position:fixed;inset:0;z-index:999999;
+        background:linear-gradient(135deg,#0a0a1a 0%,#0f0f2e 50%,#0a0a1a 100%);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        font-family:'Segoe UI',system-ui,sans-serif;
+    ">
+        <div
+            style="font-size:64px;margin-bottom:16px;animation:boot-pulse 1.2s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(0,242,255,0.4));">
+            🕵️</div>
+        <div
+            style="color:#00f2ff;font-size:26px;font-weight:900;letter-spacing:4px;margin-bottom:8px;text-shadow:0 0 10px rgba(0,242,255,0.8), 0 0 20px rgba(112,0,255,0.4);font-family:'Rajdhani',sans-serif;text-transform:uppercase;">
+            PRO SPY</div>
+        <div style="color:#6366f1;font-size:13px;margin-bottom:32px;opacity:.8;">Covert Arena</div>
+        <div style="width:180px;height:3px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;">
+            <div id="boot-progress"
+                style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#06b6d4);border-radius:4px;transition:width .3s ease;">
+            </div>
+        </div>
+    </div>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #1A0A3C;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        @keyframes boot-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: .9
+            }
+
+            50% {
+                transform: scale(1.08);
+                opacity: 1
+            }
         }
-        #root {
-            width: 100%;
-            max-width: 430px;
-            height: 100vh;
-            position: relative;
+
+        #app-boot-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .4s ease .1s;
         }
     </style>
-</head>
-<body>
+    <script>
+        /* Animate the progress bar while scripts load */
+        var _bp = document.getElementById('boot-progress'), _bv = 0;
+        var _bi = setInterval(function () {
+            _bv = Math.min(_bv + (Math.random() * 3 + 0.5), 88);
+            if (_bp) _bp.style.width = _bv + '%';
+        }, 200);
+        window.__hideBootScreen = function () {
+            clearInterval(_bi);
+            if (_bp) _bp.style.width = '100%';
+            setTimeout(function () {
+                var el = document.getElementById('app-boot-screen');
+                if (el) { el.classList.add('hidden'); setTimeout(function () { el.remove(); }, 500); }
+            }, 150);
+        };
+    </script>
+
     <div id="root"></div>
 
-    <!-- The Game Component (IIFE) -->
-    <script type="text/babel" src="DefuseMaster.jsx?v=standalone"></script>
+    <!-- Firebase (Must load BEFORE defer scripts if they use it immediately, but compat scripts are global) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
-    <!-- Mount Script -->
-    <script type="text/babel">
-        const { useEffect } = React;
-        
-        function App() {
-            // DefuseMasterApp is exposed via window by our IIFE
-            const Game = window.DefuseMasterApp;
-            
-            if (!Game) {
-                return (
-                    <div style={{color: 'white', padding: 20, textAlign: 'center'}}>
-                        <h2>Loading Game...</h2>
-                        <p>If this persists, check console for errors.</p>
-                    </div>
-                );
-            }
+    <!--
+    ════════════════════════════════════════════════════════════
+      PRO SPY — Source Files (Optimized Loading)
+      Using 'defer' to ensure scripts load in parallel without blocking rendering.
+      The order is preserved automatically by the browser.
+    ════════════════════════════════════════════════════════════
+    -->
 
-            return <Game config={null} onEnd={(res) => console.log('Game Ended:', res)} />;
-        }
+    <!-- 01 · Constants, Firebase, Collections -->
+    <script>
+        loadAppScript("src/01-config.js");
+        loadAppScript("src/features/profile/ProfileHelpers.js");
+        loadAppScript("src/features/pwa/PWAHandler.js");
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // 02 · Audio System
+        loadAppScript("src/02-audio.js");
 
-        // Simple check to remount if IIFE loaded late
-        let checkCount = 0;
-        const interval = setInterval(() => {
-            if (window.DefuseMasterApp || checkCount > 20) {
-                root.render(<App />);
-                clearInterval(interval);
-            }
-            checkCount++;
-        }, 500);
+        // 03 · Data: FunPass, Login Rewards
+        loadAppScript("src/03-data-funpass.js");
+
+        // 04 · Data: Shop, Achievements, Scenarios, Helpers
+        loadAppScript("src/04-data-game.js");
+
+        // 05 · Translations (AR / EN)
+        loadAppScript("src/05-translations.js");
+
+        // 06 · Base UI Components
+        loadAppScript("src/06-components-base.js");
+
+        // 07 · Gift Components
+        loadAppScript("src/07-components-gifts.js");
+
+        // 👑 17 · VIP System
+        loadAppScript("src/17-vip.js");
+
+        // 08 · Shop & Inventory
+        loadAppScript("src/08-components-shop.js");
+
+        // Family System Core
+        loadAppScript("src/features/family/FamilyConstants.js");
+
+        // 09 · User Components
+        loadAppScript("src/features/onboarding/OnboardingFlow.js");
+        loadAppScript("src/features/tasks/DailyTasksPanel.js");
+        loadAppScript("src/features/groups/GroupConfig.js");
+        loadAppScript("src/features/groups/GroupChatModal.js");
+        loadAppScript("src/features/groups/GroupDetailsModal.js");
+        loadAppScript("src/features/groups/GroupsList.js");
+        loadAppScript("src/features/groups/GroupsSection.js");
+        loadAppScript("src/09-components-user.js");
+
+        // Core App Logic
+        loadAppScript("src/app/useAuthState.js");
+        loadAppScript("src/app/useAppUIState.js");
+        loadAppScript("src/app/usePresence.js");
+        loadAppScript("src/app/useBanningLogic.js");
+        loadAppScript("src/app/useOnboarding.js");
+        loadAppScript("src/app/useNotifications.js");
+        loadAppScript("src/app/useRoom.js");
+        loadAppScript("src/app/useLeaderboards.js");
+        loadAppScript("src/app/useSocial.js");
+        loadAppScript("src/app/useLoginRewards.js");
+        loadAppScript("src/app/useGameAutomation.js");
+        loadAppScript("src/app/useBots.js");
+        loadAppScript("src/app/utils/bgAnimation.js");
+        loadAppScript("src/app/hooks/useUserListeners.js");
+        loadAppScript("src/app/hooks/useGameActions.js");
+        loadAppScript("src/app/AppHooks.js");
+        loadAppScript("src/components/services/VersionManager.js");
+        loadAppScript("src/components/ui/ConnectivityMonitor.js");
+
+        // App Feature Modules
+        loadAppScript("src/features/room/RoomState.js");
+        loadAppScript("src/features/chat/ChatManager.js");
+        loadAppScript("src/features/app/components/BannedScreen.js");
+        loadAppScript("src/features/app/components/MaintenanceScreen.js");
+        loadAppScript("src/features/app/components/RankingView.js");
+        loadAppScript("src/features/app/components/LobbyView.js");
+
+        // Modals
+        loadAppScript("src/11-modal-selfchat.js");
+        loadAppScript("src/12-modal-funpass.js");
+        loadAppScript("src/13-modal-chat.js");
+        loadAppScript("src/components/modals/LoginRewards.js");
+        loadAppScript("src/components/modals/BrowseRoomsModal.js");
+        loadAppScript("src/components/modals/TutorialModal.js");
+        loadAppScript("src/components/modals/SettingsModal.js");
+        loadAppScript("src/components/modals/SupportTicketSection.js");
+        loadAppScript("src/components/lobby/LobbyPublicChatBox.js");
+        loadAppScript("src/components/modals/VIPCenterModal.js");
+        loadAppScript("src/components/modals/HelpCenterModal.js");
+        loadAppScript("src/components/modals/PublicChatModal.js");
+        loadAppScript("src/components/modals/UpdateModal.js");
+        loadAppScript("src/components/modals/ApologyModal.js");
+
+        // Profile System
+        loadAppScript("src/features/profile/ProfileFamilySignBadge.js");
+        loadAppScript("src/features/profile/WinRateCircle.js");
+        loadAppScript("src/features/profile/GiftWallDetailModal.js");
+        loadAppScript("src/features/profile/GiftWall.js");
+        loadAppScript("src/features/profile/ProfileStats.js");
+        loadAppScript("src/features/profile/AchievementsDisplay.js");
+        loadAppScript("src/features/profile/ProfileEffects.js");
+        loadAppScript("src/features/profile/ProfileIdentityElements.js");
+        loadAppScript("src/features/profile/MomentsSystem.js");
+        loadAppScript("src/features/profile/ProfileFriendsSection.js");
+        loadAppScript("src/features/profile/ProfileAdmin.js");
+        loadAppScript("src/features/profile/ProfileHeader.js");
+        loadAppScript("src/features/profile/ProfileIdentity.js");
+        loadAppScript("src/features/profile/ProfileV11.js");
+
+        // Admin Panel
+        loadAppScript("src/components/admin/AdminUtils.js");
+        loadAppScript("src/components/admin/AdminStatCard.js");
+        loadAppScript("src/components/admin/AdminOverview.js");
+        loadAppScript("src/components/admin/StaffManagementSection.js");
+        loadAppScript("src/components/admin/UserManagementSection.js");
+        loadAppScript("src/components/admin/BroadcastSection.js");
+        loadAppScript("src/components/admin/ActivityLogSection.js");
+        loadAppScript("src/components/admin/BanPanelInline.js");
+        loadAppScript("src/components/admin/ReportsSection.js");
+        loadAppScript("src/components/admin/TicketsSection.js");
+        loadAppScript("src/components/admin/MomentsModerationSection.js");
+        loadAppScript("src/components/admin/FinancialLogSection.js");
+        loadAppScript("src/components/admin/FAQManagementSection.js");
+        loadAppScript("src/components/admin/FeedbackInboxSection.js");
+        loadAppScript("src/components/admin/FakeProfilesSection.js");
+        loadAppScript("src/18-admin-panel.js");
+
+        // Family System
+        loadAppScript("src/features/family/FamilyUtils.js");
+        loadAppScript("src/features/family/FamilyService.js");
+        loadAppScript("src/features/family/components/FamilySignBadge.js");
+        loadAppScript("src/features/family/components/FamilyRoleBadge.js");
+        loadAppScript("src/features/family/components/FamilyShared.js");
+        loadAppScript("src/features/family/components/RedPacketCard.js");
+        loadAppScript("src/features/family/components/FamilyChatModal.js");
+        loadAppScript("src/features/family/components/FamilyTreasury.js");
+        loadAppScript("src/features/family/components/FamilyGacha.js");
+        loadAppScript("src/features/family/components/FamilyMembers.js");
+        loadAppScript("src/features/family/components/FamilySearch.js");
+        loadAppScript("src/features/family/components/FamilyProfile.js");
+        loadAppScript("src/features/family/components/FamilyRanking.js");
+        loadAppScript("src/features/family/components/FamilyTasks.js");
+        loadAppScript("src/features/family/components/FamilyShop.js");
+        loadAppScript("src/features/family/components/FamilyManagement.js");
+        loadAppScript("src/features/family/components/FamilyRankingInline.js");
+        loadAppScript("src/features/family/components/FamilyNews.js");
+        loadAppScript("src/features/family/components/FriendsMomentsModal.js");
+        loadAppScript("src/features/family/components/FamilyMemberQuickCard.js");
+        loadAppScript("src/19-family.js");
+
+        // Couples System
+        loadAppScript("src/features/couples/CoupleConfig.js");
+        loadAppScript("src/features/couples/CoupleService.js");
+        loadAppScript("src/features/couples/CoupleUIComponents.js");
+        loadAppScript("src/features/couples/ProposalModal.js");
+        loadAppScript("src/features/couples/IncomingProposalModal.js");
+        loadAppScript("src/features/couples/RingsShopSection.js");
+        loadAppScript("src/features/couples/CoupleCardModal.js");
+        loadAppScript("src/features/couples/WeddingHallModal.js");
+
+        // BFF System
+        loadAppScript("src/features/bff/BFFService.js");
+        loadAppScript("src/features/bff/BFFCardModal.js");
+        loadAppScript("src/features/bff/BFFRequestItem.js");
+        loadAppScript("src/features/bff/BFFProfileListModal.js");
+        loadAppScript("src/features/bff/BFFModal.js");
+        loadAppScript("src/features/bff/BFFStripProfile.js");
+        loadAppScript("src/features/bff/BotChatModal.js");
+
+        // Games
+        loadAppStyle("src/features/lucky-games/soccer-star.css");
+        loadAppStyle("src/features/lucky-games/lucky-fruit.css");
+        loadAppStyle("src/features/lucky-games/greedy-cat.css");
+        loadAppScript("src/features/lucky-games/LuckyFruitGame.js");
+        loadAppScript("src/features/lucky-games/Super777Game.js");
+        loadAppScript("src/features/lucky-games/GreedyCatGame.js");
+        loadAppScript("src/features/lucky-games/SoccerStarGame.js");
+        loadAppScript("src/features/lucky-games/CrashGame.js");
+        loadAppScript("src/features/lucky-games/LuckyGamesHub.js");
+
+        // Spy Game Rebuild
+        loadAppScript("src/features/spy-rebuild/SpyGame-config.js");
+        loadAppScript("src/features/spy-rebuild/SpyGame-firebase.js");
+        loadAppScript("src/features/spy-rebuild/SpyGame-offline.js");
+        loadAppScript("src/features/spy-rebuild/SpyGame-online.js");
+        loadAppScript("src/features/spy-rebuild/SpyGame-ui.js");
+
+        // App Shell
+        loadAppScript("src/features/app/components/GlobalModals.js");
+        loadAppScript("src/10-app.js");
+
+        // Entry Point
+        loadAppScript("src/16-main.js");
     </script>
+
+
 </body>
+
 </html>
