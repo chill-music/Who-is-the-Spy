@@ -5,49 +5,56 @@
      */
     var VersionManager = {
         _unsubscribe: null,
+        _lastData: null,
 
         /**
          * Clears all browser asset caches, unregisters service workers, and reloads the page.
-         * Specifically targets window.caches without touching localStorage or IndexedDB.
+         * Specifically targets window.caches without touching localStorage or IndexedDB (Auth).
          */
         clearCacheAndReload: async function (newVersion, majorMsg) {
-            console.log("[VersionManager] Initiating cache clear for version:", newVersion || "manual");
+            console.log("[VersionManager] 🚨 Hard Reset Initiated for version:", newVersion || "manual");
             try {
-                // 0. Persist the new version so index.html picks it up on next load
+                // 1. Persist the new version immediately
                 if (newVersion) {
                     localStorage.setItem('pro_spy_version', String(newVersion));
-                    
-                    // 🚩 [CRITICAL] Store apology info for post-reload display
                     if (majorMsg) {
                         localStorage.setItem('pro_spy_post_crit_msg', majorMsg);
                         localStorage.setItem('pro_spy_post_crit_ver', String(newVersion));
                     }
                 }
 
-                // 1. Unregister Service Workers to bypass sw.js caching
+                // 2. Kill Service Workers
                 if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (const registration of registrations) {
-                        await registration.unregister();
-                        console.log("[VersionManager] SW unregistered:", registration.scope);
-                    }
+                    try {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(regs.map(r => r.unregister()));
+                        console.log("[VersionManager] ServiceWorkers cleared.");
+                    } catch (e) { console.warn("SW Clear fail", e); }
                 }
 
-                // 2. Purge Cache API buckets
+                // 3. Purge Cache API (Assets)
                 if ('caches' in window) {
-                    const keys = await window.caches.keys();
-                    await Promise.all(keys.map(key => window.caches.delete(key)));
-                    console.log("[VersionManager] Caches purged successfully.");
+                    try {
+                        const keys = await window.caches.keys();
+                        await Promise.all(keys.map(key => window.caches.delete(key)));
+                        console.log("[VersionManager] Cache API cleared.");
+                    } catch (e) { console.warn("Cache Clear fail", e); }
                 }
 
-                // 3. Force hard reload from server with timestamp bust
+                // 4. Clear update attempts to allow fresh start
+                sessionStorage.removeItem('pro_spy_update_attempted');
+                sessionStorage.removeItem('pro_spy_fvc_check_running');
+
+                // 5. Force hard reload from server with timestamp bust
                 const bust = '?v=' + Date.now();
                 const currentUrl = window.location.origin + window.location.pathname;
-                
-                console.log("[VersionManager] Reloading page to apply latest version...");
-                window.location.href = currentUrl + bust;
+
+                console.log("[VersionManager] Finalizing reload...");
+                setTimeout(function () {
+                    window.location.href = currentUrl + bust;
+                }, 100);
             } catch (error) {
-                console.error("[VersionManager] Cache clear failed:", error);
+                console.error("[VersionManager] Reset failed, falling back to basic reload:", error);
                 window.location.reload(true);
             }
         },
@@ -55,78 +62,72 @@
         /**
          * Marks a version as 'dismissed' for the current session to prevent refresh loops.
          */
-        markUpdateAttempted: function(version) {
+        markUpdateAttempted: function (version) {
             if (!version) return;
-            sessionStorage.setItem('pro_spy_update_attempted', version);
-            console.log("[VersionManager] Update attempt recorded for version:", version);
+            sessionStorage.setItem('pro_spy_update_attempted', String(version));
+            console.log("[VersionManager] Update silenced for session:", version);
         },
 
         /**
          * Initializes the Firestore listener for remote versioning.
          */
         initListener: function () {
+            // Prevent initialization if bootstrapper is still active or already listening
+            if (window.PRO_SPY_FVC_ACTIVE || this._unsubscribe) return;
+
             if (!window.firebase || !window.versioningCollection) {
-                console.warn("[VersionManager] Firebase or versioningCollection not ready.");
+                console.warn("[VersionManager] Firebase dependencies not ready for versioning.");
                 return;
             }
 
-            if (this._unsubscribe) return;
-            
-            console.log("[VersionManager] Monitoring remote version... (Active: " + (window.PRO_SPY_VERSION || '...') + ")");
-            
+            console.log("[VersionManager] Real-time monitoring enabled.");
+
             try {
                 this._unsubscribe = window.versioningCollection.doc('versioning').onSnapshot((doc) => {
                     if (doc.exists) {
                         const data = doc.data();
+                        this._lastData = data; // Store for snooze re-eval
+
                         const remote = data.remote_version;
                         const notes = data.update_notes || "";
                         const isCritical = data.critical === true;
 
-                        // 🚧 Maintenance Mode Logic
-                        const underMaintenance = data.under_maintenance === true;
-                        const maintenanceBypass = Array.isArray(data.maintenance_bypass) ? data.maintenance_bypass : [];
-                        const maintenanceMsgAr = data.maintenance_msg_ar || "";
-                        const maintenanceMsgEn = data.maintenance_msg_en || "";
+                        // PWA Maintenance Props
+                        window.UNDER_MAINTENANCE = data.under_maintenance === true;
+                        window.MAINTENANCE_BYPASS = Array.isArray(data.maintenance_bypass) ? data.maintenance_bypass : [];
+                        window.MAINTENANCE_MSG_AR = data.maintenance_msg_ar || "";
+                        window.MAINTENANCE_MSG_EN = data.maintenance_msg_en || "";
 
-                        window.UNDER_MAINTENANCE = underMaintenance;
-                        window.MAINTENANCE_BYPASS = maintenanceBypass;
-                        window.MAINTENANCE_MSG_AR = maintenanceMsgAr;
-                        window.MAINTENANCE_MSG_EN = maintenanceMsgEn;
-                        
-                        // Always update the UI state for the Settings footer
-                        if (window.setRemoteVersion) {
-                            window.setRemoteVersion(remote);
-                        }
+                        if (window.setRemoteVersion) window.setRemoteVersion(remote);
+                        if (window.refreshAppMaintenance) window.refreshAppMaintenance();
 
-                        // Trigger re-render of App if it's already mounted
-                        if (window.refreshAppMaintenance) {
-                            window.refreshAppMaintenance();
-                        }
-
-                        // SELF-SEED: If the app has no stored version yet, adopt the DB version immediately
-                        if (!localStorage.getItem('pro_spy_version') || window.PRO_SPY_VERSION === '...') {
+                        // 🔍 First load check
+                        var currentLocal = localStorage.getItem('pro_spy_version');
+                        if (!currentLocal || currentLocal === '...') {
                             localStorage.setItem('pro_spy_version', remote);
                             window.PRO_SPY_VERSION = remote;
-                            console.log("[VersionManager] Initialized session version from database:", remote);
+                            console.log("[VersionManager] Local version synchronized to:", remote);
                         }
 
+                        // 🚀 Evaluate Update Need
                         if (this.shouldUpdate(window.PRO_SPY_VERSION, remote)) {
                             if (isCritical) {
-                                console.warn("[VersionManager] CRITICAL UPDATE DETECTED. Forcing reload...");
+                                console.warn("[VersionManager] 🛑 CRITICAL version detected. Resetting now.");
                                 window.PRO_SPY_CRITICAL = true;
-                                this.clearCacheAndReload(remote, notes || "Maintenance update.");
+                                this.clearCacheAndReload(remote, notes);
                             } else {
                                 this.triggerUpdateModal(remote, notes);
                             }
                         }
                     }
                 }, (error) => {
-                    console.error("[VersionManager] Version listener error:", error);
+                    console.error("[VersionManager] Firestore connection lost:", error);
                 });
             } catch (err) {
-                console.error("[VersionManager] Exception in listener setup:", err);
+                console.error("[VersionManager] Init failed:", err);
             }
         },
+
 
         /**
          * Version comparison logic.
@@ -135,7 +136,7 @@
             if (!local || !remote) return false;
             const localNum = parseFloat(local);
             const remoteNum = parseFloat(remote);
-            
+
             if (isNaN(localNum) || isNaN(remoteNum)) {
                 return remote > local;
             }
@@ -176,7 +177,7 @@
             const snoozeUntil = Date.now() + (minutes * 60 * 1000);
             sessionStorage.setItem('pro_spy_update_snooze', snoozeUntil);
             console.log("[VersionManager] Update snoozed for " + minutes + " mins until:", new Date(snoozeUntil).toLocaleTimeString());
-            
+
             // Set a timer to automatically re-trigger the check when snooze expires
             setTimeout(() => {
                 console.log("[VersionManager] Snooze expired. Re-checking version...");

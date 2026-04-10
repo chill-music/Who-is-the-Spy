@@ -57,7 +57,8 @@
     // Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./sw.js').then(function(reg) {
+            var swUrl = './sw.js?v=' + (window.PRO_SPY_VERSION || Date.now());
+            navigator.serviceWorker.register(swUrl).then(function(reg) {
                 reg.addEventListener('updatefound', function() {
                     var newWorker = reg.installing;
                     newWorker.addEventListener('statechange', function() {

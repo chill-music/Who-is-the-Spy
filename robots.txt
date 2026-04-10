@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://prospy.mooo.com/sitemap.xml

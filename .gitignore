@@ -1,0 +1,19 @@
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# Node/React (if any logs or env)
+*.log
+.env*
+node_modules/
+dist/
+build/
+
+# Firebase
+.firebase/
+firestore-debug.log
+ui-debug.log
