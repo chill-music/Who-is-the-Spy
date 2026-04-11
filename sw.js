@@ -7,8 +7,8 @@
    SW install timing out while caching 100+ files.
 ═══════════════════════════════════════════════════════════════════ */
 
-var CACHE_V       = 'pro-spy-v12';
-var CACHE_LAZY_V  = 'pro-spy-lazy-v12';
+var CACHE_V = 'pro-spy-v12';
+var CACHE_LAZY_V = 'pro-spy-lazy-v12';
 
 /* ── Critical files (must cache on install) ───────────────────── */
 var CRITICAL = [
@@ -173,13 +173,13 @@ var LAZY = [
 ];
 
 /* ── INSTALL: cache only critical files (fast) ──────────────── */
-self.addEventListener('install', function(event) {
+self.addEventListener('install', function (event) {
   /* Wait for the next natural page navigation to activate the new SW */
   event.waitUntil(
-    caches.open(CACHE_V).then(function(cache) {
+    caches.open(CACHE_V).then(function (cache) {
       return Promise.allSettled(
-        CRITICAL.map(function(url) {
-          return cache.add(url).catch(function(err) {
+        CRITICAL.map(function (url) {
+          return cache.add(url).catch(function (err) {
             console.warn('[SW] Critical cache miss:', url, err);
           });
         })
@@ -189,25 +189,25 @@ self.addEventListener('install', function(event) {
 });
 
 /* ── ACTIVATE: take control + lazy-cache non-critical ────────── */
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate', function (event) {
   event.waitUntil(
     Promise.all([
       /* 1. (clients.claim removed - wait for natural navigation) */
 
       /* 2. Delete old cache versions */
-      caches.keys().then(function(keys) {
+      caches.keys().then(function (keys) {
         return Promise.all(
-          keys.filter(function(k) {
+          keys.filter(function (k) {
             return k !== CACHE_V && k !== CACHE_LAZY_V;
-          }).map(function(k) { return caches.delete(k); })
+          }).map(function (k) { return caches.delete(k); })
         );
       }),
 
       /* 3. Lazy-cache non-critical files in background */
-      caches.open(CACHE_LAZY_V).then(function(cache) {
+      caches.open(CACHE_LAZY_V).then(function (cache) {
         return Promise.allSettled(
-          LAZY.map(function(url) {
-            return cache.add(url).catch(function() {});
+          LAZY.map(function (url) {
+            return cache.add(url).catch(function () { });
           })
         );
       })
@@ -216,7 +216,7 @@ self.addEventListener('activate', function(event) {
 });
 
 /* ── FETCH: serve from cache, fallback to network ────────────── */
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function (event) {
   /* Skip non-GET and cross-origin requests */
   if (event.request.method !== 'GET') return;
   var url = new URL(event.request.url);
@@ -228,16 +228,16 @@ self.addEventListener('fetch', function(event) {
     /* ── NETWORK-FIRST FOR HTML (ALWAYS GET LATEST VERSION) ── */
     var htmlUrl = new URL(event.request.url);
     htmlUrl.searchParams.set('cv', CACHE_V); /* Ultimate Cache Buster */
-    
+
     event.respondWith(
-      fetch(htmlUrl.toString(), { cache: 'no-store' }).then(function(response) {
+      fetch(htmlUrl.toString(), { cache: 'no-store' }).then(function (response) {
         var toCache = response.clone();
-        caches.open(CACHE_V).then(function(cache) {
+        caches.open(CACHE_V).then(function (cache) {
           cache.put(event.request, toCache);
         });
         return response;
-      }).catch(function() {
-        return caches.match(event.request).then(function(cached) {
+      }).catch(function () {
+        return caches.match(event.request).then(function (cached) {
           return cached || caches.match('./index.html');
         });
       })
@@ -247,25 +247,28 @@ self.addEventListener('fetch', function(event) {
 
   /* ── CACHE-FIRST FOR ASSETS (CSS, JS, IMAGES) ── */
   event.respondWith(
-    caches.match(event.request).then(function(cached) {
+    caches.match(event.request).then(function (cached) {
       if (cached) return cached;
-      
+
       /* Not in cache — fetch from network and store in lazy cache */
       /* ⚡ Superweapon cache-buster: force network to ignore Chrome's disk cache */
       var assetUrl = new URL(event.request.url);
       assetUrl.searchParams.set('cv', CACHE_V);
-      
-      return fetch(assetUrl.toString(), { cache: 'no-store' }).then(function(response) {
+
+      return fetch(assetUrl.toString(), { cache: 'no-store' }).then(function (response) {
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
         var toCache = response.clone();
-        caches.open(CACHE_LAZY_V).then(function(cache) {
+        caches.open(CACHE_LAZY_V).then(function (cache) {
           cache.put(event.request, toCache);
         });
         return response;
-      }).catch(function() {
-        // Fallback for failed asset requests (ignore)
+      }).catch(function (err) {
+        console.warn('[SW] Fetch failed for:', event.request.url, err);
+        /* FALLBACK: If cache-busted fetch fails, try original request as last resort 
+           to avoid "Failed to convert value to Response" TypeError. */
+        return fetch(event.request);
       });
     })
   );

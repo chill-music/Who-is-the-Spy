@@ -50,6 +50,7 @@
                 if (result && result.user) {
                     setShowDropdown && setShowDropdown(false);
                 }
+                window._googleLoginInProgress = false; // Reset on success
             } catch (e) {
                 window._googleLoginInProgress = false;
                 /* Ignore user-cancelled interactions */
@@ -65,7 +66,10 @@
                         await auth.signInWithRedirect(provider);
                     } catch (_) {
                         window._googleLoginInProgress = false;
+                        console.error("[Auth] Redirect fallback failed:", _);
                     }
+                } else {
+                    console.error("[Auth] Login error:", e);
                 }
             }
         }, [setShowDropdown]);
