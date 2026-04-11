@@ -399,18 +399,18 @@
 
             showRPModal && /*#__PURE__*/
             React.createElement("div", {
-              style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' },
+              style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 80, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px' },
               onClick: () => setShowRPModal(false)
             }, /*#__PURE__*/
               React.createElement("div", {
-                style: { width: '100%', background: 'linear-gradient(160deg,#0e0e22,#13122a)', borderRadius: '20px 20px 0 0', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', maxHeight: '60%', boxSizing: 'border-box' },
+                style: { width: '100%', maxWidth: '360px', background: 'linear-gradient(160deg,#0e0e22,#13122a)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', boxSizing: 'border-box' },
                 onClick: (e) => e.stopPropagation()
               }, /*#__PURE__*/
                 React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' } }, /*#__PURE__*/
                   React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: '#ef4444' } }, "\uD83E\uDDE7 ", lang === 'ar' ? 'أرسل مغلف للعموم' : 'Send Public Red Packet'), /*#__PURE__*/
                   React.createElement("button", { onClick: () => setShowRPModal(false), style: { background: 'none', border: 'none', color: '#9ca3af', fontSize: '20px', cursor: 'pointer' } }, "\u2715")
                 ), /*#__PURE__*/
-                React.createElement("div", { style: { padding: '12px', overflowY: 'auto' } }, /*#__PURE__*/
+                React.createElement("div", { className: 'modal-scroll-container', style: { padding: '12px', overflowY: 'auto', maxHeight: '70vh' } }, /*#__PURE__*/
                   React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', marginBottom: '10px', textAlign: 'center' } }, lang === 'ar' ? 'رصيدك' : 'Balance', ": ", /*#__PURE__*/React.createElement("span", { style: { color: '#ffd700', fontWeight: 700 } }, (currentUser?.currency || 0).toLocaleString(), " \uD83E\uDDE0")), /*#__PURE__*/
                   React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '7px' } },
                     (typeof RED_PACKETS_CONFIG !== 'undefined' ? RED_PACKETS_CONFIG : []).map((rp) => /*#__PURE__*/

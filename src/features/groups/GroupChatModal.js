@@ -115,21 +115,25 @@
           var vipCfgRP = window.getVIPConfig(msg.senderVipLevel);
           return (/*#__PURE__*/
             React.createElement("div", { key: msg.id, style: { display: 'flex', flexDirection: isMeRP ? 'row-reverse' : 'row', gap: '7px', alignItems: 'flex-end', marginBottom: '4px' } }, /*#__PURE__*/
-            React.createElement("div", { onClick: () => claimRedPacket(msg.rpId), 
-              style: { width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', flexShrink: 0, cursor: 'pointer', position: 'relative' } },
-            React.createElement(window.AvatarWithFrame, {
-              photoURL: msg.senderPhoto,
-              size: "xs",
-              lang: lang,
-              equipped: { isEffect: msg.senderPhoto?.includes('.gif'), frames: msg.senderFrame }
-            })
+            React.createElement("div", { style: { position: 'relative', width: '30px', height: '30px', flexShrink: 0 } }, 
+              React.createElement(window.AvatarWithFrame, {
+                photoURL: msg.senderPhoto,
+                equipped: { frames: msg.senderFrame, badges: msg.senderBadges, isEffect: msg.senderPhoto?.includes('.gif') },
+                size: "xs",
+                lang: lang,
+                onClick: () => openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto })
+              })
             ), /*#__PURE__*/
             React.createElement("div", { style: { maxWidth: 'min(220px, calc(100vw - 90px))' } }, /*#__PURE__*/
-            React.createElement("div", { onClick: () => openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }),
-              style: { fontSize: '9px', color: vipCfgRP ? vipCfgRP.nameColor : '#a78bfa', fontWeight: 700, marginBottom: '3px', paddingLeft: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' } },
-            vipCfgRP && /*#__PURE__*/React.createElement("span", { style: { fontSize: '7px', fontWeight: 900, background: vipCfgRP.nameColor, color: '#000', padding: '0 3px', borderRadius: '2px' } }, "VIP", msg.senderVipLevel),
-            msg.senderName,
-            isMeRP && /*#__PURE__*/React.createElement("span", { style: { fontSize: '8px', color: '#4b5563' } }, " (", lang === 'ar' ? 'أنت' : 'you', ")")
+            React.createElement("div", { 
+              onClick: (e) => { e.stopPropagation(); openGroupMiniProfile(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }); },
+              style: { fontSize: '10px', color: vipCfgRP ? vipCfgRP.nameColor : '#a78bfa', fontWeight: 700, marginBottom: '3px', paddingLeft: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' } 
+            },
+              msg.senderVipLevel > 0 && typeof window.VIP_CHAT_TITLE_URLS !== 'undefined' && window.VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && /*#__PURE__*/
+              React.createElement("img", { src: window.VIP_CHAT_TITLE_URLS[msg.senderVipLevel], alt: "", style: { height: '12px', objectFit: 'contain' } }),
+              
+              msg.senderName,
+              isMeRP && /*#__PURE__*/React.createElement("span", { style: { fontSize: '8px', color: '#4b5563', marginLeft: '3px' } }, " (", lang === 'ar' ? 'أنت' : 'you', ")")
             ), /*#__PURE__*/
             React.createElement("button", { onClick: () => claimRedPacket(msg.rpId), style: {
                 display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '16px',
@@ -242,28 +246,32 @@
       React.createElement("div", { style: { fontSize: '40px', marginBottom: '10px' } }, "\uD83E\uDDE7"), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '18px', fontWeight: 800 } }, lang === 'ar' ? 'إرسال مغلف أحمر' : 'Send Red Packet')
       ), /*#__PURE__*/
-      React.createElement("div", { style: { padding: '15px', maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' } },
-      (window.RED_PACKETS_CONFIG || [
-      { id: 'rp1', amount: 1000, label: '1K' },
-      { id: 'rp2', amount: 5000, label: '5K' },
-      { id: 'rp3', amount: 10000, label: '10K' },
-      { id: 'rp4', amount: 50000, label: '50K' }]).
-      map((rp) => /*#__PURE__*/
-      React.createElement("button", { key: rp.id, onClick: () => sendGroupRedPacket(rp),
-        disabled: sendingRedPacket || (currentUserData?.currency || 0) < rp.amount,
-        style: {
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 18px', borderRadius: '14px',
-          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-          color: 'white', cursor: 'pointer'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '18px' } }, "\uD83E\uDDE0"), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '15px', fontWeight: 700 } }, rp.amount.toLocaleString())
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '20px', color: '#ef4444' } }, "\uD83E\uDDE7")
-      )
-      )
+      React.createElement("div", { className: 'modal-scroll-container', style: { padding: '15px', maxHeight: '70vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' } },
+        (window.RED_PACKETS_CONFIG || []).map((rp) => /*#__PURE__*/
+          React.createElement("button", { 
+            key: rp.id, 
+            onClick: () => sendGroupRedPacket(rp),
+            disabled: sendingRedPacket || (currentUserData?.currency || 0) < rp.amount,
+            style: {
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', 
+              borderRadius: '16px', background: rp.bg, border: `1px solid ${rp.border}`, 
+              cursor: (currentUserData?.currency || 0) < rp.amount ? 'not-allowed' : 'pointer', 
+              opacity: (currentUserData?.currency || 0) < rp.amount ? 0.4 : 1, textAlign: 'left',
+              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+            } 
+          },
+            rp.imageURL ? /*#__PURE__*/React.createElement("img", { src: rp.imageURL, alt: "", style: { width: '38px', height: '38px', objectFit: 'contain' } }) : /*#__PURE__*/React.createElement("div", { style: { width: '38px', height: '38px', borderRadius: '12px', background: `${rp.color}20`, border: `1px solid ${rp.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' } }, "\uD83E\uDDE7"), /*#__PURE__*/
+            React.createElement("div", { style: { flex: 1 } }, /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: rp.color } }, lang === 'ar' ? rp.name_ar : rp.name_en), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' } }, lang === 'ar' ? rp.desc_ar : rp.desc_en)
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { textAlign: 'right' } },
+              React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: rp.color, display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' } }, 
+                rp.amount.toLocaleString(), " \uD83E\uDDE0"
+              )
+            )
+          )
+        )
       )
       )
       ),

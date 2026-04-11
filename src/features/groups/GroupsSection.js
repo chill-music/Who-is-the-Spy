@@ -322,9 +322,19 @@
                 amount: rp.amount, maxClaims: 10, remaining: rp.amount,
                 claimedBy: [], createdAt: TS(), status: 'active'
               });
+              var vipLvl = typeof window.getVIPLevel === 'function' ? window.getVIPLevel(currentUserData) : 0;
               await groupsCollection.doc(activeGroup.id).collection('messages').add({
-                type: 'red_packet', senderId: currentUID, rpId: rpRef.id, rpAmount: rp.amount,
-                maxClaims: 10, createdAt: TS(), senderName: currentUserData?.displayName
+                type: 'red_packet', 
+                senderId: currentUID, 
+                senderName: currentUserData?.displayName || 'User',
+                senderPhoto: currentUserData?.photoURL || null,
+                senderVipLevel: vipLvl,
+                senderFrame: currentUserData?.equipped?.frames || null,
+                senderBadges: (currentUserData?.equipped?.badges || []).slice(0, 3),
+                rpId: rpRef.id, 
+                rpAmount: rp.amount,
+                maxClaims: 10, 
+                createdAt: TS()
               });
               // 🛡️ SECURITY: Group Red Packet Creation
               if (window.SecurityService) {
