@@ -9,12 +9,12 @@
 (function() {
   var { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-// Max file size: 2MB images, 5MB videos (10 sec max)
-var MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+// Max file size: 600KB (DB safe)
+var MAX_IMAGE_SIZE = 600 * 1024;
 var MAX_VIDEO_SIZE = 5 * 1024 * 1024;
 var MAX_VIDEO_DURATION = 10;
 
-var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, onSelectMoment }) => {
+var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, ownerVipLevel, lang, onSelectMoment }) => {
   if (!show) return null;
   return (/*#__PURE__*/
     React.createElement("div", { className: "modal-overlay", onClick: onClose, style: { zIndex: Z.MODAL_HIGH } }, /*#__PURE__*/
@@ -75,13 +75,10 @@ var AllMomentsModal = ({ show, onClose, moments, ownerName, ownerPhoto, lang, on
 
 };
 
-var VIP_MOMENT_BG_URLS = [
-'https://firebasestorage.googleapis.com/v0/b/super-spy-88.appspot.com/o/moments-bg%2Fvip1.jpg?alt=media',
-'https://firebasestorage.googleapis.com/v0/b/super-spy-88.appspot.com/o/moments-bg%2Fvip2.jpg?alt=media',
-'https://firebasestorage.googleapis.com/v0/b/super-spy-88.appspot.com/o/moments-bg%2Fvip3.jpg?alt=media'];
 
 
-var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfile, lang, onOpenProfile }) => {
+
+var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, ownerVipLevel, currentUser, isOwnProfile, lang, onOpenProfile }) => {
   var [moments, setMoments] = useState([]);
   var [loading, setLoading] = useState(true);
   var [showCreate, setShowCreate] = useState(false);
@@ -141,7 +138,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
 
     React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '8px', padding: '0 10px' } },
     previewMoments.map((m) => /*#__PURE__*/
-    React.createElement(MomentCard, { key: m.id, moment: m, currentUser: currentUser, lang: lang, onSelect: () => setSelectedMoment(m), onOpenProfile: onOpenProfile })
+    React.createElement(MomentCard, { key: m.id, moment: m, currentUser: currentUser, ownerVipLevel: ownerVipLevel, lang: lang, onSelect: () => setSelectedMoment(m), onOpenProfile: onOpenProfile })
     ),
     moments.length >= 3 && /*#__PURE__*/
     React.createElement("button", { onClick: () => setShowAll(true), style: { width: '100%', padding: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', color: '#9ca3af', fontSize: '11px', fontWeight: 700, cursor: 'pointer', marginTop: '4px' } },
@@ -162,6 +159,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
       moments: moments,
       ownerName: ownerName,
       ownerPhoto: ownerPhoto,
+      ownerVipLevel: ownerVipLevel,
       lang: lang,
       onSelectMoment: (m) => setSelectedMoment(m),
       onClose: () => setShowAll(false),
@@ -171,6 +169,7 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
       show: !!selectedMoment,
       moment: selectedMoment,
       currentUser: currentUser,
+      ownerVipLevel: ownerVipLevel,
       lang: lang,
       onClose: () => setSelectedMoment(null),
       onOpenProfile: onOpenProfile }
@@ -187,11 +186,20 @@ var MomentsSection = ({ ownerUID, ownerName, ownerPhoto, currentUser, isOwnProfi
  * MomentDetailModal
  * Displays full moment content, comments, and media.
  */
-var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfile }) => {
+var MomentDetailModal = ({ show, onClose, moment, currentUser, ownerVipLevel, lang, onOpenProfile }) => {
   var [commentText, setCommentText] = useState('');
   var [comments, setComments] = useState([]);
   var [sending, setSending] = useState(false);
   var [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Reporting state
+  var [showReportModal, setShowReportModal] = useState(false);
+  var [reportType, setReportType] = useState('moment'); // 'moment' or 'comment'
+  var [reportTarget, setReportTarget] = useState(null); // the comment object if type is comment
+  var [reportReason, setReportReason] = useState('');
+  var [reportSending, setReportSending] = useState(false);
+  var [isCheckingReport, setIsCheckingReport] = useState(false);
+  var [alreadyReported, setAlreadyReported] = useState(false);
 
   useEffect(() => {
     if (!show || !moment?.id) return;
@@ -204,9 +212,11 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
 
   if (!show || !moment) return null;
 
-  var isLiked = moment.likedBy?.includes(currentUser?.uid);
+  var isLiked = (moment.likedBy || []).includes(currentUser?.uid);
   var isOwner = moment.authorUID === currentUser?.uid;
-  var isVIP = moment.authorVipLevel > 0;
+  var vipLevel = ownerVipLevel !== undefined ? ownerVipLevel : (moment.authorVipLevel || 0);
+  var vipBgUrl = (window.VIP_MOMENT_BG_URLS && window.VIP_MOMENT_BG_URLS[vipLevel]) || null;
+  var hasVipBg = vipBgUrl && vipBgUrl.trim() !== '';
 
   var onLike = async () => {
     if (!currentUser) return;
@@ -255,20 +265,156 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
     }
   };
 
+  var handleReportMoment = async (reason) => {
+    if (!currentUser || isOwner || !reason) return;
+    setReportSending(true);
+    try {
+      var reportRef = await reportsCollection.add({
+        type: 'moment',
+        momentId: moment.id,
+        contentPreview: moment.content?.slice(0, 100),
+        reportedUID: moment.authorUID,
+        reportedName: moment.authorName,
+        reporterUID: currentUser.uid,
+        reporterName: currentUser.displayName || 'User',
+        reason: reason,
+        status: 'pending',
+        resolved: false,
+        originLabelAr: 'المنشورات (لحظة)',
+        originLabelEn: 'Moments Post',
+        createdAt: TS()
+      });
+
+      if (typeof botChatsCollection !== 'undefined') {
+        var reasonText = REASONS.find(r => r.key === reason)?.[lang] || reason;
+        await botChatsCollection.add({
+          botId: 'detective_bot',
+          toUserId: currentUser.uid,
+          type: 'report_received',
+          message: lang === 'ar' ?
+            `🕵️ تم استلام بلاغك بنجاح ضد لحظة "${moment.authorName}".\nالسبب: ${reasonText}\nسيتم مراجعته من قِبل الفريق. انتظر الرد هنا.` :
+            `🕵️ Your report against "${moment.authorName}" moment was received successfully.\nReason: ${reasonText}\nOur team will review it. Watch for a response here.`,
+          fromName: null,
+          fromPhoto: null,
+          reportId: reportRef.id,
+          timestamp: TS(),
+          read: false
+        });
+      }
+      onNotification(lang === 'ar' ? '✅ تم إرسال البلاغ' : '✅ Report sent');
+      setShowReportModal(false);
+      setReportReason('');
+    } catch (e) {
+      console.error('Report error:', e);
+    } finally {
+      setReportSending(false);
+    }
+  };
+
+  var handleReportComment = async (comment, reason) => {
+    if (!currentUser || comment.authorUID === currentUser.uid || !reason) return;
+    setReportSending(true);
+    try {
+      var reportRef = await reportsCollection.add({
+        type: 'moment_comment',
+        momentId: moment.id,
+        commentId: comment.id,
+        contentPreview: comment.content?.slice(0, 100),
+        reportedUID: comment.authorUID,
+        reportedName: comment.authorName,
+        reporterUID: currentUser.uid,
+        reporterName: currentUser.displayName || 'User',
+        reason: reason,
+        status: 'pending',
+        resolved: false,
+        originLabelAr: 'تعليق في المنشورات',
+        originLabelEn: 'Moment Comment',
+        createdAt: TS()
+      });
+
+      if (typeof botChatsCollection !== 'undefined') {
+        var reasonText = REASONS.find(r => r.key === reason)?.[lang] || reason;
+        await botChatsCollection.add({
+          botId: 'detective_bot',
+          toUserId: currentUser.uid,
+          type: 'report_received',
+          message: lang === 'ar' ?
+            `🕵️ تم استلام بلاغك بنجاح ضد تعليق "${comment.authorName}".\nالسبب: ${reasonText}\nسيتم مراجعته من قِبل الفريق. انتظر الرد هنا.` :
+            `🕵️ Your report against "${comment.authorName}" comment was received successfully.\nReason: ${reasonText}\nOur team will review it. Watch for a response here.`,
+          fromName: null,
+          fromPhoto: null,
+          reportId: reportRef.id,
+          timestamp: TS(),
+          read: false
+        });
+      }
+      onNotification(lang === 'ar' ? '✅ تم إرسال البلاغ' : '✅ Report sent');
+      setShowReportModal(false);
+      setReportReason('');
+    } catch (e) {
+      console.error('Report error:', e);
+    } finally {
+      setReportSending(false);
+    }
+  };
+
+  var openReportModal = async (type, target = null) => {
+    if (!currentUser) return;
+    
+    // 1. Open instantly
+    setReportType(type);
+    setReportTarget(target);
+    setShowReportModal(true);
+
+    // 2. Reset states
+    setAlreadyReported(false);
+    setReportReason('');
+    setIsCheckingReport(true);
+
+    try {
+      // 3. Simple query that doesn't need composite indexes
+      var snap = await reportsCollection
+        .where('reporterUID', '==', currentUser.uid)
+        .where('resolved', '==', false)
+        .get();
+
+      // 4. Local filter
+      var checkField = type === 'moment' ? 'momentId' : 'commentId';
+      var checkId = type === 'moment' ? moment.id : target.id;
+      var isDuplicate = snap.docs.some(doc => doc.data()[checkField] === checkId);
+
+      if (isDuplicate) {
+        setAlreadyReported(true);
+      }
+    } catch (e) {
+      console.error('Check report error:', e);
+    } finally {
+      setIsCheckingReport(false);
+    }
+  };
+
+  var REASONS = [
+    { key: 'language', icon: '🔇', ar: 'ألفاظ مسيئة', en: 'Inappropriate Language' },
+    { key: 'content', icon: '🔞', ar: 'محتوى غير لائق / صورة مخلة', en: 'Inappropriate Content' },
+    { key: 'spam', icon: '📢', ar: 'سبام', en: 'Spam' },
+    { key: 'harassment', icon: '🤝', ar: 'مضايقات', en: 'Harassment' },
+    { key: 'other', icon: '❓', ar: 'سبب آخر', en: 'Other' }
+  ];
+
   return (/*#__PURE__*/
     React.createElement(PortalModal, null, /*#__PURE__*/
     React.createElement("div", { style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: Z.MODAL_HIGH, padding: '16px' }, onClick: onClose }, /*#__PURE__*/
     React.createElement("div", {
       onClick: (e) => e.stopPropagation(),
       style: {
-        background: isVIP ? `url(${VIP_MOMENT_BG_URLS[0]}) center/cover no-repeat` : GR.DARK_CARD,
+        background: hasVipBg ? `url(${vipBgUrl}) center/cover no-repeat` : GR.DARK_CARD,
         border: '1px solid rgba(0,242,255,0.2)',
         borderRadius: '24px', width: '100%', maxWidth: '440px',
         height: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
         boxShadow: '0 25px 60px rgba(0,0,0,0.85)', position: 'relative'
       } },
 
-    isVIP && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1 } }), /*#__PURE__*/
+    hasVipBg && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1 } }), /*#__PURE__*/
 
     React.createElement("div", { style: { zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' } }, /*#__PURE__*/
     React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' } }, /*#__PURE__*/
@@ -278,11 +424,26 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
     React.createElement("div", { style: { width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,242,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, "\uD83D\uDCF8"), /*#__PURE__*/
 
     React.createElement("div", null, /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: 'white' } }, moment.authorName), /*#__PURE__*/
+    React.createElement("div", { style: { fontSize: '13px', fontWeight: 800, color: 'white' } },
+      window.VIPName ? React.createElement(window.VIPName, {
+        userData: { uid: moment.authorUID, displayName: moment.authorName, vipLevel: vipLevel },
+        displayName: moment.authorName,
+        lang: lang,
+        style: { fontSize: '13px', fontWeight: 800 }
+      }) : moment.authorName
+    ), /*#__PURE__*/
     React.createElement("div", { style: { fontSize: '9px', color: '#9ca3af' } }, moment.createdAt?.seconds ? new Date(moment.createdAt.seconds * 1000).toLocaleString() : '')
     )
     ), /*#__PURE__*/
     React.createElement("div", { style: { display: 'flex', gap: '10px' } },
+    !isOwner && /*#__PURE__*/
+    React.createElement("button", { 
+      onClick: () => openReportModal('moment'), 
+      disabled: isCheckingReport,
+      title: lang === 'ar' ? 'إبلاغ' : 'Report',
+      style: { background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', opacity: isCheckingReport ? 0.5 : 1 } 
+    }, isCheckingReport ? '⏳' : "\uD83D\uDEA9"), /*#__PURE__*/
+
     isOwner && /*#__PURE__*/
     React.createElement("button", { onClick: () => setShowDeleteConfirm(true), style: { background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '8px', width: '30px', height: '30px', cursor: 'pointer' } }, "\uD83D\uDDD1\uFE0F"), /*#__PURE__*/
 
@@ -303,14 +464,14 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
 
     ), /*#__PURE__*/
 
-    React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '20px', padding: '15px 0', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/
+    React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 15px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', margin: '10px 0' } }, /*#__PURE__*/
     React.createElement("div", { onClick: onLike, style: { cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
     React.createElement("span", { style: { fontSize: '20px' } }, isLiked ? '❤️' : '🤍'), /*#__PURE__*/
-    React.createElement("span", { style: { fontSize: '14px', fontWeight: 800, color: isLiked ? '#f87171' : '#9ca3af' } }, moment.likesCount || 0)
+    React.createElement("span", { style: { fontSize: '14px', fontWeight: 800, color: isLiked ? '#f87171' : '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' } }, moment.likesCount || 0)
     ), /*#__PURE__*/
     React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
     React.createElement("span", { style: { fontSize: '20px' } }, "\uD83D\uDCAC"), /*#__PURE__*/
-    React.createElement("span", { style: { fontSize: '14px', fontWeight: 800, color: '#9ca3af' } }, moment.commentsCount || 0)
+    React.createElement("span", { style: { fontSize: '14px', fontWeight: 800, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' } }, moment.commentsCount || 0)
     )
     ), /*#__PURE__*/
     React.createElement("div", { style: { marginTop: '20px' } }, /*#__PURE__*/
@@ -321,23 +482,38 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
     React.createElement("img", { src: c.authorPhoto, alt: "", style: { width: '28px', height: '28px', borderRadius: '50%' } }) : /*#__PURE__*/
     React.createElement("div", { style: { width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' } }), /*#__PURE__*/
 
-    React.createElement("div", { style: { flex: 1, background: 'rgba(255,255,255,0.03)', borderRadius: '0 14px 14px 14px', padding: '8px 12px' } }, /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '11px', fontWeight: 800, color: '#00f2ff', marginBottom: '2px' } }, c.authorName), /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '13px', color: '#e2e8f0' } }, c.content), /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '8px', color: '#6b7280', marginTop: '4px' } }, c.createdAt?.seconds ? new Date(c.createdAt.seconds * 1000).toLocaleTimeString() : '')
+    React.createElement("div", { style: { flex: 1, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0 18px 18px 18px', padding: '10px 14px', position: 'relative', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' } }, /*#__PURE__*/
+    React.createElement("div", { style: { fontSize: '12px', fontWeight: 900, color: '#00f2ff', marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' } },
+      window.VIPName ? React.createElement(window.VIPName, {
+        userData: { uid: c.authorUID, displayName: c.authorName, vipLevel: c.authorVipLevel || 0 },
+        displayName: c.authorName,
+        lang: lang,
+        style: { fontSize: '12px', fontWeight: 900 }
+      }) : c.authorName
+    ), /*#__PURE__*/
+    React.createElement("div", { style: { fontSize: '13.5px', color: 'white', lineHeight: 1.5 } }, c.content), /*#__PURE__*/
+    React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' } }, /*#__PURE__*/
+    React.createElement("div", { style: { fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 } }, c.createdAt?.seconds ? new Date(c.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''),
+    c.authorUID !== currentUser?.uid && /*#__PURE__*/
+    React.createElement("div", { 
+      onClick: (e) => { e.stopPropagation(); openReportModal('comment', c); },
+      style: { fontSize: '10px', color: '#ef4444', cursor: 'pointer', opacity: 0.6, padding: '2px' },
+      title: lang === 'ar' ? 'إبلاغ' : 'Report'
+    }, "\uD83D\uDEA9")
+    )
     )
     )
     )
     )
     ), /*#__PURE__*/
 
-    React.createElement("div", { style: { padding: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(10,10,20,0.5)' } }, /*#__PURE__*/
+    React.createElement("div", { style: { padding: '18px', borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)' } }, /*#__PURE__*/
     React.createElement("div", { style: { display: 'flex', gap: '10px' } }, /*#__PURE__*/
     React.createElement("input", {
       value: commentText,
       onChange: (e) => setCommentText(e.target.value),
       placeholder: lang === 'ar' ? 'أكتب تعليقاً...' : 'Write a comment...',
-      style: { flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white', padding: '10px 14px', fontSize: '13px', outline: 'none' } }
+      style: { flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '14px', color: 'white', padding: '12px 16px', fontSize: '14px', outline: 'none', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' } }
     ), /*#__PURE__*/
     React.createElement("button", {
       onClick: onComment,
@@ -363,6 +539,73 @@ var MomentDetailModal = ({ show, onClose, moment, currentUser, lang, onOpenProfi
     )
     )
     )
+    ),
+
+    showReportModal && /*#__PURE__*/
+    React.createElement(PortalModal, null, /*#__PURE__*/
+      React.createElement("div", { style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: Z.MODAL_HIGH + 30, padding: '16px' }, onClick: () => setShowReportModal(false) }, /*#__PURE__*/
+        React.createElement("div", { style: { background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '20px', width: '100%', maxWidth: '300px', boxShadow: '0 15px 40px rgba(0,0,0,0.5)' }, onClick: (e) => e.stopPropagation() }, 
+
+          alreadyReported ? /*#__PURE__*/
+          React.createElement("div", { style: { textAlign: 'center' } },
+            React.createElement("div", { style: { fontSize: '40px', marginBottom: '12px' } }, "🕵️"),
+            React.createElement("div", { style: { fontSize: '15px', fontWeight: 800, color: 'white', marginBottom: '8px' } }, lang === 'ar' ? 'بلاغ مكرر' : 'Duplicate Report'),
+            React.createElement("div", { style: { fontSize: '13px', color: '#9ca3af', lineHeight: 1.5, marginBottom: '20px' } }, 
+              lang === 'ar' ? 'لقد قمت بالإبلاغ عن هذا مسبقاً. الفريق يراجع طلبك بالفعل.' : 'You have already reported this. The team is currently reviewing your request.'
+            ),
+            React.createElement("button", { onClick: () => setShowReportModal(false), style: { width: '100%', padding: '10px', borderRadius: '10px', background: 'linear-gradient(135deg,#7000ff,#00f2ff)', border: 'none', color: 'white', fontSize: '13px', fontWeight: 700, cursor: 'pointer' } }, lang === 'ar' ? 'حسناً' : 'Got it')
+          ) : 
+
+          isCheckingReport ? /*#__PURE__*/
+          React.createElement("div", { style: { textAlign: 'center', padding: '20px 0' } },
+            React.createElement("div", { className: "profile-loading-spinner", style: { margin: '0 auto 16px' } }),
+            React.createElement("div", { style: { fontSize: '13px', color: '#9ca3af' } }, lang === 'ar' ? 'جاري التحقق...' : 'Checking...'),
+            React.createElement("button", { onClick: () => setShowReportModal(false), style: { marginTop: '20px', background: 'none', border: 'none', color: '#6b7280', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' } }, lang === 'ar' ? 'إلغاء' : 'Cancel')
+          ) : 
+          alreadyReported ? /*#__PURE__*/
+          React.createElement("div", { style: { textAlign: 'center', padding: '10px 0' } },
+            React.createElement("div", { style: { fontSize: '40px', marginBottom: '16px' } }, "🕵️"),
+            React.createElement("div", { style: { fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '8px' } }, lang === 'ar' ? 'بلاغ مكرر' : 'Duplicate Report'),
+            React.createElement("div", { style: { fontSize: '13px', color: '#9ca3af', marginBottom: '24px', lineHeight: 1.5 } }, 
+              lang === 'ar' ? 'لقد قمت بالإبلاغ مسبقاً. الفريق يراجع طلبك بالفعل.' : 'You have already reported this item. The team is currently reviewing your request.'
+            ),
+            React.createElement("button", { 
+              onClick: () => setShowReportModal(false), 
+              style: { width: '100%', padding: '12px', background: 'linear-gradient(135deg,#7000ff,#00f2ff)', borderRadius: '12px', border: 'none', color: '#fff', fontWeight: 'bold', cursor: 'pointer' } 
+            }, lang === 'ar' ? 'حسناً' : 'Got it')
+          ) : /*#__PURE__*/
+
+          React.createElement(React.Fragment, null,
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: '16px' } }, /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '24px', marginBottom: '8px' } }, "\uD83D\uDEA9"), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '15px', fontWeight: 800, color: 'white' } }, lang === 'ar' ? `إبلاغ عن ${reportType === 'moment' ? 'لحظة' : 'تعليق'}` : `Report ${reportType === 'moment' ? 'Moment' : 'Comment'}`)
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' } },
+              REASONS.map((r) => /*#__PURE__*/
+                React.createElement("button", {
+                  key: r.key,
+                  onClick: () => setReportReason(r.key),
+                  style: {
+                    padding: '10px 14px', borderRadius: '10px', fontSize: '13px', background: reportReason === r.key ? 'rgba(0,242,255,0.15)' : 'rgba(255,255,255,0.04)',
+                    border: reportReason === r.key ? '1px solid #00f2ff' : '1px solid rgba(255,255,255,0.1)', color: reportReason === r.key ? '#00f2ff' : 'white', cursor: 'pointer', textAlign: 'start', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px'
+                  }
+                }, /*#__PURE__*/
+                  React.createElement("span", null, r.icon), /*#__PURE__*/
+                  React.createElement("span", null, lang === 'ar' ? r.ar : r.en)
+                )
+              )
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', gap: '8px' } }, /*#__PURE__*/
+              React.createElement("button", { onClick: () => setShowReportModal(false), style: { flex: 1, padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#9ca3af', fontSize: '13px', fontWeight: 700, cursor: 'pointer' } }, lang === 'ar' ? 'إلغاء' : 'Cancel'), /*#__PURE__*/
+              React.createElement("button", {
+                onClick: () => reportType === 'moment' ? handleReportMoment(reportReason) : handleReportComment(reportTarget, reportReason),
+                disabled: !reportReason || reportSending,
+                style: { flex: 1, padding: '10px', borderRadius: '10px', background: !reportReason ? 'rgba(239,68,68,0.1)' : '#ef4444', border: 'none', color: 'white', fontSize: '13px', fontWeight: 700, cursor: 'pointer', opacity: !reportReason || reportSending ? 0.5 : 1 }
+              }, reportSending ? '...' : lang === 'ar' ? 'إبلاغ' : 'Report')
+            )
+          )
+        )
+      )
     )
 
     )
@@ -447,13 +690,20 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
     try {
       var finalMediaUrl = null;
 
-      // Upload to Storage if not text
-      if (momentType === 'image' || momentType === 'video') {
+      // No longer using Firebase Storage to avoid Blaze plan/CORS
+      if (momentType === 'image') {
+        finalMediaUrl = mediaPreview; // Use compressed base64 directly
+      } else if (momentType === 'video') {
+        // Video disabled for DB storage due to size limits.
+        // Keeping code structure for future VPS migration.
+        /*
         var fileExt = mediaFile.name.split('.').pop();
         var fileName = `${currentUser.uid}_${Date.now()}.${fileExt}`;
         var storageRef = firebase.storage().ref(`moments/${fileName}`);
         var snapshot = await storageRef.put(mediaFile);
         finalMediaUrl = await snapshot.ref.getDownloadURL();
+        */
+        throw new Error("Video moments are currently disabled.");
       }
 
       var momentData = {
@@ -516,7 +766,8 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
     [
     { id: 'text', icon: '✏️', ar: 'نص', en: 'Text' },
     { id: 'image', icon: '🖼️', ar: 'صورة', en: 'Image' },
-    { id: 'video', icon: '🎥', ar: 'فيديو', en: 'Video' }].
+    // { id: 'video', icon: '🎥', ar: 'فيديو', en: 'Video' } (Disabled for DB storage)
+    ].
     map((t) => /*#__PURE__*/
     React.createElement("button", {
       key: t.id,
@@ -563,7 +814,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
     React.createElement("div", { style: { fontSize: '28px', marginBottom: '6px' } }, momentType === 'image' ? '🖼️' : '🎥'), /*#__PURE__*/
     React.createElement("div", null, lang === 'ar' ? 'انقر لاختيار ملف' : 'Click to select file'), /*#__PURE__*/
     React.createElement("div", { style: { fontSize: '9px', marginTop: '4px', color: '#475569' } },
-    momentType === 'image' ? lang === 'ar' ? 'الحد الأقصى 2MB' : 'Max 2MB' : lang === 'ar' ? 'الحد 10 ثواني / 5MB' : 'Max 10s / 5MB'
+    momentType === 'image' ? lang === 'ar' ? 'الحد الأقصى 600KB' : 'Max 600KB' : ''
     )
     ), /*#__PURE__*/
 
@@ -602,7 +853,7 @@ var CreateMomentModal = ({ show, onClose, currentUser, lang, onPosted }) => {
  * MomentCard
  * A compact reusable card representing a single moment, used in feeds and sections.
  */
-var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
+var MomentCard = ({ moment, currentUser, onSelect, onOpenProfile, ownerVipLevel, lang }) => {
   var [showDetail, setShowDetail] = useState(false);
   var isLiked = moment.likedBy?.includes(currentUser?.uid);
 
@@ -623,13 +874,28 @@ var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
     }
   };
 
+  var vipLevel = ownerVipLevel !== undefined ? ownerVipLevel : (moment.authorVipLevel || 0);
+  var vipBgUrl = (window.VIP_MOMENT_BG_URLS && window.VIP_MOMENT_BG_URLS[vipLevel]) || null;
+  var hasVipBg = vipBgUrl && vipBgUrl.trim() !== '';
+
   return (/*#__PURE__*/
     React.createElement(React.Fragment, null, /*#__PURE__*/
     React.createElement("div", {
       onClick: () => setShowDetail(true),
-      style: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '12px', cursor: 'pointer', transition: 'transform 0.15s' },
+      style: { 
+        position: 'relative',
+        background: hasVipBg ? `url(${vipBgUrl}) center/cover no-repeat` : 'rgba(255,255,255,0.03)', 
+        border: '1px solid rgba(255,255,255,0.06)', 
+        borderRadius: '12px', padding: '12px', cursor: 'pointer', transition: 'transform 0.15s',
+        overflow: 'hidden'
+      },
       onMouseEnter: (e) => e.currentTarget.style.transform = 'translateY(-2px)',
       onMouseLeave: (e) => e.currentTarget.style.transform = 'translateY(0)' }, /*#__PURE__*/
+
+    hasVipBg && /*#__PURE__*/
+    React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1 } }), /*#__PURE__*/
+
+    React.createElement("div", { style: { position: 'relative', zIndex: 2 } }, /*#__PURE__*/
 
     React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' } }, /*#__PURE__*/
     React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
@@ -639,7 +905,14 @@ var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
 
     moment.authorPhoto ? /*#__PURE__*/React.createElement("img", { src: moment.authorPhoto, style: { width: '100%', height: '100%', objectFit: 'cover' }, alt: "" }) : /*#__PURE__*/React.createElement("div", { style: { width: '100%', height: '100%', background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px' } }, "\uD83D\uDC64")
     ), /*#__PURE__*/
-    React.createElement("span", { style: { fontSize: '12px', fontWeight: 800, color: '#e5e7eb' } }, moment.authorName)
+    React.createElement("span", { style: { fontSize: '12px', fontWeight: 800, color: '#e5e7eb' } },
+      window.VIPName ? React.createElement(window.VIPName, {
+        userData: { uid: moment.authorUID, displayName: moment.authorName, vipLevel: vipLevel },
+        displayName: moment.authorName,
+        lang: lang,
+        style: { fontSize: '12px', fontWeight: 800 }
+      }) : moment.authorName
+    )
     ), /*#__PURE__*/
     React.createElement("span", { style: { fontSize: '9px', color: '#4b5563' } }, moment.createdAt?.toDate ? moment.createdAt.toDate().toLocaleDateString() : '')
     ),
@@ -666,6 +939,7 @@ var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
     React.createElement("span", null, "\uD83D\uDCAC"), " ", moment.commentsCount
     )
     )
+    )
     ),
 
     showDetail && /*#__PURE__*/
@@ -674,12 +948,13 @@ var MomentCard = ({ moment, currentUser, lang, onOpenProfile }) => {
       onClose: () => setShowDetail(false),
       moment: moment,
       currentUser: currentUser,
+      ownerVipLevel: ownerVipLevel,
       lang: lang,
       onOpenProfile: onOpenProfile }
     )
 
-    ));
-
+    )
+  );
 };
 
 // --- Export to Global Scope ---

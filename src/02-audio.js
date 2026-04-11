@@ -29,7 +29,7 @@ var playSound = (type) => {
         gainNode.connect(audioContext.destination);
         var now = audioContext.currentTime;
 
-        switch(type) {
+        switch (type) {
             case 'click':
                 oscillator.frequency.setValueAtTime(800, now);
                 oscillator.type = 'sine';
@@ -115,13 +115,3 @@ if (typeof window !== 'undefined') {
 
 var playNotificationSound = () => playSound('notification');
 var playRewardSound = () => playSound('reward');
-// playGiftSound removed — was never called anywhere in the project
-
-// LOGIN REWARDS - 30 DAYS
-
-// 🎫 FUN PASS SYSTEM - 50 levels, daily/weekly missions
-
-// 🔧 FUN PASS SEASON CONFIG - بتتجدد كل 3 شهور
-//    عشان تجدد السيزون:
-//    1. غير FUN_PASS_SEASON_ID لرقم جديد (مثلاً: '2', '3', '4')
-//    2. كل المستخدمين هيتصفر تقدمهم تلقائياً في السيزون الجديد

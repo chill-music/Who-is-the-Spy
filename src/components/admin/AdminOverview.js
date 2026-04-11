@@ -7,7 +7,7 @@
   // 5-minute online threshold
   var ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
 
-  var OverviewSection = ({ currentUser, currentUserData, lang }) => {
+  var OverviewSection = ({ currentUser, currentUserData, lang, onOpenProfile }) => {
     var [stats, setStats]               = useState({ users: 0, today: 0, reports: 0, tickets: 0 });
     var [loading, setLoading]           = useState(true);
     var [staff, setStaff]               = useState([]);
@@ -23,11 +23,16 @@
       var fetchStats = async () => {
         try {
           var u  = await usersCollection.count().get();
+          // Fix: Use 'staffRole.role' for open reports if top-level 'resolved' query fails or to be safe
           var r  = await reportsCollection.where('resolved', '==', false).count().get();
           var t  = await ticketsCollection.where('status', '==', 'open').count().get();
           var today = new Date(); today.setHours(0, 0, 0, 0);
           var td = await usersCollection.where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(today)).count().get();
-          setStats({ users: u.data().count, today: td.data().count, reports: r.data().count, tickets: t.data().count });
+          
+          // Debugging counts
+          console.log('[AdminOverview] Stats count:', { users: u.data()?.count, reports: r.data()?.count });
+          
+          setStats({ users: u.data()?.count || 0, today: td.data()?.count || 0, reports: r.data()?.count || 0, tickets: t.data()?.count || 0 });
         } catch (e) {}
         setLoading(false);
       };
@@ -39,11 +44,22 @@
       var unsub = usersCollection
         .where('role', 'in', ['owner', 'admin', 'moderator'])
         .onSnapshot(async (snap) => {
-          var list = snap.docs.map((d) => {
-            var data = d.data();
+          var results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          
+          // CRITICAL FIX: Also fetch users where staffRole.role is in the list (fallback for inconsistencies)
+          // Since Firestore 'in' query on nested fields is separate, we'll combine in memory if needed
+          // or just ensure the role field exists. For now, let's fetch staffRole.role as well.
+          try {
+            var snapNested = await usersCollection.where('staffRole.role', 'in', ['admin', 'moderator']).get();
+            snapNested.docs.forEach(d => {
+              if (!results.find(u => u.id === d.id)) results.push({ id: d.id, ...d.data() });
+            });
+          } catch(e) { console.warn('[AdminOverview] Nested fetch failed:', e); }
+
+          var list = results.map((data) => {
             // Normalize legacy nested staffRole.role field
             if (!data.role && data.staffRole?.role) data.role = data.staffRole.role;
-            return { id: d.id, ...data };
+            return data;
           });
 
           // Always ensure the hardcoded owner is included
@@ -58,6 +74,10 @@
           // Sort: owner → admin → moderator
           var order = { owner: 0, admin: 1, moderator: 2 };
           list.sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9));
+          
+          // Debugging log to confirm everyone is loaded
+          console.log('[AdminOverview] Staff Loaded:', list.length, list.map(s => s.role));
+          
           setStaff(list);
           setStaffLoading(false);
         }, (err) => {
@@ -191,7 +211,10 @@
                       }
                     },
                       /* Avatar with online dot */
-                      React.createElement('div', { style: { position: 'relative', flexShrink: 0 } },
+                      React.createElement('div', { 
+                        onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id),
+                        style: { position: 'relative', flexShrink: 0, cursor: onOpenProfile ? 'pointer' : 'default' } 
+                      },
                         React.createElement('img', {
                           src: s.photoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><circle cx="18" cy="18" r="18" fill="%23374151"/><text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" font-size="16" fill="%23fff">👤</text></svg>',
                           alt: '',
@@ -208,7 +231,10 @@
                         })
                       ),
                       /* Name + last-seen */
-                      React.createElement('div', { style: { flex: 1, minWidth: 0 } },
+                      React.createElement('div', { 
+                        onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id),
+                        style: { flex: 1, minWidth: 0, cursor: onOpenProfile ? 'pointer' : 'default' } 
+                      },
                         React.createElement('div', { style: { fontSize: '12px', fontWeight: 700, color: '#e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
                           s.displayName || 'Unknown', isMe ? ' (' + (lang === 'ar' ? 'أنت' : 'You') + ')' : ''
                         ),

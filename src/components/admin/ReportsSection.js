@@ -17,44 +17,97 @@
     var myRole = currentUserData?.role || currentUserData?.staffRole?.role || 'user';
 
     useEffect(function () {
-      var unsub;
+      var unsub1, unsub2;
       var unsubscribed = false;
-      var sortReports = function (data) {
-        return data.sort(function (a, b) {
+      var sortReports = function (allData) {
+        return allData.sort(function (a, b) {
           var ta = a.createdAt?.toMillis?.() || (a.createdAt?.seconds * 1000) || 0;
           var tb = b.createdAt?.toMillis?.() || (b.createdAt?.seconds * 1000) || 0;
           return tb - ta;
         });
       };
+
+      var reportsData = [];
+      var groupReportsData = [];
+
+      var updateState = () => {
+        if (unsubscribed) return;
+        // The 'reports' collection now contains multiple types.
+        // We still keep 'group_reports' for legacy compatibility but prioritize the type field.
+        var normalizedUser = reportsData.map(r => Object.assign({ type: 'user' }, r));
+        var normalizedGroup = groupReportsData.map(r => Object.assign({ type: 'group' }, r));
+        setReports(sortReports([...normalizedUser, ...normalizedGroup]));
+        setLoading(false);
+      };
+
       try {
-        unsub = reportsCollection.limit(200).onSnapshot(
+        // Listen to regular user reports
+        unsub1 = reportsCollection.limit(100).onSnapshot(
           function (snap) {
-            if (!unsubscribed) {
-              setReports(sortReports(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })));
-              setLoading(false);
-            }
+            reportsData = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+            updateState();
           },
           function (err) {
-            console.warn('[Reports] onSnapshot failed, falling back:', err && err.message);
-            reportsCollection.limit(200).get().then(function (snap) {
-              if (!unsubscribed) {
-                setReports(sortReports(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })));
-                setLoading(false);
-              }
-            }).catch(function () { if (!unsubscribed) setLoading(false); });
+            console.warn('[Reports] user reports snapshot failed:', err);
+            reportsCollection.limit(100).get().then(snap => {
+              reportsData = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+              updateState();
+            }).catch(() => {});
           }
         );
+
+        // Listen to group reports
+        unsub2 = db.collection('group_reports').limit(100).onSnapshot(
+          function (snap) {
+            groupReportsData = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+            updateState();
+          },
+          function (err) {
+            console.warn('[Reports] group reports snapshot failed:', err);
+            db.collection('group_reports').limit(100).get().then(snap => {
+              groupReportsData = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+              updateState();
+            }).catch(() => {});
+          }
+        );
+
       } catch (e) {
         console.error('[Reports] listener error:', e && e.message);
         setLoading(false);
       }
-      return function () { unsubscribed = true; if (unsub) unsub(); };
+      return function () { 
+        unsubscribed = true; 
+        if (unsub1) unsub1(); 
+        if (unsub2) unsub2();
+      };
     }, []);
 
-    var resolveReport = function (id, targetUID, targetName) {
-      reportsCollection.doc(id).update({ resolved: true, resolvedAt: TS() }).then(function () {
-        if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData && currentUserData.displayName, 'RESOLVE_REPORT', targetUID, targetName, 'Report: ' + id).catch(function () {});
-        onNotification('✅ ' + (lang === 'ar' ? 'تم التجاهل' : 'Dismissed'));
+    var resolveReport = function (report) {
+      var coll = report.type === 'group' ? db.collection('group_reports') : reportsCollection;
+      coll.doc(report.id).update({ resolved: true, status: 'resolved', resolvedAt: TS() }).then(function () {
+        var targetUID = report.reportedUID || report.groupId || 'unknown';
+        var targetName = report.reportedName || report.groupName || 'Unknown';
+        var reporterUID = report.reporterUID || report.reporterId;
+
+        if (window.logStaffAction) window.logStaffAction(currentUser.uid, currentUserData && currentUserData.displayName, 'RESOLVE_REPORT', targetUID, targetName, 'Report: ' + report.id).catch(function () {});
+        
+        // Notify reporter
+        if (reporterUID && typeof botChatsCollection !== 'undefined') {
+          botChatsCollection.add({
+            botId: 'detective_bot',
+            toUserId: reporterUID,
+            type: 'report_resolved',
+            message: lang === 'ar' ?
+              `🕵️ تم مراجعة بلاغك ضد "${targetName}".\n✅ النتيجة: تم التعامل مع البلاغ وإغلاقه.\nشكراً لإبلاغك!` :
+              `🕵️ Your report against "${targetName}" has been reviewed.\n✅ Result: The report has been handled and resolved.\nThank you for reporting!`,
+            fromName: null,
+            fromPhoto: null,
+            timestamp: TS(),
+            read: false
+          }).catch(function (err) { console.error('Bot feedback error:', err); });
+        }
+
+        onNotification('✅ ' + (lang === 'ar' ? 'تم الحل' : 'Resolved'));
       }).catch(function (e) { onNotification('❌ Error: ' + e.message); });
     };
 
@@ -110,7 +163,8 @@
         resolvedRole = 'admin';
       }
 
-      reportsCollection.doc(report.id).update({
+      var coll = report.type === 'group' ? db.collection('group_reports') : reportsCollection;
+      coll.doc(report.id).update({
         escalated: true,
         escalatedTo: resolvedUID,
         escalatedToName: resolvedName,
@@ -221,14 +275,14 @@
       }
 
       return React.createElement('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } },
-        /* Dismiss — all staff can dismiss */
+        /* Resolve — all staff can resolve */
         React.createElement('button', {
-          onClick: function () { resolveReport(r.id, r.reportedUID, r.reportedName); },
+          onClick: function () { resolveReport(r); },
           style: { flex: 1, minWidth: '70px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', padding: '7px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }
-        }, lang === 'ar' ? 'تجاهل' : 'Dismiss'),
+        }, lang === 'ar' ? 'حل' : 'Resolve'),
 
         /* Warn (⚠️) — moderator/admin/owner via Detective bot */
-        r.reportedUID && !r.warned
+        (r.reportedUID || r.reporterId) && !r.warned
           ? React.createElement('button', {
               onClick: function () {
                 setWarnTarget({ uid: r.reportedUID, name: r.reportedName || 'User', reportId: r.id });
@@ -353,12 +407,42 @@
                 React.createElement('div', { style: { display: 'flex', gap: '10px', marginBottom: '10px' } },
                   React.createElement('div', { style: { flex: 1, padding: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' } },
                     React.createElement('div', { style: { fontSize: '9px', color: '#6b7280', marginBottom: '3px' } }, lang === 'ar' ? 'المُبلِغ' : 'Reporter'),
-                    React.createElement('div', { onClick: function () { if (onOpenProfile) onOpenProfile(r.reporterUID); }, style: { fontSize: '11px', fontWeight: 700, cursor: onOpenProfile ? 'pointer' : 'default', color: '#3b82f6' } }, r.reporterName || 'Anonymous')
+                    React.createElement('div', { 
+                      onClick: function () { 
+                        var reporterUID = r.reporterUID || r.reporterId;
+                        if (onOpenProfile && reporterUID) onOpenProfile(reporterUID); 
+                      }, 
+                      style: { fontSize: '11px', fontWeight: 700, cursor: 'pointer', color: '#3b82f6' } 
+                    }, r.reporterName || 'Anonymous')
                   ),
                   React.createElement('div', { style: { flex: 1, padding: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' } },
-                    React.createElement('div', { style: { fontSize: '9px', color: '#ef4444', marginBottom: '3px' } }, lang === 'ar' ? 'المُبلَغ عنه' : 'Reported'),
-                    React.createElement('div', { onClick: function () { if (onOpenProfile) onOpenProfile(r.reportedUID); }, style: { fontSize: '11px', fontWeight: 700, cursor: onOpenProfile ? 'pointer' : 'default', color: '#ef4444' } }, r.reportedName || 'User')
+                    React.createElement('div', { style: { fontSize: '9px', color: '#ef4444', marginBottom: '3px' } }, 
+                      r.type === 'group' ? (lang === 'ar' ? 'الجروب' : 'Group') : 
+                      r.type === 'moment' ? (lang === 'ar' ? 'اللحظة' : 'Moment') :
+                      r.type === 'public_chat' ? (lang === 'ar' ? 'الرسالة' : 'Message') :
+                      (lang === 'ar' ? 'المُبلَغ عنه' : 'Reported')
+                    ),
+                    React.createElement('div', { 
+                      onClick: function () { 
+                        if ((r.type === 'user' || r.type === 'profile') && onOpenProfile && r.reportedUID) onOpenProfile(r.reportedUID); 
+                      }, 
+                      style: { fontSize: '11px', fontWeight: 700, cursor: (r.type === 'user' || r.type === 'profile') ? 'pointer' : 'default', color: '#ef4444' } 
+                    }, r.reportedName || r.groupName || 'Target'),
+                    (r.originLabelAr || r.originLabelEn) && React.createElement('div', { style: { fontSize: '9px', color: '#94a3b8', marginTop: '4px', fontStyle: 'italic' } },
+                      '📍 ' + (lang === 'ar' ? (r.originLabelAr || r.originLabelEn) : (r.originLabelEn || r.originLabelAr))
+                    )
                   )
+                ),
+
+                /* Display Evidence/Content */
+                (r.msgText || r.text) && React.createElement('div', { style: { background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px', fontSize: '11px', borderLeft: '3px solid #3b82f6', color: '#cbd5e1' } },
+                  React.createElement('div', { style: { fontSize: '9px', color: '#64748b', marginBottom: '2px' } }, lang === 'ar' ? 'المحتوى المُبلغ عنه:' : 'Reported Content:'),
+                  r.msgText || r.text
+                ),
+
+                r.evidence && r.type === 'user' && React.createElement('div', { style: { background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px', fontSize: '11px', borderLeft: '3px solid #f59e0b', color: '#cbd5e1' } },
+                  React.createElement('div', { style: { fontSize: '9px', color: '#64748b', marginBottom: '2px' } }, lang === 'ar' ? 'الدليل (رسالة شات):' : 'Evidence (Chat Message):'),
+                  r.evidence.text
                 ),
 
                 React.createElement('div', { style: { background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: '8px', marginBottom: '10px', fontSize: '11px', color: '#d1d5db', lineHeight: 1.4 } },

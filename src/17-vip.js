@@ -34,15 +34,15 @@
 
   // 🔧 VIP MOMENT BACKGROUNDS — خلفية الـ Moments من ليفل 2 لـ 10
   var VIP_MOMENT_BG_URLS = {
-    2: '', // رابط خلفية Moments لـ VIP 2
-    3: '',
-    4: '',
-    5: '',
-    6: '',
-    7: '',
-    8: '',
-    9: '',
-    10: ''
+    2: 'icos/vipchat/MOMENTBACKGROUNDS1.png', // رابط خلفية Moments لـ VIP 2
+    3: 'icos/vipchat/MOMENTBACKGROUNDS4.png',
+    4: 'icos/vipchat/MOMENTBACKGROUNDS3.png',
+    5: 'icos/vipchat/MOMENTBACKGROUNDS5.png',
+    6: 'icos/vipchat/MOMENTBACKGROUNDS6.png',
+    7: 'icos/vipchat/MOMENTBACKGROUNDS7.png',
+    8: 'icos/vipchat/MOMENTBACKGROUNDS8.png',
+    9: 'icos/vipchat/MOMENTBACKGROUNDS9.gif',
+    10: 'icos/vipchat/MOMENTBACKGROUNDS10.gif'
   };
 
   // ════ VIP XP SYSTEM ════
@@ -98,197 +98,194 @@
 
   // ════ VIP CONFIG — الإعدادات الكاملة لكل مستوى ════
   var VIP_CONFIG = [
-  {
-    level: 1,
-    name_en: 'VIP I', name_ar: 'في آي بي 1',
-    // اللون: أحمر لـ 1-5
-    nameColor: '#ef4444',
-    glowColor: null,
-    gradientAnim: false,
-    xpMultiplier: 1.2, // x1.2 XP
-    idLength: 6, // طول ID عادي
-    customIdLength: null, // لا custom ID
-    exclusiveGifts: false,
-    vipDailyTasks: false,
-    exclusiveForm: false,
-    // 🎁 VIP Items — عناصر تُضاف للإنفنتري عند الشراء وتختفي لما VIP ينتهي
-    // مثال: [{ id: 'frame_vip1_gold', type: 'frames' }, { id: 'badge_vip1_star', type: 'badges' }]
-    vipItems: [], // ← VIP 1 أضف هنا عناصر المستوى الأول
-    // 🖼️ صورة قبل الـ ID في البروفايل — ضع رابط صورة/GIF هنا أو null
-    idBeforeImageUrl: null, // ← VIP 1: ضع رابط الصورة هنا
-    benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
-    benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP']
-  },
-  {
-    level: 2,
-    name_en: 'VIP II', name_ar: 'في آي بي 2',
-    nameColor: '#ef4444',
-    glowColor: null,
-    gradientAnim: false,
-    xpMultiplier: 1.3,
-    idLength: 6,
-    customIdLength: null,
-    exclusiveGifts: true, // 🎁 هدايا حصرية من هنا
-    vipDailyTasks: true, // ✅ تفعيل Daily Tasks VIP
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 2 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip2', type: 'frames' }]
-    // 🖼️ صورة قبل الـ ID في البروفايل
-    idBeforeImageUrl: null, // ← VIP 2: ضع رابط الصورة هنا
-    benefits_en: ['1.3× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-    benefits_ar: ['مضاعف XP × 1.3', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
-  },
-  {
-    level: 3,
-    name_en: 'VIP III', name_ar: 'في آي بي 3',
-    nameColor: '#ef4444',
-    glowColor: null,
-    gradientAnim: false,
-    xpMultiplier: 1.4,
-    idLength: 6,
-    customIdLength: null,
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 3 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip3', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 3: ضع رابط الصورة هنا
-    benefits_en: ['1.4× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-    benefits_ar: ['مضاعف XP × 1.4', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
-  },
-  {
-    level: 4,
-    name_en: 'VIP IV', name_ar: 'في آي بي 4',
-    nameColor: '#ef4444',
-    glowColor: null,
-    gradientAnim: false,
-    xpMultiplier: 1.5,
-    idLength: 6,
-    customIdLength: null,
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 4 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip4', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 4: ضع رابط الصورة هنا
-    benefits_en: ['1.5× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-    benefits_ar: ['مضاعف XP × 1.5', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
-  },
-  {
-    level: 5,
-    name_en: 'VIP V', name_ar: 'في آي بي 5',
-    nameColor: '#ef4444',
-    glowColor: null,
-    gradientAnim: false,
-    xpMultiplier: 1.6,
-    idLength: 6,
-    customIdLength: null,
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 5 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip5', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 5: ضع رابط الصورة هنا
-    benefits_en: ['1.6× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
-    benefits_ar: ['مضاعف XP × 1.6', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
-  },
-  {
-    level: 6,
-    name_en: 'VIP VI', name_ar: 'في آي بي 6',
-    // Yellow + Glow لـ 6-8
-    nameColor: '#eab308',
-    glowColor: 'rgba(234,179,8,0.8)',
-    gradientAnim: false,
-    xpMultiplier: 1.7,
-    idLength: 6,
-    customIdLength: 6, // Custom 6-digit ID
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 6 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip6', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 6: ضع رابط الصورة هنا
-    idIconImageUrl: null, // ← VIP 6: أيقونة مميزة أمام الـ ID (ذهبية مثلاً)
-    benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
-    benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP']
-  },
-  {
-    level: 7,
-    name_en: 'VIP VII', name_ar: 'في آي بي 7',
-    nameColor: '#eab308',
-    glowColor: 'rgba(234,179,8,0.9)',
-    gradientAnim: false,
-    xpMultiplier: 1.8,
-    idLength: 6,
-    customIdLength: 5, // Custom 5-digit ID
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 7 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip7', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 7: ضع رابط الصورة هنا
-    idIconImageUrl: null, // ← VIP 7: أيقونة مميزة أمام الـ ID
-    benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
-    benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية']
-  },
-  {
-    level: 8,
-    name_en: 'VIP VIII', name_ar: 'في آي بي 8',
-    nameColor: '#eab308',
-    glowColor: 'rgba(234,179,8,1)',
-    gradientAnim: false,
-    xpMultiplier: 1.9,
-    idLength: 6,
-    customIdLength: 4, // Custom 4-digit ID
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 8 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip8', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 8: ضع رابط الصورة هنا
-    idIconImageUrl: null, // ← VIP 8: أيقونة مميزة أمام الـ ID
-    benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
-    benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية']
-  },
-  {
-    level: 9,
-    name_en: 'VIP IX', name_ar: 'في آي بي 9',
-    // Red + Gradient Animation لـ 9-10
-    nameColor: '#ef4444',
-    glowColor: 'rgba(239,68,68,0.9)',
-    gradientAnim: true,
-    xpMultiplier: 2.0,
-    idLength: 6,
-    customIdLength: 3, // Custom 3-digit ID
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: false,
-    // 🎁 VIP Items Level 9 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip9', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 9: ضع رابط الصورة هنا
-    idIconImageUrl: null, // ← VIP 9: أيقونة أنيمشن أمام الـ ID
-    benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
-    benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية']
-  },
-  {
-    level: 10,
-    name_en: 'VIP X', name_ar: 'في آي بي 10',
-    nameColor: '#ff1a1a',
-    glowColor: 'rgba(255, 26, 26, 1)',
-    gradientAnim: true,
-    xpMultiplier: 2.0,
-    idLength: 6,
-    customIdLength: 2, // Custom 2-digit ID
-    exclusiveGifts: true,
-    vipDailyTasks: true,
-    exclusiveForm: true, // 📋 فورم هدايا مخصصة
-    // 🎁 VIP Items Level 10 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
-    vipItems: [], // ← مثال: [{ id: 'frame_vip10', type: 'frames' }]
-    idBeforeImageUrl: null, // ← VIP 10: ضع رابط الصورة هنا
-    idIconImageUrl: null, // ← VIP 10: أيقونة أسطورية أمام الـ ID
-    benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
-    benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة']
-  }];
+    {
+      level: 1,
+      name_en: 'VIP I', name_ar: 'في آي بي 1',
+      nameColor: '#cd7f32',
+      glowColor: 'rgba(205, 127, 50, 0.3)',
+      gradientAnim: false,
+      xpMultiplier: 1.2,
+      idLength: 6,
+      customIdLength: null,
+      exclusiveGifts: false,
+      vipDailyTasks: false,
+      exclusiveForm: false,
+      // 🎁 VIP Items — عناصر تُضاف للإنفنتري عند الشراء وتختفي لما VIP ينتهي
+      // مثال: [{ id: 'frame_vip1_gold', type: 'frames' }, { id: 'badge_vip1_star', type: 'badges' }]
+      vipItems: [], // ← VIP 1 أضف هنا عناصر المستوى الأول
+      // 🖼️ صورة قبل الـ ID في البروفايل — ضع رابط صورة/GIF هنا أو null
+      idBeforeImageUrl: null, // ← VIP 1: ضع رابط الصورة هنا
+      benefits_en: ['1.2× XP Multiplier', 'VIP Badge'],
+      benefits_ar: ['مضاعف XP × 1.2', 'بادج VIP']
+    },
+    {
+      level: 2,
+      name_en: 'VIP II', name_ar: 'في آي بي 2',
+      nameColor: '#94a3b8',
+      glowColor: 'rgba(148, 163, 184, 0.3)',
+      gradientAnim: false,
+      xpMultiplier: 1.3,
+      idLength: 6,
+      customIdLength: null,
+      exclusiveGifts: true, // 🎁 هدايا حصرية من هنا
+      vipDailyTasks: true, // ✅ تفعيل Daily Tasks VIP
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 2 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip2', type: 'frames' }]
+      // 🖼️ صورة قبل الـ ID في البروفايل
+      idBeforeImageUrl: null, // ← VIP 2: ضع رابط الصورة هنا
+      benefits_en: ['1.3× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+      benefits_ar: ['مضاعف XP × 1.3', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
+    },
+    {
+      level: 3,
+      name_en: 'VIP III', name_ar: 'في آي بي 3',
+      nameColor: '#eab308',
+      glowColor: 'rgba(234, 179, 8, 0.3)',
+      gradientAnim: false,
+      xpMultiplier: 1.4,
+      idLength: 6,
+      customIdLength: null,
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 3 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip3', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 3: ضع رابط الصورة هنا
+      benefits_en: ['1.4× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+      benefits_ar: ['مضاعف XP × 1.4', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
+    },
+    {
+      level: 4,
+      name_en: 'VIP IV', name_ar: 'في آي بي 4',
+      nameColor: '#10b981',
+      glowColor: 'rgba(16, 185, 129, 0.3)',
+      gradientAnim: false,
+      xpMultiplier: 1.5,
+      idLength: 6,
+      customIdLength: null,
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 4 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip4', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 4: ضع رابط الصورة هنا
+      benefits_en: ['1.5× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+      benefits_ar: ['مضاعف XP × 1.5', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
+    },
+    {
+      level: 5,
+      name_en: 'VIP V', name_ar: 'في آي بي 5',
+      nameColor: '#3b82f6',
+      glowColor: 'rgba(59, 130, 246, 0.3)',
+      gradientAnim: false,
+      xpMultiplier: 1.6,
+      idLength: 6,
+      customIdLength: null,
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 5 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip5', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 5: ضع رابط الصورة هنا
+      benefits_en: ['1.6× XP', 'VIP Badge', 'Exclusive Gifts', 'VIP Daily Tasks'],
+      benefits_ar: ['مضاعف XP × 1.6', 'بادج VIP', 'هدايا حصرية', 'مهام يومية VIP']
+    },
+    {
+      level: 6,
+      name_en: 'VIP VI', name_ar: 'في آي بي 6',
+      nameColor: '#8b5cf6',
+      glowColor: 'rgba(139, 92, 246, 0.4)',
+      gradientAnim: false,
+      xpMultiplier: 1.7,
+      idLength: 6,
+      customIdLength: 6, // Custom 6-digit ID
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 6 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip6', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 6: ضع رابط الصورة هنا
+      idIconImageUrl: null, // ← VIP 6: أيقونة مميزة أمام الـ ID (ذهبية مثلاً)
+      benefits_en: ['1.7× XP', 'Gold Name Glow', 'Custom 6-Digit ID', 'Exclusive Gifts', 'VIP Daily Tasks'],
+      benefits_ar: ['مضاعف XP × 1.7', 'توهج اسم ذهبي', 'ID مخصص 6 أرقام', 'هدايا حصرية', 'مهام يومية VIP']
+    },
+    {
+      level: 7,
+      name_en: 'VIP VII', name_ar: 'في آي بي 7',
+      nameColor: '#ec4899',
+      glowColor: 'rgba(236, 72, 153, 0.4)',
+      gradientAnim: false,
+      xpMultiplier: 1.8,
+      idLength: 6,
+      customIdLength: 5, // Custom 5-digit ID
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 7 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip7', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 7: ضع رابط الصورة هنا
+      idIconImageUrl: null, // ← VIP 7: أيقونة مميزة أمام الـ ID
+      benefits_en: ['1.8× XP', 'Gold Name Glow', 'Custom 5-Digit ID', 'Exclusive Gifts'],
+      benefits_ar: ['مضاعف XP × 1.8', 'توهج اسم ذهبي', 'ID مخصص 5 أرقام', 'هدايا حصرية']
+    },
+    {
+      level: 8,
+      name_en: 'VIP VIII', name_ar: 'في آي بي 8',
+      nameColor: '#06b6d4',
+      glowColor: 'rgba(6, 182, 212, 0.4)',
+      gradientAnim: false,
+      xpMultiplier: 1.9,
+      idLength: 6,
+      customIdLength: 4, // Custom 4-digit ID
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 8 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip8', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 8: ضع رابط الصورة هنا
+      idIconImageUrl: null, // ← VIP 8: أيقونة مميزة أمام الـ ID
+      benefits_en: ['1.9× XP', 'Gold Name Glow', 'Custom 4-Digit ID', 'Exclusive Gifts'],
+      benefits_ar: ['مضاعف XP × 1.9', 'توهج اسم ذهبي', 'ID مخصص 4 أرقام', 'هدايا حصرية']
+    },
+    {
+      level: 9,
+      name_en: 'VIP IX', name_ar: 'في آي بي 9',
+      nameColor: '#f97316',
+      glowColor: 'rgba(249, 115, 22, 0.4)',
+      gradientAnim: true,
+      xpMultiplier: 2.0,
+      idLength: 6,
+      customIdLength: 3, // Custom 3-digit ID
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: false,
+      // 🎁 VIP Items Level 9 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip9', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 9: ضع رابط الصورة هنا
+      idIconImageUrl: null, // ← VIP 9: أيقونة أنيمشن أمام الـ ID
+      benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 3-Digit ID', 'Exclusive Gifts'],
+      benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص 3 أرقام', 'هدايا حصرية']
+    },
+    {
+      level: 10,
+      name_en: 'VIP X', name_ar: 'في آي بي 10',
+      nameColor: '#ff1a1a',
+      glowColor: 'rgba(255, 26, 26, 0.5)',
+      gradientAnim: true,
+      xpMultiplier: 2.0,
+      idLength: 6,
+      customIdLength: 2, // Custom 2-digit ID
+      exclusiveGifts: true,
+      vipDailyTasks: true,
+      exclusiveForm: true, // 📋 فورم هدايا مخصصة
+      // 🎁 VIP Items Level 10 — أضف عناصر هنا (تُمنح عند الشراء، تُسحب عند انتهاء VIP)
+      vipItems: [], // ← مثال: [{ id: 'frame_vip10', type: 'frames' }]
+      idBeforeImageUrl: null, // ← VIP 10: ضع رابط الصورة هنا
+      idIconImageUrl: null, // ← VIP 10: أيقونة أسطورية أمام الـ ID
+      benefits_en: ['2× XP', 'Animated Name Glow', 'Custom 2-Digit ID', 'Exclusive Gifts', 'Custom Gift Request'],
+      benefits_ar: ['مضاعف XP × 2', 'توهج اسم متحرك', 'ID مخصص رقمين', 'هدايا حصرية', 'طلب هدية مخصصة']
+    }];
 
 
   // ════ HELPER FUNCTIONS ════
@@ -327,7 +324,10 @@
   };
 
   // ════ VIP BADGE COMPONENT ════
-  var VIPBadge = ({ userData, onClick, size = 'sm' }) => {
+  var VIPBadge = ({ userData, onClick, size = 'sm', lang }) => {
+    var [tooltip, setTooltip] = React.useState(null);
+    var timerRef = React.useRef(null);
+
     var level = getVIPLevel(userData);
     if (!level) return null;
 
@@ -335,39 +335,64 @@
     var badgeUrl = VIP_BADGE_URLS[level];
     var sz = size === 'lg' ? 32 : size === 'md' ? 26 : 22;
 
+    var showInfo = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      var label = lang === 'ar' ? `${cfg.name_ar}` : `${cfg.name_en}`;
+      setTooltip(label);
+      timerRef.current = setTimeout(() => setTooltip(null), 3000);
+    };
+
     var handleClick = (e) => {
       e.stopPropagation();
+      showInfo();
       if (onClick) onClick(level);
     };
+
+    var badgeTitle = lang === 'ar' ? `${cfg.name_ar}` : `${cfg.name_en}`;
 
     return (/*#__PURE__*/
       React.createElement("span", {
         onClick: handleClick,
-        title: `${cfg.name_en}`,
-        style: { display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' } },
+        onMouseEnter: showInfo,
+        onMouseLeave: () => setTooltip(null),
+        title: badgeTitle,
+        style: { display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', position: 'relative' }
+      },
+        tooltip && /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+            marginBottom: '6px', padding: '4px 10px', background: 'rgba(0,0,0,0.9)',
+            color: '#fff', fontSize: '10px', fontWeight: '800', borderRadius: '6px',
+            whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 100,
+            border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            animation: 'animate-pop 0.2s ease-out'
+          }
+        }, tooltip),
 
-      badgeUrl ? /*#__PURE__*/
-      React.createElement("img", { src: badgeUrl, alt: cfg.name_en, style: { width: sz, height: sz, objectFit: 'contain' } }) : /*#__PURE__*/
+        badgeUrl ? /*#__PURE__*/
+          React.createElement("img", { src: badgeUrl, alt: cfg.name_en, style: { width: sz, height: sz, objectFit: 'contain' } }) : /*#__PURE__*/
 
-      React.createElement("span", {
-        className: `vip-badge-icon vip-level-${level}`,
-        style: {
-          fontSize: sz * 0.65,
-          background: `linear-gradient(135deg, ${cfg.nameColor}, ${cfg.nameColor}99)`,
-          color: '#fff',
-          fontWeight: 900,
-          padding: '1px 5px',
-          borderRadius: '6px',
-          border: `1.5px solid ${cfg.nameColor}`,
-          lineHeight: 1.4,
-          letterSpacing: '-0.3px',
-          boxShadow: cfg.glowColor ? `0 0 8px ${cfg.glowColor}` : 'none',
-          minWidth: sz,
-          textAlign: 'center'
-        } },
+          React.createElement("span", {
+            className: `vip-badge-icon vip-level-${level}`,
+            style: {
+              fontSize: sz * 0.65,
+              background: `linear-gradient(135deg, ${cfg.nameColor}, ${cfg.nameColor}99)`,
+              color: '#fff',
+              fontWeight: 900,
+              padding: '1px 5px',
+              borderRadius: '6px',
+              border: `1.5px solid ${cfg.nameColor}`,
+              lineHeight: 1.4,
+              letterSpacing: '-0.3px',
+              boxShadow: cfg.glowColor ? `0 0 8px ${cfg.glowColor}` : 'none',
+              minWidth: sz,
+              textAlign: 'center'
+            }
+          },
 
-      level
-      )
+            level
+          )
 
       ));
 
@@ -383,42 +408,51 @@
     var cfg = VIP_CONFIG[level - 1];
 
     if (cfg.gradientAnim) {
-      // VIP 9-10: animated gradient
+      // Soften shadows to prevent boxy artifacts (especially for levels with mid-alpha glowColors like VIP 9)
+      var secondaryGlow = cfg.glowColor.replace(/0\.\d+\)/, '0.15)').replace(/0\.\d+,/, '0.15,');
+
       return (/*#__PURE__*/
         React.createElement("span", {
           className: `vip-name-animated ${className}`,
           style: {
             color: cfg.nameColor,
-            textShadow: `0 0 10px ${cfg.glowColor}, 0 0 20px ${cfg.glowColor}`,
+            textShadow: `0 0 6px ${cfg.glowColor}, 0 0 12px ${secondaryGlow}`,
             '--vip-shimmer-color': cfg.glowColor,
             position: 'relative',
             ...style
-          } },
+          }
+        },
 
-        name, /*#__PURE__*/
-        React.createElement("span", { className: "vip-name-gradient-overlay", "aria-hidden": "true" }, name)
+          name, /*#__PURE__*/
+          React.createElement("span", { className: "vip-name-gradient-overlay", "aria-hidden": "true" }, name)
         ));
 
     }
     if (cfg.glowColor) {
-      // VIP 6-8: yellow + glow
+      // Tiered shadow intensity
+      var isHighTier = level >= 6 && level <= 8;
+      var radius1 = isHighTier ? 8 : 5;
+      var radius2 = isHighTier ? 16 : 10;
+      var opacity2 = isHighTier ? '55' : '33';
+
       return (/*#__PURE__*/
         React.createElement("span", {
           className: className,
           style: {
             color: cfg.nameColor,
-            textShadow: `0 0 8px ${cfg.glowColor}, 0 0 16px ${cfg.glowColor}55`,
+            textShadow: `0 0 ${radius1}px ${cfg.glowColor}, 0 0 ${radius2}px ${cfg.glowColor}${opacity2}`,
             ...style
-          } },
+          }
+        },
 
-        name
+          name
         ));
 
     }
     // VIP 1-5: red
     return (/*#__PURE__*/
       React.createElement("span", { className: className, style: { color: cfg.nameColor, ...style } },
-      name
+        name
       ));
 
   };
@@ -451,9 +485,10 @@
           flexShrink: 0,
           cursor: onClick ? 'pointer' : 'default',
           transition: onClick ? 'all 0.15s' : 'none'
-        } },
+        }
+      },
 
-      cfg.icon, " ", lang === 'ar' ? cfg.label_ar : cfg.label_en
+        cfg.icon, " ", lang === 'ar' ? cfg.label_ar : cfg.label_en
       ));
 
   };
@@ -492,7 +527,8 @@
             verticalAlign: 'middle',
             flexShrink: 0,
             ...style
-          } }
+          }
+        }
         ));
 
     }
@@ -525,83 +561,93 @@
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: size === 'md' ? '10px' : '8px', minWidth: 0 } }, /*#__PURE__*/
 
 
-      React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
-      React.createElement(AvatarWithFrame, { photoURL: photoURL, equipped: equipped, size: avatarSz, banData: banData, lang: lang }),
-      showStatus && /*#__PURE__*/
-      React.createElement("div", { style: {
-          position: 'absolute', bottom: '-1px', right: '-1px',
-          width: '9px', height: '9px', borderRadius: '50%',
-          background: showStatus, border: '2px solid #0a0a14'
-        } })
+        React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
+          React.createElement(AvatarWithFrame, { photoURL: photoURL, equipped: equipped, size: avatarSz, banData: banData, lang: lang }),
+          showStatus && /*#__PURE__*/
+          React.createElement("div", {
+            style: {
+              position: 'absolute', bottom: '-1px', right: '-1px',
+              width: '9px', height: '9px', borderRadius: '50%',
+              background: showStatus, border: '2px solid #0a0a14'
+            }
+          })
 
-      ), /*#__PURE__*/
-
-
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 } }, /*#__PURE__*/
-
-
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap' } }, /*#__PURE__*/
-      React.createElement(VIPName, {
-        displayName: name,
-        userData: player,
-        style: { fontSize: nameSz, fontWeight: 700,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          maxWidth: '120px' } }
-      ),
-
-      player.familyTag && window.FamilySignBadge && /*#__PURE__*/
-      React.createElement("div", { style: { transform: 'scale(0.8)', transformOrigin: 'left center', marginLeft: '-2px', marginRight: '-2px' } }, /*#__PURE__*/
-      React.createElement(window.FamilySignBadge, {
-        tag: player.familyTag,
-        signLevel: player.familySignLevel || 1,
-        color: window.FamilyConstants?.getFamilySignLevelDataByLevel?.(player.familySignLevel || 1)?.color || '#00f2ff',
-        imageURL: window.FamilyConstants?.getFamilySignImage?.(0, player.familySignLevel || 1),
-        small: true }
-      )
-      ),
-
-      vipActive && /*#__PURE__*/
-      React.createElement(VIPBadge, { userData: player, size: "sm", onClick: () => {} }),
-
-      playerRole && /*#__PURE__*/
-      React.createElement(StaffRoleBadge, { userData: player, uid: playerUID, lang: lang, size: "sm" }),
-
-      banData?.isBanned && (!banData.expiresAt || new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))) && /*#__PURE__*/
-      React.createElement("span", { className: "banned-name-indicator" }, "\uD83D\uDEAB")
-
-      ),
+        ), /*#__PURE__*/
 
 
-      badgeIds.length > 0 && /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '2px' } },
-      badgeIds.slice(0, 3).map((bid, idx) => {
-        var b = SHOP_ITEMS.badges.find((b) => b.id === bid);
-        if (!b) return null;
-        return b.imageUrl && b.imageUrl.trim() !== '' ? /*#__PURE__*/
-        React.createElement("img", { key: idx, src: b.imageUrl, alt: "",
-          style: { width: 13, height: 13, objectFit: 'contain' } }) : /*#__PURE__*/
-
-        React.createElement("span", { key: idx, style: { fontSize: '11px', lineHeight: 1 } }, b.preview);
-
-      })
-      ),
+        React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 } }, /*#__PURE__*/
 
 
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'nowrap' } }, /*#__PURE__*/
+            React.createElement(VIPName, {
+              displayName: name,
+              userData: player,
+              style: {
+                fontSize: nameSz, fontWeight: 700,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                maxWidth: '120px'
+              }
+            }
+            ),
 
-      titleItem && /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '2px' } },
-      titleItem.imageUrl && titleItem.imageUrl.trim() !== '' ? /*#__PURE__*/
-      React.createElement("img", { src: titleItem.imageUrl, alt: "",
-        style: { maxWidth: '70px', maxHeight: '13px', objectFit: 'contain' } }) : /*#__PURE__*/
+            player.familyTag && window.FamilySignBadge && /*#__PURE__*/
+            React.createElement("div", { style: { transform: 'scale(0.8)', transformOrigin: 'left center', marginLeft: '-2px', marginRight: '-2px' } }, /*#__PURE__*/
+              React.createElement(window.FamilySignBadge, {
+                tag: player.familyTag,
+                signLevel: player.familySignLevel || 1,
+                color: window.FamilyConstants?.getFamilySignLevelDataByLevel?.(player.familySignLevel || 1)?.color || '#00f2ff',
+                imageURL: window.FamilyConstants?.getFamilySignImage?.(0, player.familySignLevel || 1),
+                small: true
+              }
+              )
+            ),
 
-      React.createElement("span", { style: { fontSize: '9px', color: '#a78bfa', lineHeight: 1, whiteSpace: 'nowrap' } }, "\uD83C\uDF10 ",
-      titleItem.preview, " ", lang === 'ar' ? titleItem.name_ar : titleItem.name_en
-      )
+            vipActive && /*#__PURE__*/
+            React.createElement(VIPBadge, { userData: player, size: "sm", lang: lang, onClick: () => { } }),
 
-      )
+            playerRole && /*#__PURE__*/
+            React.createElement(StaffRoleBadge, { userData: player, uid: playerUID, lang: lang, size: "sm" }),
+
+            banData?.isBanned && (!banData.expiresAt || new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt))) && /*#__PURE__*/
+            React.createElement("span", { className: "banned-name-indicator" }, "\uD83D\uDEAB")
+
+          ),
 
 
-      )
+          badgeIds.length > 0 && /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '2px' } },
+            badgeIds.slice(0, 3).map((bid, idx) => {
+              var b = SHOP_ITEMS.badges.find((b) => b.id === bid);
+              if (!b) return null;
+              return b.imageUrl && b.imageUrl.trim() !== '' ? /*#__PURE__*/
+                React.createElement("img", {
+                  key: idx, src: b.imageUrl, alt: "",
+                  style: { width: 13, height: 13, objectFit: 'contain' }
+                }) : /*#__PURE__*/
+
+                React.createElement("span", { key: idx, style: { fontSize: '11px', lineHeight: 1 } }, b.preview);
+
+            })
+          ),
+
+
+
+          titleItem && /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '2px' } },
+            titleItem.imageUrl && titleItem.imageUrl.trim() !== '' ? /*#__PURE__*/
+              React.createElement("img", {
+                src: titleItem.imageUrl, alt: "",
+                style: { maxWidth: '70px', maxHeight: '13px', objectFit: 'contain' }
+              }) : /*#__PURE__*/
+
+              React.createElement("span", { style: { fontSize: '9px', color: '#a78bfa', lineHeight: 1, whiteSpace: 'nowrap' } }, "\uD83C\uDF10 ",
+                titleItem.preview, " ", lang === 'ar' ? titleItem.name_ar : titleItem.name_en
+              )
+
+          )
+
+
+        )
       ));
 
   };
@@ -613,29 +659,31 @@
     return (/*#__PURE__*/
       React.createElement("div", {
         style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: Z.TOOLTIP },
-        onClick: onClose }, /*#__PURE__*/
+        onClick: onClose
+      }, /*#__PURE__*/
 
-      React.createElement("div", {
-        className: "animate-pop",
-        style: { background: 'linear-gradient(135deg,#0f0f1a,#1a0010)', border: `2px solid ${cfg.nameColor}`, borderRadius: '16px', padding: '24px', textAlign: 'center', minWidth: '220px', boxShadow: `0 0 30px ${cfg.nameColor}55` },
-        onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+        React.createElement("div", {
+          className: "animate-pop",
+          style: { background: 'linear-gradient(135deg,#0f0f1a,#1a0010)', border: `2px solid ${cfg.nameColor}`, borderRadius: '16px', padding: '24px', textAlign: 'center', minWidth: '220px', boxShadow: `0 0 30px ${cfg.nameColor}55` },
+          onClick: (e) => e.stopPropagation()
+        }, /*#__PURE__*/
 
-      React.createElement("div", { style: { fontSize: '40px', marginBottom: '10px' } }, "\uD83D\uDC51"), /*#__PURE__*/
-      React.createElement("div", { style: { color: cfg.nameColor, fontWeight: 900, fontSize: '20px', marginBottom: '6px' } }, "VIP Level ",
-      level
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#9ca3af', fontSize: '12px', marginBottom: '14px' } }, cfg.name_ar), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' } },
-      cfg.benefits_ar.map((b, i) => /*#__PURE__*/
-      React.createElement("div", { key: i, style: { fontSize: '11px', color: '#d1d5db', display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { color: cfg.nameColor } }, "\u2713"), " ", b
-      )
-      )
-      ), /*#__PURE__*/
-      React.createElement("button", { onClick: onClose, style: { background: cfg.nameColor, color: '#000', fontWeight: 800, padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px' } }, "OK"
+          React.createElement("div", { style: { fontSize: '40px', marginBottom: '10px' } }, "\uD83D\uDC51"), /*#__PURE__*/
+          React.createElement("div", { style: { color: cfg.nameColor, fontWeight: 900, fontSize: '20px', marginBottom: '6px' } }, "VIP Level ",
+            level
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { color: '#9ca3af', fontSize: '12px', marginBottom: '14px' } }, cfg.name_ar), /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' } },
+            cfg.benefits_ar.map((b, i) => /*#__PURE__*/
+              React.createElement("div", { key: i, style: { fontSize: '11px', color: '#d1d5db', display: 'flex', alignItems: 'center', gap: '6px' } }, /*#__PURE__*/
+                React.createElement("span", { style: { color: cfg.nameColor } }, "\u2713"), " ", b
+              )
+            )
+          ), /*#__PURE__*/
+          React.createElement("button", { onClick: onClose, style: { background: cfg.nameColor, color: '#000', fontWeight: 800, padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px' } }, "OK"
 
-      )
-      )
+          )
+        )
       ));
 
   };
@@ -645,55 +693,63 @@
     var t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
     return (/*#__PURE__*/
       React.createElement("div", { className: "modal-overlay", onClick: onClose }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation(), style: { maxWidth: '380px' } }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
-      React.createElement("h2", { className: "modal-title" }, "\uD83D\uDC51 ", lang === 'ar' ? 'مميزات VIP' : 'VIP Benefits'), /*#__PURE__*/
-      React.createElement(ModalCloseBtn, { onClose: onClose })
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "modal-body", style: { padding: '12px' } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px' } },
-      VIP_CONFIG.map((cfg) => /*#__PURE__*/
-      React.createElement("div", { key: cfg.level, className: "vip-info-card", style: {
-          background: `linear-gradient(135deg, ${cfg.nameColor}11, rgba(15,15,26,0.95))`,
-          border: `1px solid ${cfg.nameColor}44`,
-          borderRadius: '10px', padding: '10px 12px',
-          display: 'flex', flexDirection: 'column', gap: '4px'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
-      React.createElement("span", { style: {
-          background: cfg.nameColor, color: '#000', fontWeight: 900,
-          padding: '2px 8px', borderRadius: '6px', fontSize: '12px'
-        } }, "VIP ",
-      cfg.level
-      ), /*#__PURE__*/
-      React.createElement("span", { style: { color: cfg.nameColor, fontWeight: 700, fontSize: '13px' } },
-      lang === 'ar' ? cfg.name_ar : cfg.name_en
-      ),
-      cfg.xpMultiplier >= 2 && /*#__PURE__*/React.createElement("span", { style: { fontSize: '10px', color: '#fbbf24' } }, "\u26A1 \xD72")
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '3px' } },
-      (lang === 'ar' ? cfg.benefits_ar : cfg.benefits_en).map((b, i) => /*#__PURE__*/
-      React.createElement("span", { key: i, style: {
-          fontSize: '10px', color: '#d1d5db',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '4px', padding: '2px 6px',
-          border: '1px solid rgba(255,255,255,0.08)'
-        } }, b)
-      ),
-      cfg.customIdLength && /*#__PURE__*/
-      React.createElement("span", { style: {
-          fontSize: '10px', color: '#60a5fa',
-          background: 'rgba(96,165,250,0.1)',
-          borderRadius: '4px', padding: '2px 6px',
-          border: '1px solid rgba(96,165,250,0.3)'
-        } }, "ID: ", cfg.customIdLength, " ", lang === 'ar' ? 'أرقام' : 'digits')
+        React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation(), style: { maxWidth: '380px' } }, /*#__PURE__*/
+          React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
+            React.createElement("h2", { className: "modal-title" }, "\uD83D\uDC51 ", lang === 'ar' ? 'مميزات VIP' : 'VIP Benefits'), /*#__PURE__*/
+            React.createElement(ModalCloseBtn, { onClose: onClose })
+          ), /*#__PURE__*/
+          React.createElement("div", { className: "modal-body", style: { padding: '12px' } }, /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px' } },
+              VIP_CONFIG.map((cfg) => /*#__PURE__*/
+                React.createElement("div", {
+                  key: cfg.level, className: "vip-info-card", style: {
+                    background: `linear-gradient(135deg, ${cfg.nameColor}11, rgba(15,15,26,0.95))`,
+                    border: `1px solid ${cfg.nameColor}44`,
+                    borderRadius: '10px', padding: '10px 12px',
+                    display: 'flex', flexDirection: 'column', gap: '4px'
+                  }
+                }, /*#__PURE__*/
+                  React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
+                    React.createElement("span", {
+                      style: {
+                        background: cfg.nameColor, color: '#000', fontWeight: 900,
+                        padding: '2px 8px', borderRadius: '6px', fontSize: '12px'
+                      }
+                    }, "VIP ",
+                      cfg.level
+                    ), /*#__PURE__*/
+                    React.createElement("span", { style: { color: cfg.nameColor, fontWeight: 700, fontSize: '13px' } },
+                      lang === 'ar' ? cfg.name_ar : cfg.name_en
+                    ),
+                    cfg.xpMultiplier >= 2 && /*#__PURE__*/React.createElement("span", { style: { fontSize: '10px', color: '#fbbf24' } }, "\u26A1 \xD72")
+                  ), /*#__PURE__*/
+                  React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '3px' } },
+                    (lang === 'ar' ? cfg.benefits_ar : cfg.benefits_en).map((b, i) => /*#__PURE__*/
+                      React.createElement("span", {
+                        key: i, style: {
+                          fontSize: '10px', color: '#d1d5db',
+                          background: 'rgba(255,255,255,0.05)',
+                          borderRadius: '4px', padding: '2px 6px',
+                          border: '1px solid rgba(255,255,255,0.08)'
+                        }
+                      }, b)
+                    ),
+                    cfg.customIdLength && /*#__PURE__*/
+                    React.createElement("span", {
+                      style: {
+                        fontSize: '10px', color: '#60a5fa',
+                        background: 'rgba(96,165,250,0.1)',
+                        borderRadius: '4px', padding: '2px 6px',
+                        border: '1px solid rgba(96,165,250,0.3)'
+                      }
+                    }, "ID: ", cfg.customIdLength, " ", lang === 'ar' ? 'أرقام' : 'digits')
 
-      )
-      )
-      )
-      )
-      )
-      )
+                  )
+                )
+              )
+            )
+          )
+        )
       ));
 
   };
@@ -712,24 +768,24 @@
     var [loadingReq, setLoadingReq] = useState(true);
 
     useEffect(() => {
-      if (!user?.uid) {setLoadingReq(false);return;}
+      if (!user?.uid) { setLoadingReq(false); return; }
       var unsub = vip10RequestsCollection.
-      where('uid', '==', user.uid).
-      limit(10).
-      onSnapshot((snap) => {
-        if (!snap.empty) {
-          var docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          docs.sort((a, b) => {
-            var aT = a.createdAt?.toMillis?.() || 0;
-            var bT = b.createdAt?.toMillis?.() || 0;
-            return bT - aT;
-          });
-          setLatestRequest(docs[0]);
-        } else {
-          setLatestRequest(null);
-        }
-        setLoadingReq(false);
-      }, () => setLoadingReq(false));
+        where('uid', '==', user.uid).
+        limit(10).
+        onSnapshot((snap) => {
+          if (!snap.empty) {
+            var docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            docs.sort((a, b) => {
+              var aT = a.createdAt?.toMillis?.() || 0;
+              var bT = b.createdAt?.toMillis?.() || 0;
+              return bT - aT;
+            });
+            setLatestRequest(docs[0]);
+          } else {
+            setLatestRequest(null);
+          }
+          setLoadingReq(false);
+        }, () => setLoadingReq(false));
       return unsub;
     }, [user?.uid]);
 
@@ -785,9 +841,9 @@
           'vip.lastGiftRequest': TS()
         });
         onNotification(lang === 'ar' ?
-        isModification ? '✅ تم إرسال طلب التعديل!' : '✅ تم إرسال طلبك!' :
-        isModification ? '✅ Modification request sent!' : '✅ Request sent!');
-        setGiftName('');setGiftImage('');setGiftEmail('');setLuckyNumber('');
+          isModification ? '✅ تم إرسال طلب التعديل!' : '✅ تم إرسال طلبك!' :
+          isModification ? '✅ Modification request sent!' : '✅ Request sent!');
+        setGiftName(''); setGiftImage(''); setGiftEmail(''); setLuckyNumber('');
         setShowForm(false);
       } catch (e) {
         onNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
@@ -799,178 +855,221 @@
 
     // ── Gift request form ──
     var RequestForm = ({ label }) => /*#__PURE__*/
-    React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
-    label && /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '10px', color: '#fbbf24', fontWeight: 800, textAlign: 'center',
-        background: 'rgba(251,191,36,0.08)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(251,191,36,0.2)' } }, "\u270F\uFE0F ",
-    label
-    ), /*#__PURE__*/
+      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
+        label && /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            fontSize: '10px', color: '#fbbf24', fontWeight: 800, textAlign: 'center',
+            background: 'rgba(251,191,36,0.08)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(251,191,36,0.2)'
+          }
+        }, "\u270F\uFE0F ",
+          label
+        ), /*#__PURE__*/
 
-    React.createElement("input", { className: "input-dark", placeholder: lang === 'ar' ? 'اسم الهدية' : 'Gift name',
-      value: giftName, onChange: (e) => setGiftName(e.target.value), style: { fontSize: '12px' } }), /*#__PURE__*/
-    React.createElement("div", null, /*#__PURE__*/
-    React.createElement("label", { style: { fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '4px' } }, "\uD83D\uDDBC\uFE0F ",
-    lang === 'ar' ? 'صورة الهدية (اختياري)' : 'Gift image (optional)'
-    ), /*#__PURE__*/
-    React.createElement("input", { type: "file", accept: "image/*", onChange: handleImageChange,
-      style: { fontSize: '11px', color: '#d1d5db', background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px',
-        padding: '4px 6px', width: '100%', cursor: 'pointer' } }),
-    giftImage && /*#__PURE__*/
-    React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' } }, /*#__PURE__*/
-    React.createElement("img", { src: giftImage, alt: "preview", style: { width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.4)' } }), /*#__PURE__*/
-    React.createElement("button", { onClick: () => setGiftImage(''), style: { fontSize: '10px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' } }, "\u2715 ",
-    lang === 'ar' ? 'حذف' : 'Remove'
-    )
-    )
+        React.createElement("input", {
+          className: "input-dark", placeholder: lang === 'ar' ? 'اسم الهدية' : 'Gift name',
+          value: giftName, onChange: (e) => setGiftName(e.target.value), style: { fontSize: '12px' }
+        }), /*#__PURE__*/
+        React.createElement("div", null, /*#__PURE__*/
+          React.createElement("label", { style: { fontSize: '11px', color: '#9ca3af', display: 'block', marginBottom: '4px' } }, "\uD83D\uDDBC\uFE0F ",
+            lang === 'ar' ? 'صورة الهدية (اختياري)' : 'Gift image (optional)'
+          ), /*#__PURE__*/
+          React.createElement("input", {
+            type: "file", accept: "image/*", onChange: handleImageChange,
+            style: {
+              fontSize: '11px', color: '#d1d5db', background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px',
+              padding: '4px 6px', width: '100%', cursor: 'pointer'
+            }
+          }),
+          giftImage && /*#__PURE__*/
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' } }, /*#__PURE__*/
+            React.createElement("img", { src: giftImage, alt: "preview", style: { width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.4)' } }), /*#__PURE__*/
+            React.createElement("button", { onClick: () => setGiftImage(''), style: { fontSize: '10px', color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' } }, "\u2715 ",
+              lang === 'ar' ? 'حذف' : 'Remove'
+            )
+          )
 
-    ), /*#__PURE__*/
-    React.createElement("input", { className: "input-dark", type: "email", placeholder: lang === 'ar' ? 'بريدك الإلكتروني' : 'Your email',
-      value: giftEmail, onChange: (e) => setGiftEmail(e.target.value), style: { fontSize: '12px' } }), /*#__PURE__*/
-    React.createElement("input", { className: "input-dark", type: "number", placeholder: lang === 'ar' ? 'رقمك المحظوظ 🍀' : 'Your lucky number 🍀',
-      value: luckyNumber, onChange: (e) => setLuckyNumber(e.target.value), style: { fontSize: '12px' } }), /*#__PURE__*/
-    React.createElement("button", { onClick: handleSubmit, disabled: sending || !giftName.trim(), className: "btn-neon",
-      style: { padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
-        opacity: sending || !giftName.trim() ? 0.5 : 1 } },
-    sending ? '⏳' : lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request'
-    ), /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } }, "\u26A1 ",
-    lang === 'ar' ? 'سيتم مراجعة طلبك خلال 24 ساعة' : 'Request reviewed within 24h'
-    )
-    );
+        ), /*#__PURE__*/
+        React.createElement("input", {
+          className: "input-dark", type: "email", placeholder: lang === 'ar' ? 'بريدك الإلكتروني' : 'Your email',
+          value: giftEmail, onChange: (e) => setGiftEmail(e.target.value), style: { fontSize: '12px' }
+        }), /*#__PURE__*/
+        React.createElement("input", {
+          className: "input-dark", type: "number", placeholder: lang === 'ar' ? 'رقمك المحظوظ 🍀' : 'Your lucky number 🍀',
+          value: luckyNumber, onChange: (e) => setLuckyNumber(e.target.value), style: { fontSize: '12px' }
+        }), /*#__PURE__*/
+        React.createElement("button", {
+          onClick: handleSubmit, disabled: sending || !giftName.trim(), className: "btn-neon",
+          style: {
+            padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+            opacity: sending || !giftName.trim() ? 0.5 : 1
+          }
+        },
+          sending ? '⏳' : lang === 'ar' ? '📨 إرسال الطلب' : '📨 Send Request'
+        ), /*#__PURE__*/
+        React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } }, "\u26A1 ",
+          lang === 'ar' ? 'سيتم مراجعة طلبك خلال 24 ساعة' : 'Request reviewed within 24h'
+        )
+      );
 
 
     // ── Status card shared ──
     var StatusCard = ({ statusColor, statusEmoji, statusText, giftText, note, children }) => /*#__PURE__*/
-    React.createElement("div", { style: {
-        borderRadius: '10px', padding: '12px',
-        background: `rgba(${statusColor},0.06)`,
-        border: `1px solid rgba(${statusColor},0.3)`,
-        display: 'flex', flexDirection: 'column', gap: '6px'
-      } }, /*#__PURE__*/
-    React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
-    React.createElement("span", { style: { fontSize: '18px' } }, statusEmoji), /*#__PURE__*/
-    React.createElement("div", null, /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '11px', fontWeight: 800, color: `rgb(${statusColor})` } }, statusText),
-    giftText && /*#__PURE__*/React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', marginTop: '2px' } },
-    lang === 'ar' ? 'الهدية:' : 'Gift:', ' ', /*#__PURE__*/
-    React.createElement("span", { style: { color: '#fbbf24', fontWeight: 700 } }, giftText)
-    )
-    )
-    ),
-    note && /*#__PURE__*/
-    React.createElement("div", { style: { background: 'rgba(255,255,255,0.04)', borderRadius: '7px', padding: '8px 10px',
-        borderLeft: '3px solid #ef4444', fontSize: '11px', color: '#e2e8f0', lineHeight: 1.5 } }, /*#__PURE__*/
-    React.createElement("span", { style: { fontSize: '9px', color: '#ef4444', fontWeight: 800, display: 'block', marginBottom: '2px' } },
-    lang === 'ar' ? '📋 رسالة الإدارة:' : '📋 Admin Note:'
-    ),
-    note
-    ),
+      React.createElement("div", {
+        style: {
+          borderRadius: '10px', padding: '12px',
+          background: `rgba(${statusColor},0.06)`,
+          border: `1px solid rgba(${statusColor},0.3)`,
+          display: 'flex', flexDirection: 'column', gap: '6px'
+        }
+      }, /*#__PURE__*/
+        React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px' } }, /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '18px' } }, statusEmoji), /*#__PURE__*/
+          React.createElement("div", null, /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '11px', fontWeight: 800, color: `rgb(${statusColor})` } }, statusText),
+            giftText && /*#__PURE__*/React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', marginTop: '2px' } },
+              lang === 'ar' ? 'الهدية:' : 'Gift:', ' ', /*#__PURE__*/
+              React.createElement("span", { style: { color: '#fbbf24', fontWeight: 700 } }, giftText)
+            )
+          )
+        ),
+        note && /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            background: 'rgba(255,255,255,0.04)', borderRadius: '7px', padding: '8px 10px',
+            borderLeft: '3px solid #ef4444', fontSize: '11px', color: '#e2e8f0', lineHeight: 1.5
+          }
+        }, /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '9px', color: '#ef4444', fontWeight: 800, display: 'block', marginBottom: '2px' } },
+            lang === 'ar' ? '📋 رسالة الإدارة:' : '📋 Admin Note:'
+          ),
+          note
+        ),
 
-    children, /*#__PURE__*/
-    React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '5px' } },
-    lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'One request per month'
-    )
-    );
+        children, /*#__PURE__*/
+        React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '5px' } },
+          lang === 'ar' ? 'يمكنك الطلب مرة واحدة في الشهر' : 'One request per month'
+        )
+      );
 
 
     return (/*#__PURE__*/
-      React.createElement("div", { style: {
+      React.createElement("div", {
+        style: {
           background: 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(15,15,26,0.95))',
           border: '1px solid rgba(239,68,68,0.35)',
           borderRadius: '12px', padding: '14px', marginTop: '6px'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { color: '#ef4444', fontWeight: 800, fontSize: '13px', marginBottom: '10px',
-          display: 'flex', alignItems: 'center', gap: '6px' } }, "\uD83D\uDC51 ",
-      lang === 'ar' ? 'طلب هدية مخصصة (VIP 10 فقط)' : 'Custom Gift Request (VIP 10 only)'
-      ),
+        }
+      }, /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            color: '#ef4444', fontWeight: 800, fontSize: '13px', marginBottom: '10px',
+            display: 'flex', alignItems: 'center', gap: '6px'
+          }
+        }, "\uD83D\uDC51 ",
+          lang === 'ar' ? 'طلب هدية مخصصة (VIP 10 فقط)' : 'Custom Gift Request (VIP 10 only)'
+        ),
 
 
-      !latestRequest && /*#__PURE__*/React.createElement(RequestForm, { label: null }),
+        !latestRequest && /*#__PURE__*/React.createElement(RequestForm, { label: null }),
 
 
-      isPending && /*#__PURE__*/
-      React.createElement(StatusCard, {
-        statusColor: "251,191,36",
-        statusEmoji: "\u23F3",
-        statusText: lang === 'ar' ? 'طلبك قيد المراجعة…' : 'Request under review…',
-        giftText: latestRequest.giftName,
-        note: latestRequest.adminNote || null },
+        isPending && /*#__PURE__*/
+        React.createElement(StatusCard, {
+          statusColor: "251,191,36",
+          statusEmoji: "\u23F3",
+          statusText: lang === 'ar' ? 'طلبك قيد المراجعة…' : 'Request under review…',
+          giftText: latestRequest.giftName,
+          note: latestRequest.adminNote || null
+        },
 
-      !latestRequest.adminNote && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } },
-      lang === 'ar' ? 'في انتظار رد الإدارة…' : 'Waiting for admin response…'
-      )
+          !latestRequest.adminNote && /*#__PURE__*/
+          React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } },
+            lang === 'ar' ? 'في انتظار رد الإدارة…' : 'Waiting for admin response…'
+          )
 
-      ),
-
-
-
-      isApproved && !showForm && /*#__PURE__*/
-      React.createElement(StatusCard, {
-        statusColor: "74,222,128",
-        statusEmoji: "\u2705",
-        statusText: lang === 'ar' ? '✅ تم قبول طلب الهدية!' : '✅ Gift Request Approved!',
-        giftText: latestRequest.giftName,
-        note: latestRequest.adminNote || null },
-
-      canModify ? /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowForm(true), style: {
-          padding: '7px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
-          background: 'rgba(251,191,36,0.15)', color: '#fbbf24',
-          border: '1px solid rgba(251,191,36,0.35)', cursor: 'pointer'
-        } }, "\u270F\uFE0F ",
-      lang === 'ar' ? 'تعديل الهدية (شهر جديد)' : 'Modify Gift (New Month)'
-      ) : /*#__PURE__*/
-
-      React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } }, "\uD83D\uDD12 ",
-      lang === 'ar' ? 'يمكنك التعديل الشهر القادم' : 'You can modify next month'
-      )
-
-      ),
+        ),
 
 
 
-      isApproved && showForm && /*#__PURE__*/
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement(RequestForm, { label: lang === 'ar' ? 'تعديل الهدية المخصصة' : 'Modify Custom Gift' }), /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowForm(false), style: {
-          width: '100%', marginTop: '4px', padding: '5px', background: 'none',
-          border: 'none', color: '#6b7280', fontSize: '10px', cursor: 'pointer' } },
-      lang === 'ar' ? '← إلغاء' : '← Cancel'
-      )
-      ),
+        isApproved && !showForm && /*#__PURE__*/
+        React.createElement(StatusCard, {
+          statusColor: "74,222,128",
+          statusEmoji: "\u2705",
+          statusText: lang === 'ar' ? '✅ تم قبول طلب الهدية!' : '✅ Gift Request Approved!',
+          giftText: latestRequest.giftName,
+          note: latestRequest.adminNote || null
+        },
+
+          canModify ? /*#__PURE__*/
+            React.createElement("button", {
+              onClick: () => setShowForm(true), style: {
+                padding: '7px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
+                background: 'rgba(251,191,36,0.15)', color: '#fbbf24',
+                border: '1px solid rgba(251,191,36,0.35)', cursor: 'pointer'
+              }
+            }, "\u270F\uFE0F ",
+              lang === 'ar' ? 'تعديل الهدية (شهر جديد)' : 'Modify Gift (New Month)'
+            ) : /*#__PURE__*/
+
+            React.createElement("div", { style: { fontSize: '9px', color: '#6b7280', textAlign: 'center' } }, "\uD83D\uDD12 ",
+              lang === 'ar' ? 'يمكنك التعديل الشهر القادم' : 'You can modify next month'
+            )
+
+        ),
 
 
 
-      isRejected && !showForm && /*#__PURE__*/
-      React.createElement(StatusCard, {
-        statusColor: "248,113,113",
-        statusEmoji: "\u274C",
-        statusText: lang === 'ar' ? 'تم رفض طلبك' : 'Request Rejected',
-        giftText: latestRequest.giftName,
-        note: latestRequest.adminNote || null }, /*#__PURE__*/
-
-      React.createElement("button", { onClick: () => setShowForm(true), style: {
-          padding: '7px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
-          background: 'rgba(239,68,68,0.15)', color: '#f87171',
-          border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer'
-        } }, "\uD83D\uDD04 ",
-      lang === 'ar' ? 'إرسال طلب جديد' : 'Submit New Request'
-      )
-      ),
+        isApproved && showForm && /*#__PURE__*/
+        React.createElement(React.Fragment, null, /*#__PURE__*/
+          React.createElement(RequestForm, { label: lang === 'ar' ? 'تعديل الهدية المخصصة' : 'Modify Custom Gift' }), /*#__PURE__*/
+          React.createElement("button", {
+            onClick: () => setShowForm(false), style: {
+              width: '100%', marginTop: '4px', padding: '5px', background: 'none',
+              border: 'none', color: '#6b7280', fontSize: '10px', cursor: 'pointer'
+            }
+          },
+            lang === 'ar' ? '← إلغاء' : '← Cancel'
+          )
+        ),
 
 
 
-      isRejected && showForm && /*#__PURE__*/
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement(RequestForm, { label: null }), /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowForm(false), style: {
-          width: '100%', marginTop: '4px', padding: '5px', background: 'none',
-          border: 'none', color: '#6b7280', fontSize: '10px', cursor: 'pointer' } },
-      lang === 'ar' ? '← إلغاء' : '← Cancel'
-      )
-      )
+        isRejected && !showForm && /*#__PURE__*/
+        React.createElement(StatusCard, {
+          statusColor: "248,113,113",
+          statusEmoji: "\u274C",
+          statusText: lang === 'ar' ? 'تم رفض طلبك' : 'Request Rejected',
+          giftText: latestRequest.giftName,
+          note: latestRequest.adminNote || null
+        }, /*#__PURE__*/
+
+          React.createElement("button", {
+            onClick: () => setShowForm(true), style: {
+              padding: '7px', borderRadius: '7px', fontSize: '11px', fontWeight: 700,
+              background: 'rgba(239,68,68,0.15)', color: '#f87171',
+              border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer'
+            }
+          }, "\uD83D\uDD04 ",
+            lang === 'ar' ? 'إرسال طلب جديد' : 'Submit New Request'
+          )
+        ),
+
+
+
+        isRejected && showForm && /*#__PURE__*/
+        React.createElement(React.Fragment, null, /*#__PURE__*/
+          React.createElement(RequestForm, { label: null }), /*#__PURE__*/
+          React.createElement("button", {
+            onClick: () => setShowForm(false), style: {
+              width: '100%', marginTop: '4px', padding: '5px', background: 'none',
+              border: 'none', color: '#6b7280', fontSize: '10px', cursor: 'pointer'
+            }
+          },
+            lang === 'ar' ? '← إلغاء' : '← Cancel'
+          )
+        )
 
       ));
 
@@ -997,9 +1096,9 @@
       try {
         var now = new Date();
         var expiresAt = hasVIP && vipDaysLeft > 0 ?
-        new Date(now.getTime() + (vipDaysLeft + 30) * 86400000) :
-        new Date(now.getTime() + 30 * 86400000);
-        
+          new Date(now.getTime() + (vipDaysLeft + 30) * 86400000) :
+          new Date(now.getTime() + 30 * 86400000);
+
         if (window.SecurityService) {
           await window.SecurityService.applyCurrencyTransaction(user.uid, -50000, `VIP Activation/Renewal`);
         } else {
@@ -1024,113 +1123,119 @@
 
     if (isRenew) return (/*#__PURE__*/
       React.createElement("div", { style: { marginTop: '8px' } },
-      !showConfirm ? /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => canAfford && setShowConfirm(true),
-        disabled: !canAfford,
-        style: {
-          width: '100%', padding: '14px', borderRadius: '14px', border: 'none',
-          background: canAfford ? 'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)' : 'rgba(100,100,100,0.12)',
-          color: canAfford ? '#fff' : '#4b5563',
-          fontWeight: 900, fontSize: '14px', cursor: canAfford ? 'pointer' : 'not-allowed',
-          boxShadow: canAfford ? '0 6px 20px rgba(124,58,237,0.35)' : 'none',
-          transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
-        } },
-      canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
-      React.createElement("span", { style: { position: 'relative' } },
-      canAfford ?
-      `🔄 ${lang === 'ar' ? 'تجديد +30 يوم' : 'Renew +30 days'} — 50,000 🧠` :
-      `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`
-      )
-      ) : /*#__PURE__*/
+        !showConfirm ? /*#__PURE__*/
+          React.createElement("button", {
+            onClick: () => canAfford && setShowConfirm(true),
+            disabled: !canAfford,
+            style: {
+              width: '100%', padding: '14px', borderRadius: '14px', border: 'none',
+              background: canAfford ? 'linear-gradient(135deg,#5b21b6,#7c3aed,#a855f7)' : 'rgba(100,100,100,0.12)',
+              color: canAfford ? '#fff' : '#4b5563',
+              fontWeight: 900, fontSize: '14px', cursor: canAfford ? 'pointer' : 'not-allowed',
+              boxShadow: canAfford ? '0 6px 20px rgba(124,58,237,0.35)' : 'none',
+              transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
+            }
+          },
+            canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
+            React.createElement("span", { style: { position: 'relative' } },
+              canAfford ?
+                `🔄 ${lang === 'ar' ? 'تجديد +30 يوم' : 'Renew +30 days'} — 50,000 🧠` :
+                `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`
+            )
+          ) : /*#__PURE__*/
 
-      React.createElement("div", { style: { borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(135deg,#1a0533,#0d0d2b)', padding: '18px', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' } }, /*#__PURE__*/
-      React.createElement("div", { style: { color: '#e9d5ff', fontWeight: 900, fontSize: '15px', marginBottom: '6px' } }, "🔄 ", lang === 'ar' ? 'تأكيد التجديد؟' : 'Confirm Renewal?'), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '20px', marginBottom: '16px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', gap: '10px', justifyContent: 'center' } }, /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '9px 20px', borderRadius: '11px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer', fontSize: '13px' } },
-      lang === 'ar' ? 'إلغاء' : 'Cancel'
-      ), /*#__PURE__*/
-      React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '9px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '13px', boxShadow: '0 0 15px rgba(124,58,237,0.4)' } },
-      buying ? '⏳' : lang === 'ar' ? 'تأكيد' : 'Confirm'
-      )
-      )
-      )
+          React.createElement("div", { style: { borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(168,85,247,0.4)', background: 'linear-gradient(135deg,#1a0533,#0d0d2b)', padding: '18px', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' } }, /*#__PURE__*/
+            React.createElement("div", { style: { color: '#e9d5ff', fontWeight: 900, fontSize: '15px', marginBottom: '6px' } }, "🔄 ", lang === 'ar' ? 'تأكيد التجديد؟' : 'Confirm Renewal?'), /*#__PURE__*/
+            React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '20px', marginBottom: '16px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', gap: '10px', justifyContent: 'center' } }, /*#__PURE__*/
+              React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '9px 20px', borderRadius: '11px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer', fontSize: '13px' } },
+                lang === 'ar' ? 'إلغاء' : 'Cancel'
+              ), /*#__PURE__*/
+              React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '9px 24px', borderRadius: '11px', border: 'none', background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff', fontWeight: 800, cursor: 'pointer', fontSize: '13px', boxShadow: '0 0 15px rgba(124,58,237,0.4)' } },
+                buying ? '⏳' : lang === 'ar' ? 'تأكيد' : 'Confirm'
+              )
+            )
+          )
       ));
 
     return (/*#__PURE__*/
       React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '12px' } }, /*#__PURE__*/
 
-      React.createElement("div", { style: {
-          borderRadius: '14px', padding: '14px 16px',
-          background: 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(168,85,247,0.08))',
-          border: '1px solid rgba(168,85,247,0.35)',
-          fontSize: '11px', color: '#c4b5fd', lineHeight: 1.6, textAlign: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
-        } }, "\uD83C\uDF81 ",
-      lang === 'ar' ?
-      'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!' :
-      'Every gift you send earns VIP XP — the more you give, the higher you level!'
-      ), /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            borderRadius: '14px', padding: '14px 16px',
+            background: 'linear-gradient(135deg,rgba(124,58,237,0.15),rgba(168,85,247,0.08))',
+            border: '1px solid rgba(168,85,247,0.35)',
+            fontSize: '11px', color: '#c4b5fd', lineHeight: 1.6, textAlign: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+          }
+        }, "\uD83C\uDF81 ",
+          lang === 'ar' ?
+            'كل هدية ترسلها تمنحك VIP XP — كلما أرسلت أكثر ارتفع مستواك!' :
+            'Every gift you send earns VIP XP — the more you give, the higher you level!'
+        ), /*#__PURE__*/
 
-      React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' } },
-      [
-      { icon: '🎨', ar: 'اسم ملون مميز', en: 'Colored VIP Name' },
-      { icon: '⚡', ar: 'مضاعف XP ×1.2', en: '1.2× XP Multiplier' },
-      { icon: '🏅', ar: 'بادج VIP حصري', en: 'Exclusive VIP Badge' },
-      { icon: '🎁', ar: 'هدايا VIP مقفلة', en: 'Locked VIP Gifts' }].
-      map((f, i) => /*#__PURE__*/
-      React.createElement("div", { key: i, style: {
-          display: 'flex', alignItems: 'center', gap: '8px',
-          fontSize: '11px', color: '#e9d5ff',
-          background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(196,181,253,0.15)',
-          borderRadius: '11px', padding: '9px 10px'
-        } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '15px', flexShrink: 0 } }, f.icon), /*#__PURE__*/
-      React.createElement("span", { style: { fontWeight: 600, lineHeight: 1.3 } }, lang === 'ar' ? f.ar : f.en)
-      )
-      )
-      ), /*#__PURE__*/
+        React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' } },
+          [
+            { icon: '🎨', ar: 'اسم ملون مميز', en: 'Colored VIP Name' },
+            { icon: '⚡', ar: 'مضاعف XP ×1.2', en: '1.2× XP Multiplier' },
+            { icon: '🏅', ar: 'بادج VIP حصري', en: 'Exclusive VIP Badge' },
+            { icon: '🎁', ar: 'هدايا VIP مقفلة', en: 'Locked VIP Gifts' }].
+            map((f, i) => /*#__PURE__*/
+              React.createElement("div", {
+                key: i, style: {
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  fontSize: '11px', color: '#e9d5ff',
+                  background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(196,181,253,0.15)',
+                  borderRadius: '11px', padding: '9px 10px'
+                }
+              }, /*#__PURE__*/
+                React.createElement("span", { style: { fontSize: '15px', flexShrink: 0 } }, f.icon), /*#__PURE__*/
+                React.createElement("span", { style: { fontWeight: 600, lineHeight: 1.3 } }, lang === 'ar' ? f.ar : f.en)
+              )
+            )
+        ), /*#__PURE__*/
 
-      React.createElement("div", { style: { textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginBottom: '2px' } },
-      lang === 'ar' ? 'رصيدك الحالي:' : 'Current Balance:', " ", /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 800 } }, currency.toLocaleString(), " \uD83E\uDDE0")
-      ),
+        React.createElement("div", { style: { textAlign: 'center', fontSize: '12px', color: '#9ca3af', marginBottom: '2px' } },
+          lang === 'ar' ? 'رصيدك الحالي:' : 'Current Balance:', " ", /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 800 } }, currency.toLocaleString(), " \uD83E\uDDE0")
+        ),
 
 
-      !showConfirm ? /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => canAfford && setShowConfirm(true),
-        disabled: !canAfford,
-        style: {
-          width: '100%', padding: '16px', borderRadius: '15px', border: 'none',
-          background: canAfford ? 'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)' : 'rgba(100,100,100,0.12)',
-          color: canAfford ? '#fff' : '#4b5563',
-          fontWeight: 900, fontSize: '16px', cursor: canAfford ? 'pointer' : 'not-allowed',
-          boxShadow: canAfford ? '0 8px 24px rgba(239,68,68,0.4)' : 'none',
-          transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
-        } },
-      canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
-      React.createElement("span", { style: { position: 'relative' } },
-      canAfford ?
-      `👑 ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} — 50,000 🧠` :
-      `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`
-      )
-      ) : /*#__PURE__*/
+        !showConfirm ? /*#__PURE__*/
+          React.createElement("button", {
+            onClick: () => canAfford && setShowConfirm(true),
+            disabled: !canAfford,
+            style: {
+              width: '100%', padding: '16px', borderRadius: '15px', border: 'none',
+              background: canAfford ? 'linear-gradient(135deg,#b91c1c,#ef4444,#f87171)' : 'rgba(100,100,100,0.12)',
+              color: canAfford ? '#fff' : '#4b5563',
+              fontWeight: 900, fontSize: '16px', cursor: canAfford ? 'pointer' : 'not-allowed',
+              boxShadow: canAfford ? '0 8px 24px rgba(239,68,68,0.4)' : 'none',
+              transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
+            }
+          },
+            canAfford && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', animation: 'shimmer 2s infinite' } }), /*#__PURE__*/
+            React.createElement("span", { style: { position: 'relative' } },
+              canAfford ?
+                `👑 ${lang === 'ar' ? 'اشترِ VIP 1' : 'Buy VIP 1'} — 50,000 🧠` :
+                `❌ ${lang === 'ar' ? 'تحتاج' : 'Need'} 50,000 🧠`
+            )
+          ) : /*#__PURE__*/
 
-      React.createElement("div", { style: { borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(239,68,68,0.4)', background: 'linear-gradient(135deg,#2e0a0a,#0f0a0a)', padding: '20px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.6)' } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '40px', marginBottom: '10px' } }, "\uD83D\uDC51"), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#fee2e2', fontWeight: 900, fontSize: '17px', marginBottom: '6px' } },
-      lang === 'ar' ? 'هل تريد تفعيل VIP؟' : 'Activate VIP?'
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '22px', marginBottom: '18px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', gap: '12px', justifyContent: 'center' } }, /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '10px 22px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer' } },
-      lang === 'ar' ? 'إلغاء' : 'Cancel'
-      ), /*#__PURE__*/
-      React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '10px 28px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg,#ef4444,#b91c1c)', color: '#fff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 0 25px rgba(239,68,68,0.45)', fontSize: '14px' } },
-      buying ? '⏳' : lang === 'ar' ? 'تأكيد' : 'Confirm'
-      )
-      )
-      )
+          React.createElement("div", { style: { borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(239,68,68,0.4)', background: 'linear-gradient(135deg,#2e0a0a,#0f0a0a)', padding: '20px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.6)' } }, /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '40px', marginBottom: '10px' } }, "\uD83D\uDC51"), /*#__PURE__*/
+            React.createElement("div", { style: { color: '#fee2e2', fontWeight: 900, fontSize: '17px', marginBottom: '6px' } },
+              lang === 'ar' ? 'هل تريد تفعيل VIP؟' : 'Activate VIP?'
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { color: '#fbbf24', fontWeight: 900, fontSize: '22px', marginBottom: '18px' } }, "50,000 \uD83E\uDDE0"), /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', gap: '12px', justifyContent: 'center' } }, /*#__PURE__*/
+              React.createElement("button", { onClick: () => setShowConfirm(false), style: { padding: '10px 22px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: '#9ca3af', fontWeight: 600, cursor: 'pointer' } },
+                lang === 'ar' ? 'إلغاء' : 'Cancel'
+              ), /*#__PURE__*/
+              React.createElement("button", { onClick: handleBuyVIP, disabled: buying, style: { padding: '10px 28px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg,#ef4444,#b91c1c)', color: '#fff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 0 25px rgba(239,68,68,0.45)', fontSize: '14px' } },
+                buying ? '⏳' : lang === 'ar' ? 'تأكيد' : 'Confirm'
+              )
+            )
+          )
       ));
 
   };
@@ -1183,7 +1288,7 @@
         onNotification(lang === 'ar' ? '✅ تم إرسال الطلب' : '✅ Request Sent');
         setDesiredId('');
         setIdCheckStatus(null);
-      } catch (e) {}
+      } catch (e) { }
       setIdRequestSending(false);
     };
 
@@ -1191,14 +1296,16 @@
 
     return (/*#__PURE__*/
       React.createElement("div", { className: "vip-center-container", style: { display: 'flex', flexDirection: 'column', gap: '20px' } }, /*#__PURE__*/
-        
+
         // 👑 VIP Status Header
-        React.createElement("div", { style: { 
+        React.createElement("div", {
+          style: {
             borderRadius: '24px', padding: '24px 20px',
             background: 'linear-gradient(135deg,#1a0035 0%,#2d0060 40%,#1a0035 100%)',
             border: '1.5px solid rgba(168,85,247,0.4)',
             boxShadow: '0 0 50px rgba(124,58,237,0.25)', position: 'relative', overflow: 'hidden'
-          } },
+          }
+        },
           React.createElement("div", { style: { position: 'absolute', top: 0, left: '15%', right: '15%', height: '2.5px', background: 'linear-gradient(90deg,transparent,#a855f7,transparent)' } }), /*#__PURE__*/
           React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' } }, /*#__PURE__*/
             React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '14px' } }, /*#__PURE__*/
@@ -1212,7 +1319,7 @@
               React.createElement(VIPBadge, { userData: userData, size: "lg" })
             )
           ), /*#__PURE__*/
-          
+
           React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' } }, /*#__PURE__*/
             React.createElement("span", { style: { fontSize: '13px', color: '#cbd5e1', fontWeight: 700 } }, "VIP XP"), /*#__PURE__*/
             React.createElement("span", { style: { fontSize: '13px', color: '#fff', fontWeight: 900 } }, totalVIPXP.toLocaleString(), " ", level < 10 && /*#__PURE__*/React.createElement("span", { style: { color: '#64748b', fontWeight: 400 } }, "/ ", VIP_XP_THRESHOLDS[level + 1]?.toLocaleString()))
@@ -1298,5 +1405,11 @@
   window.getVIPLevelFromXP = getVIPLevelFromXP;
   window.getVIPXPProgress = getVIPXPProgress;
   window.VIP_CONFIG = VIP_CONFIG;
+  window.VIP_BADGE_URLS = VIP_BADGE_URLS;
+  window.VIP_CHAT_TITLE_URLS = VIP_CHAT_TITLE_URLS;
+  window.VIP_MOMENT_BG_URLS = VIP_MOMENT_BG_URLS;
+  window.getVIPLevel = getVIPLevel;
+  window.VIPBadge = VIPBadge;
+  window.VIPName = VIPName;
 
 })();

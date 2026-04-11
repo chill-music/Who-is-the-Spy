@@ -10,18 +10,19 @@ service cloud.firestore {
       return request.auth.uid == 'PfZAViU4swQdbBZOfqJDnPZSs9l2';
     }
 
-    function isStaff() {
-      return isOwnerUID();
-    }
-
     function isStaffInApp(appId) {
       let isOwner = isOwnerUID();
-      let userDoc = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid));
+      let userPath = /databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.uid);
+      let userDoc = exists(userPath) ? get(userPath) : null;
       let data = userDoc != null ? userDoc.data : {};
       let r1 = ('role' in data && data.role != null) ? data.role : '';
       let r2 = ('staffRole' in data && data.staffRole is map && 'role' in data.staffRole && data.staffRole.role != null) ? data.staffRole.role : '';
       let role = r1 != '' ? r1 : r2;
       return isOwner || role == 'moderator' || role == 'admin' || role == 'owner';
+    }
+
+    function isStaff() {
+      return isOwnerUID() || isStaffInApp('pro_spy_v25_final_fix_complete');
     }
 
     function getUserRole(appId) {
@@ -93,9 +94,32 @@ service cloud.firestore {
     //  REPORTS
     // ══════════════════════════════════════════════════════════
     match /artifacts/{appId}/public/data/reports/{reportId} {
-      allow read:   if isLoggedIn();
-      allow create: if isLoggedIn();
-      allow update: if isLoggedIn();
+      // Only the reporter or staff can read a report
+      allow read: if isLoggedIn() && (
+        (resource != null && resource.data.reporterUID == request.auth.uid) || 
+        isStaffInApp(appId)
+      );
+      
+      // Anyone logged in can create a report, but they must be the reporter
+      allow create: if isLoggedIn() && request.resource.data.reporterUID == request.auth.uid;
+      
+      // Only staff can update reports (to resolve/escalate/warn)
+      allow update: if isLoggedIn() && isStaffInApp(appId);
+      
+      // Only owner can delete
+      allow delete: if isLoggedIn() && isOwnerUID();
+    }
+
+    match /group_reports/{reportId} {
+      // Group reports are admin-only for reading
+      allow read: if isLoggedIn() && isStaff();
+      
+      // Anyone logged in can create a group report
+      allow create: if isLoggedIn() && request.resource.data.reporterId == request.auth.uid;
+      
+      // Only staff can manage
+      allow update: if isLoggedIn() && isStaff();
+      
       allow delete: if isLoggedIn() && isOwnerUID();
     }
 

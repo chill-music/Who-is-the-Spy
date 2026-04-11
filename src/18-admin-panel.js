@@ -32,7 +32,7 @@
       };
       var props = { currentUser, currentUserData, lang, onNotification, onOpenProfile };
       switch (activeTab) {
-        case 'overview':  return /*#__PURE__*/React.createElement(window.AdminOverview, { ...props, currentUser });
+        case 'overview':  return /*#__PURE__*/React.createElement(window.AdminOverview, props);
         case 'staff':     return /*#__PURE__*/React.createElement(window.StaffManagementSection, props);
         case 'users':     return /*#__PURE__*/React.createElement(window.UserManagementSection, props);
         case 'broadcast': return /*#__PURE__*/React.createElement(window.BroadcastSection, props);

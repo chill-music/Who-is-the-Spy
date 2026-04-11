@@ -336,16 +336,18 @@ var FamilyChatModal = (props) => {
     onBlock: handleBlock,
     onUnblock: handleUnblock,
     isBlocked: (userData || currentUserData)?.blockedUsers?.includes(miniProfile.uid),
-    onReport: async function (p) {
+    onReport: async function (p, reason, note) {
       try {
         await reportsCollection.add({
           type: 'user',
           reporterUID: currentUID,
           reporterName: currentUserData && currentUserData.displayName || 'User',
           reportedUID: p.uid, reportedName: p.name,
-          reason: 'family_chat_report',
+          reason: reason || 'family_chat_report',
+          note: note || '',
           createdAt: TS(),
-          status: 'pending'
+          status: 'pending',
+          resolved: false
         });
       } catch (e) {}
       if (onNotification) onNotification(lang === 'ar' ? '✅ تم إرسال البلاغ' : '✅ Report sent');

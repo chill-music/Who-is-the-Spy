@@ -390,7 +390,10 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
     try {
       if (!selectedRole || selectedRole === 'none') {
         // Remove role
-        await usersCollection.doc(targetUID).update({ staffRole: null });
+        await usersCollection.doc(targetUID).update({ 
+          staffRole: null,
+          role: 'user'
+        });
         onRoleApplied(null);
       } else {
         var roleData = {
@@ -399,7 +402,10 @@ var AdminRoleModal = ({ targetData, viewerData, viewerUID, lang, onClose, onRole
           assignedByName: viewerData?.displayName || 'Admin',
           assignedAt: TS()
         };
-        await usersCollection.doc(targetUID).update({ staffRole: roleData });
+        await usersCollection.doc(targetUID).update({ 
+          staffRole: roleData,
+          role: selectedRole
+        });
         onRoleApplied(roleData);
       }
       onClose();

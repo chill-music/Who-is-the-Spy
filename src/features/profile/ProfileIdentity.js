@@ -36,13 +36,14 @@ var ProfileIdentity = ({
       displayName: targetData?.displayName,
       className: "profile-name" }
     ), /*#__PURE__*/
-    React.createElement(window.VIPBadge, {
-      userData: targetData,
-      size: "md",
-      onClick: (lvl) => {
-        if (isOwnProfile && onOpenVIPCenter) onOpenVIPCenter();
-      }
-    })
+      React.createElement(window.VIPBadge, {
+        userData: targetData,
+        size: "md",
+        lang: lang,
+        onClick: (lvl) => {
+          if (isOwnProfile && onOpenVIPCenter) onOpenVIPCenter();
+        }
+      })
     ), /*#__PURE__*/
 
 

@@ -105,6 +105,8 @@
     // ── 🧧 DM Red Packet ──
     var [showDMRedPacket, setShowDMRedPacket] = useState(false);
     var [sendingDMRedPacket, setSendingDMRedPacket] = useState(false);
+    var [isCheckingReport, setIsCheckingReport] = useState(false);
+    var [alreadyReported, setAlreadyReported] = useState(false);
 
     var messagesEndRef = useRef(null);
     var inputRef = useRef(null);
@@ -1267,7 +1269,27 @@
             onMouseEnter: (e) => e.currentTarget.style.background = isBlocked ? 'rgba(74,222,128,0.1)' : 'rgba(245,158,11,0.1)',
             onMouseLeave: (e) => e.currentTarget.style.background = 'none' },
           isBlocked ? `✅ ${lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}` : `🚫 ${lang === 'ar' ? 'حظر المستخدم' : 'Block User'}`), /*#__PURE__*/
-          React.createElement("button", { onClick: () => {setShowHeaderMenu(false);setReportStep('reason');setReportReason('');setReportDMMsg(null);setShowReportModal(true);},
+          React.createElement("button", { onClick: async () => {
+              setShowHeaderMenu(false);
+              setReportStep('reason');
+              setReportReason('');
+              setReportDMMsg(null);
+              setAlreadyReported(false);
+              setIsCheckingReport(true);
+              setShowReportModal(true);
+              try {
+                var snap = await window.reportsCollection.where('reporterUID', '==', user.uid).where('resolved', '==', false).get();
+                var isDuplicate = snap.docs.some((doc) => {
+                  var data = doc.data();
+                  return data.reportedUID === friend.uid && data.type === 'user';
+                });
+                if (isDuplicate) setAlreadyReported(true);
+              } catch (e) {
+                console.error('Check report error:', e);
+              } finally {
+                setIsCheckingReport(false);
+              }
+            },
             style: { width: '100%', padding: '10px 13px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', fontSize: '13px', fontWeight: 700, color: '#9ca3af', textAlign: 'left' },
             onMouseEnter: (e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)',
             onMouseLeave: (e) => e.currentTarget.style.background = 'none' },
@@ -1321,7 +1343,26 @@
         lang: lang,
         onOpenProfile: onOpenProfile,
         onSendGift: onSendGift ? () => {setShowGiftModal(true);} : null,
-        onReport: () => {setTimeout(() => {setReportStep('reason');setReportReason('');setReportDMMsg(null);setShowReportModal(true);}, 50);},
+        onReport: async (p) => {
+          setReportStep('reason');
+          setReportReason('');
+          setReportDMMsg(null);
+          setAlreadyReported(false);
+          setIsCheckingReport(true);
+          setShowReportModal(true);
+          try {
+            var snap = await window.reportsCollection.where('reporterUID', '==', user.uid).where('resolved', '==', false).get();
+            var isDuplicate = snap.docs.some((doc) => {
+              var data = doc.data();
+              return data.reportedUID === p.uid && data.type === 'user';
+            });
+            if (isDuplicate) setAlreadyReported(true);
+          } catch (e) {
+            console.error('Check report error:', e);
+          } finally {
+            setIsCheckingReport(false);
+          }
+        },
         onBlock: handleBlock,
         onUnblock: handleUnblock,
         isBlocked: isBlocked }
@@ -1386,9 +1427,10 @@
 
 
       React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '22px' } }, "\uD83D\uDEA8"), /*#__PURE__*/
+      React.createElement("span", { style: { fontSize: '22px' } }, alreadyReported ? '🕵️' : '🚨'), /*#__PURE__*/
       React.createElement("div", { style: { flex: 1 } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '14px', fontWeight: 900, color: '#f87171' } },
+      React.createElement("div", { style: { fontSize: '14px', fontWeight: 900, color: alreadyReported ? '#9ca3af' : '#f87171' } },
+      alreadyReported ? lang === 'ar' ? 'بلاغ مكرر' : 'Duplicate Report' :
       lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'
       ), /*#__PURE__*/
       React.createElement("div", { style: { fontSize: '11px', color: '#6b7280' } }, friend?.displayName)
@@ -1398,6 +1440,30 @@
         style: { background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '16px' } }, "\u2715")
 
       ),
+
+
+      alreadyReported ? /*#__PURE__*/
+      React.createElement("div", { style: { textAlign: 'center', padding: '10px 0' } }, /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '12px', color: '#9ca3af', marginBottom: '20px', lineHeight: 1.6 } },
+      lang === 'ar' ?
+      'لقد قمت بالإبلاغ عن هذا المستخدم مسبقاً. الفريق يراجع طلبك بالفعل.' :
+      'You have already reported this user. The team is currently reviewing your request.'
+      ), /*#__PURE__*/
+      React.createElement("button", { onClick: () => setShowReportModal(false),
+        style: { width: '100%', padding: '12px', background: 'linear-gradient(135deg,rgba(0,242,255,0.2),rgba(112,0,255,0.2))', border: '1px solid rgba(0,242,255,0.3)', borderRadius: '12px', color: '#00f2ff', fontWeight: 800, cursor: 'pointer' } },
+      lang === 'ar' ? 'حسناً' : 'Got it'
+      )
+      ) :
+
+
+      isCheckingReport ? /*#__PURE__*/
+      React.createElement("div", { style: { textAlign: 'center', padding: '30px 0' } }, /*#__PURE__*/
+      React.createElement("div", { style: { width: '30px', height: '30px', border: '3px solid rgba(0,242,255,0.1)', borderTop: '3px solid #00f2ff', borderRadius: '50%', margin: '0 auto 15px', animation: 'mp-spin 1s linear infinite' } }), /*#__PURE__*/
+      React.createElement("div", { style: { fontSize: '13px', color: '#9ca3af' } }, lang === 'ar' ? 'جاري التحقق...' : 'Checking...'), /*#__PURE__*/
+      React.createElement("style", null, `
+          @keyframes mp-spin { to { transform: rotate(360deg); } }
+        `)
+      ) :
 
 
       reportStep === 'reason' && /*#__PURE__*/

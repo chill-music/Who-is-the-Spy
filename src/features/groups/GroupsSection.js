@@ -248,13 +248,44 @@
             if (!reportGroupReason.trim() || !activeGroup) return;
             setSendingGroupReport(true);
             try {
-              await db.collection('group_reports').add({
-                groupId: activeGroup.id, reporterId: currentUID,
-                reason: reportGroupReason, createdAt: TS()
+              // 🔍 DUPLICATE CHECK: Check the unified reports collection
+              var snap = await db.collection('reports')
+                .where('reporterUID', '==', currentUID)
+                .where('type', '==', 'group')
+                .where('resolved', '==', false)
+                .get();
+              
+              var isDuplicate = snap.docs.some(doc => doc.data().groupId === activeGroup.id);
+
+              if (isDuplicate) {
+                onNotification(lang === 'ar' ? '🕵️ بلاغ مكرر: لقد قمت بالإبلاغ مسبقاً. الفريق يراجع طلبك.' : '🕵️ Duplicate: You have already reported this group. Team is reviewing.');
+                setShowReportGroup(false);
+                setReportGroupReason('');
+                setSendingGroupReport(false);
+                return;
+              }
+
+              // ✅ Submit new report to unified collection
+              await db.collection('reports').add({
+                type: 'group',
+                groupId: activeGroup.id, 
+                groupName: activeGroup.name || 'Group',
+                reportedUID: activeGroup.ownerUID || null,
+                reporterUID: currentUID,
+                reporterName: currentUserData?.displayName || 'User',
+                reason: reportGroupReason, 
+                createdAt: TS(),
+                status: 'pending',
+                resolved: false
               });
-              onNotification(lang === 'ar' ? '✅ تم التبليغ' : '✅ Reported');
-              setShowReportGroup(false);setReportGroupReason('');
-            } catch (e) { console.error('[PRO SPY ERROR] handleSubmitGroupReport:', e); }
+
+              onNotification(lang === 'ar' ? '✅ لقد تم الابلاغ والمراجعه فريق' : '✅ Reported and being reviewed by staff');
+              setShowReportGroup(false);
+              setReportGroupReason('');
+            } catch (e) { 
+              console.error('[PRO SPY ERROR] handleSubmitGroupReport:', e); 
+              onNotification('❌ Error: ' + e.message);
+            }
             setSendingGroupReport(false);
           }, groupInviteType, setGroupInviteType,
           groupIsPublic, setGroupIsPublic, saveGroupManageSettings: async () => {

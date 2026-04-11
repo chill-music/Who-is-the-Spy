@@ -10,7 +10,8 @@ var ProfileHeader = ({
   isBlocked,
   handleUnblockUser,
   setShowBlockConfirm,
-  setShowReportModal,
+  openReportModal,
+  isCheckingReport,
   userData,
   currentUserUID,
   targetData,
@@ -87,8 +88,13 @@ var ProfileHeader = ({
     React.createElement("span", null, lang === 'ar' ? 'حظر' : 'Block')
     ), /*#__PURE__*/
 
-    React.createElement("button", { onClick: () => {setShowReportModal(true);setShowOptionsMenu(false);}, className: "profile-options-item report", style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', textAlign: 'center' } }, /*#__PURE__*/
-    React.createElement("span", null, "\uD83D\uDEA8"), /*#__PURE__*/
+    React.createElement("button", { 
+      onClick: () => { openReportModal(); setShowOptionsMenu(false); }, 
+      disabled: isCheckingReport,
+      className: "profile-options-item report", 
+      style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%', textAlign: 'center', opacity: isCheckingReport ? 0.5 : 1 } 
+    }, /*#__PURE__*/
+    React.createElement("span", null, isCheckingReport ? '⏳' : "\uD83D\uDEA8"), /*#__PURE__*/
     React.createElement("span", null, lang === 'ar' ? 'إبلاغ' : 'Report')
     ),
     isAdmin(currentUserUID) && !isTargetGuest && /*#__PURE__*/

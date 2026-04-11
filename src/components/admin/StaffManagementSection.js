@@ -4,7 +4,7 @@
   var ROLE_COLORS = { owner: '#f59e0b', admin: '#ef4444', moderator: '#3b82f6' };
   var ROLE_ICONS  = { owner: '👑', admin: '🛡️', moderator: '🔰' };
 
-  var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotification }) => {
+  var StaffManagementSection = ({ currentUser, currentUserData, lang, onNotification, onOpenProfile }) => {
     var [staff, setStaff]             = useState([]);
     var [loading, setLoading]         = useState(true);
     var [editing, setEditing]         = useState(null);
@@ -21,11 +21,20 @@
       var unsub = usersCollection
         .where('role', 'in', ['owner', 'admin', 'moderator'])
         .onSnapshot(async (snap) => {
-          var list = snap.docs.map((d) => {
-            var data = d.data();
+          var results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+          // CRITICAL FIX: Also fetch users where staffRole.role is in the list
+          try {
+            var snapNested = await usersCollection.where('staffRole.role', 'in', ['admin', 'moderator']).get();
+            snapNested.docs.forEach(d => {
+              if (!results.find(u => u.id === d.id)) results.push({ id: d.id, ...d.data() });
+            });
+          } catch(e) { console.warn('[StaffMgmt] Nested fetch failed:', e); }
+
+          var list = results.map((data) => {
             // Normalize: handle legacy accounts where role may be nested in staffRole.role
             if (!data.role && data.staffRole?.role) data.role = data.staffRole.role;
-            return { id: d.id, ...data };
+            return data;
           });
 
           // Always include the hardcoded owner
@@ -40,7 +49,7 @@
           // Sort: owner → admin → moderator
           var order = { owner: 0, admin: 1, moderator: 2 };
           list.sort((a, b) => (order[a.role] ?? 9) - (order[b.role] ?? 9));
-          console.log('[StaffMgmt] loaded:', list.length, 'staff members', list.map(s => s.role + ':' + s.displayName));
+          console.log('[StaffMgmt] loaded:', list.length, 'staff members');
           setStaff(list);
           setLoading(false);
         }, (err) => { console.error('[StaffMgmt] snapshot error:', err); setLoading(false); });
@@ -54,7 +63,13 @@
       if (myRole !== 'owner') { onNotification('⛔ Only Owners can change roles'); return; }
       if (newRole === 'user') { onNotification('⚠️ Use the Remove button to remove staff'); return; }
       try {
-        await usersCollection.doc(docId).update({ role: newRole });
+        await usersCollection.doc(docId).update({ 
+          role: newRole,
+          'staffRole.role': newRole,
+          'staffRole.assignedBy': currentUser.uid,
+          'staffRole.assignedByName': currentUserData?.displayName || 'Admin',
+          'staffRole.assignedAt': TS()
+        });
         if (window.logStaffAction) {
           await window.logStaffAction(currentUser.uid, currentUserData?.displayName,
             'ASSIGN_ROLE', docId, targetName, 'Changed role to: ' + newRole);
@@ -90,7 +105,15 @@
         onNotification(lang === 'ar' ? '❌ المستخدم غير موجود' : '❌ User not found');
       } else {
         try {
-          await usersCollection.doc(found.id).update({ role: addRole });
+          await usersCollection.doc(found.id).update({ 
+            role: addRole,
+            staffRole: {
+              role: addRole,
+              assignedBy: currentUser.uid,
+              assignedByName: currentUserData?.displayName || 'Admin',
+              assignedAt: TS()
+            }
+          });
           if (window.logStaffAction) {
             await window.logStaffAction(currentUser.uid, currentUserData?.displayName,
               'ASSIGN_ROLE', found.id, found.displayName || 'User', 'Changed role to: ' + addRole);
@@ -145,8 +168,15 @@
                   React.createElement('div', { key: s.id, style: { background: isMe ? `${color}12` : 'rgba(255,255,255,0.03)', border: `1px solid ${isMe ? color + '40' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' } }, /*#__PURE__*/
 
                   React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 } }, /*#__PURE__*/
-                    React.createElement('img', { src: s.photoURL || 'https://via.placeholder.com/40', style: { width: '40px', height: '40px', borderRadius: '50%', border: `2px solid ${color}`, objectFit: 'cover', flexShrink: 0 } }), /*#__PURE__*/
-                    React.createElement('div', { style: { minWidth: 0 } }, /*#__PURE__*/
+                    React.createElement('img', { 
+                      src: s.photoURL || 'https://via.placeholder.com/40', 
+                      onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id),
+                      style: { width: '40px', height: '40px', borderRadius: '50%', border: `2px solid ${color}`, objectFit: 'cover', flexShrink: 0, cursor: onOpenProfile ? 'pointer' : 'default' } 
+                    }), /*#__PURE__*/
+                    React.createElement('div', { 
+                      style: { minWidth: 0, cursor: onOpenProfile ? 'pointer' : 'default' },
+                      onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id)
+                    }, /*#__PURE__*/
                       React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
                         s.displayName || 'Unknown', isMe ? ` (${lang === 'ar' ? 'أنت' : 'You'})` : ''
                       ), /*#__PURE__*/
