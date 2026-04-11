@@ -206,9 +206,14 @@
                               setEditingName(false);
                               return;
                             }
-                            history.push(typeof window.TS === 'function' ? window.TS() : new Date());
+                            // FieldValue.serverTimestamp() (which window.TS() often returns) is NOT supported inside arrays.
+                            // We use a regular Date object instead.
+                            history.push(new Date());
 
-                            await usersCollection.doc(user.uid).update({ displayName: newName.trim(), nameChangeHistory: history });
+                            await usersCollection.doc(user.uid).update({ 
+                              displayName: newName.trim(), 
+                              nameChangeHistory: history 
+                            });
                             onNotification(lang === 'ar' ? 'تم تغيير الاسم!' : 'Name changed!');
                             setEditingName(false);
                           }
