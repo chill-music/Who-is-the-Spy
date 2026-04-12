@@ -113,6 +113,8 @@
         var [showSendGiftModal, setShowSendGiftModal] = useState(false);
         var [sendGiftTarget, setSendGiftTarget] = useState(null);
         var [showSpyRebuild, setShowSpyRebuild] = useState(false);
+        var [setupGameId, setSetupGameId] = useState('spy');
+        var [browseGameId, setBrowseGameId] = useState('spy');
 
         return {
             lang, setLang,
@@ -125,6 +127,8 @@
             votingTimer, setVotingTimer,
             wordSelTimer, setWordSelTimer,
             showSetupModal, setShowSetupModal,
+            setupGameId, setSetupGameId,
+            browseGameId, setBrowseGameId,
             setupMode, setSetupMode,
             isPrivate, setIsPrivate,
             password, setPassword,

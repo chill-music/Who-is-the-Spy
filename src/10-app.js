@@ -116,7 +116,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       showGuestMenu, setShowGuestMenu, gameChatInput, setGameChatInput,
       showGameChat, setShowGameChat, gameChatRef,
       showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
-      showSpyRebuild, setShowSpyRebuild
+      showSpyRebuild, setShowSpyRebuild,
+      setupGameId, setSetupGameId, browseGameId, setBrowseGameId
     } = uiState;
 
     // ── Auth & Logic Hooks ──
@@ -445,6 +446,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           showFunPass: showFunPass, setShowFunPass: setShowFunPass,
           alertMessage: alertMessage, setAlertMessage: setAlertMessage,
           showSetupModal: showSetupModal, setShowSetupModal: setShowSetupModal,
+          setupGameId: setupGameId, setSetupGameId: setSetupGameId,
+          browseGameId: browseGameId, setBrowseGameId: setBrowseGameId,
           showShop: showShop, setShowShop: setShowShop,
           showInventory: showInventory, setShowInventory: setShowInventory,
           showSettings: showSettings, setShowSettings: setShowSettings,
@@ -584,15 +587,20 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             loading: loading, joinError: joinError,
             handleJoinGame: customHandleJoinGame,
             handleCreateGame: gameActions.handleCreateGame,
-            setShowSetupModal: (v) => {
-                if (v) {
+            setShowSetupModal: (v, opts) => {
+                var gId = opts?.gameId || 'spy';
+                if (v && gId === 'spy') {
                     window._autoOpenGameModePicker = true;
                     setShowSpyRebuild(true);
                 } else {
-                    setShowSetupModal(false);
+                    if (v && gId) setSetupGameId(gId);
+                    setShowSetupModal(v);
                 }
             },
-            setShowBrowseRooms: setShowBrowseRooms,
+            setShowBrowseRooms: (v, opts) => {
+                if (v && opts?.gameId) setBrowseGameId(opts.gameId);
+                setShowBrowseRooms(v);
+            },
             setShowMyAccount: setShowMyAccount,
             setShowPublicChat: setShowPublicChat,
             setShowLuckyGames: setShowLuckyGames,

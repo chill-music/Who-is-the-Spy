@@ -1,6 +1,6 @@
 (function () {
   var { useState, useEffect } = React;
-  var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang }) => {
+  var BrowseRoomsModal = ({ show, onClose, onJoin, nickname, currentUID, currentUserData, lang, gameId }) => {
     var t = TRANSLATIONS[lang];
     var [rooms, setRooms] = useState([]);
     var [loading, setLoading] = useState(true);
@@ -14,21 +14,21 @@
       setLoading(true);
       setPasswordError('');
       
-      var spyRoomsRef = window.spyRoomsCollection || (window.db && window.db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('spy_rooms'));
+      var col = window.RoomService?.getCollection ? window.RoomService.getCollection(gameId || 'spy') : null;
       
-      if (!spyRoomsRef) {
+      if (!col) {
         setLoading(false);
         return;
       }
       
-      var unsub = spyRoomsRef.where('status', '==', 'LOBBY').limit(50).onSnapshot((snap) => {
+      var unsub = col.where('status', '==', 'waiting').limit(50).onSnapshot((snap) => {
         var roomsData = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setRooms(roomsData);
         setLoading(false);
       }, (error) => { setLoading(false); });
       
       return unsub;
-    }, [show]);
+    }, [show, gameId]);
 
     if (!show) return null;
 

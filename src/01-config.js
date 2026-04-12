@@ -194,6 +194,53 @@ var RED_PACKETS_CONFIG = [
 ];
 
 // ════════════════════════════════════════════════════════
+// 🎮 MULTI-GAME LOBBY CONFIG
+// ════════════════════════════════════════════════════════
+var GAMES_CONFIG = [
+    {
+        id: 'spy',
+        name: { en: 'Are You the Spy?', ar: 'من هو الجاسوس؟' },
+        icon: '🕵️',
+        description: { en: 'The classic social deduction game. Find the spy before they figure out the secret word!', ar: 'لعبة الخداع الاجتماعي الكلاسيكية. اكتشف الجاسوس قبل أن يعرف الكلمة السرية!' },
+        status: 'active',
+        theme: {
+            color: '#8b5cf6',
+            bgGradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(112, 0, 255, 0.15))',
+            glow: 'rgba(139, 92, 246, 0.5)',
+            logoUrl: 'icos/games%20logos/spylogo.png',
+            iconUrl: 'icos/games%20logos/spylogo.png'
+        },
+        collection: 'spy_rooms'
+    },
+    {
+        id: 'draw',
+        name: { en: 'Draw & Guess', ar: 'ارسم وتوقع' },
+        icon: '🎨',
+        description: { en: 'Unleash your inner artist! Draw the prompt and see if others can guess it.', ar: 'أطلق العنان للفنان الذي بداخلك! ارسم المهمة وشوف إذا الباقي حيقدروا يتوقعوا.' },
+        status: 'coming_soon',
+        theme: {
+            color: '#ec4899',
+            bgGradient: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(190, 24, 93, 0.15))',
+            glow: 'rgba(236, 72, 153, 0.5)'
+        },
+        collection: 'draw_rooms'
+    },
+    {
+        id: 'snake',
+        name: { en: 'Snake & Ladder', ar: 'السلم والثعبان' },
+        icon: '🐍',
+        description: { en: 'The ultimate race! Climb the ladders and avoid the slippery snakes to reach the finish line first.', ar: 'السباق النهائي! تسلق السلالم وتجنب الثعابين لتصل للنهاية أولاً.' },
+        status: 'coming_soon',
+        theme: {
+            color: '#10b981',
+            bgGradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15))',
+            glow: 'rgba(16, 185, 129, 0.5)'
+        },
+        collection: 'snake_rooms'
+    }
+];
+
+// ════════════════════════════════════════════════════════
 // 🤝 BFF SYSTEM CONFIG
 // ════════════════════════════════════════════════════════
 var BFF_CONFIG = {
@@ -578,6 +625,7 @@ window.ticketsCollection = ticketsCollection;
 window.newsLogCollection = newsLogCollection;
 window.pendingFinancesCollection = pendingFinancesCollection;
 window.RED_PACKETS_CONFIG = RED_PACKETS_CONFIG;
+window.GAMES_CONFIG = GAMES_CONFIG;
 window.BFF_CONFIG = BFF_CONFIG;
 window.BFF_TOKEN_ITEMS = BFF_TOKEN_ITEMS;
 window.BOT_CHATS_CONFIG = BOT_CHATS_CONFIG;

@@ -1,6 +1,6 @@
 ﻿# Who-is-the-Spy-og Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-09
+Auto-generated from all feature plans. Last updated: 2026-04-12
 
 ## Active Technologies
 - HTML / Javascript (ES6, No Bundler/NPM) + React 18.2, Firebase 10.7 (Firestore, Auth, Storage) (007-shop-leaderboard-redesign)
@@ -21,6 +21,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-09
 - Local Component State (initial), potential future integration with `spy_rooms` collection. (017-defuse-master-localization)
 - JavaScript (ES6+, No Bundler) + Firebase (v10.7.1), React (CDN), React DOM (CDN) (018-harden-site-security)
 - N/A (Meta/Configuration changes) (018-harden-site-security)
+- JavaScript (ES6+) / React 18.2.0 (CDN) + Firebase 9 (CDN), FontAwesome (Icons) (019-multi-game-lobby)
+- Google Cloud Firestore (Multi-collection namespace) (019-multi-game-lobby)
 
 - Vanilla JavaScript (ES6+), React 18 via CDN (no JSX transpiler) + Firebase Auth v8 compat (`auth.onAuthStateChanged`, `auth.getRedirectResult`), Firestore v8 compat (`usersCollection.doc().onSnapshot`, `.get()`) (006-fix-onboarding-race)
 
@@ -40,9 +42,9 @@ npm test; npm run lint
 Vanilla JavaScript (ES6+), React 18 via CDN (no JSX transpiler): Follow standard conventions
 
 ## Recent Changes
+- 019-multi-game-lobby: Added JavaScript (ES6+) / React 18.2.0 (CDN) + Firebase 9 (CDN), FontAwesome (Icons)
 - 018-harden-site-security: Added JavaScript (ES6+, No Bundler) + Firebase (v10.7.1), React (CDN), React DOM (CDN)
 - 017-defuse-master-localization: Added Javascript (ES2022+ compatible, but refactored to IIFE for global script loading) + React 18 (Global), Baloo 2 (Google Font)
-- 015-cache-version-control: Added JavaScript (ES6+), No-Build CDN React + React (UMD), Firebase (v9+), Browser `caches` API
 
 
 <!-- MANUAL ADDITIONS START -->

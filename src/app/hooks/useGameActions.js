@@ -217,14 +217,16 @@
                 password: (options.isPasswordProtected && options.password) ? options.password : (isPrivate ? password : null), 
                 currentUID, currentUserData, 
                 setupMode: mode || setupMode, 
+                gameId: options.gameId || 'spy',
                 t, lang,
                 setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound
             });
         }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound]);
 
-        var handleJoinGame = useCallback(async (id, pwd) => {
+        var handleJoinGame = useCallback(async (id, pwd, options = {}) => {
             window.RoomService.handleJoinGame({
                 id, pwd, nickname, currentUID, currentUserData, t, lang,
+                gameId: options.gameId || 'spy',
                 setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound
             });
         }, [nickname, currentUID, currentUserData, t, lang, setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound]);

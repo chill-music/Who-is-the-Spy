@@ -61,7 +61,14 @@
   // ── Sound System (singleton) ────────────────────────────────────
   const SFX = (() => {
     let ac = null;
-    let on = true;
+    let on = (() => {
+      try {
+        const saved = localStorage.getItem("crash_sfx_on");
+        return saved === null ? true : saved === "true";
+      } catch (_) {
+        return true;
+      }
+    })();
     let flightOsc = null;
     let flightGain = null;
     let tickCounter = 0;
@@ -115,6 +122,9 @@
       },
       toggle() {
         on = !on;
+        try {
+          localStorage.setItem("crash_sfx_on", on.toString());
+        } catch (_) { }
         if (!on && flightOsc) {
           try {
             flightGain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.1);
@@ -413,6 +423,97 @@ input[type=number]{-moz-appearance:textfield;}
 .sw:nth-child(2){height:13px;animation-delay:.14s;}
 .sw:nth-child(3){height:8px;animation-delay:.28s;}
 .sw:nth-child(4){height:12px;animation-delay:.09s;}
+.cr-marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 15%, rgba(0,0,0,0.85) 85%, rgba(0,0,0,0) 100%);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(251,191,36,0.2);
+  pointer-events: none;
+}
+.cr-marquee-track {
+  display: inline-flex;
+  gap: 50px;
+  padding-left: 100%;
+  animation: cr-marquee-run 22s linear infinite;
+}
+@keyframes cr-marquee-run {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.cr-marquee-msg {
+  color: #fde047;
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(251,191,36,0.6);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cr-jackpot-win-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(124, 58, 237, 0.45) 0%, rgba(6, 1, 21, 0.95) 80%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  overflow: hidden;
+}
+.cr-jp-ring {
+  position: absolute;
+  border: 2px solid #fcd34d;
+  border-radius: 50%;
+  opacity: 0;
+  animation: cr-ring-pulse 2.5s ease-out infinite;
+}
+@keyframes cr-ring-pulse {
+  0% { transform: scale(0.5); opacity: 0; }
+  20% { opacity: 0.6; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+.cr-jp-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 38px;
+  font-weight: 900;
+  background: linear-gradient(180deg, #fff 0%, #fde047 50%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(251,191,36,0.8));
+  margin-bottom: 8px;
+  letter-spacing: 4px;
+}
+.cr-jp-amount {
+  font-family: 'Orbitron', monospace;
+  font-size: 48px;
+  font-weight: 900;
+  color: #fcd34d;
+  text-shadow: 0 0 25px rgba(251,191,36,0.9);
+  margin-bottom: 24px;
+}
+.cr-confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: cr-confetti-fall 3.5s linear infinite;
+}
+@keyframes cr-confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
 `;
 
   // ── Help page content ────────────────────────────────────────────
@@ -608,9 +709,19 @@ input[type=number]{-moz-appearance:textfield;}
     const [helpPage, setHelpPage] = useState(1);
     const [shaking, setShaking] = useState(false);
     const [isCrashing, setIsCrashing] = useState(false);
-    const [soundOn, setSoundOn] = useState(true);
+    const [soundOn, setSoundOn] = useState(() => {
+      try {
+        const saved = localStorage.getItem("crash_sfx_on");
+        return saved === null ? true : saved === "true";
+      } catch (_) {
+        return true;
+      }
+    });
     const [showPlayers, setShowPlayers] = useState(false);
     const [presence, setPresence] = useState([]);
+    const [showJackpotWin, setShowJackpotWin] = useState(false);
+    const [jackpotWinDetails, setJackpotWinDetails] = useState(null);
+    const [broadcasts, setBroadcasts] = useState([]);
 
     // Game-loop refs (prevent stale closures)
     const canvasRef = useRef(null);
@@ -678,10 +789,50 @@ input[type=number]{-moz-appearance:textfield;}
       if (user?.uid && db && window.usersCollection) {
         const increment = window.firebase?.firestore?.FieldValue?.increment || db.FieldValue?.increment;
         if (increment) {
+          const newProg = Math.round(atMult * 100) / 100;
           window.usersCollection.doc(user.uid).update({
             currency: window.firebase.firestore.FieldValue.increment(won),
-            crash_jackpot_prog: increment(Math.round(atMult * 100) / 100)
+            crash_jackpot_prog: increment(newProg)
           }).catch(err => console.error("[CrashGame] Claim error:", err));
+
+          // Check for Jackpot Win (80,000 threshold)
+          const currentProg = userData?.crash_jackpot_prog || 0;
+          if (currentProg + newProg >= 80000 && currentProg < 80000) {
+            // WE HAVE A WINNER!
+            const jpRefGlobal = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('jackpot');
+            jpRefGlobal.get().then(jpDoc => {
+              if (jpDoc.exists) {
+                const totalJp = jpDoc.data().amount || 0;
+                let share = 0.1;
+                if (rCurBet.current >= 100000) share = 0.7;
+                else if (rCurBet.current >= 1000) share = 0.3;
+                
+                const winAmount = Math.round(totalJp * share);
+                setJackpotWinDetails({ amount: winAmount, share });
+                setShowJackpotWin(true);
+                
+                // Add jackpot winnings
+                window.usersCollection.doc(user.uid).update({
+                  currency: window.firebase.firestore.FieldValue.increment(winAmount),
+                  crash_jackpot_prog: 0 // Reset progress after win
+                }).catch(() => {});
+
+                // Deduct from global jackpot
+                jpRefGlobal.update({
+                  amount: increment(-winAmount)
+                }).catch(() => {});
+
+                // Push Public Broadcast
+                const bcRef = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('broadcasts').collection('list');
+                bcRef.add({
+                  uid: user.uid,
+                  name: userData?.displayName || user?.displayName || "Player",
+                  amount: winAmount,
+                  timestamp: window.firebase?.firestore?.FieldValue?.serverTimestamp() || Date.now()
+                }).catch(() => {});
+              }
+            });
+          }
 
           // Add 0.5% of bet to the global jackpot
           const jpRef = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('jackpot');
@@ -910,10 +1061,26 @@ input[type=number]{-moz-appearance:textfield;}
         unsub();
         unsubHist();
         unsubJp();
+        SFX.stopHum();
         scheduledTimers.forEach(clearTimeout);
         clearTimeout(loopTmr.current);
         clearTimeout(cdTmr.current);
       };
+    }, [db]);
+
+    // Broadcast Listener
+    useEffect(() => {
+      if (!db) return;
+      const bcRef = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('broadcasts').collection('list');
+      const unsub = bcRef.orderBy("timestamp", "desc").limit(5).onSnapshot(snap => {
+        const list = snap.docs.map(doc => doc.data()).filter(d => {
+          if (!d.timestamp) return true;
+          const ts = d.timestamp.toMillis ? d.timestamp.toMillis() : d.timestamp;
+          return Date.now() - ts < 60000; // Only show last minute
+        });
+        setBroadcasts(list);
+      });
+      return () => unsub();
     }, [db]);
 
     // T101: Top Explorers Listener
@@ -1017,7 +1184,22 @@ input[type=number]{-moz-appearance:textfield;}
     // ── Render ─────────────────────────────────────────────────────
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
       className: "cr-root"
+    }, broadcasts.length > 0 && /*#__PURE__*/React.createElement("div", {
+      className: "cr-marquee"
     }, /*#__PURE__*/React.createElement("div", {
+      className: "cr-marquee-track"
+    }, broadcasts.map((bc, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "cr-marquee-msg"
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14
+      }
+    }, "\uD83C\uDF8A"), props?.lang === 'ar' ? `تهانينا لـ ${bc.name} لفوزه بـ ${bc.amount.toLocaleString()} في الجائزة الكبرى!` : `Congratulations to ${bc.name} for winning ${bc.amount.toLocaleString()} in the Global Jackpot!`, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14
+      }
+    }, "\uD83C\uDFC6"))))), /*#__PURE__*/React.createElement("div", {
       className: `cr-wrap${shaking ? " cr-shake" : ""}`
     }, /*#__PURE__*/React.createElement("div", {
       className: "cr-stars"
@@ -2463,7 +2645,63 @@ input[type=number]{-moz-appearance:textfield;}
         textTransform: "uppercase",
         letterSpacing: 0.5
       }
-    }, props?.lang === 'ar' ? "متصل" : "Online"))))))))))));
+    }, props?.lang === 'ar' ? "متصل" : "Online")))))))), showJackpotWin && /*#__PURE__*/React.createElement("div", {
+      className: "cr-jackpot-win-overlay",
+      onClick: () => setShowJackpotWin(false)
+    }, [1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "cr-jp-ring",
+      style: {
+        animationDelay: i * 0.8 + "s"
+      }
+    })), Array.from({
+      length: 24
+    }).map((_, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "cr-confetti",
+      style: {
+        background: ["#fcd34d", "#f59e0b", "#fff", "#a855f7"][i % 4],
+        left: Math.random() * 100 + "%",
+        animationDelay: Math.random() * 3 + "s",
+        animationDuration: 2 + Math.random() * 2 + "s"
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      className: "cr-fadein",
+      style: {
+        position: "relative",
+        zIndex: 5
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 64,
+        marginBottom: 10
+      }
+    }, "\uD83C\uDFC6"), /*#__PURE__*/React.createElement("h1", {
+      className: "cr-jp-title"
+    }, props?.lang === 'ar' ? "مبروك!" : "CONGRATS!"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "#fff",
+        fontSize: 18,
+        fontWeight: 700,
+        marginBottom: 6,
+        letterSpacing: 2
+      }
+    }, props?.lang === 'ar' ? "لقد فزت بـ الجائزة الكبرى" : "YOU WON THE JACKPOT"), /*#__PURE__*/React.createElement("div", {
+      className: "cr-jp-amount"
+    }, (jackpotWinDetails?.amount || 0).toLocaleString()), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "12px 30px",
+        background: "rgba(255,255,255,0.1)",
+        borderRadius: 30,
+        border: "1px solid rgba(255,255,255,0.2)",
+        color: "#fff",
+        cursor: "pointer",
+        fontWeight: 700,
+        fontSize: 14,
+        letterSpacing: 1
+      },
+      onClick: (e) => { e.stopPropagation(); setShowJackpotWin(false); }
+    }, props?.lang === 'ar' ? "استلام الجائزة" : "COLLECT PRIZE")))))));
   }
   window.CrashGame = CrashGame;
 })();

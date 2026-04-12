@@ -40,7 +40,7 @@
       showSetupModal, setShowSetupModal,
       showFunPass, setShowFunPass,
       alertMessage, setAlertMessage,
-      nickname, setNickname, setupMode, setSetupMode,
+      nickname, setNickname, setupGameId, setSetupGameId, browseGameId, setBrowseGameId, setupMode, setSetupMode,
       isPrivate, setIsPrivate, password, setPassword,
       showPassword, setShowPassword, loading,
 
@@ -615,11 +615,12 @@
       React.createElement(window.BrowseRoomsModal, {
         show: showBrowseRooms,
         onClose: () => setShowBrowseRooms(false),
-        onJoin: handleJoinGame,
+        onJoin: (id, pwd, opts) => handleJoinGame(id, pwd, { ...opts, gameId: browseGameId }),
         nickname: nickname,
         currentUID: currentUID,
         currentUserData: currentUserData,
-        lang: lang }
+        lang: lang,
+        gameId: browseGameId }
       ),
 
 
@@ -689,7 +690,7 @@
         nickname: nickname,
         onClose: () => setShowSetupModal(false),
         onSelectMode: (mode, options) => {
-          handleCreateGame(mode, options);
+          handleCreateGame(mode, { ...options, gameId: setupGameId });
         }
       }),
 

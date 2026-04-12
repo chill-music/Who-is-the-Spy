@@ -6,9 +6,16 @@ var initAudioContext = () => {
     try {
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContext = new AudioContext();
+        
+        // Auto-resume if context starts suspended (standard for some browsers)
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(e => console.warn('[Audio] Auto-resume failed:', e));
+        }
+
         isAudioInitialized = true;
         return audioContext;
     } catch (e) {
+        console.error('[Audio] Creation error:', e);
         return null;
     }
 };
@@ -21,7 +28,16 @@ var playSound = (type) => {
 
         if (!audioContext) audioContext = initAudioContext();
         if (!audioContext) return;
-        if (audioContext.state === 'suspended') audioContext.resume();
+        
+        // Ensure context is running. Browsers allow resume() during user gesture.
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+                // Recursive call once resumed if needed, or just continue if possible
+                // For simplicity, we just trigger the play logic below
+            }).catch(e => {});
+        }
+        
+        if (audioContext.state !== 'running') return; // Absolute safety to prevent console noise
 
         var oscillator = audioContext.createOscillator();
         var gainNode = audioContext.createGain();
@@ -107,7 +123,18 @@ if (typeof window !== 'undefined') {
 if (typeof window !== 'undefined') {
     var initEvents = ['click', 'touchstart', 'keydown'];
     var initHandler = () => {
-        initAudioOnFirstInteraction();
+        // Step 1: Initialize/Resume Context explicitly inside the gesture
+        var ctx = initAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+            ctx.resume().then(() => {
+                initAudioOnFirstInteraction();
+            }).catch(() => {
+                initAudioOnFirstInteraction();
+            });
+        } else {
+            initAudioOnFirstInteraction();
+        }
+        
         initEvents.forEach(event => document.removeEventListener(event, initHandler));
     };
     initEvents.forEach(event => document.addEventListener(event, initHandler, { once: true }));

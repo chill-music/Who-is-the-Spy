@@ -17,6 +17,16 @@
         },
 
         /**
+         * Resolves the Firestore collection based on Game Namespace ID.
+         */
+        getCollection: function(gameId) {
+            var gId = gameId || 'spy';
+            var game = (window.GAMES_CONFIG || []).find(g => g.id === gId);
+            var colName = (game && game.collection) ? game.collection : 'rooms';
+            return db.collection('artifacts').doc(window.appId).collection('public').doc('data').collection(colName);
+        },
+
+        /**
          * Extracted from handleCreateGame in 10-app.js
          */
         handleCreateGame: async function(context) {
@@ -58,10 +68,14 @@
             // 5-character random uppercase ID
             var id = Math.random().toString(36).substring(2, 7).toUpperCase();
             
+            var gameId = context.gameId || 'spy';
+            var col = this.getCollection(gameId);
+
             try {
-                // Dependency: roomsCollection (global in 01-config.js)
-                await roomsCollection.doc(id).set({ 
+                // Use the resolved Game Namespace collection
+                await col.doc(id).set({ 
                     id: id, 
+                    gameType: gameId,
                     admin: uid, 
                     status: 'waiting', 
                     players: [{ 
@@ -156,8 +170,9 @@
                 return; 
             }
             
+            var gameId = context.gameId || 'spy';
             var roomIdClean = id.toUpperCase();
-            var ref = roomsCollection.doc(roomIdClean);
+            var ref = this.getCollection(gameId).doc(roomIdClean);
             
             try {
                 var snap = await ref.get();
@@ -237,10 +252,12 @@
             if (typeof playSound === 'function') playSound('click');
             
             var isRoomAdmin = room.admin === currentUID;
+            var collection = this.getCollection(room.gameType || 'spy');
+
             try {
                 if (isRoomAdmin) { 
                     // Admin leaves → delete room
-                    await roomsCollection.doc(roomId).delete(); 
+                    await collection.doc(roomId).delete(); 
                 } else { 
                     // Member leaves → remove from players structure
                     var playersData = room.players || {};
@@ -249,12 +266,12 @@
                         var updatedPlayers = playersData.filter(function(p) { 
                             return p.uid !== currentUID; 
                         });
-                        await roomsCollection.doc(roomId).update({ 
+                        await collection.doc(roomId).update({ 
                             players: updatedPlayers 
                         }); 
                     } else {
                         // Rebuild Object (Map) remove
-                        await roomsCollection.doc(roomId).update({
+                        await collection.doc(roomId).update({
                             [`players.${currentUID}`]: firebase.firestore.FieldValue.delete(),
                             playerOrder: firebase.firestore.FieldValue.arrayRemove(currentUID)
                         });

@@ -12,6 +12,13 @@
     handleJoinGame, handleCreateGame, setNotification, requireLogin,
     currentUID, user
   }) {
+    var { useState, useMemo } = React;
+    var [selectedGameId, setSelectedGameId] = useState('spy');
+    
+    var games = window.GAMES_CONFIG || [];
+    var selectedGame = useMemo(() => {
+        return games.find(g => g.id === selectedGameId) || games[0];
+    }, [selectedGameId, games]);
 
     var fmtNum = window.fmtNum || ((n) => n.toLocaleString());
 
@@ -54,17 +61,92 @@
 
 
       React.createElement("div", { className: "sec-head-new" }, /*#__PURE__*/React.createElement("span", { className: "sec-title-new" }, lang === 'ar' ? 'العب دلوقتي' : t.tabLobby)), /*#__PURE__*/
-      React.createElement("div", { className: "lobby-hero-new" }, /*#__PURE__*/
+      
+      /* 🎮 GAME SELECTOR ROW */
+      React.createElement("div", { className: "game-selector-row", style: {
+          display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 16px 16px',
+          scrollbarWidth: 'none', msOverflowStyle: 'none'
+      }}, 
+        games.map(game => {
+            var isActive = game.status === 'active';
+            var isSelected = selectedGameId === game.id;
+            return React.createElement("div", {
+                key: game.id,
+                className: `game-option ${isSelected ? 'selected' : ''} ${!isActive ? 'coming-soon' : ''}`,
+                onClick: () => {
+                    if (isActive) setSelectedGameId(game.id);
+                    else window.showToast ? window.showToast(lang === 'ar' ? 'قريباً...' : 'Coming Soon...', 'info') : null;
+                },
+                style: {
+                    minWidth: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                    padding: '12px 8px', borderRadius: '16px', cursor: isActive ? 'pointer' : 'default',
+                    background: isSelected ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${isSelected ? (game.theme?.color || 'var(--primary)') : 'rgba(255,255,255,0.1)'}`,
+                    opacity: isActive ? 1 : 0.6,
+                    filter: !isActive ? 'grayscale(1)' : 'none',
+                    transition: 'all 0.2s ease',
+                    position: 'relative'
+                }
+            },
+                React.createElement("div", { className: "game-icon-container", style: { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+                    (game.theme?.iconUrl || game.iconUrl) ? 
+                    React.createElement("img", { src: game.theme?.iconUrl || game.iconUrl, style: { width: '100%', height: '100%', objectFit: 'contain' } }) :
+                    React.createElement("span", { style: { fontSize: '24px' } }, game.icon)
+                ),
+                React.createElement("span", { style: { fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap' } }, game.name[lang] || game.name.en),
+                !isActive && React.createElement("div", { style: {
+                    position: 'absolute', top: '-4px', right: '-4px', background: '#333',
+                    borderRadius: '50%', width: '18px', height: '18px', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', fontSize: '10px',
+                    border: '1px solid #555'
+                }}, "🔒")
+            );
+        })
+      ),
+
+      /* 🏎️ DYNAMIC HERO CARD */
+      React.createElement("div", { 
+          className: "lobby-hero-new",
+          style: {
+              background: selectedGame?.theme?.bgGradient || 'var(--bg-card)',
+              boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 15px ${selectedGame?.theme?.glow ? selectedGame.theme.glow.replace('0.5', '0.2') : 'rgba(0,0,0,0.1)'}`,
+              borderColor: selectedGame?.theme?.color || 'rgba(255,255,255,0.1)',
+              '--hero-logo': selectedGame?.theme?.logoUrl ? `url("${selectedGame.theme.logoUrl}")` : 'none'
+          }
+      }, /*#__PURE__*/
       React.createElement("div", { className: "hero-label-new" }, lang === 'ar' ? 'ابدأ أو انضم لأوضة' : t.codePlaceholder), /*#__PURE__*/
-      React.createElement("div", { className: "hero-title-new" }, lang === 'ar' ? 'أنت الجاسوس؟' : 'Are You the Spy?'),
+      React.createElement("div", { className: "hero-title-new", style: { color: selectedGame?.theme?.color || '#fff' } }, 
+        React.createElement("span", { className: "hero-icon-fix" }, 
+            selectedGame?.theme?.iconUrl ? 
+            React.createElement("img", { src: selectedGame.theme.iconUrl, style: { width: '32px', height: '32px', objectFit: 'contain' } }) :
+            selectedGame?.icon
+        ),
+        " ",
+        React.createElement("span", { className: "hero-text-gradient" }, selectedGame?.name[lang] || selectedGame?.name?.en)
+      ),
+      React.createElement("p", { style: { 
+          fontSize: '12px', color: 'rgba(255,255,255,0.7)', textAlign: 'center', 
+          margin: '-10px 0 15px', padding: '0 20px', lineHeight: '1.4' 
+      }}, selectedGame?.description[lang] || selectedGame?.description?.en),
+
       isGuest && /*#__PURE__*/React.createElement(window.GuestBanner, { lang: lang }), /*#__PURE__*/
       React.createElement("div", { className: "hero-input-row" }, /*#__PURE__*/
       React.createElement("input", { className: "hero-input", value: nickname, onChange: (e) => {setNickname(e.target.value);localStorage.setItem('pro_spy_nick', e.target.value);}, placeholder: t.nickname }), /*#__PURE__*/
-      React.createElement("button", { className: "hero-btn-primary", onClick: () => setShowSetupModal(true), disabled: !nickname.trim() }, "+ ", t.create)
+      React.createElement("button", { 
+          className: "hero-btn-primary", 
+          style: { background: selectedGame?.theme?.color || 'var(--primary)' },
+          onClick: () => setShowSetupModal(true, { gameId: selectedGameId }), 
+          disabled: !nickname.trim() 
+      }, "+ ", t.create)
       ), /*#__PURE__*/
       React.createElement("div", { className: "hero-join-row" }, /*#__PURE__*/
       React.createElement("input", { className: "hero-input hero-code-input", style: { flex: 1 }, value: inputCode, onChange: (e) => setInputCode(e.target.value.toUpperCase()), placeholder: t.codePlaceholder, maxLength: 6 }), /*#__PURE__*/
-      React.createElement("button", { className: "hero-btn-primary", onClick: () => handleJoinGame(inputCode, ''), disabled: loading || !inputCode.trim() || !nickname.trim() }, loading ? '...' : t.join)
+      React.createElement("button", { 
+          className: "hero-btn-primary", 
+          style: { background: selectedGame?.theme?.color || 'var(--primary)' },
+          onClick: () => handleJoinGame(inputCode, '', { gameId: selectedGameId }), 
+          disabled: loading || !inputCode.trim() || !nickname.trim() 
+      }, loading ? '...' : t.join)
       ),
       joinError && /*#__PURE__*/React.createElement("p", { style: { fontSize: '11px', color: '#ff4d4d', textAlign: 'center', marginTop: '6px' } }, joinError)
       ), /*#__PURE__*/
@@ -127,15 +209,15 @@
 
       React.createElement("div", { className: "sec-head-new" }, /*#__PURE__*/
       React.createElement("span", { className: "sec-title-new" }, "\uD83D\uDFE2 ", lang === 'ar' ? 'الأوض المفتوحة' : 'Open Rooms'), /*#__PURE__*/
-      React.createElement("button", { className: "sec-action-new", onClick: () => setShowBrowseRooms(true) }, lang === 'ar' ? 'الكل' : 'All')
+      React.createElement("button", { className: "sec-action-new", onClick: () => setShowBrowseRooms(true, { gameId: selectedGameId }) }, lang === 'ar' ? 'الكل' : 'All')
       ), /*#__PURE__*/
       React.createElement("div", { className: "rooms-scroll-new" }, /*#__PURE__*/
-      React.createElement("div", { className: "room-card-new", onClick: () => setShowBrowseRooms(true) }, /*#__PURE__*/
+      React.createElement("div", { className: "room-card-new", onClick: () => setShowBrowseRooms(true, { gameId: selectedGameId }) }, /*#__PURE__*/
       React.createElement("div", { className: "rc-mode" }, "\uD83D\uDD75\uFE0F"), /*#__PURE__*/
       React.createElement("div", { className: "rc-name" }, lang === 'ar' ? 'تصفّح الأوض' : 'Browse Rooms'), /*#__PURE__*/
       React.createElement("div", { className: "rc-info", style: { color: 'var(--primary)', marginTop: '6px', fontSize: '11px' } }, "\u2192 ", lang === 'ar' ? 'عرض الكل' : 'View all')
       ), /*#__PURE__*/
-      React.createElement("div", { className: "room-card-new", onClick: () => setShowSetupModal(true), style: { border: '1px dashed rgba(0,242,255,0.3)' } }, /*#__PURE__*/
+      React.createElement("div", { className: "room-card-new", onClick: () => setShowSetupModal(true, { gameId: selectedGameId }), style: { border: '1px dashed rgba(0,242,255,0.3)' } }, /*#__PURE__*/
       React.createElement("div", { className: "rc-mode" }, "\u2795"), /*#__PURE__*/
       React.createElement("div", { className: "rc-name" }, t.create), /*#__PURE__*/
       React.createElement("div", { className: "rc-info", style: { marginTop: '6px', fontSize: '10px', color: 'var(--text-muted)' } }, lang === 'ar' ? 'أوضة جديدة' : 'New room')
