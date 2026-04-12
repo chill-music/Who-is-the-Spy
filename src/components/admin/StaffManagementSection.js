@@ -132,114 +132,116 @@
       React.createElement('div', null, /*#__PURE__*/
 
       /* ── Header ── */
-      React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#8b5cf6', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' } }, /*#__PURE__*/
+      React.createElement('div', { className: 'admin-form-stack', style: { fontSize: '13px', fontWeight: 700, color: '#8b5cf6', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' } }, /*#__PURE__*/
         React.createElement('span', null, '🛡️ ', lang === 'ar' ? 'إدارة فريق العمل' : 'Staff Management'),
 
         /* Owner controls: UID search + role picker + Add button */
         myRole === 'owner' &&
-        React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } },
-          React.createElement('input', { className: 'input-dark', style: { width: '130px', padding: '5px 10px', fontSize: '11px' },
+        React.createElement('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' } },
+          React.createElement('input', { className: 'input-dark', style: { width: '130px', padding: '5px 10px', fontSize: '11px', minHeight: '40px' },
             placeholder: lang === 'ar' ? 'UID / ID / الاسم' : 'UID / ID / Name',
             value: searchTerm, onChange: (e) => setSearchTerm(e.target.value) }),
           React.createElement('select', { value: addRole, onChange: (e) => setAddRole(e.target.value),
-            style: { padding: '5px 8px', fontSize: '11px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer' } },
+            style: { padding: '5px 8px', fontSize: '11px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer', minHeight: '40px' } },
             React.createElement('option', { value: 'moderator', style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'مشرف' : 'Moderator'),
             React.createElement('option', { value: 'admin',     style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'مدير' : 'Admin')
           ),
           React.createElement('button', { onClick: addStaff, disabled: searching || !searchTerm,
-            className: 'btn-neon', style: { padding: '5px 12px', fontSize: '11px' } },
+            className: 'btn-neon', style: { padding: '5px 12px', fontSize: '11px', minHeight: '40px' } },
             searching ? '⏳' : `➕ ${lang === 'ar' ? 'إضافة' : 'Add'}`
           )
         )
       ),
 
-      /* ── List ── */
-      loading
-        ? /*#__PURE__*/React.createElement('div', { style: { textAlign: 'center', padding: '20px' } }, '⏳')
-        : staff.length === 0
-          ? /*#__PURE__*/React.createElement('div', { style: { textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '12px' } },
-              lang === 'ar' ? 'لا يوجد فريق عمل بعد' : 'No staff yet')
-          : /*#__PURE__*/React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px' } },
-              staff.map((s) => {
-                var color = ROLE_COLORS[s.role] || '#9ca3af';
-                var icon  = ROLE_ICONS[s.role]  || '👤';
-                var isMe  = s.uid === currentUser?.uid || s.id === currentUser?.uid;
-                return (/*#__PURE__*/
-                  React.createElement('div', { key: s.id, style: { background: isMe ? `${color}12` : 'rgba(255,255,255,0.03)', border: `1px solid ${isMe ? color + '40' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' } }, /*#__PURE__*/
+      /* ── List (Scrollable on narrow screens) ── */
+      React.createElement('div', { style: { width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' } },
+        loading
+          ? /*#__PURE__*/React.createElement('div', { style: { textAlign: 'center', padding: '20px' } }, '⏳')
+          : staff.length === 0
+            ? /*#__PURE__*/React.createElement('div', { style: { textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '12px' } },
+                lang === 'ar' ? 'لا يوجد فريق عمل بعد' : 'No staff yet')
+            : /*#__PURE__*/React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '340px' } },
+                staff.map((s) => {
+                  var color = ROLE_COLORS[s.role] || '#9ca3af';
+                  var icon  = ROLE_ICONS[s.role]  || '👤';
+                  var isMe  = s.uid === currentUser?.uid || s.id === currentUser?.uid;
+                  return (/*#__PURE__*/
+                    React.createElement('div', { key: s.id, style: { background: isMe ? `${color}12` : 'rgba(255,255,255,0.03)', border: `1px solid ${isMe ? color + '40' : 'rgba(255,255,255,0.08)'}`, borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'nowrap' } }, /*#__PURE__*/
 
-                  React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 } }, /*#__PURE__*/
-                    React.createElement('img', { 
-                      src: s.photoURL || 'https://via.placeholder.com/40', 
-                      onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id),
-                      style: { width: '40px', height: '40px', borderRadius: '50%', border: `2px solid ${color}`, objectFit: 'cover', flexShrink: 0, cursor: onOpenProfile ? 'pointer' : 'default' } 
-                    }), /*#__PURE__*/
-                    React.createElement('div', { 
-                      style: { minWidth: 0, cursor: onOpenProfile ? 'pointer' : 'default' },
-                      onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id)
-                    }, /*#__PURE__*/
-                      React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
-                        s.displayName || 'Unknown', isMe ? ` (${lang === 'ar' ? 'أنت' : 'You'})` : ''
-                      ), /*#__PURE__*/
-                      React.createElement('div', { style: { fontSize: '10px', color, fontWeight: 700 } }, icon, ' ', (s.role || '').toUpperCase()), /*#__PURE__*/
-                      React.createElement('div', { style: { fontSize: '9px', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.uid || s.id)
+                    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '10px', minWidth: '180px' } }, /*#__PURE__*/
+                      React.createElement('img', { 
+                        src: s.photoURL || 'https://via.placeholder.com/40', 
+                        onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id),
+                        style: { width: '40px', height: '40px', borderRadius: '50%', border: `2px solid ${color}`, objectFit: 'cover', flexShrink: 0, cursor: onOpenProfile ? 'pointer' : 'default' } 
+                      }), /*#__PURE__*/
+                      React.createElement('div', { 
+                        style: { minWidth: 0, cursor: onOpenProfile ? 'pointer' : 'default' },
+                        onClick: () => onOpenProfile && onOpenProfile(s.uid || s.id)
+                      }, /*#__PURE__*/
+                        React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+                          s.displayName || 'Unknown', isMe ? ` (${lang === 'ar' ? 'أنت' : 'You'})` : ''
+                        ), /*#__PURE__*/
+                        React.createElement('div', { style: { fontSize: '10px', color, fontWeight: 700 } }, icon, ' ', (s.role || '').toUpperCase()), /*#__PURE__*/
+                        React.createElement('div', { style: { fontSize: '9px', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, s.uid || s.id)
+                      )
+                    ),
+
+                    myRole === 'owner' && !isMe &&
+                    React.createElement('div', { style: { display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' } },
+
+                      /* ── Confirm remove prompt ── */
+                      confirmRemove === s.id
+                      ? React.createElement('div', { style: { display: 'flex', gap: '6px', alignItems: 'center', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '4px 8px' } },
+                          React.createElement('span', { style: { fontSize: '11px', color: '#ef4444' } },
+                            lang === 'ar' ? 'تأكيد الإزالة؟' : 'Remove?'
+                          ),
+                          React.createElement('button', {
+                            onClick: () => handleRemove(s.id, s.displayName),
+                            style: { padding: '3px 8px', background: '#dc2626', color: '#fff', borderRadius: '5px', fontSize: '11px', border: 'none', cursor: 'pointer', fontWeight: 700, minHeight: '34px' }
+                          }, lang === 'ar' ? 'نعم' : 'Yes'),
+                          React.createElement('button', {
+                            onClick: () => setConfirmRemove(null),
+                            style: { padding: '3px 8px', background: 'rgba(255,255,255,0.1)', color: '#9ca3af', borderRadius: '5px', fontSize: '11px', border: 'none', cursor: 'pointer', minHeight: '34px' }
+                          }, '✕')
+                        )
+
+                      /* ── Normal edit + remove buttons ── */
+                      : React.createElement(React.Fragment, null,
+                          editing === s.id
+                          ? React.createElement(React.Fragment, null,
+                              React.createElement('select', { value: newRole || s.role, onChange: (e) => setNewRole(e.target.value),
+                                className: 'input-dark', style: { fontSize: '11px', padding: '4px 8px', color: '#e5e7eb', background: '#1e293b', minHeight: '34px' } },
+                                React.createElement('option', { value: 'moderator', style: { background: '#1e293b', color: '#e5e7eb' } }, 'MODERATOR'),
+                                React.createElement('option', { value: 'admin',     style: { background: '#1e293b', color: '#e5e7eb' } }, 'ADMIN'),
+                                React.createElement('option', { value: 'owner',     style: { background: '#1e293b', color: '#e5e7eb' } }, 'OWNER')
+                              ),
+                              React.createElement('button', {
+                                onClick: () => updateRole(s.id, s.displayName),
+                                style: { padding: '4px 8px', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer', minHeight: '34px' }
+                              }, '💾'),
+                              React.createElement('button', {
+                                onClick: () => { setEditing(null); setNewRole(''); },
+                                style: { padding: '4px 8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer', minHeight: '34px' }
+                              }, '✕')
+                            )
+                          : React.createElement(React.Fragment, null,
+                              React.createElement('button', {
+                                onClick: () => { setEditing(s.id); setNewRole(s.role); setConfirmRemove(null); },
+                                className: 'btn-neon', style: { padding: '5px 10px', fontSize: '11px', minHeight: '34px' }
+                              }, '✏️ ', lang === 'ar' ? 'تعديل' : 'Edit'),
+                              /* Red Remove button — triggers confirmation prompt */
+                              s.role !== 'owner' &&
+                              React.createElement('button', {
+                                onClick: () => { setConfirmRemove(s.id); setEditing(null); },
+                                style: { padding: '5px 10px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: 700, minHeight: '34px' }
+                              }, '🗑️')
+                            )
+                        )
                     )
-                  ),
-
-                  myRole === 'owner' && !isMe &&
-                  React.createElement('div', { style: { display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' } },
-
-                    /* ── Confirm remove prompt ── */
-                    confirmRemove === s.id
-                    ? React.createElement('div', { style: { display: 'flex', gap: '6px', alignItems: 'center', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '4px 8px' } },
-                        React.createElement('span', { style: { fontSize: '11px', color: '#ef4444' } },
-                          lang === 'ar' ? 'تأكيد الإزالة؟' : 'Remove?'
-                        ),
-                        React.createElement('button', {
-                          onClick: () => handleRemove(s.id, s.displayName),
-                          style: { padding: '3px 8px', background: '#dc2626', color: '#fff', borderRadius: '5px', fontSize: '11px', border: 'none', cursor: 'pointer', fontWeight: 700 }
-                        }, lang === 'ar' ? 'نعم' : 'Yes'),
-                        React.createElement('button', {
-                          onClick: () => setConfirmRemove(null),
-                          style: { padding: '3px 8px', background: 'rgba(255,255,255,0.1)', color: '#9ca3af', borderRadius: '5px', fontSize: '11px', border: 'none', cursor: 'pointer' }
-                        }, '✕')
-                      )
-
-                    /* ── Normal edit + remove buttons ── */
-                    : React.createElement(React.Fragment, null,
-                        editing === s.id
-                        ? React.createElement(React.Fragment, null,
-                            React.createElement('select', { value: newRole || s.role, onChange: (e) => setNewRole(e.target.value),
-                              className: 'input-dark', style: { fontSize: '11px', padding: '4px 8px', color: '#e5e7eb', background: '#1e293b' } },
-                              React.createElement('option', { value: 'moderator', style: { background: '#1e293b', color: '#e5e7eb' } }, 'MODERATOR'),
-                              React.createElement('option', { value: 'admin',     style: { background: '#1e293b', color: '#e5e7eb' } }, 'ADMIN'),
-                              React.createElement('option', { value: 'owner',     style: { background: '#1e293b', color: '#e5e7eb' } }, 'OWNER')
-                            ),
-                            React.createElement('button', {
-                              onClick: () => updateRole(s.id, s.displayName),
-                              style: { padding: '4px 8px', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer' }
-                            }, '💾'),
-                            React.createElement('button', {
-                              onClick: () => { setEditing(null); setNewRole(''); },
-                              style: { padding: '4px 8px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', fontSize: '11px', border: 'none', cursor: 'pointer' }
-                            }, '✕')
-                          )
-                        : React.createElement(React.Fragment, null,
-                            React.createElement('button', {
-                              onClick: () => { setEditing(s.id); setNewRole(s.role); setConfirmRemove(null); },
-                              className: 'btn-neon', style: { padding: '5px 10px', fontSize: '11px' }
-                            }, '✏️ ', lang === 'ar' ? 'تعديل' : 'Edit'),
-                            /* Red Remove button — triggers confirmation prompt */
-                            s.role !== 'owner' &&
-                            React.createElement('button', {
-                              onClick: () => { setConfirmRemove(s.id); setEditing(null); },
-                              style: { padding: '5px 10px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: 700 }
-                            }, '🗑️')
-                          )
-                      )
-                  )
-                  ));
-              })
-            )
+                    ));
+                })
+              )
+      )
       ));
   };
 

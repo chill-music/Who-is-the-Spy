@@ -26,7 +26,8 @@
     --z-header: 100;
     --z-dropdown: 200;
     --z-modal: 300;
-    --z-toast: 400;
+    --z-modal-high: 500;
+    --z-toast: 1000;
 
     /* Custom Mobile Scroll Fixes */
     --modal-inner-scroll: auto;

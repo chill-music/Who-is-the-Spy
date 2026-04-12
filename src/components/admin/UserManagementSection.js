@@ -133,16 +133,16 @@
       ),
 
       /* Search form */
-      React.createElement('form', { onSubmit: handleSearch, style: { display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' } },
-        React.createElement('input', { className: 'input-dark', style: { flex: 1, minWidth: '140px', padding: '10px', borderRadius: '10px', fontSize: '13px' },
+      React.createElement('form', { onSubmit: handleSearch, className: 'admin-form-stack', style: { display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' } },
+        React.createElement('input', { className: 'input-dark', style: { flex: 1, minWidth: '140px', padding: '10px', borderRadius: '10px', fontSize: '13px', minHeight: '44px' },
           placeholder: lang === 'ar' ? 'ابحث بـ UID أو ID المخصص أو الاسم...' : 'Search by UID / Custom ID / Name...',
           value: searchTerm, onChange: (e) => setSearchTerm(e.target.value) }),
-        React.createElement('button', { type: 'submit', disabled: searching, className: 'btn-neon', style: { padding: '0 20px', flexShrink: 0 } },
+        React.createElement('button', { type: 'submit', disabled: searching, className: 'btn-neon', style: { padding: '0 20px', flexShrink: 0, minHeight: '44px' } },
           searching ? '⏳' : lang === 'ar' ? 'بحث' : 'Search'
         ),
         (searchResult || notFound) &&
         React.createElement('button', { type: 'button', onClick: () => { setSearchResult(null); setNotFound(false); setSearchTerm(''); setShowBanForm(false); },
-          style: { padding: '0 14px', background: 'rgba(255,255,255,0.07)', color: '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', flexShrink: 0 } }, '×')
+          style: { padding: '0 14px', background: 'rgba(255,255,255,0.07)', color: '#9ca3af', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '18px', flexShrink: 0, minHeight: '44px' } }, '×')
       ),
 
       /* Not found */
@@ -176,12 +176,14 @@
           React.createElement('div', { style: { fontSize: '10px', color: '#f59e0b', marginTop: '2px' } }, 'ID: #', searchResult.customId)
         ),
 
-        /* Stats grid — 4 cells */
-        React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' } },
-          statCell(lang === 'ar' ? 'الذهب' : 'Gold',   searchResult.currency ?? 0, '#f59e0b'),
-          statCell(lang === 'ar' ? 'المستوى' : 'Level', searchResult.level    ?? 1, '#3b82f6'),
-          statCell(lang === 'ar' ? 'نقاط XP' : 'XP',   searchResult.xp       ?? 0, '#10b981'),
-          statCell(lang === 'ar' ? 'الكاريزما' : 'Charisma', searchResult.charisma ?? 0, '#ec4899')
+        /* Stats grid — 4 cells (Scrollable on narrow screens) */
+        React.createElement('div', { style: { width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: '14px' } },
+          React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(80px, 1fr))', gap: '8px', minWidth: '340px' } },
+            statCell(lang === 'ar' ? 'الذهب' : 'Gold',   searchResult.currency ?? 0, '#f59e0b'),
+            statCell(lang === 'ar' ? 'المستوى' : 'Level', searchResult.level    ?? 1, '#3b82f6'),
+            statCell(lang === 'ar' ? 'نقاط XP' : 'XP',   searchResult.xp       ?? 0, '#10b981'),
+            statCell(lang === 'ar' ? 'الكاريزما' : 'Charisma', searchResult.charisma ?? 0, '#ec4899')
+          )
         ),
 
         /* Join date */
@@ -195,7 +197,7 @@
           React.createElement('div', { style: { fontSize: '11px', color: '#ef4444', fontWeight: 700 } }, '⛔ ', lang === 'ar' ? 'هذا المستخدم محظور!' : 'User is Banned!'),
           React.createElement('div', { style: { fontSize: '10px', color: '#6b7280', marginTop: '4px' } }, lang === 'ar' ? 'السبب:' : 'Reason:', ' ', searchResult.ban.reason),
           isOwner &&
-          React.createElement('button', { onClick: handleUnban, disabled: processing, className: 'btn-neon', style: { marginTop: '10px', width: '100%', padding: '8px' } },
+          React.createElement('button', { onClick: handleUnban, disabled: processing, className: 'btn-neon', style: { marginTop: '10px', width: '100%', padding: '8px', minHeight: '44px' } },
             processing ? '⏳' : '✅ ' + (lang === 'ar' ? 'رفع الحظر' : 'Unban User')
           )
         ) :
@@ -215,7 +217,7 @@
               onClick: handleVerify, disabled: processing,
               style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.3)',
                 background: 'rgba(16,185,129,0.07)', color: '#10b981', fontSize: '12px', fontWeight: 700,
-                cursor: 'pointer', marginBottom: '10px' }
+                cursor: 'pointer', marginBottom: '10px', minHeight: '44px' }
             }, processing ? '⏳' : '✅ ' + (lang === 'ar' ? 'توثيق الحساب' : 'Verify Account')),
 
           /* Ban toggle button */
@@ -223,17 +225,17 @@
             onClick: () => setShowBanForm(!showBanForm),
             style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.3)',
               background: showBanForm ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.07)',
-              color: '#ef4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px' }
+              color: '#ef4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px', minHeight: '44px' }
           }, showBanForm ? '✕ ' + (lang === 'ar' ? 'إلغاء' : 'Cancel') : '🔨 ' + (lang === 'ar' ? 'حظر المستخدم' : 'Ban User')),
 
           /* Inline ban form */
           showBanForm &&
-          React.createElement('div', { style: { background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' } },
+          React.createElement('div', { className: 'admin-form-stack', style: { background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' } },
             React.createElement('input', { className: 'input-dark', placeholder: lang === 'ar' ? 'سبب الحظر...' : 'Reason for ban...',
               value: banReason, onChange: (e) => setBanReason(e.target.value),
-              style: { padding: '9px', borderRadius: '8px', fontSize: '12px', width: '100%' } }),
+              style: { padding: '9px', borderRadius: '8px', fontSize: '12px', width: '100%', minHeight: '44px' } }),
             React.createElement('select', { value: banDuration, onChange: (e) => setBanDuration(e.target.value),
-              style: { padding: '9px', borderRadius: '8px', fontSize: '12px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' } },
+              style: { padding: '9px', borderRadius: '8px', fontSize: '12px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', minHeight: '44px' } },
               React.createElement('option', { value: 'permanent', style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'دائم' : 'Permanent'),
               React.createElement('option', { value: '7d',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? '7 أيام' : '7 Days'),
               React.createElement('option', { value: '3d',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? '3 أيام' : '3 Days'),
@@ -242,7 +244,7 @@
             React.createElement('button', {
               onClick: handleBan, disabled: processing || !banReason.trim(),
               style: { padding: '9px', borderRadius: '8px', background: processing ? '#374151' : '#dc2626',
-                color: 'white', fontSize: '12px', fontWeight: 700, border: 'none', cursor: banReason.trim() ? 'pointer' : 'not-allowed' }
+                color: 'white', fontSize: '12px', fontWeight: 700, border: 'none', cursor: banReason.trim() ? 'pointer' : 'not-allowed', minHeight: '44px' }
             }, processing ? '⏳' : '🔨 ' + (lang === 'ar' ? 'تأكيد الحظر' : 'Confirm Ban'))
           )
         )

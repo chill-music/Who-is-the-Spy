@@ -1,6 +1,6 @@
 (function () {
   var { useState, useEffect, useRef, createElement } = React;
-  var Z = window.Z || { MODAL: 10000, MODAL_HIGH: 12000, MODAL_TOP: 15000 };
+  var Z = window.Z || { MODAL: 'var(--z-modal)', MODAL_HIGH: 'var(--z-modal-high)', MODAL_TOP: 'var(--z-modal-top)' };
 
   var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => {
     var [messages, setMessages] = useState([]);
@@ -29,6 +29,18 @@
 
     useEffect(() => {
       if (!show) return;
+      
+      // --- FIX 1: Add Visual Viewport Listener ---
+      const viewport = window.visualViewport;
+      if (!viewport) return;
+      const handleResize = () => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+      viewport.addEventListener('resize', handleResize);
+      // -------------------------
+      
       var unsub = publicChatCollection.
         orderBy('createdAt', 'asc').
         limitToLast(100).
@@ -36,7 +48,10 @@
           setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
         }, () => { });
-      return () => unsub();
+      return () => {
+        unsub();
+        viewport.removeEventListener('resize', handleResize); // Cleanup listener
+      };
     }, [show]);
 
     var sendMsg = async () => {

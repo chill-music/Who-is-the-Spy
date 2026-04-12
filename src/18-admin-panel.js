@@ -68,7 +68,7 @@
     return (/*#__PURE__*/
       React.createElement("div", { className: "admin-panel-overlay",
         onClick: onClose,
-        style: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' } }, /*#__PURE__*/
+        style: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', zIndex: 'var(--z-modal-high)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' } }, /*#__PURE__*/
       React.createElement("div", { className: "admin-panel-container",
         onClick: (e) => e.stopPropagation(),
         style: { width: '95%', maxWidth: '1000px', height: '90%', background: '#0f172a', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' } }, /*#__PURE__*/
@@ -168,12 +168,21 @@
                             overflow-x: auto !important;
                             overflow-y: hidden !important;
                             padding: 8px !important;
-                            gap: 8px !important;
+                            gap: 12px !important;
                             height: auto !important;
                         }
                         .admin-sidebar-tab {
                             margin-bottom: 0 !important;
                             white-space: nowrap !important;
+                            min-width: 100px !important;
+                            justify-content: center !important;
+                            padding: 10px 14px !important;
+                        }
+                        .admin-form-stack {
+                            flex-direction: column !important;
+                        }
+                        .admin-form-stack > * {
+                            width: 100% !important;
                         }
                     }
                 `)
