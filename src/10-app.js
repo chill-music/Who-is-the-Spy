@@ -117,7 +117,10 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       showGameChat, setShowGameChat, gameChatRef,
       showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
       showSpyRebuild, setShowSpyRebuild,
-      setupGameId, setSetupGameId, browseGameId, setBrowseGameId
+      setupGameId, setSetupGameId, browseGameId, setBrowseGameId,
+      activeGameId, setActiveGameId,
+      showRejoinSNL, setShowRejoinSNL, rejoinSNLRoomId, setRejoinSNLRoomId,
+      rejoinDeclined, setRejoinDeclined
     } = uiState;
 
     // ── Auth & Logic Hooks ──
@@ -160,6 +163,17 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             }
         }
     }, [authLoading, isLoggedIn, isGuest, roomId]);
+
+    // 🔄 [SNL RECOVERY] Check for active Snake & Ladder room
+    useEffect(() => {
+        if (!authLoading && (isLoggedIn || isGuest) && !room && !rejoinDeclined) {
+            const snlRoomId = localStorage.getItem('last_snl_room_id');
+            if (snlRoomId) {
+                setRejoinSNLRoomId(snlRoomId);
+                setShowRejoinSNL(true);
+            }
+        }
+    }, [authLoading, isLoggedIn, isGuest, room, rejoinDeclined]);
 
     // ── Logic Variables & Helpers ──
     var t = TRANSLATIONS[lang];
@@ -212,7 +226,13 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
       // Expose Spy Game Rebuild state for external triggers (e.g. Chat invitations)
       window.setShowSpyRebuild = setShowSpyRebuild;
-      window.setRoomId = setRoomId;
+      window.setRoomId = (id, gId) => {
+        if (gId) {
+          setActiveGameId(gId);
+          localStorage.setItem('pro_spy_active_game_id', gId);
+        }
+        setRoomId(id);
+      };
 
       return () => {
         delete window.setGlobalNotification;
@@ -241,7 +261,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
     var gameActions = window.useGameActions({
       user, userData, isLoggedIn, isGuest, nickname, lang, t, currentUID, currentUserData,
-      room, roomId, setRoom, setRoomId,
+      room, roomId, setRoom, setRoomId, setActiveGameId,
       guestData, setGuestData, setNickname, setAuthLoading,
       setNotification, playSound: window.playSound, setAlertMessage, setLoading,
       setShowSetupModal, setActiveView, setCopied, setShowSummary,
@@ -257,7 +277,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     });
 
     useRoom({
-      roomId, user, isLoggedIn, userData, coupleData, historyWrittenRooms,
+      roomId, gameId: activeGameId, user, isLoggedIn, userData, coupleData, historyWrittenRooms,
       setRoom, setRoomId, setShowSummary, setShowSpyRebuild,
       incrementMissionProgress: gameActions.incrementMissionProgress,
       checkAndUnlockAchievements: gameActions.checkAndUnlockAchievements
@@ -468,7 +488,11 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           bffInitialTab: bffInitialTab, setBffInitialTab: setBffInitialTab,
           room: room, roomId: roomId, notificationBellRef: notificationBellRef,
           showNotifications: showNotifications, setShowNotifications: setShowNotifications,
-          notifications: notifications, unreadNotifications: unreadNotifications
+          notifications: notifications, unreadNotifications: unreadNotifications,
+          showRejoinSNL: showRejoinSNL, setShowRejoinSNL: setShowRejoinSNL,
+          rejoinSNLRoomId: rejoinSNLRoomId, setRejoinSNLRoomId: setRejoinSNLRoomId,
+          rejoinDeclined: rejoinDeclined, setRejoinDeclined: setRejoinDeclined,
+          setActiveView: setActiveView, setRoomId: setRoomId, setActiveGameId: setActiveGameId
         })
         ), /*#__PURE__*/
 
@@ -1091,24 +1115,42 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
 
 
-          room && window.RoomView && /*#__PURE__*/
-          React.createElement(window.RoomView, _extends({},
-            gameActions, {
-            room: room, roomId: roomId, currentUID: currentUID, OWNER_UID: OWNER_UID, lang: lang, t: t,
-            myRole: window.GameService ? window.GameService.getMyRole(room, currentUID) : myRole,
-            isMyTurn: isMyTurn,
-            isSpectator: !me,
-            me: me,
-            turnTimer: turnTimer, wordSelTimer: wordSelTimer, votingTimer: votingTimer,
-            hasVoted: hasVoted,
-            hasVotedWord: hasVotedWord,
-            showLobbyPassword: showLobbyPassword, setShowLobbyPassword: setShowLobbyPassword,
-            copied: copied, handleCopy: gameActions.handleCopy,
-            gameChatInput: gameChatInput, setGameChatInput: setGameChatInput,
-            showGameChat: showGameChat, setShowGameChat: setShowGameChat,
-            currentUserData: currentUserData
-          })
-          )
+          (room || (activeView === 'game' && activeGameId === 'snake_ladder_pro')) && (
+            (room?.gameType === 'snake_ladder_pro' || (!room && activeGameId === 'snake_ladder_pro')) ? (
+            window.SnakeLadderView && React.createElement(window.SnakeLadderView, {
+              roomId: roomId,
+              gameId: room?.gameType || activeGameId,
+              user: user,
+              onExit: () => {
+                // ✅ FULL EXIT: clear ALL snake-ladder state so we never re-enter
+                localStorage.removeItem('last_snl_room_id');
+                if (typeof setRejoinDeclined === 'function') setRejoinDeclined(true);
+                setRoomId('');
+                setRoom(null);
+                setActiveGameId('spy');         // ← KEY FIX: was missing, caused re-render loop
+                setActiveView('lobby');
+              },
+              lang: lang
+            })
+          ) : (
+            window.RoomView && React.createElement(window.RoomView, _extends({},
+              gameActions, {
+              room: room, roomId: roomId, currentUID: currentUID, OWNER_UID: OWNER_UID, lang: lang, t: t,
+              myRole: window.GameService ? window.GameService.getMyRole(room, currentUID) : myRole,
+              isMyTurn: isMyTurn,
+              isSpectator: !me,
+              me: me,
+              turnTimer: turnTimer, wordSelTimer: wordSelTimer, votingTimer: votingTimer,
+              hasVoted: hasVoted,
+              hasVotedWord: hasVotedWord,
+              showLobbyPassword: showLobbyPassword, setShowLobbyPassword: setShowLobbyPassword,
+              copied: copied, handleCopy: gameActions.handleCopy,
+              gameChatInput: gameChatInput, setGameChatInput: setGameChatInput,
+              showGameChat: showGameChat, setShowGameChat: setShowGameChat,
+              currentUserData: currentUserData
+            })
+            )
+          ))
 
 
         ),

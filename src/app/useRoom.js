@@ -9,6 +9,7 @@
      */
     window.useRoom = ({
         roomId,
+        gameId, // 🆕 Accept gameId
         user,
         isLoggedIn,
         userData,
@@ -22,16 +23,20 @@
         checkAndUnlockAchievements
     }) => {
         useEffect(() => {
-            if (!roomId) {
-                // If we're not in a room, ensure the active room ID is cleared
-                // (Unless we want to keep it for retry logic, but usually blankroomId means we left)
-                return;
-            }
+            if (!roomId) return;
 
-            // 💾 [PERSISTENCE] Store current room ID for auto-rejoin
+            // 💾 [PERSISTENCE] Store current room context for auto-rejoin
             localStorage.setItem('pro_spy_active_room_id', roomId);
+            if (gameId) localStorage.setItem('pro_spy_active_game_id', gameId);
 
-            var unsub = roomsCollection.doc(roomId).onSnapshot(async doc => {
+            // 🔍 [DYNAMIC COLLECTION] Resolve collection based on current gameId
+            var col = (window.RoomService && typeof window.RoomService.getCollection === 'function')
+                ? window.RoomService.getCollection(gameId || 'spy')
+                : db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('rooms');
+
+            console.log('[useRoom] Listening to:', col.path, 'Room:', roomId);
+
+            var unsub = col.doc(roomId).onSnapshot(async doc => {
                 if (doc.exists) {
                     var data = doc.data();
                     setRoom(data);
@@ -61,8 +66,8 @@
                             await historyCollection.add({ ...data, finishedAt: TS() });
                         } catch (e) { console.error('[PRO SPY ERROR] historyCollection.add:', e); }
                         try {
-                            await roomsCollection.doc(roomId).update({ summaryShown: true });
-                        } catch (e) { console.error('[PRO SPY ERROR] roomsCollection.update summaryShown:', e); }
+                            await col.doc(roomId).update({ summaryShown: true });
+                        } catch (e) { console.error('[useRoom] update summaryShown error:', e); }
 
                         // ✅ Update stats, missions, achievements when game ends
                         if (isLoggedIn && user) {

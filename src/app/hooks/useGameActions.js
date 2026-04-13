@@ -11,7 +11,7 @@
      */
     window.useGameActions = function ({
         user, userData, isLoggedIn, isGuest, nickname, lang, t, currentUID, currentUserData,
-        room, roomId, setRoom, setRoomId,
+        room, roomId, setRoom, setRoomId, setActiveGameId,
         guestData, setGuestData, setNickname, setAuthLoading,
         setNotification, playSound, setAlertMessage, setLoading,
         setShowSetupModal, setActiveView, setCopied, setShowSummary,
@@ -211,25 +211,43 @@
 
         // ── Room & Game Actions ──
         var handleCreateGame = useCallback(async (mode, options = {}) => {
+            const gid = options.gameId || 'spy';
+            if (typeof setActiveGameId === 'function') {
+                setActiveGameId(gid);
+                localStorage.setItem('pro_spy_active_game_id', gid);
+            }
             window.RoomService.handleCreateGame({
+                ...options,
                 nickname, 
                 isPrivate: options.isPrivate !== undefined ? options.isPrivate : isPrivate, 
-                password: (options.isPasswordProtected && options.password) ? options.password : (isPrivate ? password : null), 
+                password: (options.password !== undefined && options.password !== null) ? options.password : (isPrivate ? password : null), 
                 currentUID, currentUserData, 
                 setupMode: mode || setupMode, 
-                gameId: options.gameId || 'spy',
+                gameId: gid,
                 t, lang,
                 setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound
             });
-        }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound]);
+        }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound, setActiveGameId]);
 
         var handleJoinGame = useCallback(async (id, pwd, options = {}) => {
+            const gid = options.gameId || 'spy';
+            if (typeof setActiveGameId === 'function') {
+                setActiveGameId(gid);
+                localStorage.setItem('pro_spy_active_game_id', gid);
+            }
             window.RoomService.handleJoinGame({
                 id, pwd, nickname, currentUID, currentUserData, t, lang,
-                gameId: options.gameId || 'spy',
+                gameId: gid,
                 setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound
             });
-        }, [nickname, currentUID, currentUserData, t, lang, setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound]);
+        }, [nickname, currentUID, currentUserData, t, lang, setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound, setActiveGameId]);
+        
+        // Expose to window for external integration (e.g., chat invites)
+        useEffect(() => {
+            if (typeof window !== 'undefined') {
+                window.proJoinGame = handleJoinGame;
+            }
+        }, [handleJoinGame]);
 
         var handleLeaveRoom = useCallback(async () => {
             window.RoomService.handleLeaveRoom({

@@ -77,7 +77,12 @@
       resetGame, handleLeaveRoom,
       // Marriage Actions
       handleAcceptProposal, handleDeclineProposal, handleDivorce,
-      shopInitialTab, setShopInitialTab
+      shopInitialTab, setShopInitialTab,
+      // Missing setters for game flow
+      setActiveView, setRoomId, setActiveGameId,
+      // SNL Rejoin
+      showRejoinSNL, setShowRejoinSNL, rejoinSNLRoomId, setRejoinSNLRoomId,
+      setRejoinDeclined
     } = props;
 
     // --- [VERSION UPDATE STATE] ---
@@ -684,15 +689,43 @@
 
 
 
-      showSetupModal && window.SpyModeSelector && /*#__PURE__*/
-      React.createElement(window.SpyModeSelector, {
-        user: user,
-        nickname: nickname,
-        onClose: () => setShowSetupModal(false),
-        onSelectMode: (mode, options) => {
-          handleCreateGame(mode, { ...options, gameId: setupGameId });
-        }
-      }),
+      showSetupModal && (function() {
+        // Dynamic Setup Modal Registry
+        const SetupComponent = (setupGameId === 'snake_ladder_pro' || setupGameId === 'snake-ladder') 
+          ? window.SnakeLadderModeSelector 
+          : window.SpyModeSelector;
+
+        if (!SetupComponent) return null;
+
+        return React.createElement(SetupComponent, {
+          user: user,
+          nickname: nickname,
+          gameId: setupGameId,
+          lang: lang,
+          t: t,
+          isLoggedIn: isLoggedIn,
+          isGuest: isGuest,
+          loading: loading,
+          requireLogin: typeof props.requireLogin === 'function' ? props.requireLogin : () => setShowLoginAlert(true),
+          onClose: () => setShowSetupModal(false),
+          onSelectMode: (mode, options) => {
+            if ((setupGameId === 'snake_ladder_pro' || setupGameId === 'snake-ladder') && mode === 'online' && !options.isPrivate && !options.isCustomRoom) {
+              // Trigger matchmaking flow: Just go to game view without a roomId
+              console.log("[SNL-Setup] Starting matchmaking flow...");
+              // ✅ Allow rejoin prompt for future sessions of THIS new game
+              sessionStorage.removeItem('snl_rejoin_declined');
+              if (typeof setActiveGameId === 'function') setActiveGameId('snake_ladder_pro');
+              if (typeof setRoomId === 'function') setRoomId(null);
+              if (typeof setActiveView === 'function') setActiveView('game');
+              setShowSetupModal(false);
+            } else {
+              // Private Online, Public Custom Online, Offline Party, or Vs Computer
+              sessionStorage.removeItem('snl_rejoin_declined');
+              handleCreateGame(mode, { ...options, gameId: setupGameId });
+            }
+          }
+        });
+      })(),
 
 
       showLuckyGames && window.LuckyGamesHubModal && /*#__PURE__*/
@@ -746,7 +779,50 @@
           localStorage.removeItem('pro_spy_post_crit_ver');
           setShowApologyModal(false);
         }
-      })
+      }),
+
+      // --- [SNL REJOIN MODAL] ---
+      showRejoinSNL && React.createElement("div", {
+        // ✅ FIX: Use modal-overlay (standard class) which has flexbox centering built in
+        className: "modal-overlay animate-fadeIn",
+        style: { zIndex: 3000 },
+        onClick: () => {
+          // Clicking outside = same as "No Thanks"
+          localStorage.removeItem('last_snl_room_id');
+          if (setRejoinDeclined) setRejoinDeclined(true);
+          setShowRejoinSNL(false);
+        }
+      }, React.createElement("div", {
+        className: "modal-content animate-pop",
+        style: { maxWidth: '340px', textAlign: 'center', padding: '30px 20px' },
+        onClick: (e) => e.stopPropagation() // prevent close on inner click
+      },
+        React.createElement("div", { style: { fontSize: '40px', marginBottom: '15px' } }, "🐍"),
+        React.createElement("h2", { style: { fontSize: '18px', fontWeight: 900, marginBottom: '10px' } },
+          lang === 'ar' ? 'لديك لعبة قائمة!' : 'Active Game Found!'),
+        React.createElement("p", { style: { fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '25px', lineHeight: '1.5' } },
+          lang === 'ar' ? 'هل تريد العودة ومواصلة اللعب في غرفتك السابقة؟' : 'Would you like to return and continue playing in your previous room?'),
+        React.createElement("div", { style: { display: 'flex', gap: '10px', flexDirection: 'column' } },
+          React.createElement("button", {
+            className: "btn-neon w-full py-3",
+            onClick: () => {
+              setRoomId(rejoinSNLRoomId);
+              setActiveGameId('snake_ladder_pro');
+              setActiveView('game');
+              setShowRejoinSNL(false);
+            }
+          }, lang === 'ar' ? 'نعم، عودة' : 'Yes, Rejoin'),
+          React.createElement("button", {
+            className: "btn-ghost w-full py-2",
+            onClick: () => {
+              localStorage.removeItem('last_snl_room_id');
+              // ✅ FIX: Also set rejoinDeclined so useEffect never re-fires
+              if (setRejoinDeclined) setRejoinDeclined(true);
+              setShowRejoinSNL(false);
+            }
+          }, lang === 'ar' ? 'لا، شكراً' : 'No, Thanks')
+        )
+      ))
 
       ));
 

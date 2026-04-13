@@ -81,6 +81,28 @@ service cloud.firestore {
         allow write: if isLoggedIn() && get(/databases/$(database)/documents/artifacts/$(appId)/public/data/spy_rooms/$(roomId)).data.hostUid == request.auth.uid;
       }
     }
+    
+    // ══════════════════════════════════════════════════════════
+    //  SNAKE & LADDER ROOMS
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/snake_rooms/{roomId} {
+      allow read:   if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
+
+      match /players/{playerId} {
+        allow read: if true;
+        allow write: if true;
+      }
+
+      match /chat/{msgId} {
+        allow read: if true;
+        allow create: if true;
+        allow update: if true;
+        allow delete: if true;
+      }
+    }
 
     match /artifacts/{appId}/public/data/rooms/{roomId} {
       // ✅ Guests (unauthenticated) can play — allow all reads & writes
@@ -88,6 +110,26 @@ service cloud.firestore {
       allow create: if true;
       allow update: if true;
       allow delete: if true;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  MATCHMAKING QUEUE (Snake & Ladder quick match)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/global_queues/{userId} {
+      // Anyone can read the queue (to see how many players are waiting)
+      allow read: if true;
+      // Only the owner of that queue slot can write/delete it
+      allow create: if isLoggedIn() && request.auth.uid == userId;
+      // MatchmakingService coordinator updates roomId on other players' entries
+      allow update: if isLoggedIn();
+      allow delete: if isLoggedIn() && (request.auth.uid == userId || isOwnerUID());
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  MATCHMAKING ROOMS (created by client-side coordinator)
+    // ══════════════════════════════════════════════════════════
+    match /artifacts/{appId}/public/data/rooms/{gameId}/players/{roomId} {
+      allow read, write: if isLoggedIn();
     }
 
     // ══════════════════════════════════════════════════════════

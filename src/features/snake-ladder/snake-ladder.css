@@ -1,0 +1,650 @@
+/* ============================================================
+   snake-ladder.css — Scoped Styling for Snake & Ladder Pro
+   - Root selector: #snl-game-container
+   - All assets relative to /icos/snake-ladder/ or /audio/snake-ladder/
+   ============================================================ */
+
+#snl-game-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    margin: 0 auto;
+    font-family: inherit;
+    color: #fff;
+    user-select: none;
+    background-image: url("/icos/snake-ladder/garden.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#snl-playground {
+    position: relative;
+    width: 90%;
+    margin: auto;
+    z-index: 1;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 20px;
+    border: 4px solid #8b4513;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+#snl-board-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    background: #1a1a2e;
+    border-radius: 12px;
+    overflow: visible; /* Show players at start line below the board */
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    margin-bottom: 25px; /* Space for grass area */
+}
+
+#snl-game-board {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url("/icos/snake-ladder/bg2.jpg");
+    background-repeat: no-repeat;
+    background-size: cover; /* ✅ FIX: was 100% 100% — cover preserves aspect ratio like the original */
+    background-position: center;
+}
+
+/* Original "Ledge" effect - Matching styles.css */
+#snl-game-board::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #8b4513; /* saddlebrown */
+    z-index: -1;
+    transform: scale(1.075);
+    border-radius: 8px;
+}
+
+/* Pieces styling - Matching Original Parity */
+/* Improved piece styling - Matching Original Parity */
+.snl-player {
+    position: absolute;
+    width: 55px;
+    height: 55px;
+    background-image: url("/icos/snake-ladder/pieces.jpg");
+    background-repeat: no-repeat;
+    background-size: 195px 120px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6));
+    border: 3px solid rgba(255,255,255,0.4);
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+}
+
+/* Specific styling for pieces in grass (pos=0) */
+.snl-player.snl-piece-in-grass {
+    scale: 0.8;
+    animation: snl-grass-float 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 5px rgba(0,0,0,0.4));
+}
+
+.snl-player.snl-piece-left {
+    filter: grayscale(0.8) contrast(0.8);
+}
+
+@keyframes snl-grass-float {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.65) translateY(0); }
+    50% { transform: translate(-50%, -50%) scale(0.65) translateY(-5px); }
+}
+
+.snl-player-name {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+    border: 1.5px solid #000;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.snl-player.active {
+    z-index: 10;
+    animation: snl-active-pulse 1.5s infinite;
+}
+
+@keyframes snl-active-pulse {
+    0% { transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    50% { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0); }
+    100% { transform: translate(-50%, -50%) scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* UI Controls & Dice Animation */
+.snl-controls {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Premium Footer HUD - Matching Original Parity (Brown Bar) */
+.snl-footer-hud {
+    width: 100%;
+    height: 70px;
+    background: #6b3e23; /* Darker saddlebrown bar */
+    border-top: 3px solid #8b4513;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+/* Entry animation - token slides from avatar to board */
+@keyframes snl-entry-slide {
+    0% {
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        top: -30px;
+        transform: translateX(-50%) scale(1.3);
+        opacity: 1;
+    }
+    100% {
+        top: -60px;
+        left: 20%;
+        transform: translateX(-50%) scale(0.5);
+        opacity: 0;
+    }
+}
+
+.snl-entry-animation {
+    animation: snl-entry-slide 0.6s ease-out forwards;
+}
+
+.snl-hud-player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.snl-hud-avatar-box {
+    position: relative;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+.snl-hud-avatar-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important;
+}
+
+.snl-hud-name-label {
+    background: #fff;
+    color: #000;
+    font-weight: 900;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1.5px solid #000;
+    text-transform: uppercase;
+}
+
+.snl-hud-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.snl-exit-btn {
+    background: #a80000;
+    color: white;
+    border: 2px solid #000;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.snl-exit-btn:active {
+    transform: scale(0.9);
+}
+
+.snl-play-btn {
+    width: 50px;
+    height: 44px;
+    background: #eab308; /* yellow-500 */
+    border: 2px solid #000;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.2s;
+}
+
+.snl-play-btn:hover { background: #facc15; }
+.snl-play-btn:active { transform: scale(0.9); }
+
+.snl-play-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/*
+ * ✅ DICE FIX: Match the original game's #dice element exactly.
+ * Original CSS: width:50px, height:50px, background-size:396px, background-position: [X]px 110px
+ * The dice box IS the dice visual — no child div needed (but we keep the inner div for JS compat).
+ * background-position-y: 110px pushes the sprite sheet so the dice row shows in the 50px window.
+ */
+.snl-dice-box {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #000;
+    border-radius: 5px;
+    background: transparent;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    cursor: default;
+    overflow: hidden;
+}
+
+.snl-dice-box.clickable {
+    cursor: pointer;
+}
+
+.snl-dice-box.clickable:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+}
+
+/* The inner .snl-dice-visual carries the actual sprite */
+.snl-dice-visual {
+    width: 50px;
+    height: 50px;
+    background-image: url("/icos/snake-ladder/dice.webp");
+    background-size: 396px;         /* exactly as original */
+    background-position-y: 110px;   /* exactly as original: background-position: Xpx 110px */
+    /* NOTE: background-repeat intentionally left as default (repeat) — the
+       DICE_OFFSETS values (380, 318, …) use CSS tiling math, same as the
+       original game. Removing repeat breaks sprite positioning. */
+    border-radius: 4px;
+    transition: background-position-x 0.15s ease-out;
+}
+
+/* Win Podium Overlay */
+.snl-podium-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    border-radius: 12px;
+    animation: snl-fade-in 0.3s ease-out;
+}
+
+@keyframes snl-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.snl-winner-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    margin-bottom: 20px;
+}
+
+/* ============================================================
+   Waiting Room UI — snl-waiting-room
+   Shown when room.status === 'waiting' (before host starts game)
+   ============================================================ */
+
+.snl-waiting-room {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    margin: 0 auto;
+    background: linear-gradient(160deg, #0a0a14 0%, #10102a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: inherit;
+    color: #e2e8f0;
+}
+
+/* Subtle background pattern */
+.snl-waiting-room::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("/icos/snake-ladder/garden.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.08;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.snl-waiting-room > * { position: relative; z-index: 1; }
+
+/* Header */
+.snl-wr-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    position: absolute !important;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 10;
+}
+
+.snl-wr-exit-btn {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #94a3b8;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.snl-wr-exit-btn:hover {
+    background: rgba(255,0,85,0.12);
+    border-color: rgba(255,0,85,0.3);
+    color: #f87171;
+}
+
+/* Room Code Card */
+.snl-wr-code-card {
+    width: 100%;
+    max-width: 340px;
+    background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(112,0,255,0.06));
+    border: 1.5px solid rgba(0,242,255,0.25);
+    border-radius: 20px;
+    padding: 24px 22px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,242,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.snl-wr-code-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #00f2ff;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.snl-wr-code-value {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(0,242,255,0.5);
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.snl-wr-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,242,255,0.12);
+    border: 1px solid rgba(0,242,255,0.3);
+    color: #00f2ff;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 10px;
+}
+.snl-wr-copy-btn:hover { background: rgba(0,242,255,0.2); transform: scale(1.03); }
+.snl-wr-copy-btn.copied {
+    background: rgba(16,185,129,0.2);
+    border-color: rgba(16,185,129,0.4);
+    color: #10b981;
+}
+
+.snl-wr-share-hint {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* Players Section */
+.snl-wr-players {
+    width: 100%;
+    max-width: 340px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 16px 18px;
+}
+
+.snl-wr-players-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.snl-wr-players-list { display: flex; flex-direction: column; gap: 8px; }
+
+.snl-wr-player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.snl-wr-player-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+}
+.snl-wr-player-dot.dot-0 { background: #ef4444; color: #ef4444; }
+.snl-wr-player-dot.dot-1 { background: #22c55e; color: #22c55e; }
+.snl-wr-player-dot.dot-2 { background: #3b82f6; color: #3b82f6; }
+.snl-wr-player-dot.dot-3 { background: #eab308; color: #eab308; }
+
+.snl-wr-player-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.snl-wr-you-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #00f2ff;
+}
+
+.snl-wr-host-tag {
+    font-size: 13px;
+}
+
+/* Action Area */
+.snl-wr-actions {
+    width: 100%;
+    max-width: 340px;
+    text-align: center;
+}
+
+.snl-wr-min-hint {
+    font-size: 12px;
+    color: #f59e0b;
+    margin-bottom: 10px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 8px;
+    padding: 8px 14px;
+}
+
+.snl-wr-start-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #00f2ff, #7000ff);
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 24px rgba(0,242,255,0.25);
+    transition: all 0.2s;
+}
+.snl-wr-start-btn:hover { transform: scale(1.03); box-shadow: 0 12px 32px rgba(0,242,255,0.35); }
+.snl-wr-start-btn:active { transform: scale(0.98); }
+
+/* "Solo allowed" variant — slightly dimmed but still clickable */
+.snl-wr-start-btn.solo-allowed {
+    background: linear-gradient(135deg, rgba(0,242,255,0.5), rgba(112,0,255,0.5));
+    box-shadow: 0 4px 16px rgba(0,242,255,0.1);
+}
+
+/* Non-admin waiting message */
+.snl-wr-waiting-msg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.snl-wr-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(0,242,255,0.15);
+    border-top-color: #00f2ff;
+    border-radius: 50%;
+    animation: snl-spin 0.9s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes snl-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   AFK & Timer Styling
+   ============================================================ */
+.snl-turn-countdown {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #10b981;
+    font-size: 11px;
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    animation: snl-pulse 1s infinite;
+}
+
+.snl-piece-afk-tag {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid white;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    z-index: 25;
+}
+
+@keyframes snl-pulse {
+    0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    50% { opacity: 0.7; transform: translateX(-50%) scale(0.9); }
+}
+/* Settings Range Slider */
+.snl-range-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+.snl-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    border: 3px solid #1a1a2e;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(16,185,129,0.5);
+    transition: transform 0.2s;
+}
+
+.snl-range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.snl-range-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    border: 3px solid #1a1a2e;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(16,185,129,0.5);
+}
+
+.snl-afk-badge {
+    border-radius: 50%;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+}
