@@ -26,6 +26,14 @@ ui-debug.log
 .windsurf/
 .openclaw/
 .gemini/
+.specify/
+.vscode/
+.well-known/
+
+# Metadata / Project Brain
+skills/
+specs/
+firebase.txt
 
 # Temporary / Large Files
 Defusemaster/
