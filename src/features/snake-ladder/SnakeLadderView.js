@@ -32,7 +32,7 @@
         }, [roomData, user?.uid]);
         
         const service = window.SnakeLadderService;
-        const AUDIO_BASE = './web-game-snake-ladder-main/web-game-snake-ladder-main/audio/';
+        const AUDIO_BASE = './audio/snake-ladder/';
         const DICE_OFFSETS = [380, 318, 256, 195, 133, 71]; // Original Positive Offsets
 
         const [codeCopied, setCodeCopied] = useState(false);
