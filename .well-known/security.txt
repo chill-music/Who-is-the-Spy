@@ -1,5 +1,0 @@
-Contact: mailto:security@prospy.mooo.com
-Expires: 2027-01-01T00:00:00.000Z
-Preferred-Languages: ar, en
-Canonical: https://prospy.mooo.com/.well-known/security.txt
-Policy: https://prospy.mooo.com/security-policy.html
