@@ -112,14 +112,16 @@
         }, []);
 
         useEffect(() => {
-            initBGM();
+            if (!showMatchmaking) {
+                initBGM();
+            }
             return () => {
                 if (audioRef.current.bgm) {
                     audioRef.current.bgm.pause();
                     audioRef.current.bgm = null;
                 }
             };
-        }, [initBGM]);
+        }, [initBGM, showMatchmaking]);
 
         const playAudio = (file) => {
             if (audioRef.current.isMuted) return;
