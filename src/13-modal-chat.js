@@ -848,6 +848,30 @@
                     border: 'none', borderRadius: '8px', cursor: 'pointer', letterSpacing: '1px'
                 }
             }, "JOIN MISSION")
+          ) :
+          msg.type === 'snl_room_invite' ? /*#__PURE__*/
+          React.createElement("div", { style: {
+            background: 'linear-gradient(135deg,rgba(16,185,129,0.1),rgba(0,0,0,0.4))',
+            border: '1px solid rgba(16,185,129,0.3)',
+            borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+            padding: '12px', minWidth: '200px'
+          } },
+            React.createElement("div", { style: { fontSize: '24px', marginBottom: '4px' } }, "🐍"),
+            React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#fff', marginBottom: '4px' } }, lang === 'ar' ? "دعوة للعب سلم وثعبان!" : "Snake & Ladder Invite!"),
+            React.createElement("div", { style: { fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginBottom: '8px' } }, msg.text),
+            React.createElement("button", {
+                onClick: async () => {
+                    onClose && onClose();
+                    if (window.proJoinGame) {
+                        window.proJoinGame(msg.roomCode, msg.password, { gameId: 'snake_ladder_pro' });
+                    }
+                },
+                style: {
+                    width: '100%', padding: '8px', background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff', fontWeight: 900, fontSize: '11px', textTransform: 'uppercase',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer', letterSpacing: '1px'
+                }
+            }, lang === 'ar' ? "انضم الآن" : "JOIN GAME")
           ) : /*#__PURE__*/
 
           React.createElement("div", { style: {

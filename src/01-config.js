@@ -226,15 +226,18 @@ var GAMES_CONFIG = [
         collection: 'draw_rooms'
     },
     {
-        id: 'snake',
-        name: { en: 'Snake & Ladder', ar: 'السلم والثعبان' },
+        id: 'snake_ladder_pro',
+        name: { en: 'Snake & Ladder Pro', ar: 'السلم والثعبان برو' },
         icon: '🐍',
+        logo: 'icos/snake-ladder/SnakeLadderloge.png',
         description: { en: 'The ultimate race! Climb the ladders and avoid the slippery snakes to reach the finish line first.', ar: 'السباق النهائي! تسلق السلالم وتجنب الثعابين لتصل للنهاية أولاً.' },
-        status: 'coming_soon',
+        status: 'active',
         theme: {
             color: '#10b981',
             bgGradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15))',
-            glow: 'rgba(16, 185, 129, 0.5)'
+            glow: 'rgba(16, 185, 129, 0.5)',
+            logoUrl: 'icos/snake-ladder/SnakeLadderloge.png',
+            iconUrl: 'icos/snake-ladder/SnakeLadderloge.png'
         },
         collection: 'snake_rooms'
     }

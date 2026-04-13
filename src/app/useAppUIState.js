@@ -101,6 +101,7 @@
         var [loveBotUnread, setLoveBotUnread] = useState(0);
         var [staffCommandBotUnread, setStaffCommandBotUnread] = useState(0);
 
+        var [activeGameId, setActiveGameId] = useState(() => localStorage.getItem('pro_spy_active_game_id') || 'spy');
         var [showVIPCenter, setShowVIPCenter] = useState(false);
         var [showHelpCenter, setShowHelpCenter] = useState(false);
         var [showPublicChat, setShowPublicChat] = useState(false);
@@ -114,6 +115,15 @@
         var [sendGiftTarget, setSendGiftTarget] = useState(null);
         var [showSpyRebuild, setShowSpyRebuild] = useState(false);
         var [setupGameId, setSetupGameId] = useState('spy');
+        var [showRejoinSNL, setShowRejoinSNL] = useState(false);
+        var [rejoinSNLRoomId, setRejoinSNLRoomId] = useState(null);
+        // ✅ FIX: sessionStorage so "No Thanks" persists across page refreshes (clears when tab is closed)
+        var [rejoinDeclined, _setRejoinDeclined] = useState(() => sessionStorage.getItem('snl_rejoin_declined') === '1');
+        var setRejoinDeclined = function(val) {
+            if (val) sessionStorage.setItem('snl_rejoin_declined', '1');
+            else sessionStorage.removeItem('snl_rejoin_declined');
+            _setRejoinDeclined(val);
+        };
         var [browseGameId, setBrowseGameId] = useState('spy');
 
         return {
@@ -129,6 +139,7 @@
             showSetupModal, setShowSetupModal,
             setupGameId, setSetupGameId,
             browseGameId, setBrowseGameId,
+            activeGameId, setActiveGameId,
             setupMode, setSetupMode,
             isPrivate, setIsPrivate,
             password, setPassword,
@@ -209,7 +220,10 @@
             showLuckyGames, setShowLuckyGames,
             showSendGiftModal, setShowSendGiftModal,
             sendGiftTarget, setSendGiftTarget,
-            showSpyRebuild, setShowSpyRebuild
+            showSpyRebuild, setShowSpyRebuild,
+            showRejoinSNL, setShowRejoinSNL,
+            rejoinSNLRoomId, setRejoinSNLRoomId,
+            rejoinDeclined, setRejoinDeclined
         };
     };
 })();

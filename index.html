@@ -473,6 +473,19 @@
         loadAppScript("src/features/spy-rebuild/SpyGame-online.js");
         loadAppScript("src/features/spy-rebuild/SpyGame-ui.js");
 
+        // Snake & Ladder Pro
+        loadAppScript("src/components/services/MatchmakingService.js");
+        loadAppScript("src/components/modals/MatchmakingOverlay.js");
+        loadAppScript("src/features/snake-ladder/SnakeLadderEngine.js");
+        loadAppScript("src/features/snake-ladder/SnakeLadderService.js");
+        loadAppScript("src/features/snake-ladder/TurnTimer.js");
+        loadAppScript("src/features/snake-ladder/SnakeLadderComponents.js");
+        // ✅ FIX: Load the FULL mode selector AFTER Components so it overrides
+        // the simplified version — this enables offline/bots/private modes
+        loadAppScript("src/features/snake-ladder/SnakeLadderModeSelector.js");
+        loadAppScript("src/features/snake-ladder/SnakeLadderView.js");
+        loadAppStyle("src/features/snake-ladder/snake-ladder.css");
+
         // App Shell
         loadAppScript("src/features/app/components/GlobalModals.js");
         loadAppScript("src/10-app.js");

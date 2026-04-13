@@ -17,3 +17,19 @@ build/
 .firebase/
 firestore-debug.log
 ui-debug.log
+
+# AI Agent / IDE Tools
+.agent/
+.agents/
+.claude/
+.continue/
+.windsurf/
+.openclaw/
+.gemini/
+
+# Temporary / Large Files
+Defusemaster/
+*.rar
+*.bak
+*.tmp
+temp/

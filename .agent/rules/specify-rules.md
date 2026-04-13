@@ -42,9 +42,9 @@ npm test; npm run lint
 Vanilla JavaScript (ES6+), React 18 via CDN (no JSX transpiler): Follow standard conventions
 
 ## Recent Changes
+- 020-snake-ladder-online: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 - 019-multi-game-lobby: Added JavaScript (ES6+) / React 18.2.0 (CDN) + Firebase 9 (CDN), FontAwesome (Icons)
 - 018-harden-site-security: Added JavaScript (ES6+, No Bundler) + Firebase (v10.7.1), React (CDN), React DOM (CDN)
-- 017-defuse-master-localization: Added Javascript (ES2022+ compatible, but refactored to IIFE for global script loading) + React 18 (Global), Baloo 2 (Google Font)
 
 
 <!-- MANUAL ADDITIONS START -->

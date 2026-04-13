@@ -30,7 +30,7 @@
          * Extracted from handleCreateGame in 10-app.js
          */
         handleCreateGame: async function(context) {
-            var nickname = context.nickname;
+            var nickname = context.nickname || context.currentUserData?.displayName || context.currentUserData?.nickname || 'Player';
             var isPrivate = context.isPrivate;
             var password = context.password;
             var currentUID = context.currentUID;
@@ -48,8 +48,11 @@
             var setCopied = context.setCopied;
             var playSound = context.playSound;
 
-            if (!nickname.trim()) return;
-            if (isPrivate && !password.trim()) { 
+            // ✅ FIX: Guard against empty nickname
+            if (!nickname || !nickname.trim()) {
+                nickname = lang === 'ar' ? 'لاعب' : 'Player';
+            }
+            if (isPrivate && (!password || !password.trim())) { 
                 if (typeof setAlertMessage === 'function') setAlertMessage(t.privateRoomError); 
                 return; 
             }
@@ -70,6 +73,48 @@
             
             var gameId = context.gameId || 'spy';
             var col = this.getCollection(gameId);
+            
+            // Snake Ladder Special Modes
+            var players = [{ 
+                uid: uid, 
+                name: nickname, 
+                status: 'active', 
+                photo: this.getDefaultPhoto(tempUserData, nickname), 
+                role: null, 
+                equipped: tempUserData?.equipped || {}, 
+                vip: tempUserData?.vip || {} 
+            }];
+
+            if (context.vsBots) {
+                var botsCount = context.botCount || 1;
+                for (var i = 0; i < botsCount; i++) {
+                    players.push({
+                        uid: 'bot_' + Math.random().toString(36).substring(7) + '_' + i,
+                        name: (lang === 'ar' ? 'الكمبيوتر ' : 'Computer ') + (i + 1),
+                        type: 'bot',
+                        status: 'active',
+                        photo: '/icos/snake-ladder/bot_avatar.png',
+                        role: null,
+                        equipped: {},
+                        vip: {}
+                    });
+                }
+            } else if (context.isParty) {
+                // Determine names for party mode
+                var partyNames = context.partyNames || [lang === 'ar' ? 'لاعب 2' : 'Player 2'];
+                partyNames.forEach(function(pName, idx) {
+                    players.push({
+                        uid: 'guest_' + Math.random().toString(36).substring(7) + '_' + idx,
+                        name: pName,
+                        type: 'human',
+                        status: 'active',
+                        photo: '/icos/snake-ladder/guest_avatar.png',
+                        role: null,
+                        equipped: {},
+                        vip: {}
+                    });
+                });
+            }
 
             try {
                 // Use the resolved Game Namespace collection
@@ -77,41 +122,27 @@
                     id: id, 
                     gameType: gameId,
                     admin: uid, 
-                    status: 'waiting', 
-                    players: [{ 
-                        uid: uid, 
-                        name: nickname, 
-                        status: 'active', 
-                        photo: this.getDefaultPhoto(tempUserData, nickname), 
-                        role: null, 
-                        equipped: tempUserData?.equipped || {}, 
-                        vip: tempUserData?.vip || {} 
-                    }], 
+                    status: (context.vsBots || context.isParty) ? 'playing' : 'waiting', 
+                    players: players,
+                    playerPositions: Object.fromEntries(players.map(p => [p.uid, 0])),
+                    currentTurnIndex: 0,
+                    winners: [],
+                    lastAction: null,
                     scenario: null, 
                     spyId: null, 
-                    currentTurnUID: null, 
-                    turnEndTime: null, 
-                    votingEndTime: null, 
-                    currentRound: 0, 
+                    // ... other legacy fields from Spy
                     messages: [], 
-                    votes: {}, 
-                    usedLocations: [], 
-                    wordVotes: {}, 
-                    chosenWord: null, 
-                    wordSelEndTime: null, 
-                    votingRequest: null, 
-                    mode: setupMode, 
                     isPrivate: isPrivate, 
                     password: isPrivate ? password : null, 
-                    maxPlayers: 8, 
-                    startedAt: null, 
-                    summaryShown: false 
+                    maxPlayers: (context.vsBots) ? (1 + (context.botCount || 1)) : (context.isParty ? players.length : 4), 
+                    startedAt: (context.vsBots || context.isParty) ? firebase.firestore.FieldValue.serverTimestamp() : null,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 if (typeof setRoomId === 'function') setRoomId(id);
                 if (typeof setLoading === 'function') setLoading(false);
                 if (typeof setShowSetupModal === 'function') setShowSetupModal(false);
-                if (typeof setActiveView === 'function') setActiveView('lobby');
+                if (typeof setActiveView === 'function') setActiveView(gameId === 'snake_ladder_pro' ? 'game' : 'lobby');
                 
                 // Clipboard integration
                 if (navigator.clipboard) {
@@ -156,8 +187,10 @@
                 if (typeof setJoinError === 'function') setJoinError(t.enterCodeError); 
                 return; 
             }
-            if (!nickname.trim()) return;
+            // ✅ FIX: Guard against empty/null nickname
+            if (!nickname || !nickname.trim()) nickname = lang === 'ar' ? 'لاعب' : 'Player';
             
+
             if (typeof playSound === 'function') playSound('click');
             if (typeof setLoading === 'function') setLoading(true);
             if (typeof setJoinError === 'function') setJoinError('');
