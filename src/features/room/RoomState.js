@@ -180,7 +180,6 @@
             var setAlertMessage = context.setAlertMessage;
             var setRoomId = context.setRoomId;
             var setActiveView = context.setActiveView;
-            var setShowBrowseRooms = context.setShowBrowseRooms;
             var playSound = context.playSound;
 
             if (!id || id.trim() === "") { 
@@ -250,8 +249,15 @@
                     }
                     
                     if (typeof setRoomId === 'function') setRoomId(roomIdClean);
-                    if (typeof setActiveView === 'function') setActiveView('lobby');
-                    if (typeof setShowBrowseRooms === 'function') setShowBrowseRooms(false);
+                    
+                    // Resolve target view from metadata or context
+                    var gameMeta = (window.GAMES_CONFIG || []).find(g => g.id === gameId);
+                    var targetView = context.targetView || gameMeta?.targetView || 'lobby';
+                    
+                    if (typeof setActiveView === 'function') setActiveView(targetView);
+                    
+                    // Optional success callback for modal cleanup
+                    if (typeof context.onSuccess === 'function') context.onSuccess(data);
                 } else { 
                     if (typeof setJoinError === 'function') {
                         setJoinError(lang === 'ar' ? 'الغرفة غير موجودة' : "Room not found"); 
@@ -294,7 +300,12 @@
                 } else { 
                     // Member leaves → remove from players structure
                     var playersData = room.players || {};
-                    if (Array.isArray(playersData)) {
+                    var playersArray = Array.isArray(playersData) ? playersData : Object.values(playersData);
+
+                    // If they are the last one, delete the room
+                    if (playersArray.length <= 1) {
+                        await collection.doc(roomId).delete();
+                    } else if (Array.isArray(playersData)) {
                         // Legacy Array remove
                         var updatedPlayers = playersData.filter(function(p) { 
                             return p.uid !== currentUID; 

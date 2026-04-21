@@ -1,0 +1,159 @@
+/* 
+   🎁 GIFTS PREMIUM - CYBER LUXURY UI
+   Redesigned for Pro Spy - V11 
+*/
+
+:root {
+    --gift-primary: #00f2ff;
+    --gift-secondary: #7c3aed;
+    --gift-glass-bg: rgba(10, 10, 24, 0.75);
+    --gift-glass-border: rgba(255, 255, 255, 0.08);
+    --gift-glow: rgba(0, 242, 255, 0.15);
+}
+
+/* Modal Surface */
+.premium-gift-modal {
+    background: linear-gradient(180deg, #12122b 0%, #080815 100%) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid var(--gift-glass-border) !important;
+    border-bottom: none !important;
+    box-shadow: 0 -20px 80px rgba(0, 0, 0, 0.9) !important;
+    animation: premiumModalEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes premiumModalEnter {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Scroll Container */
+.gift-grid-container {
+    perspective: 1000px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Staggered Item Animation */
+.gift-item-card {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+    animation: giftItemReveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+}
+
+@keyframes giftItemReveal {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Tab Indicator Transition */
+.gift-tabs-nav {
+    position: relative;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 12px;
+    gap: 4px;
+}
+
+.gift-tabs-nav::-webkit-scrollbar { display: none; }
+
+.gift-tab-btn {
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+    padding: 8px 16px;
+    font-weight: 800;
+    font-size: 11px;
+    white-space: nowrap;
+    border-radius: 20px;
+}
+
+.gift-tab-btn.active {
+    background: rgba(0, 242, 255, 0.15);
+    color: var(--gift-primary) !important;
+}
+
+/* Item Hover & Selection */
+.gift-item-card {
+    background: rgba(255, 255, 255, 0.015) !important;
+    border: 2px solid transparent !important; /* Stable Box Model */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.gift-item-card:hover:not(.locked) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.gift-item-card.selected {
+    background: radial-gradient(circle at center, var(--rarity-bg, rgba(255,255,255,0.05)), transparent 80%) !important;
+    border-color: var(--rarity-color, var(--gift-primary)) !important;
+    box-shadow: 0 0 25px var(--rarity-glow, var(--gift-glow)) !important;
+    animation: selectedPulse 2s infinite ease-in-out;
+}
+
+@keyframes selectedPulse {
+    0% { transform: scale(1); box-shadow: 0 0 15px var(--rarity-glow, var(--gift-glow)); }
+    50% { transform: scale(1.02); box-shadow: 0 0 35px var(--rarity-glow, var(--gift-glow)); }
+    100% { transform: scale(1); box-shadow: 0 0 15px var(--rarity-glow, var(--gift-glow)); }
+}
+
+/* Rare Item Shimmer */
+.gift-rarity-mythic::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 45%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 55%
+    );
+    animation: giftShimmer 4s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes giftShimmer {
+    from { transform: rotate(0deg) translate(-20%, -20%); }
+    to { transform: rotate(0deg) translate(20%, 20%); }
+}
+
+/* Pulse for Target Selection — Chic & Refined */
+.gift-target-avatar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gift-target-avatar.active {
+    transform: scale(1.05);
+}
+
+.gift-target-avatar .avatar-wrapper {
+    position: relative;
+    padding: 2px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.gift-target-avatar.active .avatar-wrapper {
+    background: linear-gradient(135deg, var(--gift-primary), var(--gift-secondary));
+    box-shadow: 0 0 12px rgba(0, 242, 255, 0.4);
+}
+
+/* Responsive Overrides */
+@media (max-width: 400px) {
+    .gift-item-card {
+        height: 105px !important;
+    }
+}

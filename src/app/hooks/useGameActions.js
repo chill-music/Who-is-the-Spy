@@ -14,10 +14,11 @@
         room, roomId, setRoom, setRoomId, setActiveGameId,
         guestData, setGuestData, setNickname, setAuthLoading,
         setNotification, playSound, setAlertMessage, setLoading,
-        setShowSetupModal, setActiveView, setCopied, setShowSummary,
-        setShowLoginAlert, setShowDropdown, setJoinError, setShowBrowseRooms,
+        setShowSetupModal, setActiveView, setCopied, setShowSummary, setShowSpyRebuild,
+        showSpyRebuild, showFamilyChat, showPublicChat, showPrivateChat,
+        setShowLoginAlert, setShowDropdown, setJoinError,
         setFriendsData, setFriendRequests, setChatsMeta, setTotalUnread,
-        setChatFriend, setShowPrivateChat, setOpenChatId, setShowUserProfile, setTargetProfileUID,
+        setChatFriend, chatFriend, setShowPrivateChat, setOpenChatId, setShowUserProfile, setTargetProfileUID,
         setLeaderboardData, setCharismaLeaderboard, setFamilyLeaderboard,
         setIncomingProposal, setShowIncomingProposal,
         proposalRing, setSessionClaimedToday,
@@ -235,12 +236,27 @@
                 setActiveGameId(gid);
                 localStorage.setItem('pro_spy_active_game_id', gid);
             }
+
+            if (gid === 'spy') {
+                // ✅ FIX (025): For spy, opening the UI is ALL we do here.
+                // The actual Firestore join is handled EXCLUSIVELY by SPY_ENGINE.RoomManager
+                // (called from SpyGameRebuild → SPY_UI.initJoinRoom).
+                //
+                // We MUST NOT call window.RoomService.handleJoinGame for spy because:
+                //   1. It tries a generic playerOrder + arrayUnion write → 403 (spy_rooms
+                //      security rules don't whitelist this generic format).
+                //   2. It conflicts with SPY_ENGINE's own authoritative join operation.
+                if (typeof setShowSpyRebuild === 'function') setShowSpyRebuild(true);
+                return; // SPY_ENGINE takes it from here via SpyGameRebuild.initVanillaBridge
+            }
+
+            // For all non-spy games (SNL, Cinema, etc.) use the generic RoomService join
             window.RoomService.handleJoinGame({
                 id, pwd, nickname, currentUID, currentUserData, t, lang,
                 gameId: gid,
-                setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound
+                setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, playSound
             });
-        }, [nickname, currentUID, currentUserData, t, lang, setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, setShowBrowseRooms, playSound, setActiveGameId]);
+        }, [nickname, currentUID, currentUserData, t, lang, setJoinError, setLoading, setAlertMessage, setRoomId, setActiveView, playSound, setActiveGameId, setShowSpyRebuild]);
         
         // Expose to window for external integration (e.g., chat invites)
         useEffect(() => {
@@ -379,9 +395,11 @@
 
         var handleSendGiftToUser = useCallback(async (gift, targetUser, qty = 1, fromInventory = false, familyScopeId = null) => {
             window.ChatManager.handleSendGiftToUser({
-                user, isLoggedIn, userData, lang, t, setNotification, incrementMissionProgress, checkAndUnlockAchievements, createNotification
+                user, isLoggedIn, userData, lang, t, setNotification, incrementMissionProgress, checkAndUnlockAchievements, createNotification,
+                // Context for origin tagging
+                roomId, showSpyRebuild, showFamilyChat, showPublicChat, showPrivateChat, chatFriend
             }, gift, targetUser, qty, fromInventory, familyScopeId);
-        }, [user, isLoggedIn, userData, lang, t, setNotification, incrementMissionProgress, checkAndUnlockAchievements, createNotification]);
+        }, [user, isLoggedIn, userData, lang, t, setNotification, incrementMissionProgress, checkAndUnlockAchievements, createNotification, roomId, showSpyRebuild, showFamilyChat, showPublicChat, showPrivateChat, chatFriend]);
 
         // ── Couple Actions ──
         var handleSendProposal = useCallback(async ({ toUID, toData, giftId, message }) => {

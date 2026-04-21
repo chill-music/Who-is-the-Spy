@@ -91,7 +91,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       friendSearchMsg, setFriendSearchMsg, friendRequests, setFriendRequests,
       showMyAccount, setShowMyAccount, showUserProfile, setShowUserProfile,
       targetProfileUID, setTargetProfileUID, chatsMeta, setChatsMeta, totalUnread, setTotalUnread,
-      openChatId, setOpenChatId, showBrowseRooms, setShowBrowseRooms, copied, setCopied,
+      openChatId, setOpenChatId, copied, setCopied,
       notification, setNotification, showSummary, setShowSummary,
       showShop, setShowShop, showInventory, setShowInventory, showPrivateChat, setShowPrivateChat,
       showSelfChat, setShowSelfChat, showFunPass, setShowFunPass, chatFriend, setChatFriend,
@@ -117,10 +117,13 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       showGameChat, setShowGameChat, gameChatRef,
       showSendGiftModal, setShowSendGiftModal, sendGiftTarget, setSendGiftTarget,
       showSpyRebuild, setShowSpyRebuild,
-      setupGameId, setSetupGameId, browseGameId, setBrowseGameId,
+      setupGameId, setSetupGameId,
       activeGameId, setActiveGameId,
       showRejoinSNL, setShowRejoinSNL, rejoinSNLRoomId, setRejoinSNLRoomId,
-      rejoinDeclined, setRejoinDeclined
+      rejoinDeclined, setRejoinDeclined,
+      showRejoinSpy, setShowRejoinSpy, rejoinSpyRoomId, setRejoinSpyRoomId,
+      rejoinSpyDeclined, setRejoinSpyDeclined,
+      giftOverlayQueue, setGiftOverlayQueue
     } = uiState;
 
     // ── Auth & Logic Hooks ──
@@ -132,6 +135,14 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       setPendingNewUserRef: (r) => setOnboardingStates((prev) => ({ ...prev, pendingRef: r })),
       setShowOnboarding: (s) => setOnboardingStates((prev) => ({ ...prev, show: s }))
     });
+
+    var handleSpyGameClose = useCallback(() => {
+      setShowSpyRebuild(false);
+      if (roomId) {
+        setRoomId('');
+        setRoom(null);
+      }
+    }, [roomId, setShowSpyRebuild, setRoomId, setRoom]);
 
     var {
       showOnboarding, setShowOnboarding, setOnboardingGoogleUser, setPendingNewUserRef,
@@ -148,32 +159,57 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       if (onboardingStates.show) setShowOnboarding(onboardingStates.show);
     }, [onboardingStates]);
 
-    // 🔄 [RECOVERY] Auto-rejoin last active room
+    // ✅ [REMOVED] Auto-rejoin was removed: rooms are DB-only, no localStorage persistence.
+    // Users always start fresh when they open the app.
+
+    // 🧹 [CLEANUP] Remove any stale room keys left by old app versions
     useEffect(() => {
-        if (!authLoading && (isLoggedIn || isGuest)) {
-            const savedRoomId = localStorage.getItem('pro_spy_active_room_id');
-            if (savedRoomId && !roomId) {
-                console.log("[PRO SPY] Attempting room recovery for:", savedRoomId);
-                // We use the customHandleJoinGame defined later, or just setRoomId directly 
-                // if we want the useRoom hook to pick it up.
-                setRoomId(savedRoomId);
-                
-                // If it was a Spy Rebuild room, we might need to trigger that view
-                // For now, setting roomId is enough as useRoom will fetch the doc.
-            }
-        }
-    }, [authLoading, isLoggedIn, isGuest, roomId]);
+      localStorage.removeItem('spy_active_room');
+      localStorage.removeItem('pro_spy_active_room_id');
+    }, []); // runs once on mount
 
     // 🔄 [SNL RECOVERY] Check for active Snake & Ladder room
     useEffect(() => {
-        if (!authLoading && (isLoggedIn || isGuest) && !room && !rejoinDeclined) {
-            const snlRoomId = localStorage.getItem('last_snl_room_id');
-            if (snlRoomId) {
-                setRejoinSNLRoomId(snlRoomId);
-                setShowRejoinSNL(true);
-            }
+      if (!authLoading && (isLoggedIn || isGuest) && !room && !rejoinDeclined) {
+        const snlRoomId = localStorage.getItem('last_snl_room_id');
+        if (snlRoomId) {
+          setRejoinSNLRoomId(snlRoomId);
+          setShowRejoinSNL(true);
         }
+      }
     }, [authLoading, isLoggedIn, isGuest, room, rejoinDeclined]);
+
+    // 🕵️ [SPY RECOVERY] Check for active Who is the Spy room
+    useEffect(() => {
+      if (!authLoading && (isLoggedIn || isGuest) && !room && !rejoinSpyDeclined) {
+        const spyRoomId = localStorage.getItem('last_spy_room_id');
+        if (spyRoomId) {
+          setRejoinSpyRoomId(spyRoomId);
+          setShowRejoinSpy(true);
+        }
+      }
+    }, [authLoading, isLoggedIn, isGuest, room, rejoinSpyDeclined]);
+
+    // 🧹 [SNL-GC] Proactive Garbage Collector — runs every 5 minutes to delete
+    // empty / stale Snake & Ladder rooms from Firestore.
+    // Runs once immediately on mount, then every 5 minutes.
+    useEffect(() => {
+      const runGC = () => {
+        if (window.SnakeLadderService && typeof window.SnakeLadderService.sweepEmptyRooms === 'function') {
+          window.SnakeLadderService.sweepEmptyRooms('snake_ladder_pro').catch(e => {
+            console.warn('[SNL-GC] Background sweep failed:', e);
+          });
+        }
+      };
+      // Run immediately once after mount (delayed 10s to avoid startup load)
+      const initialDelay = setTimeout(runGC, 10_000);
+      // Then every 5 minutes
+      const interval = setInterval(runGC, 5 * 60 * 1000);
+      return () => {
+        clearTimeout(initialDelay);
+        clearInterval(interval);
+      };
+    }, []); // runs once on mount
 
     // ── Logic Variables & Helpers ──
     var t = TRANSLATIONS[lang];
@@ -251,6 +287,19 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     useSocial({ user, isLoggedIn, userData, setFriendsData, setFriendRequests, setChatsMeta, setTotalUnread });
     useLeaderboards({ activeView, leaderboardTab, setLeaderboardData, setCharismaLeaderboard, setFamilyLeaderboard });
     var { isBanned } = useBanningLogic({ userData, isLoggedIn });
+    
+    // --- Gift Animation Listener ---
+    var currentContext = useMemo(() => {
+      if (showFamilyChat) return 'clan:' + (userFamily?.id || '');
+      if (showPublicChat) return 'public';
+      if (showSpyRebuild) return 'room:' + (roomId || '');
+      if (showPrivateChat && chatFriend) return 'private:' + (chatFriend.uid || chatFriend.id || '');
+      return 'lobby';
+    }, [showFamilyChat, userFamily, showPublicChat, showSpyRebuild, roomId, showPrivateChat, chatFriend]);
+
+    if (window.useGiftListener) {
+      window.useGiftListener(currentUID, giftOverlayQueue, setGiftOverlayQueue, currentContext);
+    }
 
     // ── Modular Hooks ──
     window.useUserListeners({
@@ -264,10 +313,11 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       room, roomId, setRoom, setRoomId, setActiveGameId,
       guestData, setGuestData, setNickname, setAuthLoading,
       setNotification, playSound: window.playSound, setAlertMessage, setLoading,
-      setShowSetupModal, setActiveView, setCopied, setShowSummary,
-      setShowLoginAlert, setShowDropdown, setJoinError, setShowBrowseRooms,
+      setShowSetupModal, setActiveView, setCopied, setShowSummary, setShowSpyRebuild,
+      setShowLoginAlert, setShowDropdown, setJoinError,
+      showSpyRebuild, showFamilyChat, showPublicChat, showPrivateChat,
       setFriendsData, setFriendRequests, setChatsMeta, setTotalUnread,
-      setChatFriend, setShowPrivateChat, setOpenChatId, setShowUserProfile, setTargetProfileUID,
+      setChatFriend, chatFriend, setShowPrivateChat, setOpenChatId, setShowUserProfile, setTargetProfileUID,
       setLeaderboardData, setCharismaLeaderboard, setFamilyLeaderboard,
       setIncomingProposal, setShowIncomingProposal,
       proposalRing, setSessionClaimedToday,
@@ -297,7 +347,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     // 🔗 Expose profile setters globally so AdminPanel can open profiles from sub-sections
     useEffect(() => {
       window._setTargetProfileUID = setTargetProfileUID;
-      window._setShowUserProfile  = setShowUserProfile;
+      window._setShowUserProfile = setShowUserProfile;
     }, [setTargetProfileUID, setShowUserProfile]);
 
     useGameAutomation({
@@ -330,10 +380,10 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
       return cleanup;
     }, []);
 
-    var [maintenanceState, setMaintenanceState] = useState({ 
-      active: !!window.UNDER_MAINTENANCE, 
-      msgAr: window.MAINTENANCE_MSG_AR || "", 
-      msgEn: window.MAINTENANCE_MSG_EN || "" 
+    var [maintenanceState, setMaintenanceState] = useState({
+      active: !!window.UNDER_MAINTENANCE,
+      msgAr: window.MAINTENANCE_MSG_AR || "",
+      msgEn: window.MAINTENANCE_MSG_EN || ""
     });
 
     useEffect(() => {
@@ -355,10 +405,10 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     // ── App Rendering ──
     // 🔒 [MAINTENANCE] Lockout check
     if (showMaintenanceLockout && window.MaintenanceScreen) {
-        return React.createElement(window.MaintenanceScreen, { 
-            lang, 
-            customMessage: lang === 'ar' ? maintenanceState.msgAr : maintenanceState.msgEn 
-        });
+      return React.createElement(window.MaintenanceScreen, {
+        lang,
+        customMessage: lang === 'ar' ? maintenanceState.msgAr : maintenanceState.msgEn
+      });
     }
 
     // 🔒 Critical components readiness guard
@@ -390,8 +440,8 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
     if (isBanned) return /*#__PURE__*/React.createElement(window.BannedScreen, { userData: userData, lang: lang });
     var isMyTurn = room?.currentTurnUID === currentUID;
-    var me = Array.isArray(room?.players) 
-      ? room.players.find((p) => (p.uid || p.id) === currentUID) 
+    var me = Array.isArray(room?.players)
+      ? room.players.find((p) => (p.uid || p.id) === currentUID)
       : (room?.players ? room.players[currentUID] : null);
     var myRole = me?.role;
     var isSpectator = me?.status === 'spectator' || me?.status === 'ghost';
@@ -399,29 +449,76 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     var hasVotedWord = room?.wordVotes?.[currentUID];
     var totalFriendsUnread = (totalUnread || 0) + (friendRequests?.length || 0);
 
-    var customHandleJoinGame = async (id, pwd) => {
-        if (!id) return;
-        var upperId = id.toUpperCase();
-        var spyRoomsRef = window.spyRoomsCollection || (window.db && window.db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete').collection('public').doc('data').collection('spy_rooms'));
-        if (spyRoomsRef && window.SpyGameCore && window.SpyGameCore.online) {
-            try {
-                var snap = await spyRoomsRef.doc(upperId).get();
-                if (snap.exists) {
-                    try {
-                        await window.SpyGameCore.online.joinAndGo(upperId, pwd);
-                        if (typeof setShowBrowseRooms === 'function') setShowBrowseRooms(false);
-                        if (typeof setShowSpyRebuild === 'function') setShowSpyRebuild(true);
-                    } catch(e) {
-                        if (typeof setJoinError === 'function') {
-                            setJoinError(e.message === 'WRONG_PASSWORD' ? (lang === 'ar' ? 'كلمة السر غير صحيحة' : 'Incorrect Password') : e.message);
-                        }
-                    }
-                    return;
-                }
-            } catch(e) { console.error("Error checking spy_rooms", e); }
+    // ─────────────────────────────────────────────────────────────────────────
+    // customHandleJoinGame — Registry-Driven Router (025-rebuild-room-browser)
+    //
+    // Resolution order:
+    //   1. Explicit gameId from caller (BrowseRoomsModal always provides this)
+    //   2. GAMES_CONFIG idPrefix auto-detection (e.g. 'SNL_' → snake_ladder_pro)
+    //   3. Firestore spy_rooms lookup (legacy spy rooms without prefix)
+    //   4. Ultimate fallback → 'spy'
+    //
+    // ALL games dispatch through gameActions.handleJoinGame which:
+    //   - Calls setShowSpyRebuild(true) for Spy (already handled there)
+    //   - Calls RoomService.handleJoinGame → reads targetView from GAMES_CONFIG
+    //
+    // To add a new game: add entry to GAMES_CONFIG in 01-config.js.
+    // Zero changes needed here or in BrowseRoomsModal.
+    // ─────────────────────────────────────────────────────────────────────────
+    var customHandleJoinGame = async (id, pwd, gameTypeInput) => {
+      if (!id) return;
+      var upperId = id.trim().toUpperCase();
+
+      // Step 1: Extract gameId from options
+      var gameId = typeof gameTypeInput === 'string' ? gameTypeInput : (gameTypeInput?.gameId || '');
+      console.log(`[Router] Attempting to join room ${upperId} (gameId: "${gameId}")`);
+
+      // Step 2: Auto-detect by GAMES_CONFIG idPrefix if gameId not provided
+      if (!gameId) {
+        (window.GAMES_CONFIG || []).forEach(function(cfg) {
+          if (cfg.status === 'active' && cfg.idPrefix && upperId.startsWith(cfg.idPrefix)) {
+            gameId = cfg.id;
+          }
+        });
+      }
+
+      // Step 3: Firestore spy_rooms fallback for legacy rooms (no prefix, no explicit gameId)
+      if (!gameId) {
+        var spyCol = window.spyRoomsCollection; // null guard: skip if not initialised
+        if (spyCol) {
+          try {
+            var snap = await spyCol.doc(upperId).get();
+            if (snap.exists) gameId = 'spy';
+          } catch (e) {
+            console.warn('[Router] Firestore spy fallback failed:', e);
+          }
         }
-        gameActions.handleJoinGame(id, pwd);
+        // Step 4: Ultimate fallback
+        if (!gameId) gameId = 'spy';
+      }
+
+      console.log(`[Router] Resolved → gameId: "${gameId}" for room ${upperId}`);
+
+      // ✅ FIX (025): For spy joins, prime _pendingSpyRoomCode BEFORE setShowSpyRebuild(true)
+      // fires inside gameActions.handleJoinGame. SpyGameRebuild reads this on mount
+      // to decide whether to show screen-main (fresh) or screen-room-lobby (join).
+      if (gameId === 'spy') {
+        window._pendingSpyRoomCode = upperId;
+        window._autoOpenGameModePicker = false;
+
+        // ── PRIMARY: Open the spy game overlay immediately from this CRITICAL file ──
+        // setShowSpyRebuild lives in 10-app.js closured scope and is ALWAYS available,
+        // unlike useGameActions (LAZY-cached, may serve old version without this code).
+        setShowSpyRebuild(true);
+      } else {
+        // Clear any stale spy pending code when joining a non-spy game
+        window._pendingSpyRoomCode = null;
+      }
+
+      // Dispatch to unified handler for side-effects (setActiveGameId, sound, non-spy join, etc.)
+      await gameActions.handleJoinGame(id, pwd, { gameId });
     };
+
 
     return (/*#__PURE__*/
       React.createElement("div", { className: "app-shell", dir: lang === 'ar' ? 'rtl' : 'ltr' }, /*#__PURE__*/
@@ -460,14 +557,12 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           showProSpyBot: showProSpyBot, setShowProSpyBot: setShowProSpyBot,
           showMyAccount: showMyAccount, setShowMyAccount: setShowMyAccount,
           showUserProfile: showUserProfile, setShowUserProfile: setShowUserProfile, targetProfileUID: targetProfileUID, setTargetProfileUID: setTargetProfileUID,
-          showBrowseRooms: showBrowseRooms, setShowBrowseRooms: setShowBrowseRooms,
           showPrivateChat: showPrivateChat, closePrivateChat: gameActions.closePrivateChat, chatFriend: chatFriend,
           showSelfChat: showSelfChat, setShowSelfChat: setShowSelfChat,
           showFunPass: showFunPass, setShowFunPass: setShowFunPass,
           alertMessage: alertMessage, setAlertMessage: setAlertMessage,
           showSetupModal: showSetupModal, setShowSetupModal: setShowSetupModal,
           setupGameId: setupGameId, setSetupGameId: setSetupGameId,
-          browseGameId: browseGameId, setBrowseGameId: setBrowseGameId,
           showShop: showShop, setShowShop: setShowShop,
           showInventory: showInventory, setShowInventory: setShowInventory,
           showSettings: showSettings, setShowSettings: setShowSettings,
@@ -492,7 +587,12 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           showRejoinSNL: showRejoinSNL, setShowRejoinSNL: setShowRejoinSNL,
           rejoinSNLRoomId: rejoinSNLRoomId, setRejoinSNLRoomId: setRejoinSNLRoomId,
           rejoinDeclined: rejoinDeclined, setRejoinDeclined: setRejoinDeclined,
-          setActiveView: setActiveView, setRoomId: setRoomId, setActiveGameId: setActiveGameId
+          showRejoinSpy: showRejoinSpy, setShowRejoinSpy: setShowRejoinSpy,
+          rejoinSpyRoomId: rejoinSpyRoomId, setRejoinSpyRoomId: setRejoinSpyRoomId,
+          rejoinSpyDeclined: rejoinSpyDeclined, setRejoinSpyDeclined: setRejoinSpyDeclined,
+          showSpyRebuild: showSpyRebuild, setShowSpyRebuild: setShowSpyRebuild,
+          setActiveView: setActiveView, setRoomId: setRoomId, setActiveGameId: setActiveGameId,
+          giftOverlayQueue: giftOverlayQueue, setGiftOverlayQueue: setGiftOverlayQueue
         })
         ), /*#__PURE__*/
 
@@ -612,18 +712,25 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             handleJoinGame: customHandleJoinGame,
             handleCreateGame: gameActions.handleCreateGame,
             setShowSetupModal: (v, opts) => {
-                var gId = opts?.gameId || 'spy';
-                if (v && gId === 'spy') {
-                    window._autoOpenGameModePicker = true;
-                    setShowSpyRebuild(true);
-                } else {
-                    if (v && gId) setSetupGameId(gId);
-                    setShowSetupModal(v);
-                }
-            },
-            setShowBrowseRooms: (v, opts) => {
-                if (v && opts?.gameId) setBrowseGameId(opts.gameId);
-                setShowBrowseRooms(v);
+              var gId = opts?.gameId || 'spy';
+              if (v && gId === 'spy') {
+                // ✅ FIX: Clear any stale active room so "Mission Detected" modal
+                // doesn't appear when the user is starting a brand-new game.
+                localStorage.removeItem('spy_active_room');
+                
+                // Also clear specific state IDs to prevent them being treated as join codes
+
+                if (typeof setSetupGameId === 'function') setSetupGameId(null);
+                
+                // ✅ FIX (025): Clear stale pending room code so SpyGameRebuild
+                // doesn't mistake a previous session's code for a fresh-start join.
+                window._pendingSpyRoomCode = null;
+                window._autoOpenGameModePicker = true;
+                setShowSpyRebuild(true);
+              } else {
+                if (v && gId) setSetupGameId(gId);
+                setShowSetupModal(v);
+              }
             },
             setShowMyAccount: setShowMyAccount,
             setShowPublicChat: setShowPublicChat,
@@ -726,7 +833,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                     // Normalize role: support flat `role` or nested `staffRole.role`
                     var userRole = currentUserData?.role || currentUserData?.staffRole?.role;
                     // Also check OWNER_UID directly in case role field is missing
-                    var isStaffUser = ['owner','admin','moderator'].includes(userRole) ||
+                    var isStaffUser = ['owner', 'admin', 'moderator'].includes(userRole) ||
                       (window.OWNER_UID && currentUID === window.OWNER_UID);
                     if (!isStaffUser) return null;
                     return React.createElement("div", { onClick: () => setShowStaffCommandBot(true), style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: staffCommandBotUnread > 0 ? 'rgba(239,68,68,0.05)' : 'transparent' }, className: "me-friend-row" },
@@ -1115,42 +1222,42 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 
 
 
-          (room || (activeView === 'game' && activeGameId === 'snake_ladder_pro')) && (
-            (room?.gameType === 'snake_ladder_pro' || (!room && activeGameId === 'snake_ladder_pro')) ? (
-            window.SnakeLadderView && React.createElement(window.SnakeLadderView, {
-              roomId: roomId,
-              gameId: room?.gameType || activeGameId,
-              user: user,
-              onExit: () => {
-                // ✅ FULL EXIT: clear ALL snake-ladder state so we never re-enter
-                localStorage.removeItem('last_snl_room_id');
-                if (typeof setRejoinDeclined === 'function') setRejoinDeclined(true);
-                setRoomId('');
-                setRoom(null);
-                setActiveGameId('spy');         // ← KEY FIX: was missing, caused re-render loop
-                setActiveView('lobby');
-              },
-              lang: lang
-            })
-          ) : (
-            window.RoomView && React.createElement(window.RoomView, _extends({},
-              gameActions, {
-              room: room, roomId: roomId, currentUID: currentUID, OWNER_UID: OWNER_UID, lang: lang, t: t,
-              myRole: window.GameService ? window.GameService.getMyRole(room, currentUID) : myRole,
-              isMyTurn: isMyTurn,
-              isSpectator: !me,
-              me: me,
-              turnTimer: turnTimer, wordSelTimer: wordSelTimer, votingTimer: votingTimer,
-              hasVoted: hasVoted,
-              hasVotedWord: hasVotedWord,
-              showLobbyPassword: showLobbyPassword, setShowLobbyPassword: setShowLobbyPassword,
-              copied: copied, handleCopy: gameActions.handleCopy,
-              gameChatInput: gameChatInput, setGameChatInput: setGameChatInput,
-              showGameChat: showGameChat, setShowGameChat: setShowGameChat,
-              currentUserData: currentUserData
-            })
-            )
-          ))
+          (activeView === 'game' && activeGameId === 'snake_ladder_pro') && (
+            (room?.gameType === 'snake_ladder_pro' || activeGameId === 'snake_ladder_pro') ? (
+              window.SnakeLadderView && React.createElement(window.SnakeLadderView, {
+                roomId: roomId,
+                gameId: room?.gameType || activeGameId,
+                user: user,
+                onExit: () => {
+                  // ✅ FULL EXIT: clear ALL snake-ladder state so we never re-enter
+                  localStorage.removeItem('last_snl_room_id');
+                  if (typeof setRejoinDeclined === 'function') setRejoinDeclined(true);
+                  setRoomId('');
+                  setRoom(null);
+                  setActiveGameId('spy');         // ← KEY FIX: was missing, caused re-render loop
+                  setActiveView('lobby');
+                },
+                lang: lang
+              })
+            ) : (
+              window.RoomView && React.createElement(window.RoomView, _extends({},
+                gameActions, {
+                room: room, roomId: roomId, currentUID: currentUID, OWNER_UID: OWNER_UID, lang: lang, t: t,
+                myRole: window.GameService ? window.GameService.getMyRole(room, currentUID) : myRole,
+                isMyTurn: isMyTurn,
+                isSpectator: !me,
+                me: me,
+                turnTimer: turnTimer, wordSelTimer: wordSelTimer, votingTimer: votingTimer,
+                hasVoted: hasVoted,
+                hasVotedWord: hasVotedWord,
+                showLobbyPassword: showLobbyPassword, setShowLobbyPassword: setShowLobbyPassword,
+                copied: copied, handleCopy: gameActions.handleCopy,
+                gameChatInput: gameChatInput, setGameChatInput: setGameChatInput,
+                showGameChat: showGameChat, setShowGameChat: setShowGameChat,
+                currentUserData: currentUserData
+              })
+              )
+            ))
 
 
         ),
@@ -1191,18 +1298,12 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
         React.createElement(PWAInstallPopup, { lang: lang, onClose: () => setShowPWAInstall(false) }),
 
         showSpyRebuild && window.SpyGameRebuild && /*#__PURE__*/
-        React.createElement(window.SpyGameRebuild, { 
+        React.createElement(window.SpyGameRebuild, {
           user: user,
           userData: currentUserData,
-          initialRoomCode: roomId,
-          onClose: () => {
-            setShowSpyRebuild(false);
-            if (roomId) {
-              setRoomId('');
-              setRoom(null);
-            }
-          },
-          setShowBrowseRooms: setShowBrowseRooms
+          initialRoomCode: roomId || rejoinSpyRoomId || setupGameId,
+          initialPassword: '',
+          onClose: handleSpyGameClose
         })
 
       ));

@@ -70,7 +70,7 @@
 
     return (/*#__PURE__*/
       React.createElement("div", { className: "modal-overlay", onClick: onClose }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation(), style: { maxWidth: '380px', maxHeight: '90vh', width: '95%' } }, /*#__PURE__*/
+      React.createElement("div", { className: "modal-content modal-animate-in", onClick: (e) => e.stopPropagation(), style: { maxWidth: '380px', maxHeight: '90vh', width: '95%' } }, /*#__PURE__*/
       React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
       React.createElement("h2", { className: "modal-title" }, "\uD83C\uDF81 ", t.loginRewards), /*#__PURE__*/
       React.createElement(ModalCloseBtn, { onClose: onClose })

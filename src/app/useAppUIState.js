@@ -49,7 +49,6 @@
         var [chatsMeta, setChatsMeta] = useState({});
         var [totalUnread, setTotalUnread] = useState(0);
         var [openChatId, setOpenChatId] = useState(null);
-        var [showBrowseRooms, setShowBrowseRooms] = useState(false);
         var [copied, setCopied] = useState(false);
         var [notification, setNotification] = useState(null);
         var [showSummary, setShowSummary] = useState(false);
@@ -117,14 +116,25 @@
         var [setupGameId, setSetupGameId] = useState('spy');
         var [showRejoinSNL, setShowRejoinSNL] = useState(false);
         var [rejoinSNLRoomId, setRejoinSNLRoomId] = useState(null);
-        // ✅ FIX: sessionStorage so "No Thanks" persists across page refreshes (clears when tab is closed)
+        // ✅ SNL declined persists in sessionStorage
         var [rejoinDeclined, _setRejoinDeclined] = useState(() => sessionStorage.getItem('snl_rejoin_declined') === '1');
         var setRejoinDeclined = function(val) {
             if (val) sessionStorage.setItem('snl_rejoin_declined', '1');
             else sessionStorage.removeItem('snl_rejoin_declined');
             _setRejoinDeclined(val);
         };
-        var [browseGameId, setBrowseGameId] = useState('spy');
+
+        // --- NEW: SPY RE-JOIN STATES ---
+        var [showRejoinSpy, setShowRejoinSpy] = useState(false);
+        var [rejoinSpyRoomId, setRejoinSpyRoomId] = useState(null);
+        var [rejoinSpyDeclined, _setRejoinSpyDeclined] = useState(() => sessionStorage.getItem('spy_rejoin_declined') === '1');
+        var setRejoinSpyDeclined = function(val) {
+            if (val) sessionStorage.setItem('spy_rejoin_declined', '1');
+            else sessionStorage.removeItem('spy_rejoin_declined');
+            _setRejoinSpyDeclined(val);
+        };
+        
+        var [giftOverlayQueue, setGiftOverlayQueue] = useState([]);
 
         return {
             lang, setLang,
@@ -138,7 +148,6 @@
             wordSelTimer, setWordSelTimer,
             showSetupModal, setShowSetupModal,
             setupGameId, setSetupGameId,
-            browseGameId, setBrowseGameId,
             activeGameId, setActiveGameId,
             setupMode, setSetupMode,
             isPrivate, setIsPrivate,
@@ -162,7 +171,6 @@
             chatsMeta, setChatsMeta,
             totalUnread, setTotalUnread,
             openChatId, setOpenChatId,
-            showBrowseRooms, setShowBrowseRooms,
             copied, setCopied,
             notification, setNotification,
             showSummary, setShowSummary,
@@ -223,7 +231,11 @@
             showSpyRebuild, setShowSpyRebuild,
             showRejoinSNL, setShowRejoinSNL,
             rejoinSNLRoomId, setRejoinSNLRoomId,
-            rejoinDeclined, setRejoinDeclined
+            rejoinDeclined, setRejoinDeclined,
+            showRejoinSpy, setShowRejoinSpy,
+            rejoinSpyRoomId, setRejoinSpyRoomId,
+            rejoinSpyDeclined, setRejoinSpyDeclined,
+            giftOverlayQueue, setGiftOverlayQueue
         };
     };
 })();

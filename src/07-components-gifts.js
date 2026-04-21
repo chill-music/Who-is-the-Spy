@@ -1,11 +1,13 @@
 (function () {
   // Late-bind getGiftRarity — defined in ProfileHelpers.js, fallback included for safety
-  var getGiftRarity = function (cost) {
-    if (window.getGiftRarity) return window.getGiftRarity(cost);
+  var getGiftRarity = function (gift) {
+    if (window.getItemRarity) return window.getItemRarity(gift);
+    var cost = gift.cost || 0;
     if (cost >= 10000) return 'Mythic';
-    if (cost >= 500) return 'Legendary';
-    if (cost >= 50) return 'Epic';
-    if (cost >= 15) return 'Uncommon';
+    if (cost >= 3000) return 'Legendary';
+    if (cost >= 1000) return 'Epic';
+    if (cost >= 300) return 'Rare';
+    if (cost >= 50) return 'Uncommon';
     return 'Common';
   };
 
@@ -16,58 +18,61 @@
     if (!show) return null;
 
     var categories = [
-    { id: 'smiles', icon: '😀', label_ar: 'وجوه', label_en: 'Faces' },
-    { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
-    { id: 'hearts', icon: '❤️', label_ar: 'قلوب', label_en: 'Hearts' },
-    { id: 'objects', icon: '🎉', label_ar: 'أشياء', label_en: 'Objects' },
-    { id: 'nature', icon: '🌸', label_ar: 'طبيعة', label_en: 'Nature' }];
+      { id: 'smiles', icon: '😀', label_ar: 'وجوه', label_en: 'Faces' },
+      { id: 'gestures', icon: '👋', label_ar: 'إيماءات', label_en: 'Gestures' },
+      { id: 'hearts', icon: '❤️', label_ar: 'قلوب', label_en: 'Hearts' },
+      { id: 'objects', icon: '🎉', label_ar: 'أشياء', label_en: 'Objects' },
+      { id: 'nature', icon: '🌸', label_ar: 'طبيعة', label_en: 'Nature' }];
 
 
     var wrapperStyle = inline ? {} : undefined;
 
     return (/*#__PURE__*/
       React.createElement("div", { className: inline ? '' : 'emoji-picker-modal animate-slide-up', style: wrapperStyle },
-      !inline && /*#__PURE__*/
-      React.createElement("div", { className: "emoji-picker-header" }, /*#__PURE__*/
-      React.createElement("span", { className: "emoji-picker-title" }, t.selectEmojis || 'Emoji'), /*#__PURE__*/
-      React.createElement("button", { className: "emoji-picker-close", onClick: onClose }, "\u2715")
-      ), /*#__PURE__*/
+        !inline && /*#__PURE__*/
+        React.createElement("div", { className: "emoji-picker-header" }, /*#__PURE__*/
+          React.createElement("span", { className: "emoji-picker-title" }, t.selectEmojis || 'Emoji'), /*#__PURE__*/
+          React.createElement("button", { className: "emoji-picker-close", onClick: onClose }, "\u2715")
+        ), /*#__PURE__*/
 
-      React.createElement("div", { className: "emoji-categories", style: { marginBottom: '6px' } },
-      categories.map((cat) => /*#__PURE__*/
-      React.createElement("button", {
-        key: cat.id,
-        className: `emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`,
-        onClick: () => setActiveCategory(cat.id),
-        title: lang === 'ar' ? cat.label_ar : cat.label_en },
+        React.createElement("div", { className: "emoji-categories", style: { marginBottom: '6px' } },
+          categories.map((cat) => /*#__PURE__*/
+            React.createElement("button", {
+              key: cat.id,
+              className: `emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`,
+              onClick: () => setActiveCategory(cat.id),
+              title: lang === 'ar' ? cat.label_ar : cat.label_en
+            },
 
-      cat.icon
-      )
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "emoji-picker-grid" },
-      (EMOJI_CATEGORIES[activeCategory] || []).map((emoji, i) => /*#__PURE__*/
-      React.createElement("button", {
-        key: i,
-        className: "emoji-picker-item",
-        onClick: () => {onSelect(emoji);} },
+              cat.icon
+            )
+          )
+        ), /*#__PURE__*/
+        React.createElement("div", { className: "emoji-picker-grid" },
+          (EMOJI_CATEGORIES[activeCategory] || []).map((emoji, i) => /*#__PURE__*/
+            React.createElement("button", {
+              key: i,
+              className: "emoji-picker-item",
+              onClick: () => { onSelect(emoji); }
+            },
 
-      emoji
-      )
-      )
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "emoji-categories" },
-      categories.map((cat) => /*#__PURE__*/
-      React.createElement("button", {
-        key: cat.id,
-        className: `emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`,
-        onClick: () => setActiveCategory(cat.id),
-        title: cat.label },
+              emoji
+            )
+          )
+        ), /*#__PURE__*/
+        React.createElement("div", { className: "emoji-categories" },
+          categories.map((cat) => /*#__PURE__*/
+            React.createElement("button", {
+              key: cat.id,
+              className: `emoji-category-btn ${activeCategory === cat.id ? 'active' : ''}`,
+              onClick: () => setActiveCategory(cat.id),
+              title: cat.label
+            },
 
-      cat.icon
-      )
-      )
-      )
+              cat.icon
+            )
+          )
+        )
       ));
 
   };
@@ -102,10 +107,10 @@
     var handleBuyWithQty = (qty) => {
       if (!onBuy) return;
       var target = directTarget ?
-      directTarget :
-      sendMode === 'self' ?
-      { uid: 'self', displayName: currentUserData?.displayName || 'Me' } :
-      selectedFriend;
+        directTarget :
+        sendMode === 'self' ?
+          { uid: 'self', displayName: currentUserData?.displayName || 'Me' } :
+          selectedFriend;
       if (!target) return;
       onBuy(gift, target, qty || selectedQty);
     };
@@ -118,297 +123,313 @@
       var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
       var owned = currency >= gift.cost;
       return (/*#__PURE__*/
-        React.createElement("div", { className: "modal-overlay", onClick: onClose, style: { zIndex: window.Z?.MODAL_TOP || 15000 } }, /*#__PURE__*/
-        React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation(), style: { maxWidth: '340px' } }, /*#__PURE__*/
-        React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
-        React.createElement("h2", { className: "modal-title" }, lang === 'ar' ? gift.name_ar : gift.name_en), /*#__PURE__*/
-        React.createElement(ModalCloseBtn, { onClose: onClose })
-        ), /*#__PURE__*/
-        React.createElement("div", { className: "modal-body text-center py-3" },
+        React.createElement("div", { className: "modal-overlay", onClick: onClose, style: { zIndex: 1000100 } }, /*#__PURE__*/
+          React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation(), style: { maxWidth: '340px' } }, /*#__PURE__*/
+            React.createElement("div", { className: "modal-header" }, /*#__PURE__*/
+              React.createElement("h2", { className: "modal-title" }, lang === 'ar' ? gift.name_ar : gift.name_en), /*#__PURE__*/
+              React.createElement(ModalCloseBtn, { onClose: onClose })
+            ), /*#__PURE__*/
+            React.createElement("div", { className: "modal-body text-center py-3" },
 
-        (() => {
-          // ✅ Support: particles as URL, imageUrl, or emoji preview
-          var effectSrc = typeof gift.particles === 'string' && gift.particles.startsWith('http') ?
-          gift.particles :
-          gift.imageUrl && gift.imageUrl.trim() !== '' ? gift.imageUrl : null;
-          return (/*#__PURE__*/
-            React.createElement("div", { style: {
-                width: '100%', height: '160px', borderRadius: '12px', marginBottom: '12px',
-                background: rarity.bg, border: `2px solid ${rarity.border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                position: 'relative', overflow: 'hidden',
-                boxShadow: rarity.glow ? `0 0 20px ${rarity.color}55` : 'none'
-              } },
-            effectSrc ? /*#__PURE__*/
-            React.createElement("img", {
-              src: effectSrc,
-              alt: gift.name_en,
-              style: {
-                width: '100%', height: '100%',
-                objectFit: 'contain', borderRadius: '10px'
-              } }
-            ) : /*#__PURE__*/
+              (() => {
+                // ✅ Support: particles as URL, imageUrl, or emoji preview
+                var effectSrc = typeof gift.particles === 'string' && gift.particles.startsWith('http') ?
+                  gift.particles :
+                  gift.imageUrl && gift.imageUrl.trim() !== '' ? gift.imageUrl : null;
+                return (/*#__PURE__*/
+                  React.createElement("div", {
+                    style: {
+                      width: '100%', height: '160px', borderRadius: '12px', marginBottom: '12px',
+                      background: rarity.bg, border: `2px solid ${rarity.border}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative', overflow: 'hidden',
+                      boxShadow: rarity.glow ? `0 0 20px ${rarity.color}55` : 'none'
+                    }
+                  },
+                    effectSrc ? /*#__PURE__*/
+                      React.createElement("img", {
+                        src: effectSrc,
+                        alt: gift.name_en,
+                        style: {
+                          width: '100%', height: '100%',
+                          objectFit: 'contain', borderRadius: '10px'
+                        }
+                      }
+                      ) : /*#__PURE__*/
 
-            React.createElement("span", { style: { fontSize: '56px' } }, gift.preview),
+                      React.createElement("span", { style: { fontSize: '56px' } }, gift.preview),
 
-            gift.hasGlow && /*#__PURE__*/
-            React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(0,242,255,0.25), transparent 70%)', pointerEvents: 'none' } }), /*#__PURE__*/
+                    gift.hasGlow && /*#__PURE__*/
+                    React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(0,242,255,0.25), transparent 70%)', pointerEvents: 'none' } }), /*#__PURE__*/
 
 
-            React.createElement("div", { style: { position: 'absolute', top: '8px', right: '8px', background: rarity.color, color: '#000', fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '8px' } },
-            rarity.icon, " ", lang === 'ar' ? rarity.name_ar : rarity.name_en
+                    React.createElement("div", { style: { position: 'absolute', top: '8px', right: '8px', background: rarity.color, color: '#000', fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '8px' } },
+                      rarity.icon, " ", lang === 'ar' ? rarity.name_ar : rarity.name_en
+                    )
+                  ));
+
+              })(), /*#__PURE__*/
+              React.createElement("h3", { style: { fontSize: '15px', fontWeight: 800, color: 'white', marginBottom: '6px' } }, lang === 'ar' ? gift.name_ar : gift.name_en), /*#__PURE__*/
+
+              React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px', textAlign: 'right', direction: 'ltr' } }, /*#__PURE__*/
+                React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/
+                  React.createElement("span", null, "\uD83D\uDCB0 ", lang === 'ar' ? 'السعر' : 'Price'), /*#__PURE__*/
+                  React.createElement("span", { style: { color: '#facc15', fontWeight: 700 } }, gift.cost, " \uD83E\uDDE0")
+                ),
+                Array.isArray(gift.particles) && gift.particles.length > 0 && /*#__PURE__*/
+                React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/
+                  React.createElement("span", null, "\u2728 ", lang === 'ar' ? 'الجزيئات' : 'Particles'), /*#__PURE__*/
+                  React.createElement("span", { style: { color: 'white', fontWeight: 700 } }, gift.particles.map((p) => `${p.emoji}×${p.count}`).join(' '))
+                ),
+
+                gift.hasGlow && /*#__PURE__*/
+                React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/
+                  React.createElement("span", null, "\uD83C\uDF1F ", lang === 'ar' ? 'توهج خاص' : 'Special Glow'), /*#__PURE__*/
+                  React.createElement("span", { style: { color: '#00f2ff', fontWeight: 700 } }, "\u2713 ", lang === 'ar' ? 'نعم' : 'Yes')
+                )
+
+              ), /*#__PURE__*/
+              React.createElement("div", { className: "modal-footer py-2" }, /*#__PURE__*/
+                React.createElement("div", { className: "flex gap-2" }, /*#__PURE__*/
+                  React.createElement("button", { onClick: onClose, className: "btn-ghost flex-1 py-1.5 rounded text-xs" }, lang === 'ar' ? 'إغلاق' : 'Close'), /*#__PURE__*/
+                  React.createElement("button", {
+                    onClick: () => onBuy && onBuy(gift, null),
+                    disabled: !owned,
+                    style: { flex: 1, padding: '8px', borderRadius: '8px', background: owned ? rarity.color : 'rgba(100,100,100,0.2)', color: owned ? '#000' : '#6b7280', border: 'none', fontWeight: 800, fontSize: '12px', cursor: owned ? 'pointer' : 'not-allowed' }
+                  },
+
+                    owned ? `${lang === 'ar' ? 'شراء' : 'Buy'} (${gift.cost}🧠)` : lang === 'ar' ? 'إنتل غير كافٍ' : 'Not enough Intel'
+                  )
+                )
+              )
             )
-            ));
-
-        })(), /*#__PURE__*/
-        React.createElement("h3", { style: { fontSize: '15px', fontWeight: 800, color: 'white', marginBottom: '6px' } }, lang === 'ar' ? gift.name_ar : gift.name_en), /*#__PURE__*/
-
-        React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px', textAlign: 'right', direction: 'ltr' } }, /*#__PURE__*/
-        React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/
-        React.createElement("span", null, "\uD83D\uDCB0 ", lang === 'ar' ? 'السعر' : 'Price'), /*#__PURE__*/
-        React.createElement("span", { style: { color: '#facc15', fontWeight: 700 } }, gift.cost, " \uD83E\uDDE0")
-        ),
-        Array.isArray(gift.particles) && gift.particles.length > 0 && /*#__PURE__*/
-        React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/
-        React.createElement("span", null, "\u2728 ", lang === 'ar' ? 'الجزيئات' : 'Particles'), /*#__PURE__*/
-        React.createElement("span", { style: { color: 'white', fontWeight: 700 } }, gift.particles.map((p) => `${p.emoji}×${p.count}`).join(' '))
-        ),
-
-        gift.hasGlow && /*#__PURE__*/
-        React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/
-        React.createElement("span", null, "\uD83C\uDF1F ", lang === 'ar' ? 'توهج خاص' : 'Special Glow'), /*#__PURE__*/
-        React.createElement("span", { style: { color: '#00f2ff', fontWeight: 700 } }, "\u2713 ", lang === 'ar' ? 'نعم' : 'Yes')
-        )
-
-        ), /*#__PURE__*/
-        React.createElement("div", { className: "modal-footer py-2" }, /*#__PURE__*/
-        React.createElement("div", { className: "flex gap-2" }, /*#__PURE__*/
-        React.createElement("button", { onClick: onClose, className: "btn-ghost flex-1 py-1.5 rounded text-xs" }, lang === 'ar' ? 'إغلاق' : 'Close'), /*#__PURE__*/
-        React.createElement("button", {
-          onClick: () => onBuy && onBuy(gift, null),
-          disabled: !owned,
-          style: { flex: 1, padding: '8px', borderRadius: '8px', background: owned ? rarity.color : 'rgba(100,100,100,0.2)', color: owned ? '#000' : '#6b7280', border: 'none', fontWeight: 800, fontSize: '12px', cursor: owned ? 'pointer' : 'not-allowed' } },
-
-        owned ? `${lang === 'ar' ? 'شراء' : 'Buy'} (${gift.cost}🧠)` : lang === 'ar' ? 'إنتل غير كافٍ' : 'Not enough Intel'
-        )
-        )
-        )
-        )
-        )
+          )
         ));
 
     }
 
     var renderGiftIcon = () => {
-      if (gift.type === 'frames') {return gift.preview.startsWith('http') ? /*#__PURE__*/React.createElement("img", { src: gift.preview, alt: gift.name_en, className: "w-14 h-14 rounded-full object-cover mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "w-14 h-14 rounded-full mx-auto", style: { background: gift.preview } });}
-      if (gift.type === 'badges') {return gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, className: "w-12 h-12 object-contain mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "text-4xl mb-2" }, gift.preview);}
-      if (gift.type === 'titles') {return gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, className: "h-8 object-contain mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "text-3xl mb-2" }, gift.preview);}
+      if (gift.type === 'frames') { return gift.preview.startsWith('http') ? /*#__PURE__*/React.createElement("img", { src: gift.preview, alt: gift.name_en, className: "w-14 h-14 rounded-full object-cover mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "w-14 h-14 rounded-full mx-auto", style: { background: gift.preview } }); }
+      if (gift.type === 'badges') { return gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, className: "w-12 h-12 object-contain mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "text-4xl mb-2" }, gift.preview); }
+      if (gift.type === 'titles') { return gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, className: "h-8 object-contain mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "text-3xl mb-2" }, gift.preview); }
       return gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, className: "w-12 h-12 object-contain mx-auto" }) : /*#__PURE__*/React.createElement("div", { className: "text-4xl mb-2" }, gift.emoji);
     };
 
     var handleSendFromInventory = () => {
       if (!onSendFromInventory) return;
       var target = directTarget ?
-      directTarget :
-      sendMode === 'self' ?
-      { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL } :
-      selectedFriend;
+        directTarget :
+        sendMode === 'self' ?
+          { uid: user?.uid || 'self', displayName: currentUserData?.displayName || 'Me', photoURL: currentUserData?.photoURL } :
+          selectedFriend;
       if (!target) return;
       onSendFromInventory(gift, target);
       onClose();
     };
 
     return (/*#__PURE__*/
-      React.createElement("div", { className: "modal-overlay", onClick: onClose, style: { zIndex: window.Z?.MODAL_TOP || 15000 } }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-content animate-pop", onClick: (e) => e.stopPropagation(), style: { maxWidth: '340px' } }, /*#__PURE__*/
-      React.createElement("div", { className: "modal-header" }, /*#__PURE__*/React.createElement("h2", { className: "modal-title" }, isGiftItem ? t.giftPreview : lang === 'ar' ? gift.name_ar : gift.name_en), /*#__PURE__*/React.createElement(ModalCloseBtn, { onClose: onClose })), /*#__PURE__*/
-      React.createElement("div", { className: "modal-body text-center py-3" },
-      renderGiftIcon(), /*#__PURE__*/
-      React.createElement("h3", { className: "text-base font-bold text-white mb-1" }, lang === 'ar' ? gift.name_ar : gift.name_en),
-      isGiftItem && (gift.desc_ar || gift.desc_en) && /*#__PURE__*/React.createElement("p", { className: "text-[10px] text-gray-400 mb-2" }, lang === 'ar' ? gift.desc_ar : gift.desc_en),
+      React.createElement("div", { className: "modal-overlay", onClick: onClose, style: { zIndex: 1000100, backdropFilter: 'blur(12px)' } }, /*#__PURE__*/
+        React.createElement("div", { 
+          className: "premium-gift-modal", 
+          onClick: (e) => e.stopPropagation(), 
+          style: { width: '100%', maxWidth: '360px', borderRadius: '24px', overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' } 
+        }, /*#__PURE__*/
+          React.createElement("div", { style: { position: 'absolute', top: 0, left: 0, right: 0, height: '100px', background: 'radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.1), transparent 70%)', pointerEvents: 'none' } }),
+          React.createElement("div", { className: "modal-header" }, /*#__PURE__*/React.createElement("h2", { className: "modal-title" }, isGiftItem ? t.giftPreview : lang === 'ar' ? gift.name_ar : gift.name_en), /*#__PURE__*/React.createElement(ModalCloseBtn, { onClose: onClose })), /*#__PURE__*/
+          React.createElement("div", { className: "modal-body text-center py-3" },
+            renderGiftIcon(), /*#__PURE__*/
+            React.createElement("h3", { className: "text-base font-bold text-white mb-1" }, lang === 'ar' ? gift.name_ar : gift.name_en),
+            isGiftItem && (gift.desc_ar || gift.desc_en) && /*#__PURE__*/React.createElement("p", { className: "text-[10px] text-gray-400 mb-2" }, lang === 'ar' ? gift.desc_ar : gift.desc_en),
 
-      isGiftItem && /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-details" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, t.giftCharisma), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value charisma" }, "+", formatCharisma(gift.charisma))
-      ), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, t.luckyBonus), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value bonus", style: { color: '#facc15', fontStyle: 'italic' } }, "\uD83C\uDF40 ",
-      lang === 'ar' ? 'مفاجأة!' : 'Surprise!'
-      )
-      ),
+            isGiftItem && /*#__PURE__*/
+            React.createElement("div", { className: "gift-preview-details" }, /*#__PURE__*/
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, t.giftCharisma), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value charisma" }, "+", formatCharisma(gift.charisma))
+              ), /*#__PURE__*/
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, t.luckyBonus), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value bonus", style: { color: '#facc15', fontStyle: 'italic' } }, "\uD83C\uDF40 ",
+                  lang === 'ar' ? 'مفاجأة!' : 'Surprise!'
+                )
+              ),
 
-      gift.vipMinLevel > 0 && /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, "\uD83D\uDC51 ", lang === 'ar' ? 'يتطلب' : 'Requires'), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value", style: { color: VIP_CONFIG[gift.vipMinLevel - 1]?.nameColor || '#ef4444', fontWeight: 800 } }, "VIP ",
-      gift.vipMinLevel, "+"
-      )
-      ),
-
-
-      gift.isEvent && /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, "\u26A1 ", lang === 'ar' ? 'نوع' : 'Type'), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#a78bfa', fontWeight: 800 } },
-      lang === 'ar' ? '🎉 إيفنت' : '🎉 Event'
-      )
-      ),
+              gift.vipMinLevel > 0 && /*#__PURE__*/
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, "\uD83D\uDC51 ", lang === 'ar' ? 'يتطلب' : 'Requires'), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value", style: { color: VIP_CONFIG[gift.vipMinLevel - 1]?.nameColor || '#ef4444', fontWeight: 800 } }, "VIP ",
+                  gift.vipMinLevel, "+"
+                )
+              ),
 
 
-      gift.limitedTime && /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, "\u23F3 ", lang === 'ar' ? 'متاح' : 'Available'), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#f97316', fontWeight: 800 } },
-      lang === 'ar' ? 'لوقت محدود' : 'Limited Time'
-      )
-      ),
+              gift.isEvent && /*#__PURE__*/
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, "\u26A1 ", lang === 'ar' ? 'نوع' : 'Type'), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#a78bfa', fontWeight: 800 } },
+                  lang === 'ar' ? '🎉 إيفنت' : '🎉 Event'
+                )
+              ),
 
 
-      gift.durationDays && /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, "\u23F3 ", lang === 'ar' ? 'تنتهي بعد' : 'Expires in'), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#f59e0b', fontWeight: 800 } },
-      gift.durationDays, " ", lang === 'ar' ? 'يوم' : 'days'
-      )
-      ), /*#__PURE__*/
+              gift.limitedTime && /*#__PURE__*/
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, "\u23F3 ", lang === 'ar' ? 'متاح' : 'Available'), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#f97316', fontWeight: 800 } },
+                  lang === 'ar' ? 'لوقت محدود' : 'Limited Time'
+                )
+              ),
 
 
-      React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-label" }, "\uD83D\uDCB0 ", lang === 'ar' ? 'السعر' : 'Price'), /*#__PURE__*/
-      React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#fbbf24', fontWeight: 800 } },
-      gift.cost.toLocaleString(), " \uD83E\uDDE0"
-      )
-      )
-      ),
+              gift.durationDays && /*#__PURE__*/
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, "\u23F3 ", lang === 'ar' ? 'تنتهي بعد' : 'Expires in'), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#f59e0b', fontWeight: 800 } },
+                  gift.durationDays, " ", lang === 'ar' ? 'يوم' : 'days'
+                )
+              ), /*#__PURE__*/
 
 
-
-      directTarget && /*#__PURE__*/
-      React.createElement("div", { className: "flex items-center gap-2 mb-2 p-2 bg-yellow-500/10 rounded-lg" }, /*#__PURE__*/
-      React.createElement(AvatarWithFrame, { photoURL: directTarget.photoURL, equipped: directTarget.equipped, size: "sm" }), /*#__PURE__*/
-      React.createElement("div", { className: "text-left" }, /*#__PURE__*/
-      React.createElement("div", { className: "font-bold text-xs" }, lang === 'ar' ? 'إرسال إلى' : 'Sending to'), /*#__PURE__*/
-      React.createElement("div", { className: "text-[10px] text-primary" }, directTarget.displayName)
-      )
-      ),
+              React.createElement("div", { className: "gift-preview-stat" }, /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-label" }, "\uD83D\uDCB0 ", lang === 'ar' ? 'السعر' : 'Price'), /*#__PURE__*/
+                React.createElement("div", { className: "gift-preview-stat-value", style: { color: '#fbbf24', fontWeight: 800 } },
+                  gift.cost.toLocaleString(), " \uD83E\uDDE0"
+                )
+              )
+            ),
 
 
 
-      isGiftItem && !directTarget && /*#__PURE__*/
-      React.createElement("div", { className: "flex gap-1 mb-2" }, /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => setSendMode('self'),
-        className: `flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}` },
-      "\uD83C\uDF81 ",
-      t.sendToSelf
-      ), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => {setSendMode('others');setShowFriendSelect(true);},
-        className: `flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}` },
-      "\uD83D\uDC65 ",
-      t.sendToOthers
-      )
-      ),
+            directTarget && /*#__PURE__*/
+            React.createElement("div", { className: "flex items-center gap-2 mb-2 p-2 bg-yellow-500/10 rounded-lg" }, /*#__PURE__*/
+              React.createElement(AvatarWithFrame, { photoURL: directTarget.photoURL, equipped: directTarget.equipped, size: "sm" }), /*#__PURE__*/
+              React.createElement("div", { className: "text-left" }, /*#__PURE__*/
+                React.createElement("div", { className: "font-bold text-xs" }, lang === 'ar' ? 'إرسال إلى' : 'Sending to'), /*#__PURE__*/
+                React.createElement("div", { className: "text-[10px] text-primary" }, directTarget.displayName)
+              )
+            ),
 
 
-      sendMode === 'others' && showFriendSelect && !directTarget && /*#__PURE__*/
-      React.createElement("div", { className: "friend-select-list" }, /*#__PURE__*/
-      React.createElement("div", { className: "text-[10px] text-gray-400 p-2 border-b border-white/5" }, t.selectFriend),
-      friendsData && friendsData.length > 0 ?
-      friendsData.map((friend) => /*#__PURE__*/
-      React.createElement("div", {
-        key: friend.id,
-        onClick: () => setSelectedFriend(friend),
-        className: `friend-select-item ${selectedFriend?.id === friend.id ? 'selected' : ''}` }, /*#__PURE__*/
 
-      React.createElement(AvatarWithFrame, { photoURL: friend.photoURL, equipped: friend.equipped, size: "sm" }), /*#__PURE__*/
-      React.createElement("div", { className: "friend-select-info" }, /*#__PURE__*/
-      React.createElement("div", { className: "friend-select-name" }, friend.displayName), /*#__PURE__*/
-      React.createElement("div", { className: `friend-select-status ${friend.isOnline ? 'online' : ''}` },
-      friend.isOnline ? t.online : t.offline
-      )
-      ),
-      selectedFriend?.id === friend.id && /*#__PURE__*/React.createElement("span", { className: "text-primary" }, "\u2713")
-      )
-      ) : /*#__PURE__*/
+            isGiftItem && !directTarget && /*#__PURE__*/
+            React.createElement("div", { className: "flex gap-1 mb-2" }, /*#__PURE__*/
+              React.createElement("button", {
+                onClick: () => setSendMode('self'),
+                className: `flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'self' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`
+              },
+                "\uD83C\uDF81 ",
+                t.sendToSelf
+              ), /*#__PURE__*/
+              React.createElement("button", {
+                onClick: () => { setSendMode('others'); setShowFriendSelect(true); },
+                className: `flex-1 py-1.5 rounded text-[10px] font-bold transition ${sendMode === 'others' ? 'bg-primary text-black' : 'bg-white/10 text-white'}`
+              },
+                "\uD83D\uDC65 ",
+                t.sendToOthers
+              )
+            ),
 
-      React.createElement("div", { className: "p-3 text-center text-gray-400 text-xs" }, t.noFriendsToSend)
 
-      )
+            sendMode === 'others' && showFriendSelect && !directTarget && /*#__PURE__*/
+            React.createElement("div", { className: "friend-select-list" }, /*#__PURE__*/
+              React.createElement("div", { className: "text-[10px] text-gray-400 p-2 border-b border-white/5" }, t.selectFriend),
+              friendsData && friendsData.length > 0 ?
+                friendsData.map((friend) => /*#__PURE__*/
+                  React.createElement("div", {
+                    key: friend.id,
+                    onClick: () => setSelectedFriend(friend),
+                    className: `friend-select-item ${selectedFriend?.id === friend.id ? 'selected' : ''}`
+                  }, /*#__PURE__*/
 
-      ),
+                    React.createElement(AvatarWithFrame, { photoURL: friend.photoURL, equipped: friend.equipped, size: "sm" }), /*#__PURE__*/
+                    React.createElement("div", { className: "friend-select-info" }, /*#__PURE__*/
+                      React.createElement("div", { className: "friend-select-name" }, friend.displayName), /*#__PURE__*/
+                      React.createElement("div", { className: `friend-select-status ${friend.isOnline ? 'online' : ''}` },
+                        friend.isOnline ? t.online : t.offline
+                      )
+                    ),
+                    selectedFriend?.id === friend.id && /*#__PURE__*/React.createElement("span", { className: "text-primary" }, "\u2713")
+                  )
+                ) : /*#__PURE__*/
 
-      isGiftItem && isSending && gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined && /*#__PURE__*/
-      React.createElement("div", { style: {
-          padding: '8px 14px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex', flexDirection: 'column', gap: '6px'
-        } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', fontWeight: 600, textAlign: 'center' } },
-      lang === 'ar' ? '📦 كم هدية عايز تبعت؟' : '📦 How many to send?'
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', gap: '5px', justifyContent: 'center' } },
-      [1, 3, 5, 10].map((qty) => /*#__PURE__*/
-      React.createElement("button", {
-        key: qty,
-        onClick: () => setSelectedQty(qty),
-        disabled: currency < gift.cost * qty,
-        style: {
-          padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800,
-          border: selectedQty === qty ? 'none' : '1px solid rgba(255,255,255,0.12)',
-          background: selectedQty === qty ?
-          'linear-gradient(135deg,#a78bfa,#7c3aed)' :
-          'rgba(255,255,255,0.05)',
-          color: selectedQty === qty ? '#fff' : currency >= gift.cost * qty ? '#e2e8f0' : '#4b5563',
-          cursor: currency >= gift.cost * qty ? 'pointer' : 'not-allowed',
-          boxShadow: selectedQty === qty ? '0 0 10px rgba(167,139,250,0.5)' : 'none',
-          transition: 'all 0.15s'
-        } },
-      "\xD7",
-      qty
-      )
-      )
-      ),
-      selectedQty > 1 && /*#__PURE__*/
-      React.createElement("div", { style: { textAlign: 'center', fontSize: '10px', color: '#facc15', fontWeight: 700 } }, "\uD83D\uDCB0 ",
-      (gift.cost * selectedQty).toLocaleString(), " \uD83E\uDDE0",
-      ' · ', "\u2B50 +", formatCharisma(gift.charisma * selectedQty)
-      )
+                React.createElement("div", { className: "p-3 text-center text-gray-400 text-xs" }, t.noFriendsToSend)
 
-      ), /*#__PURE__*/
+            )
 
-      React.createElement("div", { className: "modal-footer py-2" },
-      isFromInventory ? /*#__PURE__*/
-      React.createElement("div", { className: "flex gap-2" }, /*#__PURE__*/
-      React.createElement("button", { onClick: onClose, className: "btn-ghost flex-1 py-1.5 rounded text-xs" }, t.close), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: handleSendFromInventory,
-        disabled: !directTarget && sendMode === 'others' && !selectedFriend,
-        className: `flex-1 py-1.5 rounded text-xs font-bold ${!directTarget && sendMode === 'others' && !selectedFriend ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'btn-gold'}` },
+          ),
 
-      t.sendGift
-      )
-      ) : /*#__PURE__*/
+          isGiftItem && isSending && gift?.maxSendOptions !== null && gift?.maxSendOptions !== undefined && /*#__PURE__*/
+          React.createElement("div", {
+            style: {
+              padding: '8px 14px',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex', flexDirection: 'column', gap: '6px'
+            }
+          }, /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '10px', color: '#9ca3af', fontWeight: 600, textAlign: 'center' } },
+              lang === 'ar' ? '📦 كم هدية عايز تبعت؟' : '📦 How many to send?'
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', gap: '5px', justifyContent: 'center' } },
+              [1, 3, 5, 10].map((qty) => /*#__PURE__*/
+                React.createElement("button", {
+                  key: qty,
+                  onClick: () => setSelectedQty(qty),
+                  disabled: currency < gift.cost * qty,
+                  style: {
+                    padding: '5px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800,
+                    border: selectedQty === qty ? 'none' : '1px solid rgba(255,255,255,0.12)',
+                    background: selectedQty === qty ?
+                      'linear-gradient(135deg,#a78bfa,#7c3aed)' :
+                      'rgba(255,255,255,0.05)',
+                    color: selectedQty === qty ? '#fff' : currency >= gift.cost * qty ? '#e2e8f0' : '#4b5563',
+                    cursor: currency >= gift.cost * qty ? 'pointer' : 'not-allowed',
+                    boxShadow: selectedQty === qty ? '0 0 10px rgba(167,139,250,0.5)' : 'none',
+                    transition: 'all 0.15s'
+                  }
+                },
+                  "\xD7",
+                  qty
+                )
+              )
+            ),
+            selectedQty > 1 && /*#__PURE__*/
+            React.createElement("div", { style: { textAlign: 'center', fontSize: '10px', color: '#facc15', fontWeight: 700 } }, "\uD83D\uDCB0 ",
+              (gift.cost * selectedQty).toLocaleString(), " \uD83E\uDDE0",
+              ' · ', "\u2B50 +", formatCharisma(gift.charisma * selectedQty)
+            )
 
-      React.createElement("div", { className: "flex gap-2" }, /*#__PURE__*/
-      React.createElement("button", { onClick: onClose, className: "btn-ghost flex-1 py-1.5 rounded text-xs" }, t.reportCancel), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: handleBuy,
-        disabled: currency < gift.cost * selectedQty || !directTarget && sendMode === 'others' && !selectedFriend && isGiftItem,
-        className: `flex-1 py-1.5 rounded text-xs font-bold ${currency >= gift.cost * selectedQty ? 'btn-gold' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}` },
+          ), /*#__PURE__*/
 
-      isGiftItem && !directTarget && sendMode === 'self' ?
-      `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'} (${(gift.cost * selectedQty).toLocaleString()}🧠)` :
-      `${isSending || directTarget ? t.sendGift : t.buy}${selectedQty > 1 ? ` ×${selectedQty}` : ''} (${(gift.cost * selectedQty).toLocaleString()}🧠)`
-
-      )
-      )
-
-      )
-      )
+          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.06)' } },
+            isFromInventory ? /*#__PURE__*/
+              React.createElement(React.Fragment, null, 
+                React.createElement("button", { onClick: onClose, style: { flex: 1, padding: '10px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' } }, lang === 'ar' ? 'إلغاء' : 'Cancel'), /*#__PURE__*/
+                React.createElement("button", {
+                  onClick: handleSendFromInventory,
+                  disabled: !directTarget && sendMode === 'others' && !selectedFriend,
+                  style: { flex: 2, padding: '10px', borderRadius: '14px', background: !directTarget && sendMode === 'others' && !selectedFriend ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #10b981, #059669)', color: !directTarget && sendMode === 'others' && !selectedFriend ? '#4b5563' : 'white', fontSize: '13px', fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
+                }, lang === 'ar' ? 'إرسال مجاني' : 'Send Free')
+              ) : /*#__PURE__*/
+              React.createElement(React.Fragment, null,
+                React.createElement("button", { onClick: onClose, style: { flex: 1, padding: '10px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' } }, t.reportCancel), /*#__PURE__*/
+                React.createElement("button", {
+                  onClick: handleBuy,
+                  disabled: currency < gift.cost * selectedQty || !directTarget && sendMode === 'others' && !selectedFriend && isGiftItem,
+                  style: { 
+                    flex: 2, padding: '10px', borderRadius: '14px', 
+                    background: currency < gift.cost * selectedQty ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #facc15, #eab308)', 
+                    color: currency < gift.cost * selectedQty ? '#4b5563' : 'black', 
+                    fontSize: '13px', fontWeight: 900, border: 'none', cursor: 'pointer',
+                    boxShadow: currency >= gift.cost * selectedQty ? '0 4px 12px rgba(250, 204, 21, 0.3)' : 'none'
+                  }
+                },
+                  isGiftItem && !directTarget && sendMode === 'self' ?
+                    `🎒 ${lang === 'ar' ? 'أضف للمخزون' : 'Add to Inventory'}` :
+                    `${isSending || directTarget ? lang === 'ar' ? 'إرسال' : 'Send' : lang === 'ar' ? 'شراء' : 'Buy'}${selectedQty > 1 ? ` ×${selectedQty}` : ''}`
+                )
+              )
+          )
+        )
       ));
 
   };
@@ -420,6 +441,7 @@
     // ── ALL HOOKS FIRST — no early returns before hooks ──
     var [activeTab, setActiveTab] = useState('gifts');
     var [selectedGift, setSelectedGift] = useState(null);
+    var [selectedTgt, setSelectedTgt] = useState(targetUser || (friendsData && friendsData[0]) || { uid: 'self', displayName: currentUser?.displayName, photoURL: currentUser?.photoURL });
     var [comboOverlay, setComboOverlay] = useState(null);
     var [qty, setQty] = useState(1);
     var [isPublic, setIsPublic] = useState(true);
@@ -431,21 +453,23 @@
       if (!tabsRef.current) return;
       tabsRef.current.scrollBy({ left: dir * 120, behavior: 'smooth' });
     };
-    var startScroll = (dir) => {scrollTabs(dir);scrollIntervalRef.current = setInterval(() => scrollTabs(dir), 220);};
+    var startScroll = (dir) => { scrollTabs(dir); scrollIntervalRef.current = setInterval(() => scrollTabs(dir), 220); };
     var stopScroll = () => clearInterval(scrollIntervalRef.current);
 
     // fix #1/#6: combo check BEFORE show guard so state is never lost on unmount
     if (comboOverlay) {
       return (/*#__PURE__*/
         React.createElement(PortalModal, null, /*#__PURE__*/
-        React.createElement(ComboSendOverlay, {
-          gift: comboOverlay.gift,
-          target: comboOverlay.target,
-          currency: currency,
-          onSend: (g, tgt, q) => onSendGift(g, tgt, q),
-          onClose: () => {setComboOverlay(null);onClose();},
-          lang: lang }
-        )
+          React.createElement(ComboSendOverlay, {
+            gift: comboOverlay.gift,
+            target: comboOverlay.target,
+            currency: currency,
+            onSend: (g, tgt, q) => onSendGift(g, tgt, q),
+            onClose: () => { setComboOverlay(null); onClose(); },
+            lang: lang,
+            style: { zIndex: Z.MODAL_PRIORITY }
+          }
+          )
         ));
 
     }
@@ -459,36 +483,36 @@
     var hasFamilyId = !!currentUser?.familyId;
 
     var TABS = [
-    { id: 'inventory', icon: '🎒', label_ar: 'انفنتري', label_en: 'Inventory' },
-    { id: 'gifts', icon: '🎁', label_ar: 'هدايا', label_en: 'Gifts' },
-    { id: 'family', icon: '🏰', label_ar: 'هدايا القبيلة', label_en: 'Family' },
-    { id: 'special', icon: '🎰', label_ar: 'سبيشيال', label_en: 'Special' },
-    { id: 'flag', icon: '🚩', label_ar: 'أعلام', label_en: 'Flag' },
-    { id: 'vip', icon: '👑', label_ar: 'VIP', label_en: 'VIP' }];
+      { id: 'inventory', icon: '🎒', label_ar: 'انفنتري', label_en: 'Inventory' },
+      { id: 'gifts', icon: '🎁', label_ar: 'هدايا', label_en: 'Gifts' },
+      { id: 'family', icon: '🏰', label_ar: 'هدايا القبيلة', label_en: 'Family' },
+      { id: 'special', icon: '🎰', label_ar: 'سبيشيال', label_en: 'Special' },
+      { id: 'flag', icon: '🚩', label_ar: 'أعلام', label_en: 'Flag' },
+      { id: 'vip', icon: '👑', label_ar: 'VIP', label_en: 'VIP' }];
 
 
     var getGiftsForTab = () => {
       switch (activeTab) {
-        case 'inventory':{
-            var invGiftIds = inventory.gifts || [];
-            var pool = [
+        case 'inventory': {
+          var invGiftIds = inventory.gifts || [];
+          var pool = [
             ...(SHOP_ITEMS.gifts || []), ...(SHOP_ITEMS.gifts_vip || []),
             ...(SHOP_ITEMS.gifts_family || []), ...(SHOP_ITEMS.gifts_special || [])];
 
-            return invGiftIds.map((gid) => {
-              var g = pool.find((x) => x.id === gid);
-              if (!g) return null;
-              var expiryTs = inventory.expiry?.[gid];
-              var daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
-              return { ...g, fromInventory: true, daysLeft, qty: inventory.giftCounts?.[gid] || 1 };
-            }).filter(Boolean);
-          }
-        case 'gifts':return (SHOP_ITEMS.gifts || []).filter((g) => !g.hidden && !g.eventOnly);
-        case 'family':return SHOP_ITEMS.gifts_family || [];
-        case 'special':return SHOP_ITEMS.gifts_special || [];
-        case 'flag':return SHOP_ITEMS.gifts_flag || [];
-        case 'vip':return (SHOP_ITEMS.gifts_vip || []).filter((g) => !g.hidden);
-        default:return [];
+          return invGiftIds.map((gid) => {
+            var g = pool.find((x) => x.id === gid);
+            if (!g) return null;
+            var expiryTs = inventory.expiry?.[gid];
+            var daysLeft = expiryTs ? Math.max(0, Math.ceil((expiryTs - Date.now()) / 86400000)) : null;
+            return { ...g, fromInventory: true, daysLeft, qty: inventory.giftCounts?.[gid] || 1 };
+          }).filter(Boolean);
+        }
+        case 'gifts': return (SHOP_ITEMS.gifts || []).filter((g) => !g.hidden && !g.eventOnly);
+        case 'family': return SHOP_ITEMS.gifts_family || [];
+        case 'special': return SHOP_ITEMS.gifts_special || [];
+        case 'flag': return SHOP_ITEMS.gifts_flag || [];
+        case 'vip': return (SHOP_ITEMS.gifts_vip || []).filter((g) => !g.hidden);
+        default: return [];
       }
     };
     var gifts = getGiftsForTab();
@@ -503,7 +527,7 @@
     };
 
     var handleSend = (gift, sendQty) => {
-      var target = hasDirectTarget ? targetUser : null;
+      var target = selectedTgt.uid === 'self' ? null : selectedTgt;
       if (!gift) return;
       onSendGift(gift, target, sendQty || qty, { isPublic });
       var allowsMulti = gift?.maxSendOptions != null && (sendQty || qty) === 1;
@@ -525,203 +549,297 @@
       var rKey = getGiftRarity(g.cost || 0);
       var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
       return (/*#__PURE__*/
-        React.createElement("div", { style: { position: 'fixed', inset: 0, zIndex: Z.TOOLTIP, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-          onClick: () => setShowGiftDetail(false) }, /*#__PURE__*/
-        React.createElement("div", { onClick: (e) => e.stopPropagation(), style: { width: '100%', maxWidth: '300px', background: 'linear-gradient(160deg,#0e0e22,#13122a)', border: `1px solid ${rarity.border}`, borderRadius: '18px', padding: '20px', boxShadow: `0 20px 60px rgba(0,0,0,0.9)` } }, /*#__PURE__*/
-        React.createElement("div", { style: { textAlign: 'center', marginBottom: '14px' } },
-        g.imageUrl && g.imageUrl.trim() !== '' ? /*#__PURE__*/
-        React.createElement("img", { src: g.imageUrl, alt: "", style: { width: '80px', height: '80px', objectFit: 'contain', borderRadius: '12px' } }) : /*#__PURE__*/
-        React.createElement("span", { style: { fontSize: '52px', lineHeight: 1 } }, g.emoji || '🎁')
+        React.createElement("div", {
+          style: { position: 'fixed', inset: 0, zIndex: Z.TOOLTIP, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' },
+          onClick: () => setShowGiftDetail(false)
+        }, /*#__PURE__*/
+          React.createElement("div", { 
+            className: "premium-gift-modal",
+            onClick: (e) => e.stopPropagation(), 
+            style: { width: '100%', maxWidth: '320px', borderRadius: '24px', padding: '24px', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' } 
+          }, /*#__PURE__*/
+            React.createElement("div", { style: { position: 'absolute', top: 0, left: 0, right: 0, height: '80px', background: 'radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.1), transparent 70%)', pointerEvents: 'none' } }),
+            React.createElement("div", { style: { textAlign: 'center', marginBottom: '18px', position: 'relative' } },
+              g.imageUrl && g.imageUrl.trim() !== '' ? /*#__PURE__*/
+                React.createElement("img", { src: g.imageUrl, alt: "", style: { width: '90px', height: '90px', objectFit: 'contain' } }) : /*#__PURE__*/
+                React.createElement("span", { style: { fontSize: '60px', lineHeight: 1 } }, g.emoji || '🎁')
 
-        ), /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '15px', fontWeight: 900, color: 'white', textAlign: 'center', marginBottom: '4px' } }, lang === 'ar' ? g.name_ar || g.name_en : g.name_en),
-        (g.desc_ar || g.desc_en) && /*#__PURE__*/React.createElement("div", { style: { fontSize: '11px', color: '#9ca3af', textAlign: 'center', marginBottom: '12px', lineHeight: 1.5 } }, lang === 'ar' ? g.desc_ar || g.desc_en : g.desc_en || g.desc_ar), /*#__PURE__*/
-        React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px' } },
-        !g.fromInventory && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#9ca3af' } }, "\uD83D\uDCB0 ", lang === 'ar' ? 'السعر' : 'Price'), /*#__PURE__*/React.createElement("span", { style: { color: '#facc15', fontWeight: 800 } }, (g.cost || 0).toLocaleString(), " \uD83E\uDDE0")),
-        (g.charisma || 0) > 0 && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#9ca3af' } }, "\u2B50 ", lang === 'ar' ? 'كاريزما' : 'Charisma'), /*#__PURE__*/React.createElement("span", { style: { color: '#fbbf24', fontWeight: 800 } }, "+", formatCharisma(g.charisma || 0))),
-        (g.maxBonus || 0) > 0 && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#9ca3af' } }, "\uD83C\uDF40 ", lang === 'ar' ? 'مردود أقصى' : 'Max Bonus'), /*#__PURE__*/React.createElement("span", { style: { color: '#4ade80', fontWeight: 800 } }, "+", (g.maxBonus || 0).toLocaleString(), " \uD83E\uDDE0")),
-        g.specialType === 'lottery' && (g.possibleRewards || []).length > 0 && /*#__PURE__*/
-        React.createElement("div", { style: { padding: '8px 10px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: '8px' } }, /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '10px', fontWeight: 800, color: '#a78bfa', marginBottom: '6px' } }, "\uD83C\uDFB0 ", lang === 'ar' ? 'جوائز ممكنة' : 'Possible Rewards'),
-        (g.possibleRewards || []).map((r, i) => /*#__PURE__*/
-        React.createElement("div", { key: i, style: { display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#d1d5db', marginBottom: '3px' } }, /*#__PURE__*/
-        React.createElement("span", null, lang === 'ar' ? r.desc_ar || r.desc_en : r.desc_en || r.desc_ar), /*#__PURE__*/
-        React.createElement("span", { style: { color: '#a78bfa', fontWeight: 700 } }, r.chance, "%")
-        )
-        )
-        ),
-
-        g.durationDays && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#9ca3af' } }, "\u23F3 ", lang === 'ar' ? 'تنتهي بعد' : 'Expires in'), /*#__PURE__*/React.createElement("span", { style: { color: '#f59e0b', fontWeight: 800 } }, g.durationDays, " ", lang === 'ar' ? 'يوم' : 'days')),
-        g.isEvent && /*#__PURE__*/React.createElement("div", { style: { fontSize: '10px', color: '#a78bfa', textAlign: 'center', padding: '4px', background: 'rgba(139,92,246,0.08)', borderRadius: '6px' } }, "\uD83C\uDF89 ", lang === 'ar' ? 'هدية إيفنت' : 'Event Gift'),
-        g.limitedTime && /*#__PURE__*/React.createElement("div", { style: { fontSize: '10px', color: '#f97316', textAlign: 'center', padding: '4px', background: 'rgba(249,115,22,0.08)', borderRadius: '6px' } }, "\u23F0 ", lang === 'ar' ? 'لوقت محدود' : 'Limited Time')
-        ), /*#__PURE__*/
-        React.createElement("button", { onClick: () => setShowGiftDetail(false), style: { width: '100%', padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: '12px', fontWeight: 700, cursor: 'pointer' } }, lang === 'ar' ? 'إغلاق' : 'Close')
-        )
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '18px', fontWeight: 900, color: 'white', textAlign: 'center', marginBottom: '6px', fontFamily: 'Rajdhani, sans-serif' } }, lang === 'ar' ? g.name_ar || g.name_en : g.name_en),
+            (g.desc_ar || g.desc_en) && /*#__PURE__*/React.createElement("div", { style: { fontSize: '12px', color: '#8b8b9e', textAlign: 'center', marginBottom: '16px', lineHeight: 1.6 } }, lang === 'ar' ? g.desc_ar || g.desc_en : g.desc_en || g.desc_ar), /*#__PURE__*/
+            React.createElement("div", { style: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' } },
+              !g.fromInventory && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#8b8b9e' } }, "\uD83D\uDCB0 ", lang === 'ar' ? 'السعر' : 'Price'), /*#__PURE__*/React.createElement("span", { style: { color: '#facc15', fontWeight: 900, fontFamily: 'Rajdhani' } }, (g.cost || 0).toLocaleString(), " \uD83E\uDDE0")),
+              (g.charisma || 0) > 0 && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#8b8b9e' } }, "\u2B50 ", lang === 'ar' ? 'كاريزما' : 'Charisma'), /*#__PURE__*/React.createElement("span", { style: { color: '#00f2ff', fontWeight: 900, fontFamily: 'Rajdhani' } }, "+", formatCharisma(g.charisma || 0))),
+              (g.maxBonus || 0) > 0 && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#8b8b9e' } }, "\uD83C\uDF40 ", lang === 'ar' ? 'مردود أقصى' : 'Max Bonus'), /*#__PURE__*/React.createElement("span", { style: { color: '#4ade80', fontWeight: 900, fontFamily: 'Rajdhani' } }, "+", (g.maxBonus || 0).toLocaleString(), " \uD83E\uDDE0")),
+              g.specialType === 'lottery' && (g.possibleRewards || []).length > 0 && /*#__PURE__*/
+              React.createElement("div", { padding: '10px 12px', background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px' }, /*#__PURE__*/
+                React.createElement("div", { style: { fontSize: '11px', fontWeight: 900, color: '#a78bfa', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' } }, "\uD83C\uDFB0 ", lang === 'ar' ? 'جوائز ممكنة' : 'Possible Rewards'),
+                (g.possibleRewards || []).map((r, i) => /*#__PURE__*/
+                  React.createElement("div", { key: i, style: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#d1d5db', marginBottom: '4px' } }, /*#__PURE__*/
+                    React.createElement("span", null, lang === 'ar' ? r.desc_ar || r.desc_en : r.desc_en || r.desc_ar), /*#__PURE__*/
+                    React.createElement("span", { style: { color: '#a78bfa', fontWeight: 900 } }, r.chance, "%")
+                  )
+                )
+              ),
+              g.durationDays && /*#__PURE__*/React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' } }, /*#__PURE__*/React.createElement("span", { style: { color: '#8b8b9e' } }, "\u23F3 ", lang === 'ar' ? 'تنتهي بعد' : 'Expires in'), /*#__PURE__*/React.createElement("span", { style: { color: '#f59e0b', fontWeight: 900 } }, g.durationDays, " ", lang === 'ar' ? 'يوم' : 'days'))
+            ), /*#__PURE__*/
+            React.createElement("button", { onClick: () => setShowGiftDetail(false), style: { width: '100%', padding: '12px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '13px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' } }, lang === 'ar' ? 'فهمت' : 'Got it')
+          )
         ));
 
     };
 
     return (/*#__PURE__*/
       React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement(PortalModal, null, /*#__PURE__*/
-      React.createElement("div", { style: { position: 'fixed', inset: 0, zIndex: Z.MODAL_HIGH, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }, onClick: onClose }, /*#__PURE__*/
-      React.createElement("div", { style: { width: '100%', maxWidth: '480px', background: 'linear-gradient(180deg,#111122 0%,#0a0a18 100%)', borderRadius: '22px 22px 0 0', border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none', overflow: 'hidden', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 60px rgba(0,0,0,0.8)' }, onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+        React.createElement(PortalModal, null, /*#__PURE__*/
+          React.createElement("div", { style: { position: 'fixed', inset: 0, zIndex: Z.MODAL_PRIORITY, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }, onClick: onClose, className: "backdrop-blur-sm" }, /*#__PURE__*/
+            React.createElement("div", { className: "premium-gift-modal", style: { width: '100%', maxWidth: '480px', borderRadius: '24px 24px 0 0', overflow: 'hidden', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }, onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
 
 
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px 10px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 } },
-      hasDirectTarget && /*#__PURE__*/
-      React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("img", { src: targetUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.displayName || 'U')}&background=6366f1&color=fff`, alt: "", style: { width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,242,255,0.3)', flexShrink: 0 } }), /*#__PURE__*/
-      React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '11px', color: '#9ca3af' } }, lang === 'ar' ? 'إرسال إلى' : 'Send to'), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '14px', fontWeight: 800, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, targetUser.displayName)
-      )
-      ),
+              React.createElement("div", { style: { display: 'flex', flexDirection: 'column', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 } },
+                /*#__PURE__*/
+                React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: friendsData && friendsData.length > 0 ? '10px' : '0' } }, /*#__PURE__*/
+                  React.createElement("div", { style: { fontSize: '14px', fontWeight: 900, color: 'white' } }, lang === 'ar' ? 'إرسال إلى' : 'Send to'), /*#__PURE__*/
+                  React.createElement("button", { onClick: onClose, style: { background: 'none', border: 'none', color: '#9ca3af', fontSize: '18px', cursor: 'pointer', padding: '0 4px' } }, "\u2715")
+                ),
 
-      !hasDirectTarget && /*#__PURE__*/React.createElement("div", { style: { flex: 1, fontSize: '15px', fontWeight: 900, color: 'white' } }, lang === 'ar' ? 'إرسال هدية' : 'Send Gift'), /*#__PURE__*/
-      React.createElement("button", { onClick: onClose, style: { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#9ca3af', fontSize: '14px', flexShrink: 0 } }, "\u2715")
-      ), /*#__PURE__*/
+                friendsData && friendsData.length > 0 && /*#__PURE__*/
+                React.createElement("div", {
+                  style: {
+                    display: 'flex',
+                    gap: '12px',
+                    overflowX: 'auto',
+                    paddingBottom: '8px',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  },
+                  className: "no-scrollbar"
+                },
+                  friendsData.map((u) => {
+                    var isSelected = (selectedTgt?.uid || selectedTgt?.id) === (u.uid || u.id);
+                    return (/*#__PURE__*/
+                      React.createElement("div", {
+                        key: u.uid || u.id,
+                        onClick: () => setSelectedTgt(u),
+                        style: {
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '4px',
+                          cursor: 'pointer',
+                          minWidth: '50px',
+                          padding: '4px 0'
+                        },
+                        className: `gift-target-avatar ${isSelected ? 'active' : ''}`
+                      }, /*#__PURE__*/
+                        React.createElement("div", {
+                          className: "avatar-wrapper",
+                          style: {
+                            position: 'relative',
+                            padding: '1px',
+                            background: isSelected ? 'transparent' : 'rgba(255,255,255,0.05)',
+                            borderRadius: '50.1%',
+                          }
+                        }, /*#__PURE__*/
+                          React.createElement("img", {
+                            src: u.photoURL || 'https://via.placeholder.com/40',
+                            alt: "",
+                            style: {
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              display: 'block'
+                            }
+                          })
+                        ), /*#__PURE__*/
+                        React.createElement("div", {
+                          style: {
+                            fontSize: '8px',
+                            fontWeight: isSelected ? 900 : 500,
+                            color: isSelected ? '#00f2ff' : '#9ca3af',
+                            maxWidth: '48px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            textAlign: 'center',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.2px'
+                          }
+                        },
+                          (u.uid || u.id) === currentUser?.uid ? (lang === 'ar' ? 'أنا' : 'Me') : (u.displayName || 'User')
+                        )
+                      )
+                    );
+                  })
+                ),
+
+                (!friendsData || friendsData.length === 0) && selectedTgt && /*#__PURE__*/
+                React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, /*#__PURE__*/
+                  React.createElement(window.AvatarWithFrame, {
+                    photoURL: selectedTgt.photoURL,
+                    equipped: selectedTgt.equipped,
+                    size: "xs"
+                  }), /*#__PURE__*/
+                  React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: 'white' } },
+                    selectedTgt.uid === currentUser?.uid ? (lang === 'ar' ? 'أنا' : 'Me') : selectedTgt.displayName
+                  )
+                )
+              ),
 
 
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', padding: '8px 0 0', flexShrink: 0, gap: 0 } }, /*#__PURE__*/
-      React.createElement("button", { onMouseDown: () => startScroll(-1), onMouseUp: stopScroll, onMouseLeave: stopScroll, onTouchStart: () => startScroll(-1), onTouchEnd: stopScroll,
-        style: { flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', marginLeft: '8px' } }, "\u2039"), /*#__PURE__*/
-      React.createElement("div", { ref: tabsRef, style: { flex: 1, display: 'flex', overflowX: 'auto', gap: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', padding: '0 4px' } },
-      TABS.map((tab) => /*#__PURE__*/
-      React.createElement("button", { key: tab.id, onClick: () => {setActiveTab(tab.id);setSelectedGift(null);setQty(1);setShowGiftDetail(false);},
-        style: { flexShrink: 0, padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 800, whiteSpace: 'nowrap', background: activeTab === tab.id ? 'rgba(0,242,255,0.18)' : 'rgba(255,255,255,0.06)', color: activeTab === tab.id ? '#00f2ff' : '#9ca3af', borderBottom: activeTab === tab.id ? '2px solid #00f2ff' : '2px solid transparent', transition: 'all 0.15s' } },
-      tab.icon, " ", lang === 'ar' ? tab.label_ar : tab.label_en)
-      )
-      ), /*#__PURE__*/
-      React.createElement("button", { onMouseDown: () => startScroll(1), onMouseUp: stopScroll, onMouseLeave: stopScroll, onTouchStart: () => startScroll(1), onTouchEnd: stopScroll,
-        style: { flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', marginRight: '8px' } }, "\u203A")
-      ), /*#__PURE__*/
+              React.createElement("div", { style: { display: 'flex', alignItems: 'center', padding: '8px 0 0', flexShrink: 0, gap: 0 } }, /*#__PURE__*/
+                React.createElement("button", {
+                  onMouseDown: () => startScroll(-1), onMouseUp: stopScroll, onMouseLeave: stopScroll, onTouchStart: () => startScroll(-1), onTouchEnd: stopScroll,
+                  style: { flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', marginLeft: '8px' }
+                }, "\u2039"), /*#__PURE__*/
+                React.createElement("div", { ref: tabsRef, className: "gift-tabs-nav", style: { flex: 1 } },
+                  TABS.map((tab) => /*#__PURE__*/
+                    React.createElement("button", {
+                      key: tab.id, 
+                      onClick: () => { setActiveTab(tab.id); setSelectedGift(null); setQty(1); setShowGiftDetail(false); },
+                      className: `gift-tab-btn ${activeTab === tab.id ? 'active' : ''}`
+                    },
+                      tab.icon, " ", lang === 'ar' ? tab.label_ar : tab.label_en)
+                  )
+                ), /*#__PURE__*/
+                React.createElement("button", {
+                  onMouseDown: () => startScroll(1), onMouseUp: stopScroll, onMouseLeave: stopScroll, onTouchStart: () => startScroll(1), onTouchEnd: stopScroll,
+                  style: { flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', marginRight: '8px' }
+                }, "\u203A")
+              ), /*#__PURE__*/
 
 
-      React.createElement("div", { style: { padding: '8px 12px 0', flexShrink: 0 } },
-      showInfoBar && /*#__PURE__*/
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 14px', margin: '0 0 4px', background: 'rgba(255,215,0,0.07)', borderRadius: '10px', border: '1px solid rgba(255,215,0,0.18)', fontSize: '11px' } }, /*#__PURE__*/
-      React.createElement("span", { style: { color: '#d1d5db', flex: 1 } },
-      lang === 'ar' ? 'كاريزما المستلم' : "Receiver's Charm", ' ', /*#__PURE__*/
-      React.createElement("span", { style: { color: '#facc15', fontWeight: 800 } }, "+", formatCharisma(charismaForBar)),
-      maxGoldForBar > 0 && /*#__PURE__*/React.createElement("span", { style: { color: '#9ca3af', marginLeft: '6px' } }, lang === 'ar' ? `حصل على ما يصل إلى ${maxGoldForBar.toLocaleString()} 🧠` : `Gain up to ${maxGoldForBar.toLocaleString()} Intel 🧠`),
-      selectedGift?.specialType === 'lottery' && /*#__PURE__*/React.createElement("span", { style: { color: '#a78bfa', marginLeft: '6px' } }, "\uD83C\uDFB0")
-      ), /*#__PURE__*/
-      React.createElement("button", { onClick: () => setShowGiftDetail(true), style: { background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '22px', height: '22px', color: '#e2e8f0', fontSize: '12px', fontWeight: 800, cursor: 'pointer', lineHeight: 1, flexShrink: 0 } }, "?")
-      )
+              React.createElement("div", { style: { padding: '8px 12px 0', flexShrink: 0 } },
+                showInfoBar && /*#__PURE__*/
+                React.createElement("div", { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 14px', margin: '0 0 4px', background: 'rgba(255,215,0,0.07)', borderRadius: '10px', border: '1px solid rgba(255,215,0,0.18)', fontSize: '11px' } }, /*#__PURE__*/
+                  React.createElement("span", { style: { color: '#d1d5db', flex: 1 } },
+                    lang === 'ar' ? 'كاريزما المستلم' : "Receiver's Charm", ' ', /*#__PURE__*/
+                    React.createElement("span", { style: { color: '#facc15', fontWeight: 800 } }, "+", formatCharisma(charismaForBar)),
+                    maxGoldForBar > 0 && /*#__PURE__*/React.createElement("span", { style: { color: '#9ca3af', marginLeft: '6px' } }, lang === 'ar' ? `حصل على ما يصل إلى ${maxGoldForBar.toLocaleString()} 🧠` : `Gain up to ${maxGoldForBar.toLocaleString()} Intel 🧠`),
+                    selectedGift?.specialType === 'lottery' && /*#__PURE__*/React.createElement("span", { style: { color: '#a78bfa', marginLeft: '6px' } }, "\uD83C\uDFB0")
+                  ), /*#__PURE__*/
+                  React.createElement("button", { onClick: () => setShowGiftDetail(true), style: { background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '22px', height: '22px', color: '#e2e8f0', fontSize: '12px', fontWeight: 800, cursor: 'pointer', lineHeight: 1, flexShrink: 0 } }, "?")
+                )
 
-      ),
-
-
-      activeTab === 'family' && !hasFamilyId && /*#__PURE__*/
-      React.createElement("div", { style: { margin: '8px 12px', padding: '10px 14px', borderRadius: '10px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', fontSize: '11px', color: '#34d399', textAlign: 'center', flexShrink: 0 } }, "\uD83C\uDFF0 ",
-      lang === 'ar' ? 'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة' : 'You must be in a family to use Family Gifts'
-      ), /*#__PURE__*/
+              ),
 
 
+              activeTab === 'family' && !hasFamilyId && /*#__PURE__*/
+              React.createElement("div", { style: { margin: '8px 12px', padding: '10px 14px', borderRadius: '10px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', fontSize: '11px', color: '#34d399', textAlign: 'center', flexShrink: 0 } }, "\uD83C\uDFF0 ",
+                lang === 'ar' ? 'يجب أن تكون في قبيلة لاستخدام هدايا القبيلة' : 'You must be in a family to use Family Gifts'
+              ), /*#__PURE__*/
 
-      React.createElement("div", { style: { flex: 1, overflowY: 'auto', padding: '10px 12px', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', alignContent: 'start' } },
-      gifts.length === 0 ? /*#__PURE__*/
-      React.createElement("div", { style: { gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: '#4b5563', fontSize: '12px' } },
-      activeTab === 'inventory' ? lang === 'ar' ? 'لا توجد هدايا في الإنفنتري' : 'No gifts in inventory' : lang === 'ar' ? 'لا توجد هدايا' : 'No gifts available'
-      ) :
-      gifts.map((gift) => {
-        var tag = getGiftTag(gift);
-        var rKey = getGiftRarity(gift.cost || 0);
-        var rarity = RARITY_CONFIG[rKey] || RARITY_CONFIG.Common;
-        var vipRequired = gift.vipMinLevel || 0;
-        var isVIPLocked = gift.type === 'gifts_vip' && vipLevel < vipRequired;
-        var isFamLocked = gift.type === 'gifts_family' && !hasFamilyId; // fix #9
-        var isSelected = selectedGift?.id === gift.id;
-        var canAfford = gift.fromInventory ? true : currency >= (gift.cost || 0);
-        return (/*#__PURE__*/
-          React.createElement("button", { key: gift.id,
-            onClick: () => {if (isVIPLocked || isFamLocked) return;setSelectedGift(isSelected ? null : gift);setQty(1);setShowGiftDetail(false);},
-            style: {
-              // fix #2: fixed total height — nothing shifts
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              height: '112px', padding: '0',
-              borderRadius: '12px',
-              cursor: isVIPLocked || isFamLocked ? 'default' : 'pointer',
-              border: isSelected ? '2px solid #00f2ff' : `1px solid ${canAfford && !isVIPLocked ? rarity.border : 'rgba(255,255,255,0.07)'}`,
-              background: isSelected ? 'rgba(0,242,255,0.08)' : canAfford && !isVIPLocked ? rarity.bg : 'rgba(255,255,255,0.03)',
-              opacity: isVIPLocked || isFamLocked || !canAfford && !gift.fromInventory ? 0.45 : 1,
-              position: 'relative', overflow: 'hidden',
-              transition: 'transform 0.12s, border 0.12s',
-              boxShadow: isSelected ? '0 0 12px rgba(0,242,255,0.3)' : 'none'
-            },
-            onMouseEnter: (e) => {if (!isVIPLocked && !isFamLocked) e.currentTarget.style.transform = 'scale(1.05)';},
-            onMouseLeave: (e) => {e.currentTarget.style.transform = 'scale(1)';} },
 
-          tag && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', top: '4px', left: '4px', fontSize: '7px', fontWeight: 800, color: 'white', background: tag.bg, borderRadius: '6px', padding: '1px 5px', zIndex: 2, lineHeight: 1.4 } }, tag.label), /*#__PURE__*/
 
-          React.createElement("div", { style: { width: '100%', flex: 1, position: 'relative', borderRadius: '10px 10px 0 0', overflow: 'hidden', background: 'rgba(255,255,255,0.03)' } }, /*#__PURE__*/
-          React.createElement("div", { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
-          gift.imageUrl && gift.imageUrl.trim() !== '' ? /*#__PURE__*/
-          React.createElement("img", { src: gift.imageUrl, alt: "", style: { width: '68%', height: '68%', objectFit: 'contain' } }) : /*#__PURE__*/
-          React.createElement("span", { style: { fontSize: '26px', lineHeight: 1 } }, gift.emoji || '🎁')
+              React.createElement("div", { 
+                className: "gift-grid-container",
+                style: { flex: 1, overflowY: 'auto', padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', alignContent: 'start' } 
+              },
+                gifts.length === 0 ? /*#__PURE__*/
+                  React.createElement("div", { style: { gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: '#4b5563', fontSize: '12px' } },
+                    activeTab === 'inventory' ? lang === 'ar' ? 'لا توجد هدايا في الإنفنتري' : 'No gifts in inventory' : lang === 'ar' ? 'لا توجد هدايا' : 'No gifts available'
+                  ) :
+                  gifts.map((gift, idx) => {
+                    var tag = getGiftTag(gift);
+                    var rKey = getGiftRarity(gift);
+                    var rarity = window.RARITY_CONFIG ? window.RARITY_CONFIG[rKey] : null;
+                    var glowColor = rarity ? rarity.color : '#ffffff';
+                    var isSelected = selectedGift?.id === gift.id;
+                    var canAfford = gift.fromInventory ? true : currency >= (gift.cost || 0);
+                    var vipRequired = gift.vipMinLevel || 0;
+                    var isVIPLocked = gift.type === 'gifts_vip' && vipLevel < vipRequired;
+                    var isFamLocked = gift.type === 'gifts_family' && !hasFamilyId;
 
-          ),
-          (isVIPLocked || isFamLocked) && /*#__PURE__*/
-          React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' } }, /*#__PURE__*/
-          React.createElement("span", { style: { fontSize: '14px' } }, "\uD83D\uDD12"), /*#__PURE__*/
-          React.createElement("span", { style: { fontSize: '7px', color: isVIPLocked ? '#f59e0b' : '#10b981', fontWeight: 800 } }, isVIPLocked ? `VIP${vipRequired}+` : lang === 'ar' ? 'قبيلة' : 'Family')
+                    return (/*#__PURE__*/
+                      React.createElement("button", {
+                        key: gift.id,
+                        onClick: () => { if (isVIPLocked || isFamLocked) return; setSelectedGift(isSelected ? null : gift); setQty(1); setShowGiftDetail(false); },
+                        className: `gift-item-card ${isSelected ? 'selected' : ''} ${isVIPLocked || isFamLocked ? 'locked' : ''} ${rKey === 'Mythic' ? 'gift-rarity-mythic' : ''}`,
+                        style: {
+                          display: 'flex', flexDirection: 'column', alignItems: 'center',
+                          height: '115px', padding: '0',
+                          borderRadius: '16px',
+                          cursor: isVIPLocked || isFamLocked ? 'default' : 'pointer',
+                          opacity: isVIPLocked || isFamLocked || (!canAfford && !gift.fromInventory) ? 0.45 : 1,
+                          position: 'relative', overflow: 'hidden',
+                          '--rarity-color': glowColor,
+                          '--rarity-glow': `${glowColor}66`,
+                          '--rarity-bg': `${glowColor}15`,
+                          boxShadow: isSelected ? `0 0 25px ${glowColor}66` : `inset 0 0 15px ${glowColor}22`,
+                          animationDelay: `${idx * 40}ms`,
+                        }
+                      },
+                        tag && /*#__PURE__*/React.createElement("div", { style: { position: 'absolute', top: '5px', left: '5px', fontSize: '7px', fontWeight: 900, color: 'white', background: tag.bg, borderRadius: '6px', padding: '2px 6px', zIndex: 2, textTransform: 'uppercase', letterSpacing: '0.5px' } }, tag.label), /*#__PURE__*/
+
+                        React.createElement("div", { style: { width: '100%', flex: 1, minHeight: 0, position: 'relative', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+                          gift.imageUrl && gift.imageUrl.trim() !== '' ? /*#__PURE__*/
+                            React.createElement("img", { src: gift.imageUrl, alt: "", style: { maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' } }) : /*#__PURE__*/
+                            React.createElement("span", { style: { fontSize: '32px', lineHeight: 1 } }, gift.emoji || '🎁'),
+
+                          (isVIPLocked || isFamLocked) && /*#__PURE__*/
+                          React.createElement("div", { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', backdropFilter: 'blur(2px)' } }, /*#__PURE__*/
+                            React.createElement("span", { style: { fontSize: '18px' } }, "\uD83D\uDD12"), /*#__PURE__*/
+                            React.createElement("span", { style: { fontSize: '8px', color: isVIPLocked ? '#facc15' : '#10b981', fontWeight: 900, fontFamily: 'Rajdhani' } }, isVIPLocked ? `VIP${vipRequired}+` : lang === 'ar' ? 'قبيلة' : 'Family')
+                          )
+                        ), /*#__PURE__*/
+
+                        React.createElement("div", { style: { width: '100%', padding: '4px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', position: 'relative', zIndex: 1, flexShrink: 0 } }, /*#__PURE__*/
+                          React.createElement("div", { style: { fontSize: '10px', fontWeight: 700, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', textAlign: 'center' } },
+                            lang === 'ar' ? gift.name_ar || gift.name_en : gift.name_en
+                          ), /*#__PURE__*/
+                          React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '3px' } },
+                            gift.fromInventory ? /*#__PURE__*/
+                              React.createElement("span", { style: { fontSize: '9px', color: '#10b981', fontWeight: 900 } }, "\xD7", gift.qty || 1) : /*#__PURE__*/
+                              React.createElement("span", { style: { fontSize: '9px', fontWeight: 800, color: canAfford ? '#facc15' : '#9ca3af', fontFamily: 'Rajdhani' } }, "\uD83E\uDDE0 ", (gift.cost || 0).toLocaleString())
+                          )
+                        ),
+
+                        gift.fromInventory && gift.daysLeft != null && /*#__PURE__*/
+                        React.createElement("div", { style: { position: 'absolute', bottom: '0', left: 0, right: 0, fontSize: '6px', textAlign: 'center', color: '#f97316', background: 'rgba(0,0,0,0.4)', padding: '1px 0' } },
+                          lang === 'ar' ? `${gift.daysLeft} يوم` : `${gift.daysLeft} d`
+                        )
+                      ));
+
+
+                  })
+              ), /*#__PURE__*/
+
+
+              React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.4)', flexShrink: 0 } }, /*#__PURE__*/
+                React.createElement("div", { style: { fontSize: '12px', fontWeight: 700, color: '#facc15', flex: 1 } }, "\uD83E\uDDE0 ", (currency || 0).toLocaleString()), /*#__PURE__*/
+
+                React.createElement("button", {
+                  onClick: () => setIsPublic((v) => !v),
+                  style: { padding: '7px 12px', borderRadius: '20px', background: isPublic ? 'rgba(0,242,255,0.12)' : 'rgba(255,80,80,0.12)', border: `1px solid ${isPublic ? 'rgba(0,242,255,0.3)' : 'rgba(255,80,80,0.3)'}`, color: isPublic ? '#00f2ff' : '#f87171', fontSize: '11px', fontWeight: 700, cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s' }
+                },
+                  isPublic ? lang === 'ar' ? '🌐 عام' : '🌐 Public' : lang === 'ar' ? '🔒 خاص' : '🔒 Private'
+                ), /*#__PURE__*/
+
+                React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
+                  React.createElement("select", {
+                    value: qty, onChange: (e) => setQty(Number(e.target.value)),
+                    style: { padding: '7px 24px 7px 12px', borderRadius: '20px', background: 'rgba(15,15,30,0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 700, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none', outline: 'none' }
+                  },
+                    (selectedGift?.maxSendOptions || [1, 3, 5, 10, 20, 50, 99]).map((n) => /*#__PURE__*/React.createElement("option", { key: n, value: n }, n))
+                  ), /*#__PURE__*/
+                  React.createElement("span", { style: { position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '8px', color: '#9ca3af', pointerEvents: 'none' } }, "\u25BC")
+                ), /*#__PURE__*/
+                React.createElement("button", {
+                  onClick: () => {
+                    if (!selectedGift) return;
+                    if (selectedGift.fromInventory) { onSendGift(selectedGift, hasDirectTarget ? targetUser : null, qty, { isPublic }); onClose(); } else { var cost = (selectedGift.cost || 0) * qty; if (currency < cost) return; handleSend(selectedGift, qty); }
+                  },
+                  disabled: !selectedGift,
+                  style: { padding: '9px 22px', borderRadius: '50px', flexShrink: 0, background: selectedGift ? 'linear-gradient(135deg,#ec4899,#db2777)' : 'rgba(255,255,255,0.07)', border: 'none', color: selectedGift ? 'white' : '#4b5563', fontSize: '13px', fontWeight: 900, cursor: selectedGift ? 'pointer' : 'default', boxShadow: selectedGift ? '0 4px 14px rgba(236,72,153,0.45)' : 'none', transition: 'all 0.2s' }
+                },
+                  lang === 'ar' ? 'إرسال' : 'Send', selectedGift && qty > 1 ? ` ×${qty}` : ''
+                )
+              )
+            )
           )
-
-          ), /*#__PURE__*/
-
-          React.createElement("div", { style: { fontSize: '9px', fontWeight: 700, color: 'white', height: '14px', lineHeight: '14px', textAlign: 'center', padding: '0 3px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', width: '100%', flexShrink: 0, marginTop: '3px' } },
-          lang === 'ar' ? gift.name_ar || gift.name_en : gift.name_en
-          ), /*#__PURE__*/
-
-          React.createElement("div", { style: { height: '13px', lineHeight: '13px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', marginBottom: '3px' } },
-          gift.fromInventory ? /*#__PURE__*/
-          React.createElement("span", { style: { fontSize: '8px', color: '#10b981', fontWeight: 800 } }, "\xD7", gift.qty || 1) : /*#__PURE__*/
-          React.createElement("span", { style: { fontSize: '8px', fontWeight: 800, color: canAfford ? '#facc15' : '#6b7280' } }, "\uD83E\uDDE0", fmtNum(gift.cost || 0))
-
-          ),
-
-          gift.fromInventory && gift.daysLeft != null && /*#__PURE__*/
-          React.createElement("div", { style: { position: 'absolute', bottom: '2px', left: 0, right: 0, fontSize: '7px', textAlign: 'center', color: 'rgba(249,115,22,0.55)', fontWeight: 700 } },
-          lang === 'ar' ? `${gift.daysLeft} يوم` : `${gift.daysLeft} days`
-          )
-
-          ));
-
-      })
-      ), /*#__PURE__*/
-
-
-      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.4)', flexShrink: 0 } }, /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '12px', fontWeight: 700, color: '#facc15', flex: 1 } }, "\uD83E\uDDE0 ", (currency || 0).toLocaleString()), /*#__PURE__*/
-
-      React.createElement("button", { onClick: () => setIsPublic((v) => !v),
-        style: { padding: '7px 12px', borderRadius: '20px', background: isPublic ? 'rgba(0,242,255,0.12)' : 'rgba(255,80,80,0.12)', border: `1px solid ${isPublic ? 'rgba(0,242,255,0.3)' : 'rgba(255,80,80,0.3)'}`, color: isPublic ? '#00f2ff' : '#f87171', fontSize: '11px', fontWeight: 700, cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s' } },
-      isPublic ? lang === 'ar' ? '🌐 عام' : '🌐 Public' : lang === 'ar' ? '🔒 خاص' : '🔒 Private'
-      ), /*#__PURE__*/
-
-      React.createElement("div", { style: { position: 'relative', flexShrink: 0 } }, /*#__PURE__*/
-      React.createElement("select", { value: qty, onChange: (e) => setQty(Number(e.target.value)),
-        style: { padding: '7px 24px 7px 12px', borderRadius: '20px', background: 'rgba(15,15,30,0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', fontSize: '11px', fontWeight: 700, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none', outline: 'none' } },
-      (selectedGift?.maxSendOptions || [1, 3, 5, 10, 20, 50, 99]).map((n) => /*#__PURE__*/React.createElement("option", { key: n, value: n }, n))
-      ), /*#__PURE__*/
-      React.createElement("span", { style: { position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '8px', color: '#9ca3af', pointerEvents: 'none' } }, "\u25BC")
-      ), /*#__PURE__*/
-      React.createElement("button", {
-        onClick: () => {
-          if (!selectedGift) return;
-          if (selectedGift.fromInventory) {onSendGift(selectedGift, hasDirectTarget ? targetUser : null, qty, { isPublic });onClose();} else
-          {var cost = (selectedGift.cost || 0) * qty;if (currency < cost) return;handleSend(selectedGift, qty);}
-        },
-        disabled: !selectedGift,
-        style: { padding: '9px 22px', borderRadius: '50px', flexShrink: 0, background: selectedGift ? 'linear-gradient(135deg,#ec4899,#db2777)' : 'rgba(255,255,255,0.07)', border: 'none', color: selectedGift ? 'white' : '#4b5563', fontSize: '13px', fontWeight: 900, cursor: selectedGift ? 'pointer' : 'default', boxShadow: selectedGift ? '0 4px 14px rgba(236,72,153,0.45)' : 'none', transition: 'all 0.2s' } },
-      lang === 'ar' ? 'إرسال' : 'Send', selectedGift && qty > 1 ? ` ×${qty}` : ''
-      )
-      )
-      )
-      )
-      ),
-      showGiftDetail && selectedGift && /*#__PURE__*/React.createElement(PortalModal, null, /*#__PURE__*/React.createElement(GiftDetailPopup, null))
+        ),
+        showGiftDetail && selectedGift && /*#__PURE__*/React.createElement(PortalModal, null, /*#__PURE__*/React.createElement(GiftDetailPopup, null))
       ));
 
   };
@@ -749,8 +867,8 @@
     var isClosedRef = React.useRef(false); // ✅ guard: prevent double-close
     var onCloseRef = React.useRef(onClose);
     var currencyRef = React.useRef(currency);
-    useEffect(() => {onCloseRef.current = onClose;}, [onClose]);
-    useEffect(() => {currencyRef.current = currency;}, [currency]);
+    useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+    useEffect(() => { currencyRef.current = currency; }, [currency]);
 
     // ─── CLOSE — called only once ───
     var close = React.useCallback(() => {
@@ -761,9 +879,9 @@
       setClosing(true);
       if (comboCountRef.current > 0) {
         setShowFinalLog(true);
-        setTimeout(() => {onCloseRef.current && onCloseRef.current();}, 1800);
+        setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 1800);
       } else {
-        setTimeout(() => {onCloseRef.current && onCloseRef.current();}, 350);
+        setTimeout(() => { onCloseRef.current && onCloseRef.current(); }, 350);
       }
     }, []); // ✅ empty deps — never recreated, never stale
 
@@ -820,13 +938,14 @@
     var RING_R = 42;
     var RING_C = 2 * Math.PI * RING_R;
     var ringColor = comboCountRef.current >= 10 ? '#f59e0b' :
-    comboCountRef.current >= 5 ? '#a78bfa' :
-    '#00d4ff';
+      comboCountRef.current >= 5 ? '#a78bfa' :
+        '#00d4ff';
 
     // ─── FINAL LOG CARD ───
     if (showFinalLog && comboCountRef.current > 0) {
       return (/*#__PURE__*/
-        React.createElement("div", { style: {
+        React.createElement("div", {
+          style: {
             position: 'fixed', bottom: '80px', right: '12px', zIndex: Z.OVERLAY,
             width: '200px',
             background: 'linear-gradient(135deg,rgba(20,20,40,0.98),rgba(10,10,25,0.99))',
@@ -835,25 +954,26 @@
             boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${ringColor}22`,
             animation: 'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
             pointerEvents: 'none'
-          } }, /*#__PURE__*/
-        React.createElement("div", { style: { textAlign: 'center', marginBottom: '10px' } }, /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '28px', marginBottom: '2px' } },
-        gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: "", style: { width: '34px', height: '34px', objectFit: 'contain' } }) : gift.emoji
-        ), /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '15px', fontWeight: 900, color: ringColor, textShadow: `0 0 12px ${ringColor}` } }, "\xD7",
-        comboCount, " COMBO! \uD83C\uDF89"
-        )
-        ), /*#__PURE__*/
-        React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' } }, /*#__PURE__*/
-        React.createElement("div", { style: { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: '8px', padding: '6px', textAlign: 'center' } }, /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '8px', color: '#6b7280', fontWeight: 700 } }, lang === 'ar' ? 'بونص' : 'Bonus'), /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#4ade80' } }, "+", fmtNum(totalBonus), "\uD83E\uDDE0")
-        ), /*#__PURE__*/
-        React.createElement("div", { style: { background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '8px', padding: '6px', textAlign: 'center' } }, /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '8px', color: '#6b7280', fontWeight: 700 } }, lang === 'ar' ? 'نجوم' : 'Stars'), /*#__PURE__*/
-        React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#fbbf24' } }, "+", formatCharisma(totalCharisma), "\u2B50")
-        )
-        )
+          }
+        }, /*#__PURE__*/
+          React.createElement("div", { style: { textAlign: 'center', marginBottom: '10px' } }, /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '28px', marginBottom: '2px' } },
+              gift.imageUrl ? /*#__PURE__*/React.createElement("img", { src: gift.imageUrl, alt: "", style: { width: '34px', height: '34px', objectFit: 'contain' } }) : gift.emoji
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { fontSize: '15px', fontWeight: 900, color: ringColor, textShadow: `0 0 12px ${ringColor}` } }, "\xD7",
+              comboCount, " COMBO! \uD83C\uDF89"
+            )
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' } }, /*#__PURE__*/
+            React.createElement("div", { style: { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: '8px', padding: '6px', textAlign: 'center' } }, /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '8px', color: '#6b7280', fontWeight: 700 } }, lang === 'ar' ? 'بونص' : 'Bonus'), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#4ade80' } }, "+", fmtNum(totalBonus), "\uD83E\uDDE0")
+            ), /*#__PURE__*/
+            React.createElement("div", { style: { background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '8px', padding: '6px', textAlign: 'center' } }, /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '8px', color: '#6b7280', fontWeight: 700 } }, lang === 'ar' ? 'نجوم' : 'Stars'), /*#__PURE__*/
+              React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: '#fbbf24' } }, "+", formatCharisma(totalCharisma), "\u2B50")
+            )
+          )
         ));
 
     }
@@ -869,85 +989,92 @@
           borderRadius: '18px', padding: '14px 12px',
           boxShadow: `0 8px 32px rgba(0,0,0,0.65), 0 0 24px ${ringColor}22`,
           animation: closing ?
-          'toast-slide-up 0.35s ease forwards' :
-          'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+            'toast-slide-up 0.35s ease forwards' :
+            'animate-pop 0.3s cubic-bezier(0.34,1.56,0.64,1)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px'
         },
         onPointerDown: (e) => e.stopPropagation(),
-        onClick: (e) => e.stopPropagation() }, /*#__PURE__*/
+        onClick: (e) => e.stopPropagation()
+      }, /*#__PURE__*/
 
 
-      React.createElement("div", { style: { textAlign: 'center' } },
-      gift.imageUrl ? /*#__PURE__*/
-      React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, style: { width: '48px', height: '48px', objectFit: 'contain' } }) : /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '38px', lineHeight: 1 } }, gift.emoji || '🎁'), /*#__PURE__*/
+        React.createElement("div", { style: { textAlign: 'center' } },
+          gift.imageUrl ? /*#__PURE__*/
+            React.createElement("img", { src: gift.imageUrl, alt: gift.name_en, style: { width: '48px', height: '48px', objectFit: 'contain' } }) : /*#__PURE__*/
+            React.createElement("span", { style: { fontSize: '38px', lineHeight: 1 } }, gift.emoji || '🎁'), /*#__PURE__*/
 
-      React.createElement("div", { style: { fontSize: '10px', fontWeight: 800, color: '#f1f5f9', marginTop: '3px' } },
-      lang === 'ar' ? gift.name_ar : gift.name_en
-      ), /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '9px', color: '#fbbf24', fontWeight: 700 } },
-      gift.cost, " \uD83E\uDDE0 ", lang === 'ar' ? 'لكل إرسال' : 'each'
-      )
-      ),
-
-
-      comboCount > 0 && /*#__PURE__*/
-      React.createElement("div", { style: {
-          fontSize: '16px', fontWeight: 900, color: ringColor,
-          textShadow: `0 0 16px ${ringColor}`,
-          animation: comboCount >= 5 ? 'mythic-pulse 0.6s ease-in-out infinite' : 'none'
-        } }, "\xD7",
-      comboCount, " COMBO!"
-      ), /*#__PURE__*/
+          React.createElement("div", { style: { fontSize: '10px', fontWeight: 800, color: '#f1f5f9', marginTop: '3px' } },
+            lang === 'ar' ? gift.name_ar : gift.name_en
+          ), /*#__PURE__*/
+          React.createElement("div", { style: { fontSize: '9px', color: '#fbbf24', fontWeight: 700 } },
+            gift.cost, " \uD83E\uDDE0 ", lang === 'ar' ? 'لكل إرسال' : 'each'
+          )
+        ),
 
 
+        comboCount > 0 && /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            fontSize: '16px', fontWeight: 900, color: ringColor,
+            textShadow: `0 0 16px ${ringColor}`,
+            animation: comboCount >= 5 ? 'mythic-pulse 0.6s ease-in-out infinite' : 'none'
+          }
+        }, "\xD7",
+          comboCount, " COMBO!"
+        ), /*#__PURE__*/
 
-      React.createElement("div", {
-        onPointerDown: currency >= gift.cost ? handleTap : undefined,
-        style: {
-          position: 'relative', width: '100px', height: '100px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
-          userSelect: 'none', WebkitUserSelect: 'none',
-          touchAction: 'manipulation',
-          WebkitTapHighlightColor: 'transparent'
-        } }, /*#__PURE__*/
 
 
-      React.createElement("svg", { width: "100", height: "100", style: { position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)', pointerEvents: 'none' } }, /*#__PURE__*/
-      React.createElement("circle", { cx: "50", cy: "50", r: RING_R, fill: "none", stroke: "rgba(255,255,255,0.08)", strokeWidth: "5" }), /*#__PURE__*/
-      React.createElement("circle", {
-        cx: "50", cy: "50", r: RING_R, fill: "none",
-        stroke: comboActive ? ringColor : 'rgba(255,255,255,0.15)',
-        strokeWidth: "5",
-        strokeDasharray: RING_C,
-        strokeDashoffset: RING_C * (1 - ringProgress),
-        strokeLinecap: "round",
-        style: { filter: comboActive ? `drop-shadow(0 0 6px ${ringColor})` : 'none', transition: 'stroke 0.3s' } }
-      )
-      ), /*#__PURE__*/
+        React.createElement("div", {
+          onPointerDown: currency >= gift.cost ? handleTap : undefined,
+          style: {
+            position: 'relative', width: '100px', height: '100px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: currency >= gift.cost ? 'pointer' : 'not-allowed',
+            userSelect: 'none', WebkitUserSelect: 'none',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent'
+          }
+        }, /*#__PURE__*/
 
-      React.createElement("div", { style: {
-          width: '76px', height: '76px', borderRadius: '50%',
-          background: comboActive ?
-          `linear-gradient(135deg,${ringColor}cc,${ringColor}88)` :
-          'rgba(100,100,100,0.2)',
-          boxShadow: comboActive ? `0 0 24px ${ringColor}88` : 'none',
-          transition: 'background 0.15s,box-shadow 0.15s',
-          pointerEvents: 'none',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px'
-        } }, /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '20px', lineHeight: 1 } }, gift.emoji || '🎁'), /*#__PURE__*/
-      React.createElement("span", { style: { fontSize: '9px', fontWeight: 800, color: '#fff', opacity: 0.9 } },
-      lang === 'ar' ? 'اضغط!' : 'TAP!'
-      )
-      )
-      ),
 
-      totalBonus > 0 && /*#__PURE__*/
-      React.createElement("div", { style: { fontSize: '10px', fontWeight: 800, color: '#4ade80', textAlign: 'center' } }, "+",
-      fmtNum(totalBonus), " \uD83E\uDDE0"
-      )
+          React.createElement("svg", { width: "100", height: "100", style: { position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)', pointerEvents: 'none' } }, /*#__PURE__*/
+            React.createElement("circle", { cx: "50", cy: "50", r: RING_R, fill: "none", stroke: "rgba(255,255,255,0.08)", strokeWidth: "5" }), /*#__PURE__*/
+            React.createElement("circle", {
+              cx: "50", cy: "50", r: RING_R, fill: "none",
+              stroke: comboActive ? ringColor : 'rgba(255,255,255,0.15)',
+              strokeWidth: "5",
+              strokeDasharray: RING_C,
+              strokeDashoffset: RING_C * (1 - ringProgress),
+              strokeLinecap: "round",
+              style: { filter: comboActive ? `drop-shadow(0 0 6px ${ringColor})` : 'none', transition: 'stroke 0.3s' }
+            }
+            )
+          ), /*#__PURE__*/
+
+          React.createElement("div", {
+            style: {
+              width: '76px', height: '76px', borderRadius: '50%',
+              background: comboActive ?
+                `linear-gradient(135deg,${ringColor}cc,${ringColor}88)` :
+                'rgba(100,100,100,0.2)',
+              boxShadow: comboActive ? `0 0 24px ${ringColor}88` : 'none',
+              transition: 'background 0.15s,box-shadow 0.15s',
+              pointerEvents: 'none',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px'
+            }
+          }, /*#__PURE__*/
+            React.createElement("span", { style: { fontSize: '20px', lineHeight: 1 } }, gift.emoji || '🎁'), /*#__PURE__*/
+            React.createElement("span", { style: { fontSize: '9px', fontWeight: 800, color: '#fff', opacity: 0.9 } },
+              lang === 'ar' ? 'اضغط!' : 'TAP!'
+            )
+          )
+        ),
+
+        totalBonus > 0 && /*#__PURE__*/
+        React.createElement("div", { style: { fontSize: '10px', fontWeight: 800, color: '#4ade80', textAlign: 'center' } }, "+",
+          fmtNum(totalBonus), " \uD83E\uDDE0"
+        )
 
       ));
 

@@ -16,6 +16,7 @@ var Z = {
     MODAL: 10000,  // Standard modals
     MODAL_HIGH: 12000,  // FunPass, BrowseRooms
     MODAL_TOP: 15000,  // SelfChat, Notifications
+    MODAL_PRIORITY: 1001000, // Above GlobalModals (999,999)
     FORCED: 25000,  // Forced logout warning
     OVERLAY: 99999,  // Full overlays
     TOOLTIP: 999999, // Tooltips & dropdowns
@@ -67,7 +68,8 @@ db.enablePersistence({ synchronizeTabs: true }).catch(function (err) {
 });
 
 var storage = firebase.storage();
-var appId = 'pro_spy_v25_final_fix_complete';
+window.appId = 'pro_spy_v25_final_fix_complete';
+var appId = window.appId;
 
 /* ── Google Redirect Result is handled inside useAuthState.js ── */
 
@@ -200,6 +202,7 @@ var GAMES_CONFIG = [
     {
         id: 'spy',
         name: { en: 'Are You the Spy?', ar: 'من هو الجاسوس؟' },
+        category: { en: 'Spy Games', ar: 'ألعاب الجاسوس' },
         icon: '🕵️',
         description: { en: 'The classic social deduction game. Find the spy before they figure out the secret word!', ar: 'لعبة الخداع الاجتماعي الكلاسيكية. اكتشف الجاسوس قبل أن يعرف الكلمة السرية!' },
         status: 'active',
@@ -210,11 +213,13 @@ var GAMES_CONFIG = [
             logoUrl: 'icos/games%20logos/spylogo.png',
             iconUrl: 'icos/games%20logos/spylogo.png'
         },
-        collection: 'spy_rooms'
+        collection: 'spy_rooms', // Live 'spy_rooms' collection
+        targetView: 'lobby'
     },
     {
         id: 'draw',
         name: { en: 'Draw & Guess', ar: 'ارسم وتوقع' },
+        category: { en: 'Casual Games', ar: 'ألعاب كاجوال' },
         icon: '🎨',
         description: { en: 'Unleash your inner artist! Draw the prompt and see if others can guess it.', ar: 'أطلق العنان للفنان الذي بداخلك! ارسم المهمة وشوف إذا الباقي حيقدروا يتوقعوا.' },
         status: 'coming_soon',
@@ -223,11 +228,13 @@ var GAMES_CONFIG = [
             bgGradient: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(190, 24, 93, 0.15))',
             glow: 'rgba(236, 72, 153, 0.5)'
         },
-        collection: 'draw_rooms'
+        collection: 'draw_rooms',
+        targetView: 'draw-guess'
     },
     {
         id: 'snake_ladder_pro',
         name: { en: 'Snake & Ladder Pro', ar: 'السلم والثعبان برو' },
+        category: { en: 'Classic Games', ar: 'ألعاب كلاسيكية' },
         icon: '🐍',
         logo: 'icos/snake-ladder/SnakeLadderloge.png',
         description: { en: 'The ultimate race! Climb the ladders and avoid the slippery snakes to reach the finish line first.', ar: 'السباق النهائي! تسلق السلالم وتجنب الثعابين لتصل للنهاية أولاً.' },
@@ -239,7 +246,9 @@ var GAMES_CONFIG = [
             logoUrl: 'icos/snake-ladder/SnakeLadderloge.png',
             iconUrl: 'icos/snake-ladder/SnakeLadderloge.png'
         },
-        collection: 'snake_rooms'
+        collection: 'snake_rooms',
+        idPrefix: 'SNL_',       // ← Used by Router to auto-detect game type from room ID
+        targetView: 'game'      // ← Must match the activeView === 'game' condition in 10-app.js
     }
 ];
 

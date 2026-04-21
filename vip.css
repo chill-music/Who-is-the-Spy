@@ -245,22 +245,22 @@
 /* ── AURORA (VIP 7) — شفق قطبي: أخضر/بنفسجي/فيروزي متموج ── */
 @keyframes aurora-shift {
     0% {
-        box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5, 0 0 5px #7c3aed;
+        box-shadow: 0 0 8px #00f5a0, 0 0 16px #00d9f5, 0 0 4px #7c3aed;
         border-color: #00f5a0aa;
     }
 
     33% {
-        box-shadow: 0 0 16px #7c3aed, 0 0 28px #00f5a0, 0 0 8px #00d9f5;
+        box-shadow: 0 0 10px #7c3aed, 0 0 18px #00f5a0, 0 0 6px #00d9f5;
         border-color: #7c3aedaa;
     }
 
     66% {
-        box-shadow: 0 0 14px #00d9f5, 0 0 22px #7c3aed, 0 0 6px #00f5a0;
+        box-shadow: 0 0 10px #00d9f5, 0 0 16px #7c3aed, 0 0 4px #00f5a0;
         border-color: #00d9f5aa;
     }
 
     100% {
-        box-shadow: 0 0 12px #00f5a0, 0 0 24px #00d9f5, 0 0 5px #7c3aed;
+        box-shadow: 0 0 8px #00f5a0, 0 0 16px #00d9f5, 0 0 4px #7c3aed;
         border-color: #00f5a0aa;
     }
 }
@@ -291,27 +291,27 @@
 /* ── INFERNO (VIP 8) — جهنم: أحمر/برتقال/أصفر مشتعل ── */
 @keyframes inferno-blaze {
     0% {
-        box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px #ffd700;
+        box-shadow: 0 0 10px #ff4500, 0 0 20px #ff8c00, 0 0 4px #ffd700;
         border-color: #ff4500cc;
     }
 
     25% {
-        box-shadow: 0 0 20px #ffd700, 0 0 36px #ff4500, 0 0 10px #ff8c00;
+        box-shadow: 0 0 14px #ffd700, 0 0 24px #ff4500, 0 0 6px #ff8c00;
         border-color: #ffd700cc;
     }
 
     50% {
-        box-shadow: 0 0 16px #ff8c00, 0 0 32px #ffd700, 0 0 8px #ff4500;
+        box-shadow: 0 0 12px #ff8c00, 0 0 22px #ffd700, 0 0 6px #ff4500;
         border-color: #ff8c00cc;
     }
 
     75% {
-        box-shadow: 0 0 22px #ff4500, 0 0 40px #ff8c00, 0 0 12px #ffd700;
+        box-shadow: 0 0 14px #ff4500, 0 0 26px #ff8c00, 0 0 8px #ffd700;
         border-color: #ff4500cc;
     }
 
     100% {
-        box-shadow: 0 0 14px #ff4500, 0 0 28px #ff8c00, 0 0 6px #ffd700;
+        box-shadow: 0 0 10px #ff4500, 0 0 20px #ff8c00, 0 0 4px #ffd700;
         border-color: #ff4500cc;
     }
 }
@@ -336,22 +336,22 @@
 /* ── COSMIC (VIP 9) — فضاء: أزرق عميق/بنفسجي/أبيض pulse ── */
 @keyframes cosmic-pulse {
     0% {
-        box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa;
+        box-shadow: 0 0 8px #1e3a8a, 0 0 16px #6d28d9, 0 0 25px #1e3a8a44, 0 0 3px #ffffffaa;
         border-color: #6d28d9bb;
     }
 
     33% {
-        box-shadow: 0 0 18px #6d28d9, 0 0 35px #1e3a8a, 0 0 60px #6d28d933, 0 0 8px #fff9;
+        box-shadow: 0 0 12px #6d28d9, 0 0 22px #1e3a8a, 0 0 35px #6d28d933, 0 0 6px #fff9;
         border-color: #1e3a8abb;
     }
 
     66% {
-        box-shadow: 0 0 14px #2563eb, 0 0 28px #7c3aed, 0 0 50px #2563eb33, 0 0 6px #fff8;
+        box-shadow: 0 0 10px #2563eb, 0 0 20px #7c3aed, 0 0 30px #2563eb33, 0 0 4px #fff8;
         border-color: #2563ebbb;
     }
 
     100% {
-        box-shadow: 0 0 10px #1e3a8a, 0 0 22px #6d28d9, 0 0 40px #1e3a8a44, 0 0 4px #ffffffaa;
+        box-shadow: 0 0 8px #1e3a8a, 0 0 16px #6d28d9, 0 0 25px #1e3a8a44, 0 0 3px #ffffffaa;
         border-color: #6d28d9bb;
     }
 }
@@ -376,37 +376,37 @@
 /* ── GODLIKE (VIP 10) — إله: rainbow shimmer نهائي ── */
 @keyframes godlike-rainbow {
     0% {
-        box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533;
+        box-shadow: 0 0 15px #ff0055, 0 0 25px #ff0055aa, 0 0 35px #ff005533;
         border-color: #ff0055;
     }
 
     16% {
-        box-shadow: 0 0 20px #ff8c00, 0 0 40px #ff8c00aa, 0 0 60px #ff8c0033;
+        box-shadow: 0 0 15px #ff8c00, 0 0 25px #ff8c00aa, 0 0 35px #ff8c0033;
         border-color: #ff8c00;
     }
 
     33% {
-        box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700aa, 0 0 60px #ffd70033;
+        box-shadow: 0 0 15px #ffd700, 0 0 25px #ffd700aa, 0 0 35px #ffd70033;
         border-color: #ffd700;
     }
 
     50% {
-        box-shadow: 0 0 20px #00f5a0, 0 0 40px #00f5a0aa, 0 0 60px #00f5a033;
+        box-shadow: 0 0 15px #00f5a0, 0 0 25px #00f5a0aa, 0 0 35px #00f5a033;
         border-color: #00f5a0;
     }
 
     66% {
-        box-shadow: 0 0 20px #00d9f5, 0 0 40px #00d9f5aa, 0 0 60px #00d9f533;
+        box-shadow: 0 0 15px #00d9f5, 0 0 25px #00d9f5aa, 0 0 35px #00d9f533;
         border-color: #00d9f5;
     }
 
     83% {
-        box-shadow: 0 0 20px #b300ff, 0 0 40px #b300ffaa, 0 0 60px #b300ff33;
+        box-shadow: 0 0 15px #b300ff, 0 0 25px #b300ffaa, 0 0 35px #b300ff33;
         border-color: #b300ff;
     }
 
     100% {
-        box-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055aa, 0 0 60px #ff005533;
+        box-shadow: 0 0 15px #ff0055, 0 0 25px #ff0055aa, 0 0 35px #ff005533;
         border-color: #ff0055;
     }
 }
@@ -479,13 +479,15 @@
     background: var(--shop-card-bg);
     border: 1.5px solid var(--shop-card-border);
     border-radius: 12px;
-    padding: 8px;
+    padding: 10px 8px;
     aspect-ratio: 1;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    min-height: 115px; /* Ensure content doesn't squeeze */
+    gap: 6px;
 }
 
 .shop-standard-item:hover {
@@ -758,33 +760,7 @@
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
 }
 
-/* Shop and Grid Centering */
-.shop-standard-item {
-    position: relative;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 12px;
-    padding: 12px 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    /* Center vertically */
-    gap: 8px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    overflow: hidden;
-    min-height: 115px;
-    /* Consistent height */
-    text-align: center;
-}
-
-.shop-standard-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(0, 242, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-}
+/* Shop and Grid optimizations handled via Unified Design System above */
 
 /* Profile Effects Container */
 .portrait-effect-container {

@@ -162,6 +162,24 @@
       return unsub;
     }, [show, chatId, user?.uid]);
 
+    // --- GIFT CATCH-UP LOGIC ---
+    useEffect(() => {
+      if (!show || messages.length === 0 || !window.triggerGiftManual) return;
+      messages.forEach(msg => {
+        if (msg.type === 'gift' || msg.giftId) {
+          window.triggerGiftManual(msg.id, {
+            ...msg,
+            giftId: msg.giftId,
+            qty: msg.giftQty || 1,
+            senderName: msg.senderName,
+            receiverName: currentUser?.displayName || 'Me',
+            originContext: 'private'
+          });
+        }
+      });
+    }, [show, messages, user?.uid]);
+
+
     // ── Typing listener (when typingEnabled) ──
     useEffect(() => {
       if (!show || !chatId || !typingEnabled || !friend) return;
@@ -806,6 +824,59 @@
           React.createElement("button", { onClick: () => {setEditingMsgId(null);setEditMsgText('');},
             style: { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '5px 8px', color: '#9ca3af', cursor: 'pointer', fontSize: '12px' } }, "\u2715")
           ) :
+          msg.type === 'spy_invite' ? /*#__PURE__*/
+          React.createElement("div", { style: {
+              background: 'linear-gradient(135deg, rgba(212,168,67,0.1), rgba(10,10,30,0.8))',
+              border: '1px solid var(--gold-border, rgba(212,168,67,0.3))',
+              borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+              padding: '16px', minWidth: '220px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              display: 'flex', flexDirection: 'column', gap: '10px'
+          } },
+            React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '10px' } }, 
+                React.createElement("div", { style: { 
+                    width: '40px', height: '40px', background: 'var(--gold-dim, rgba(212,168,67,0.15))', 
+                    borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '22px', border: '1px solid var(--gold, #d4a843)'
+                } }, "🕵️"),
+                React.createElement("div", { style: { display: 'flex', flexDirection: 'column' } },
+                    React.createElement("div", { style: { fontSize: '13px', fontWeight: 900, color: 'var(--gold, #d4a843)', letterSpacing: '0.05em' } }, 
+                        lang === 'ar' ? 'دعوة للعب' : 'GAME INVITE'
+                    ),
+                    React.createElement("div", { style: { fontSize: '10px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' } }, 
+                        lang === 'ar' ? 'مين الجاسوس؟' : 'Who is the Spy?'
+                    )
+                )
+            ),
+            React.createElement("div", { style: { height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,168,67,0.2), transparent)' } }),
+            React.createElement("div", { style: { fontSize: '12px', color: '#ede8de', lineHeight: '1.5', textAlign: 'center', padding: '4px 0' } },
+                lang === 'ar' ? `المهمة: ${msg.roomCode}` : `Mission Code: ${msg.roomCode}`
+            ),
+            React.createElement("button", {
+                onClick: async () => {
+                    onClose && onClose();
+                    if (window.setShowSpyRebuild) window.setShowSpyRebuild(true);
+                    
+                    // Recursive join helper
+                    const tryJoin = async (pass) => {
+                        if (window.SPY_UI && window.SPY_UI.initJoinRoom) {
+                            window.SPY_UI.initJoinRoom(msg.roomCode, pass);
+                        }
+                    };
+                    
+                    // Small delay to ensure UI is ready
+                    setTimeout(() => tryJoin(null), 300);
+                },
+                style: {
+                    width: '100%', padding: '10px', 
+                    background: 'linear-gradient(120deg, #b8851a, #f0c060, #c9961f)',
+                    color: '#07070f', fontWeight: 800, fontSize: '11px', 
+                    textTransform: 'uppercase', border: 'none', borderRadius: '12px', 
+                    cursor: 'pointer', letterSpacing: '0.1em',
+                    boxShadow: '0 4px 15px rgba(212,168,67,0.3)'
+                }
+            }, lang === 'ar' ? 'انضم للمهمة' : 'JOIN MISSION')
+          ) :
           msg.type === 'spy_room_invite' ? /*#__PURE__*/
           React.createElement("div", { style: {
             background: 'linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,0,0,0.4))',
@@ -1262,7 +1333,10 @@
         lang: lang,
         onSendGift: handleSendGiftToChat,
         currency: currency || 0,
-        friendsData: friendsData }
+        friendsData: [
+          Object.assign({}, currentUser, { uid: currentUser.uid || currentUID }),
+          Object.assign({}, friend, { uid: friend.uid })
+        ] }
       ),
 
 

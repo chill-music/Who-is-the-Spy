@@ -18,8 +18,10 @@ var TRANSLATIONS = {
         newCycleStarted: "New monthly cycle started!",
         giftLog: "Received Gifts", giftLogEmpty: "No gifts received yet.", viewAll: "View All", collapse: "Collapse",
         selectEmojis: "Select Emoji", recentEmojis: "Recent", allEmojis: "All",
-        sentAGift: "sent a gift",
-        giftWall: "Gift Wall", giftBadge: "Gift Badge", comingSoon: "Coming Soon", receivedGiftsCount: "received gifts",
+        sentAGift: "Sent a gift",
+        sent: "Sent",
+        toPlayer: "to",
+        profile: "Profile", giftWall: "Gift Wall", giftBadge: "Gift Badge", comingSoon: "Coming Soon", receivedGiftsCount: "received gifts",
         // Settings & Block
         settings: "Settings", blockUser: "Block User", unblock: "Unblock", blockedUsers: "Blocked Users", noBlockedUsers: "No blocked users.", blockSuccess: "User blocked!", unblockSuccess: "User unblocked!",
         // Updates
@@ -174,7 +176,9 @@ var TRANSLATIONS = {
         giftLog: "الهدايا المستلمة", giftLogEmpty: "لا توجد هدايا مستلمة بعد.", viewAll: "عرض الكل", collapse: "طي",
         selectEmojis: "اختر إيموجي", recentEmojis: "الأخيرة", allEmojis: "الكل",
         sentAGift: "أرسل هدية",
-        giftWall: "جدار الهدايا", giftBadge: "شارة الهدايا", comingSoon: "قريباً", receivedGiftsCount: "هدية مستلمة",
+        sent: "أرسل",
+        toPlayer: "إلى",
+        profile: "الملف الشخصي", giftWall: "جدار الهدايا", giftBadge: "شارة الهدايا", comingSoon: "قريباً", receivedGiftsCount: "هدية مستلمة",
         // Settings & Block
         settings: "الإعدادات", blockUser: "حظر المستخدم", unblock: "إلغاء الحظر", blockedUsers: "المحظورين", noBlockedUsers: "لا يوجد مستخدمين محظورين.", blockSuccess: "تم حظر المستخدم!", unblockSuccess: "تم إلغاء الحظر!",
         // Updates

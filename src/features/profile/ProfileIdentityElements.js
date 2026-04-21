@@ -25,17 +25,17 @@ var UserTitleV11 = ({ equipped, lang }) => {
   if (hasImage) {
     // Dynamic width calculation matching FamilySignBadge logic for breathing room
     var charCount = displayName.length + (title.preview ? 2 : 0);
-    var dynamicWidth = 45 + (charCount * 8); 
-    
+    var dynamicWidth = 45 + (charCount * 8);
+
     return (/*#__PURE__*/
-      React.createElement("div", { 
-        className: "profile-user-title has-image", 
-        style: { 
+      React.createElement("div", {
+        className: "profile-user-title has-image",
+        style: {
           width: `${dynamicWidth}px`,
           '--title-text-top': title.textTop || '50%',
           '--title-text-left': title.textLeft || '50%',
           '--title-font-size': title.fontSize || '13px'
-        } 
+        }
       }, /*#__PURE__*/
         React.createElement("img", { src: title.imageUrl, alt: "", className: "title-bg-image" }), /*#__PURE__*/
         React.createElement("span", { className: "title-overlay-name" }, title.preview, " ", displayName)
@@ -64,21 +64,21 @@ var UserBadgesV11 = ({ equipped, lang }) => {
 
   return (/*#__PURE__*/
     React.createElement("div", { className: "profile-badges-row" },
-    badges.slice(0, 10).map((badgeId, idx) => {
-      var badge = window.SHOP_ITEMS.badges.find((b) => b.id === badgeId);
-      if (!badge) return null;
+      badges.slice(0, 10).map((badgeId, idx) => {
+        var badge = window.SHOP_ITEMS.badges.find((b) => b.id === badgeId);
+        if (!badge) return null;
 
-      return (/*#__PURE__*/
-        React.createElement("div", { key: idx, className: `profile-badge-chip${badge.imageUrl ? ' has-image' : ''}` },
-        badge.imageUrl ? /*#__PURE__*/
-        React.createElement("img", { src: badge.imageUrl, alt: "", style: { width: 18, height: 18, objectFit: 'contain', background: 'transparent' } }) : /*#__PURE__*/
+        return (/*#__PURE__*/
+          React.createElement("div", { key: idx, className: `profile-badge-chip${badge.imageUrl ? ' has-image' : ''}` },
+            badge.imageUrl ? /*#__PURE__*/
+              React.createElement("img", { src: badge.imageUrl, alt: "", style: { width: 18, height: 18, objectFit: 'contain', background: 'transparent' } }) : /*#__PURE__*/
 
-        React.createElement("span", null, badge.preview),
+              React.createElement("span", null, badge.preview),
 
-        !badge.imageUrl && /*#__PURE__*/React.createElement("span", null, lang === 'ar' ? badge.name_ar : badge.name_en)
-        ));
+            !badge.imageUrl && /*#__PURE__*/React.createElement("span", null, lang === 'ar' ? badge.name_ar : badge.name_en)
+          ));
 
-    })
+      })
     ));
 
 };
@@ -114,8 +114,8 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
   var hasImageEffect = effect && effect.imageUrl && effect.imageUrl.trim() !== '';
 
   var showBan = banData?.isBanned && (
-  !banData.expiresAt ||
-  new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
+    !banData.expiresAt ||
+    new Date() < (banData.expiresAt?.toDate?.() || new Date(banData.expiresAt)));
 
   var isGradientFrame = frameStyle && frameStyle.preview && (frameStyle.preview.includes('linear-gradient') || frameStyle.preview.includes('radial-gradient'));
   var frameNeedsScreenBlendV11 = frameStyle && !isGradientFrame;
@@ -126,90 +126,100 @@ var AvatarWithFrameV11 = ({ photoURL, equipped, size = 'lg', isOnline, effectId,
   }
 
   return (/*#__PURE__*/
-    React.createElement("div", { className: "profile-avatar-container", style: {
+    React.createElement("div", {
+      className: "profile-avatar-container", style: {
         position: 'relative',
         width: s.wrapper,
         height: s.wrapper,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
-      } },
+      }
+    },
 
-    frameStyle && frameStyle.preview && /*#__PURE__*/
-    React.createElement("div", {
-      className: "profile-avatar-frame",
-      style: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: s.frameSize,
-        height: s.frameSize,
-        borderRadius: '50%',
-        overflow: 'visible', // Changed from 'hidden' to 'visible' to allow gems/decorations to show
-        zIndex: 1,
-        pointerEvents: 'none'
-      } },
+      frameStyle && frameStyle.preview && /*#__PURE__*/
+      React.createElement("div", {
+        className: "profile-avatar-frame",
+        style: {
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: s.frameSize,
+          height: s.frameSize,
+          borderRadius: '50%',
+          overflow: 'visible', // Changed from 'hidden' to 'visible' to allow gems/decorations to show
+          zIndex: 1,
+          pointerEvents: 'none'
+        }
+      },
 
-    !isGradientFrame ? /*#__PURE__*/
-    React.createElement("img", { src: frameStyle.preview, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: frameNeedsScreenBlendV11 ? 'screen' : 'normal' } }) // Changed 'cover' to 'contain' for frames
-    : /*#__PURE__*/
-    React.createElement("div", { style: {
-        width: '100%',
-        height: '100%',
-        background: frameStyle.preview,
-        borderRadius: '50%'
-      } })
+        !isGradientFrame ? /*#__PURE__*/
+          React.createElement("img", { src: frameStyle.preview, alt: "", style: { width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: frameNeedsScreenBlendV11 ? 'screen' : 'normal' } }) // Changed 'cover' to 'contain' for frames
+          : /*#__PURE__*/
+          React.createElement("div", {
+            style: {
+              width: '100%',
+              height: '100%',
+              background: frameStyle.preview,
+              borderRadius: '50%'
+            }
+          })
 
-    ), /*#__PURE__*/
-
-
-
-    React.createElement("div", { style: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: s.avatar,
-        height: s.avatar,
-        zIndex: 10,
-        borderRadius: '50%',
-        overflow: hasImageEffect ? 'hidden' : 'visible'
-      } }, /*#__PURE__*/
-    React.createElement("img", {
-      src: displayPhotoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`,
-      alt: "",
-      className: "profile-avatar",
-      style: {
-        width: '100%',
-        height: '100%',
-        borderRadius: '50%',
-        objectFit: 'cover',
-        display: 'block',
-        filter: showBan ? 'grayscale(70%) brightness(0.45)' : 'none'
-      } }
-    ),
-    hasImageEffect && effect && window.ProfileEffectOverlayInline && /*#__PURE__*/
-    React.createElement(window.ProfileEffectOverlayInline, { effectId: resolvedEffectId }),
+      ), /*#__PURE__*/
 
 
-    showBan && /*#__PURE__*/
-    React.createElement("div", { style: {
-        position: 'absolute', inset: 0, borderRadius: '50%',
-        background: 'rgba(200,0,0,0.6)',
-        border: '2.5px solid rgba(255,60,60,0.95)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexDirection: 'column', zIndex: 11
-      } }, /*#__PURE__*/
-    React.createElement("span", { style: { fontSize: '10px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0px' } },
-    lang === 'ar' ? 'محظور' : 'BANNED'
-    )
-    )
 
-    ),
+      React.createElement("div", {
+        style: {
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: s.avatar,
+          height: s.avatar,
+          zIndex: 10,
+          borderRadius: '50%',
+          overflow: hasImageEffect ? 'hidden' : 'visible'
+        }
+      }, /*#__PURE__*/
+        React.createElement("img", {
+          src: displayPhotoURL || `https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=${s.avatar * 2}`,
+          alt: "",
+          className: "profile-avatar",
+          style: {
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            display: 'block',
+            filter: showBan ? 'grayscale(70%) brightness(0.45)' : 'none'
+          }
+        }
+        ),
+        hasImageEffect && effect && window.ProfileEffectOverlayInline && /*#__PURE__*/
+        React.createElement(window.ProfileEffectOverlayInline, { effectId: resolvedEffectId }),
 
-    isOnline !== undefined && /*#__PURE__*/
-    React.createElement("div", { className: `profile-status-dot ${isOnline ? '' : 'offline'}` })
+
+        showBan && /*#__PURE__*/
+        React.createElement("div", {
+          style: {
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            background: 'rgba(200,0,0,0.6)',
+            border: '2.5px solid rgba(255,60,60,0.95)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexDirection: 'column', zIndex: 11
+          }
+        }, /*#__PURE__*/
+          React.createElement("span", { style: { fontSize: '10px', fontWeight: 900, color: '#fff', textAlign: 'center', lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.9)', letterSpacing: '0px' } },
+            lang === 'ar' ? 'محظور' : 'BANNED'
+          )
+        )
+
+      ),
+
+      isOnline !== undefined && /*#__PURE__*/
+      React.createElement("div", { className: `profile-status-dot ${isOnline ? '' : 'offline'}` })
 
     ));
 

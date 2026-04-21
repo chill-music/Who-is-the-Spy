@@ -249,6 +249,8 @@
                 totalBonus += b;
             }
             var totalCharisma = gift.charisma * qty;
+            var giftEventId = "gft_" + Date.now() + "_" + user.uid.substring(0, 4) + "_" + Math.random().toString(36).substr(2, 5);
+
 
             try {
                 // 🛡️ SECURITY: Use centralized service for Gift Sender deduction
@@ -285,9 +287,21 @@
                 }
 
                 // Step 3: Logs & Messages
+                var originContext = 'global';
+                if (familyScopeId) {
+                    originContext = 'clan:' + familyScopeId;
+                } else if (context.showSpyRebuild && context.roomId) {
+                    originContext = 'room:' + context.roomId;
+                } else if (context.showPublicChat) {
+                    originContext = 'public';
+                } else if (context.showPrivateChat && context.chatFriend) {
+                    originContext = 'private:' + (context.chatFriend.uid || context.chatFriend.id);
+                }
+
                 var parallelOps = [];
                 for (var j = 0; j < qty; j++) {
                     parallelOps.push(giftsLogCollection.add({
+                        giftEventId:  giftEventId,
                         senderId:     user.uid,
                         senderName:   userData?.displayName || 'User',
                         senderPhoto:  userData?.photoURL || null,
@@ -295,16 +309,23 @@
                         receiverName: isSelfSend ? (userData?.displayName || 'User') : (targetUser.displayName || 'User'),
                         giftId:       gift.id,
                         giftName:     giftName,
+                        giftName_en:  gift.name_en || '',
+                        giftName_ar:  gift.name_ar || '',
+                        giftDesc_en:  gift.desc_en || '',
+                        giftDesc_ar:  gift.desc_ar || '',
                         giftEmoji:    gift.emoji,
                         giftImageUrl: gift.imageUrl || '',
                         charisma:     gift.charisma,
-                        bonus:        bonuses[j],
+                        bonus:        bonuses[j] || 0,
                         cost:         gift.cost,
+                        rarity:       gift.rarity || (window.getItemRarity ? window.getItemRarity(gift) : 'Common'),
                         timestamp:    firebase.firestore.FieldValue.serverTimestamp(),
+                        originContext: originContext
                     }));
                 }
 
                 var chatMsgBase = {
+                    giftEventId:   giftEventId,
                     senderId:      user.uid,
                     senderName:    userData?.displayName || 'User',
                     senderPhoto:   userData?.photoURL || null,
@@ -358,14 +379,75 @@
                     parallelOps.push(incrementMissionProgress('giftsSent', qty));
                 }
 
-                if (familyScopeId && totalCharisma > 0 && typeof familiesCollection !== 'undefined') {
-                    var famBonus = Math.floor(totalCharisma * 0.5);
-                    if (famBonus > 0) {
-                        parallelOps.push(familiesCollection.doc(familyScopeId).update({
-                            activeness: firebase.firestore.FieldValue.increment(famBonus),
-                            weeklyActiveness: firebase.firestore.FieldValue.increment(famBonus)
-                        }).catch(function(){})); 
-                    }
+                if (familyScopeId && totalCharisma > 0) {
+                        var tribeColl = window.familiesCollection || firebase.firestore().collection('artifacts').doc(window.appId).collection('public').doc('data').collection('families');
+                        var famRef = tribeColl.doc(familyScopeId);
+                        
+                        // 1. Update family activeness (Rule-compliant path)
+                        var famBonus = Math.floor(totalCharisma * 0.5);
+                        if (famBonus > 0) {
+                            parallelOps.push(famRef.update({
+                                activeness: firebase.firestore.FieldValue.increment(famBonus),
+                                weeklyActiveness: firebase.firestore.FieldValue.increment(famBonus)
+                            }).catch(function(){}));
+                        }
+
+                        // 2. Add Rich Gift Message to Family Chat (Rule-compliant Jazria path)
+                        var giftPayload = {
+                            senderId: user.uid,
+                            senderName: userData?.displayName || userData?.name || 'User',
+                            senderPhoto: userData?.photoURL || null,
+                            receiverId: receiverId,
+                            receiverName: isSelfSend ? (userData?.displayName || userData?.name || 'User') : (targetUser.displayName || targetUser.name || 'User'),
+                            giftId: gift.id,
+                            giftName_en: gift.name_en,
+                            giftName_ar: gift.name_ar,
+                            giftImageUrl: gift.imageUrl || '',
+                            giftEmoji: gift.emoji || '',
+                            giftDesc_en: gift.desc_en || '',
+                            giftDesc_ar: gift.desc_ar || '',
+                            qty: qty,
+                            charisma: totalCharisma,
+                            totalBonus: totalBonus,
+                            rarity: window.getItemRarity ? window.getItemRarity(gift) : 'Common',
+                            giftEventId: giftEventId
+                        };
+
+                        parallelOps.push(famRef.collection('messages').add({
+                            type: 'system',
+                            senderId: 'system',
+                            senderName: 'SYSTEM',
+                            text: '__RICH_GIFT__|' + JSON.stringify(giftPayload),
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }).catch(function(err){ console.error("Family gift message error:", err); }));
+                }
+                
+                // 3. Add Rich Gift Message to Public Chat if active
+                if (context.showPublicChat && typeof publicChatCollection !== 'undefined') {
+                    var publicGiftPayload = {
+                        senderId: user.uid,
+                        senderName: userData?.displayName || userData?.name || 'User',
+                        senderPhoto: userData?.photoURL || null,
+                        receiverId: isSelfSend ? user.uid : targetUser.uid,
+                        receiverName: isSelfSend ? (userData?.displayName || userData?.name || 'User') : (targetUser.displayName || targetUser.name || 'User'),
+                        giftId: gift.id,
+                        giftName_en: gift.name_en,
+                        giftName_ar: gift.name_ar,
+                        giftImageUrl: gift.imageUrl || '',
+                        giftEmoji: gift.emoji || '',
+                        qty: qty,
+                        charisma: totalCharisma,
+                        totalBonus: totalBonus,
+                        rarity: window.getItemRarity ? window.getItemRarity(gift) : 'Common',
+                        giftEventId: giftEventId
+                    };
+                    parallelOps.push(publicChatCollection.add({
+                        type: 'system',
+                        senderId: 'system',
+                        senderName: 'SYSTEM',
+                        text: '__RICH_GIFT__|' + JSON.stringify(publicGiftPayload),
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(function(err){ console.error("Public gift message error:", err); }));
                 }
 
                 await Promise.all(parallelOps);
@@ -669,6 +751,55 @@
                 if (typeof setNotification === 'function') {
                     setNotification(lang === 'ar' ? '❌ خطأ، حاول مرة أخرى' : '❌ Error, try again');
                 }
+            }
+        },
+
+        /**
+         * Send a game invitation to a friend
+         */
+        handleSendSpyInvite: async function(context, roomCode, gameMode) {
+            var user = context.user;
+            var isLoggedIn = context.isLoggedIn;
+            var userData = context.userData;
+            var friend = context.friend;
+
+            if (!user || !isLoggedIn || !friend) return;
+
+            var msgBase = {
+                senderId: user.uid,
+                senderName: userData?.displayName || 'User',
+                senderPhoto: userData?.photoURL || null,
+                senderVipLevel: window.getVIPLevel ? (window.getVIPLevel(userData) || 0) : 0,
+                type: 'spy_invite',
+                roomCode: roomCode,
+                gameMode: gameMode || 'normal',
+                text: "🔎 " + (context.lang === 'ar' ? 'أرسل لك دعوة للعب!' : 'Sent you a game invite!'),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            };
+
+            try {
+                var chatId = [user.uid, friend.uid].sort().join('_');
+                await chatsCollection.doc(chatId).collection('messages').add(msgBase);
+                
+                var chatUpdate = {
+                    members: [user.uid, friend.uid],
+                    lastMessage: "🔎 Game Invite: " + roomCode,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                chatUpdate["unread." + friend.uid] = firebase.firestore.FieldValue.increment(1);
+                await chatsCollection.doc(chatId).set(chatUpdate, { merge: true });
+
+                if (typeof context.createNotification === 'function') {
+                    await context.createNotification(
+                        friend.uid,
+                        'game_invite',
+                        (userData?.displayName || 'User') + " " + (context.lang === 'ar' ? 'دعاك للعب "مين الجاسوس؟"' : 'invited you to play "Who is the Spy?"'),
+                        user.uid,
+                        userData?.displayName || 'User'
+                    );
+                }
+            } catch (e) {
+                console.error("Spy Invite Error:", e);
             }
         },
 

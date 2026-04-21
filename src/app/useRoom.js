@@ -25,9 +25,8 @@
         useEffect(() => {
             if (!roomId) return;
 
-            // 💾 [PERSISTENCE] Store current room context for auto-rejoin
-            localStorage.setItem('pro_spy_active_room_id', roomId);
-            if (gameId) localStorage.setItem('pro_spy_active_game_id', gameId);
+            // ✅ No localStorage room persistence — rooms are DB-only
+            // Room is tracked via React state (roomId) only.
 
             // 🔍 [DYNAMIC COLLECTION] Resolve collection based on current gameId
             var col = (window.RoomService && typeof window.RoomService.getCollection === 'function')
@@ -41,13 +40,13 @@
                     var data = doc.data();
                     setRoom(data);
 
-                    if (data.isAdvanced && typeof setShowSpyRebuild === 'function') {
+                    // 🚀 [SPY ENGINE REBUILD] Trigger new UI for Spy games
+                    if ((data.isAdvanced || data.gameType === 'spy' || gameId === 'spy') && typeof setShowSpyRebuild === 'function') {
                         setShowSpyRebuild(true);
                     }
 
-                    // If room is finished, clear from home screen context
+                    // If room is finished, nothing to remove from localStorage
                     if (data.status?.includes('finished')) {
-                        localStorage.removeItem('pro_spy_active_room_id');
                     }
 
                     // 🛡️ Guard: only write history ONCE per room per session
@@ -121,7 +120,7 @@
                         }
                     }
                 } else {
-                    localStorage.removeItem('pro_spy_active_room_id');
+                    // Room deleted from DB — clear state
                     setRoom(null);
                     setRoomId('');
                 }

@@ -16,12 +16,12 @@ var _criticalComponents = [
 // We wait for these too before the first render so Guards evaluate correctly.
 var _secondaryComponents = [
   'ProfileV11', 'ShopModal', 'InventoryModal',
-  'SettingsModal', 'BrowseRoomsModal', 'PrivateChatModal',
+  'SettingsModal', 'PrivateChatModal',
   'SelfChatModal', 'FunPassModal', 'FamilyModal', 'FamilyChatModal',
   'LoginRewards', 'WeddingHallModal', 'BFFModal', 'BotChatModal',
   'LuckyGamesHubModal', 'TutorialModal', 'HelpCenterModal', 'PublicChatModal',
   'SpyGame', 'UpdateModal', 'VersionManager', 'ConnectivityMonitor', 'ApologyModal',
-  'SnakeLadderView', 'SnakeLadderModeSelector'
+  'SnakeLadderView', 'SnakeLadderModeSelector', 'FriendSelectorModal'
 ];
 
 var _allComponents = _criticalComponents.concat(_secondaryComponents);

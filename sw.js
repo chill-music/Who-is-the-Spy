@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   PRO SPY — Service Worker v6
+   PRO SPY — Service Worker v7
    Split caching strategy:
    - CRITICAL: Installs fast (core files only) → allows PWA install
    - LAZY: Cached in background after SW activates (everything else)
@@ -7,8 +7,8 @@
    SW install timing out while caching 100+ files.
 ═══════════════════════════════════════════════════════════════════ */
 
-var CACHE_V = 'pro-spy-v12';
-var CACHE_LAZY_V = 'pro-spy-lazy-v12';
+var CACHE_V = 'pro-spy-v16';        // ✅ Bumped (025): forces fresh JS delivery
+var CACHE_LAZY_V = 'pro-spy-lazy-v16';
 
 /* ── Critical files (must cache on install) ───────────────────── */
 var CRITICAL = [
@@ -61,7 +61,6 @@ var LAZY = [
   './src/12-modal-funpass.js',
   './src/13-modal-chat.js',
   './src/components/modals/LoginRewards.js',
-  './src/components/modals/BrowseRoomsModal.js',
   './src/components/modals/TutorialModal.js',
   './src/components/modals/SettingsModal.js',
   './src/components/modals/SupportTicketSection.js',
@@ -176,15 +175,18 @@ var LAZY = [
 self.addEventListener('install', function (event) {
   /* Wait for the next natural page navigation to activate the new SW */
   event.waitUntil(
-    caches.open(CACHE_V).then(function (cache) {
-      return Promise.allSettled(
-        CRITICAL.map(function (url) {
-          return cache.add(url).catch(function (err) {
-            console.warn('[SW] Critical cache miss:', url, err);
-          });
-        })
-      );
-    })
+    Promise.all([
+      self.skipWaiting(), // ✅ Take control immediately on next refresh
+      caches.open(CACHE_V).then(function (cache) {
+        return Promise.allSettled(
+          CRITICAL.map(function (url) {
+            return cache.add(url).catch(function (err) {
+              console.warn('[SW] Critical cache miss:', url, err);
+            });
+          })
+        );
+      })
+    ])
   );
 });
 
@@ -192,7 +194,8 @@ self.addEventListener('install', function (event) {
 self.addEventListener('activate', function (event) {
   event.waitUntil(
     Promise.all([
-      /* 1. (clients.claim removed - wait for natural navigation) */
+      /* 1. Take over all existing clients immediately */
+      self.clients.claim(),
 
       /* 2. Delete old cache versions */
       caches.keys().then(function (keys) {

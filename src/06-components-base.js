@@ -26,20 +26,20 @@
   var GuestBanner = ({ lang }) => {
     var [dismissed, setDismissed] = useState(() => localStorage.getItem('pro_spy_guest_banner') === 'true');
     if (dismissed) return null;
-    
+
     var t = TRANSLATIONS[lang];
     var desc = lang === 'ar' ? 'أنت تلعب كزائر. مسح بيانات المتصفح سيؤدي إلى حذف حسابك وتقدمك نهائياً. اربط حسابك بجوجل للحفاظ على بياناتك آمنة.' : 'You are playing as a Guest. Clearing your browser data will permanently delete your account and progress. Link your account to Google to keep your data safe.';
-    
-    return /*#__PURE__*/React.createElement("div", { className: "guest-banner", style: { position: 'relative', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.05))', border: '1px solid rgba(239, 68, 68, 0.4)', paddingRight: '28px', textAlign: 'left' } }, 
-      /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title", style: { color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '6px' } }, "⚠️ ", lang === 'ar' ? 'تحذير للزوار' : 'Guest Warning'), 
+
+    return /*#__PURE__*/React.createElement("div", { className: "guest-banner", style: { position: 'relative', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(185, 28, 28, 0.05))', border: '1px solid rgba(239, 68, 68, 0.4)', paddingRight: '28px', textAlign: 'left' } },
+      /*#__PURE__*/React.createElement("h3", { className: "guest-banner-title", style: { color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '6px' } }, "⚠️ ", lang === 'ar' ? 'تحذير للزوار' : 'Guest Warning'),
       /*#__PURE__*/React.createElement("p", { className: "guest-banner-desc", style: { color: '#fecaca', fontSize: '11px', lineHeight: 1.4, marginTop: '4px' } }, desc),
       /*#__PURE__*/React.createElement("button", {
-        onClick: () => {
-          setDismissed(true);
-          localStorage.setItem('pro_spy_guest_banner', 'true');
-        },
-        style: { position: 'absolute', top: '8px', right: '12px', background: 'none', border: 'none', color: '#fca5a5', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: 0 }
-      }, "×")
+      onClick: () => {
+        setDismissed(true);
+        localStorage.setItem('pro_spy_guest_banner', 'true');
+      },
+      style: { position: 'absolute', top: '8px', right: '12px', background: 'none', border: 'none', color: '#fca5a5', fontSize: '20px', cursor: 'pointer', lineHeight: 1, padding: 0 }
+    }, "×")
     );
   };
 
@@ -443,8 +443,9 @@
           hasMenu && e("div", { className: "mp-menu-trigger", onClick: (ev) => { ev.stopPropagation(); setShowMenu((v) => !v); }, style: { zIndex: 2010 } }, "⋮"),
           hasMenu && showMenu && e("div", { className: "mp-menu-dropdown", onClick: (ev) => ev.stopPropagation(), style: { zIndex: 2011 } },
             e("div", { className: "mp-menu-item", onClick: () => { setShowMenu(false); onClose(); onOpenProfile ? onOpenProfile(profile.uid) : (window.setShowUserProfile && window.setShowUserProfile(true)); } }, "👤 ", lang === 'ar' ? 'فتح البروفايل' : 'Profile'),
-            e("div", { className: "mp-menu-item danger", onClick: async () => { 
-                setShowMenu(false); 
+            e("div", {
+              className: "mp-menu-item danger", onClick: async () => {
+                setShowMenu(false);
                 setReportModal(true);
                 setAlreadyReported(false);
                 setIsCheckingReport(true);
@@ -458,12 +459,13 @@
                     return data.reportedUID === profile.uid && data.type === 'user';
                   });
                   if (isDuplicate) setAlreadyReported(true);
-                } catch(err) {
+                } catch (err) {
                   console.error('Check report error:', err);
                 } finally {
                   setIsCheckingReport(false);
                 }
-              } }, "🚨 ", lang === 'ar' ? 'إبلاغ' : 'Report'),
+              }
+            }, "🚨 ", lang === 'ar' ? 'إبلاغ' : 'Report'),
             !isSelf && e("div", {
               className: "mp-menu-item", onClick: async () => {
                 setShowMenu(false);
@@ -625,41 +627,41 @@
       ),
       reportModal && e("div", { style: { position: 'fixed', inset: 0, zIndex: zIndex + 20, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }, onClick: () => setReportModal(false) },
         e("div", { style: { width: '100%', maxWidth: '340px', background: '#0d0d1f', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }, onClick: (ev) => ev.stopPropagation() },
-          
+
           alreadyReported ? e(React.Fragment, null,
             e("div", { style: { textAlign: 'center', padding: '10px 0' } },
               e("div", { style: { fontSize: '40px', marginBottom: '16px' } }, "🕵️"),
               e("div", { style: { fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '8px' } }, lang === 'ar' ? 'بلاغ مكرر' : 'Duplicate Report'),
-              e("div", { style: { fontSize: '13px', color: '#9ca3af', marginBottom: '24px', lineHeight: 1.5 } }, 
+              e("div", { style: { fontSize: '13px', color: '#9ca3af', marginBottom: '24px', lineHeight: 1.5 } },
                 lang === 'ar' ? 'لقد قمت بالإبلاغ عن هذا المستخدم مسبقاً. الفريق يراجع طلبك بالفعل.' : 'You have already reported this user. The team is currently reviewing your request.'
               ),
-              e("button", { 
-                onClick: () => setReportModal(false), 
-                style: { width: '100%', padding: '12px', background: 'linear-gradient(135deg,#7000ff,#00f2ff)', borderRadius: '12px', border: 'none', color: '#fff', fontWeight: 'bold', cursor: 'pointer' } 
+              e("button", {
+                onClick: () => setReportModal(false),
+                style: { width: '100%', padding: '12px', background: 'linear-gradient(135deg,#7000ff,#00f2ff)', borderRadius: '12px', border: 'none', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }
               }, lang === 'ar' ? 'حسناً' : 'Got it')
             )
           ) :
 
-          isCheckingReport ? e(React.Fragment, null,
-            e("div", { style: { textAlign: 'center', padding: '30px 0' } },
-              e("div", { className: "profile-loading-spinner", style: { margin: '0 auto 20px' } }),
-              e("div", { style: { fontSize: '14px', color: '#9ca3af' } }, lang === 'ar' ? 'جاري التحقق...' : 'Checking...'),
-              e("button", { 
-                onClick: () => setReportModal(false), 
-                style: { marginTop: '24px', background: 'none', border: 'none', color: '#6b7280', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' } 
-              }, lang === 'ar' ? 'إلغاء' : 'Cancel')
-            )
-          ) :
+            isCheckingReport ? e(React.Fragment, null,
+              e("div", { style: { textAlign: 'center', padding: '30px 0' } },
+                e("div", { className: "profile-loading-spinner", style: { margin: '0 auto 20px' } }),
+                e("div", { style: { fontSize: '14px', color: '#9ca3af' } }, lang === 'ar' ? 'جاري التحقق...' : 'Checking...'),
+                e("button", {
+                  onClick: () => setReportModal(false),
+                  style: { marginTop: '24px', background: 'none', border: 'none', color: '#6b7280', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }
+                }, lang === 'ar' ? 'إلغاء' : 'Cancel')
+              )
+            ) :
 
-          e(React.Fragment, null,
-            e("div", { style: { fontSize: '16px', fontWeight: 800, color: '#ef4444', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' } }, "🚨", lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'),
-            ['spam', 'harassment', 'cheating', 'inappropriate', 'other'].map((r) => e("button", { key: r, onClick: () => setReportReason(r), style: { display: 'block', width: '100%', margin: '6px 0', padding: '12px', borderRadius: '10px', border: reportReason === r ? '2.5px solid #ef4444' : '1px solid rgba(255,255,255,0.1)', background: reportReason === r ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.05)', color: '#fff', textAlign: 'start', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' } }, lang === 'ar' ? { spam: 'سبام', harassment: 'تحرش', cheating: 'غش', inappropriate: 'محتوى مسيء', other: 'أخرى' }[r] : r)),
-            e("textarea", { value: reportNote, onChange: (ev) => setReportNote(ev.target.value), maxLength: 200, rows: 3, placeholder: lang === 'ar' ? 'اشرح ما حدث بالتفصيل...' : 'Explain what happened...', style: { width: '100%', marginTop: '12px', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none', resize: 'none', fontSize: '13px' } }),
-            e("div", { style: { display: 'flex', gap: '10px', marginTop: '20px' } },
-              e("button", { onClick: () => { setReportModal(false); setReportReason(''); setReportNote(''); }, style: { flex: 1, padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontWeight: 'bold', cursor: 'pointer' } }, lang === 'ar' ? 'إلغاء' : 'Cancel'),
-              e("button", { onClick: _submitReport, disabled: !reportReason, style: { flex: 1.5, padding: '12px', background: reportReason ? '#ef4444' : 'rgba(255,255,255,0.1)', color: reportReason ? '#fff' : '#6b7280', borderRadius: '10px', border: 'none', fontWeight: 'bold', cursor: reportReason ? 'pointer' : 'default', transition: 'all 0.2s' } }, lang === 'ar' ? 'إرسال البلاغ' : 'Submit Report')
-            )
-          )
+              e(React.Fragment, null,
+                e("div", { style: { fontSize: '16px', fontWeight: 800, color: '#ef4444', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' } }, "🚨", lang === 'ar' ? 'إبلاغ عن مستخدم' : 'Report User'),
+                ['spam', 'harassment', 'cheating', 'inappropriate', 'other'].map((r) => e("button", { key: r, onClick: () => setReportReason(r), style: { display: 'block', width: '100%', margin: '6px 0', padding: '12px', borderRadius: '10px', border: reportReason === r ? '2.5px solid #ef4444' : '1px solid rgba(255,255,255,0.1)', background: reportReason === r ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.05)', color: '#fff', textAlign: 'start', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' } }, lang === 'ar' ? { spam: 'سبام', harassment: 'تحرش', cheating: 'غش', inappropriate: 'محتوى مسيء', other: 'أخرى' }[r] : r)),
+                e("textarea", { value: reportNote, onChange: (ev) => setReportNote(ev.target.value), maxLength: 200, rows: 3, placeholder: lang === 'ar' ? 'اشرح ما حدث بالتفصيل...' : 'Explain what happened...', style: { width: '100%', marginTop: '12px', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none', resize: 'none', fontSize: '13px' } }),
+                e("div", { style: { display: 'flex', gap: '10px', marginTop: '20px' } },
+                  e("button", { onClick: () => { setReportModal(false); setReportReason(''); setReportNote(''); }, style: { flex: 1, padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontWeight: 'bold', cursor: 'pointer' } }, lang === 'ar' ? 'إلغاء' : 'Cancel'),
+                  e("button", { onClick: _submitReport, disabled: !reportReason, style: { flex: 1.5, padding: '12px', background: reportReason ? '#ef4444' : 'rgba(255,255,255,0.1)', color: reportReason ? '#fff' : '#6b7280', borderRadius: '10px', border: 'none', fontWeight: 'bold', cursor: reportReason ? 'pointer' : 'default', transition: 'all 0.2s' } }, lang === 'ar' ? 'إرسال البلاغ' : 'Submit Report')
+                )
+              )
         )
       )
     );

@@ -215,6 +215,9 @@
     <!-- 🟢 Mini Profile New Style CSS -->
     <script>loadAppStyle("mini-profile.css");</script>
 
+    <!-- 🎁 Gift Modal Premium CSS -->
+    <script>loadAppStyle("src/css/GiftsPremium.css");</script>
+
 </head>
 
 <body>
@@ -368,7 +371,6 @@
         loadAppScript("src/12-modal-funpass.js");
         loadAppScript("src/13-modal-chat.js");
         loadAppScript("src/components/modals/LoginRewards.js");
-        loadAppScript("src/components/modals/BrowseRoomsModal.js");
         loadAppScript("src/components/modals/TutorialModal.js");
         loadAppScript("src/components/modals/SettingsModal.js");
         loadAppScript("src/components/modals/SupportTicketSection.js");
@@ -466,12 +468,12 @@
         loadAppScript("src/features/lucky-games/CrashGame.js");
         loadAppScript("src/features/lucky-games/LuckyGamesHub.js");
 
-        // Spy Game Rebuild
-        loadAppScript("src/features/spy-rebuild/SpyGame-config.js");
-        loadAppScript("src/features/spy-rebuild/SpyGame-firebase.js");
-        loadAppScript("src/features/spy-rebuild/SpyGame-offline.js");
-        loadAppScript("src/features/spy-rebuild/SpyGame-online.js");
-        loadAppScript("src/features/spy-rebuild/SpyGame-ui.js");
+        // Spy Game Rebuild Vanilla JS Engine
+        loadAppStyle("src/features/spy-rebuild/components/game.styles.css");
+        loadAppScript("src/features/spy-rebuild/components/game.config.js");
+        loadAppScript("src/features/spy-rebuild/components/game.engine.js");
+        loadAppScript("src/features/spy-rebuild/components/game.ui.js");
+        loadAppScript("src/features/spy-rebuild/SpyGameRebuild.js");
 
         // Snake & Ladder Pro
         loadAppScript("src/components/services/MatchmakingService.js");
@@ -487,6 +489,10 @@
         loadAppStyle("src/features/snake-ladder/snake-ladder.css");
 
         // App Shell
+        // Modals & Overlays
+        loadAppScript("src/app/useGiftListener.js");
+        loadAppScript("src/components/animations/GiftAnimationOverlay.js");
+        loadAppScript("src/components/modals/FriendSelectorModal.js");
         loadAppScript("src/features/app/components/GlobalModals.js");
         loadAppScript("src/10-app.js");
 

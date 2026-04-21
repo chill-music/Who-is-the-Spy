@@ -112,7 +112,7 @@
         }, []);
 
         useEffect(() => {
-            if (!showMatchmaking) {
+            if (!showMatchmaking && roomData?.status === 'playing') {
                 initBGM();
             }
             return () => {
@@ -121,7 +121,7 @@
                     audioRef.current.bgm = null;
                 }
             };
-        }, [initBGM, showMatchmaking]);
+        }, [initBGM, showMatchmaking, roomData?.status]);
 
         const playAudio = (file) => {
             if (audioRef.current.isMuted) return;
@@ -186,9 +186,45 @@
                         }
                     }
                 });
-                return () => service.disconnect();
+
+                // ✅ [SNL-GC] Register beforeunload so player is marked 'left'
+                // even if they close the browser without pressing Exit.
+                if (user?.uid) {
+                    service.attachBeforeUnload(viewRoomId, gameId, user.uid);
+                }
+
+                return () => {
+                    service.disconnect();
+                    service.detachBeforeUnload();
+                };
             }
         }, [viewRoomId]);
+
+        // ── 🛡️ AFK ENFORCEMENT & STALE ROOM GC ──
+        useEffect(() => {
+            if (!roomData || !user?.uid) return;
+            if (roomData.status !== 'playing') return;
+
+            const AFK_LIMIT_MS = 5 * 60 * 1000; // 5 minutes inactivity
+
+            const afkInterval = setInterval(() => {
+                const me = roomData.players?.find(p => p.uid === user.uid);
+                if (!me || me.left) return;
+
+                // Check if it's MY turn and time since turnStarted exceeds 5 mins
+                if (isMyTurn && roomData.turnStartTime) {
+                    const elapsed = Date.now() - roomData.turnStartTime;
+                    if (elapsed > AFK_LIMIT_MS) {
+                        console.warn(`[SNL-AFK] You have been AFK for > 5 mins. Auto-leaving...`);
+                        window.showToast?.(lang === 'ar' ? 'تم استبعادك لعدم النشاط لمدة 5 دقائق' : 'Kicked for 5 mins of inactivity', 'error');
+                        service.leaveRoom(viewRoomId, gameId, user.uid);
+                        onExit();
+                    }
+                }
+            }, 30000); // Check every 30 seconds
+
+            return () => clearInterval(afkInterval);
+        }, [roomData, user?.uid, isMyTurn, viewRoomId, gameId, onExit, lang]);
 
         const lastActionRef = useRef(null);
         const handleRemoteAction = async (action) => {
@@ -358,8 +394,9 @@
             if (window.confirm(confirmMsg)) {
                 // 1. Clear saved room so rejoin prompt never appears
                 localStorage.removeItem('last_snl_room_id');
-                // 2. Disconnect Firestore listener immediately
+                // 2. Disconnect Firestore listener + detach beforeunload
                 service.disconnect();
+                service.detachBeforeUnload();
                 // 3. Go back to lobby immediately (UI is snappy)
                 if (typeof onExit === 'function') onExit();
                 

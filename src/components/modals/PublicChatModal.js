@@ -2,7 +2,7 @@
   var { useState, useEffect, useRef, createElement } = React;
   var Z = window.Z || { MODAL: 'var(--z-modal)', MODAL_HIGH: 'var(--z-modal-high)', MODAL_TOP: 'var(--z-modal-top)' };
 
-  var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID }) => {
+  var PublicChatModal = ({ show, onClose, currentUser, user, lang, onNotification, isLoggedIn, onOpenProfile, currentUID, onSendGift }) => {
     var [messages, setMessages] = useState([]);
     var [msgText, setMsgText] = useState('');
     var [sending, setSending] = useState(false);
@@ -23,6 +23,7 @@
     var [alreadyReported, setAlreadyReported] = useState(false);
     var [selectedMsg, setSelectedMsg] = useState(null);
     var [submittingReport, setSubmittingReport] = useState(false);
+    var [showGiftModal, setShowGiftModal] = useState(false);
     var messagesEndRef = useRef(null);
     var inputRef = useRef(null);
     var fileInputRef = useRef(null);
@@ -53,6 +54,21 @@
         viewport.removeEventListener('resize', handleResize); // Cleanup listener
       };
     }, [show]);
+
+    // --- GIFT CATCH-UP LOGIC ---
+    useEffect(() => {
+      if (!show || messages.length === 0 || !window.triggerGiftManual) return;
+      messages.forEach(msg => {
+        if (msg.type === 'system' && msg.text && msg.text.startsWith('__RICH_GIFT__|')) {
+          try {
+            var giftRaw = msg.text.split('|')[1];
+            var giftData = JSON.parse(giftRaw);
+            window.triggerGiftManual(msg.id, giftData);
+          } catch (e) { }
+        }
+      });
+    }, [show, messages]);
+
 
     var sendMsg = async () => {
       if (!msgText.trim() || !user || !isLoggedIn || sending) return;
@@ -281,7 +297,9 @@
         React.createElement("input", { ref: fileInputRef, type: "file", accept: "image/*", style: { display: 'none' }, onChange: handleImgUpload }), /*#__PURE__*/
         React.createElement("div", { style: { position: 'fixed', inset: 0, zIndex: Z.MODAL_HIGH, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }, onClick: onClose }, /*#__PURE__*/
           React.createElement("div", {
-            onClick: (e) => e.stopPropagation(), style: {
+            onClick: (e) => e.stopPropagation(), 
+            className: "modal-animate-in",
+            style: {
               width: '100%', maxWidth: 'min(480px, calc(100vw - 8px))',
               height: 'min(92vh, 720px)',
               minHeight: '400px',
@@ -306,8 +324,71 @@
 
             React.createElement("div", { style: { flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' } },
               messages.map((msg, i) => {
-                if (msg.type === 'system' || msg.type === 'red_packet_announce') return (/*#__PURE__*/
-                  React.createElement("div", { key: msg.id || i, style: { textAlign: 'center', fontSize: '10px', color: '#6b7280', padding: '3px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '20px', alignSelf: 'center', maxWidth: '90%' } }, msg.text));
+                if (msg.type === 'system' || msg.type === 'red_packet_announce') {
+                  if (msg.text && msg.text.indexOf('__RICH_GIFT__|') === 0) {
+                    try {
+                      var gData = JSON.parse(msg.text.split('|')[1]);
+                      var isMe = gData.senderId === currentUID;
+                      
+                      // Rarity Configuration mapping for visuals
+                      var rarity = gData.rarity || 'Common';
+                      var rarityColors = {
+                        Common: { border: 'rgba(156,163,175,0.3)', glow: 'rgba(156,163,175,0.1)', text: '#9ca3af' },
+                        Uncommon: { border: 'rgba(74,222,128,0.4)', glow: 'rgba(74,222,128,0.15)', text: '#4ade80' },
+                        Rare: { border: 'rgba(96,165,250,0.5)', glow: 'rgba(96,165,250,0.2)', text: '#60a5fa' },
+                        Epic: { border: 'rgba(139,92,246,0.5)', glow: 'rgba(139,92,246,0.2)', text: '#a855f7' },
+                        Legendary: { border: 'rgba(255,215,0,0.6)', glow: 'rgba(255,215,0,0.25)', text: '#ffd700' },
+                        Mythic: { border: 'rgba(255,0,85,0.7)', glow: 'rgba(255,0,85,0.3)', text: '#ff0055' },
+                        Divine: { border: 'rgba(0,212,255,0.8)', glow: 'rgba(0,212,255,0.4)', text: '#00d4ff' }
+                      };
+                      var rc = rarityColors[rarity] || rarityColors.Common;
+
+                      return (/*#__PURE__*/
+                        React.createElement("div", { key: msg.id || i, style: { display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: '8px', alignItems: 'flex-end', marginBottom: '8px' } }, /*#__PURE__*/
+                          React.createElement("div", {
+                            onClick: () => openMiniProfilePub(gData.senderId, { name: gData.senderName, photo: gData.senderPhoto }),
+                            style: { width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: '2px solid ' + rc.border }
+                          },
+                            gData.senderPhoto ? /*#__PURE__*/React.createElement("img", { src: gData.senderPhoto, alt: "", style: { width: '100%', height: '100%', objectFit: 'cover' } }) : /*#__PURE__*/React.createElement("span", { style: { fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' } }, "\uD83D\uDE0E")
+                          ), /*#__PURE__*/
+                          React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', maxWidth: '72%' } }, /*#__PURE__*/
+                            React.createElement("div", { style: { fontSize: '10px', fontWeight: 700, marginBottom: '2px', color: isMe ? rc.text : rc.text, cursor: 'pointer' }, onClick: () => openMiniProfilePub(gData.senderId, { name: gData.senderName, photo: gData.senderPhoto }) }, isMe ? lang === 'ar' ? 'أنت' : 'You' : gData.senderName), /*#__PURE__*/
+                            React.createElement("div", {
+                              style: {
+                                background: isMe ? `linear-gradient(135deg, ${rc.glow}, rgba(0,0,0,0.4))` : 'rgba(255,255,255,0.06)',
+                                border: '1px solid ' + rc.border,
+                                borderRadius: isMe ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
+                                padding: '8px 12px',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                                boxShadow: isMe ? `0 4px 15px ${rc.glow}` : '0 4px 12px rgba(0,0,0,0.2)'
+                              }
+                            }, /*#__PURE__*/
+                              React.createElement("img", { src: gData.giftImageUrl, alt: "", style: { width: '50px', height: '50px', objectFit: 'contain', filter: `drop-shadow(0 0 10px ${rc.border})` } }), /*#__PURE__*/
+                              React.createElement("div", { style: { fontSize: '11px', fontWeight: 800, color: rc.text } }, (lang === 'ar' ? gData.giftName_ar : gData.giftName_en) + (gData.qty > 1 ? " \u00D7" + gData.qty : "")), /*#__PURE__*/
+                              React.createElement("div", { style: { fontSize: '9px', color: '#9ca3af', textAlign: 'center' } },
+                                lang === 'ar' ? `أرسل إلى ${gData.receiverName}` : `Sent to ${gData.receiverName}`
+                              ), /*#__PURE__*/
+                              React.createElement("div", { style: { display: 'flex', gap: '6px', marginTop: '2px' } }, /*#__PURE__*/
+                                React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(255,215,0,0.15)', padding: '2px 6px', borderRadius: '20px', border: '1px solid rgba(255,215,0,0.2)' } }, /*#__PURE__*/
+                                  React.createElement("span", { style: { fontSize: '10px' } }, "\u2B50"), /*#__PURE__*/
+                                  React.createElement("span", { style: { fontSize: '9px', fontWeight: 800, color: '#ffd700' } }, "+" + (gData.charisma || 0).toLocaleString())
+                                ), /*#__PURE__*/
+                                React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(0,242,255,0.1)', padding: '2px 6px', borderRadius: '20px', border: '1px solid rgba(0,242,255,0.2)' } }, /*#__PURE__*/
+                                  React.createElement("span", { style: { fontSize: '10px' } }, "\uD83E\uDDE0"), /*#__PURE__*/
+                                  React.createElement("span", { style: { fontSize: '9px', fontWeight: 800, color: '#00f2ff' } }, "+" + (gData.totalBonus || 0).toLocaleString())
+                                )
+                              )
+                            ), /*#__PURE__*/
+                            React.createElement("div", { style: { fontSize: '9px', color: '#374151', marginTop: '2px' } }, fmtTs(msg.createdAt))
+                          )
+                        )
+                      );
+
+                    } catch (err) { console.error("Rich gift parse error:", err); }
+                  }
+                  return (/*#__PURE__*/
+                    React.createElement("div", { key: msg.id || i, style: { textAlign: 'center', fontSize: '10px', color: '#6b7280', padding: '3px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '20px', alignSelf: 'center', maxWidth: '90%' } }, msg.text));
+                }
 
                 if (msg.type === 'red_packet') {
                   var isMe = msg.senderId === currentUID;
@@ -478,6 +559,7 @@
 
                 React.createElement("button", { onClick: () => setShowEmojiPicker((v) => !v), style: { width: '36px', height: '36px', borderRadius: '10px', border: `1px solid ${showEmojiPicker ? 'rgba(0,242,255,0.3)' : 'rgba(255,255,255,0.08)'}`, background: showEmojiPicker ? 'rgba(0,242,255,0.12)' : 'rgba(255,255,255,0.05)', cursor: 'pointer', fontSize: '17px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } }, "\uD83D\uDE00"), /*#__PURE__*/
                 React.createElement("button", { onClick: () => fileInputRef.current?.click(), disabled: uploadingImg, style: { width: '36px', height: '36px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.05)', cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: uploadingImg ? 0.5 : 1 } }, uploadingImg ? '⏳' : '🖼️'), /*#__PURE__*/
+                React.createElement("button", { onClick: () => setShowGiftModal(true), style: { width: '36px', height: '36px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.05)', cursor: 'pointer', fontSize: '17px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }, title: lang === 'ar' ? 'هدية' : 'Gift' }, "\uD83C\uDF81"), /*#__PURE__*/
                 React.createElement("button", { onClick: () => setShowRPModal(true), style: { width: '36px', height: '36px', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.1)', cursor: 'pointer', fontSize: '17px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }, title: lang === 'ar' ? 'مغلف أحمر' : 'Red Packet' }, "\uD83E\uDDE7"), /*#__PURE__*/
                 React.createElement("input", {
                   ref: inputRef, value: msgText, onChange: (e) => setMsgText(e.target.value), onKeyDown: (e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMsg()),
@@ -592,7 +674,30 @@
                   )
             )
           )
-        )
+        ),
+
+        showGiftModal && window.SendGiftModal && /*#__PURE__*/
+        React.createElement(window.SendGiftModal, {
+          show: showGiftModal,
+          onClose: () => setShowGiftModal(false),
+          currentUser: currentUser,
+          lang: lang,
+          onSendGift: async (gift, target, q) => {
+            if (onSendGift) await onSendGift(gift, target, q, false, 'public');
+            setShowGiftModal(false);
+          },
+          currency: currentUser?.currency || 0,
+          friendsData: (() => {
+            var unique = new Map();
+            unique.set(currentUID, { uid: currentUID, displayName: currentUser?.displayName, photoURL: currentUser?.photoURL, equipped: currentUser?.equipped });
+            messages.slice(-30).forEach(m => {
+              if (m.senderId && m.senderId !== 'system' && !unique.has(m.senderId)) {
+                unique.set(m.senderId, { uid: m.senderId, displayName: m.senderName, photoURL: m.senderPhoto, equipped: { frames: m.senderFrame } });
+              }
+            });
+            return Array.from(unique.values());
+          })()
+        })
       )
     );
 

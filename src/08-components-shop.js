@@ -521,9 +521,9 @@
                 React.createElement("div", {
                   style: {
                     display: 'grid',
-                    gridTemplateColumns: activeTab === 'gifts' ? 'repeat(auto-fill,minmax(85px,1fr))' : 'repeat(auto-fill,minmax(106px,1fr))',
-                    gap: activeTab === 'gifts' ? '12px' : '10px',
-                    padding: '4px'
+                    gridTemplateColumns: activeTab === 'gifts' ? 'repeat(auto-fill,minmax(100px,1fr))' : 'repeat(auto-fill,minmax(106px,1fr))',
+                    gap: activeTab === 'gifts' ? '16px' : '10px',
+                    padding: '8px'
                   }
                 },
                   getTabItems(activeTab)?.map((item) => {
@@ -669,7 +669,7 @@
             var desc = lang === 'ar' ? item.desc_ar || item.description_ar || '' : item.desc_en || item.description_en || '';
             return (/*#__PURE__*/
               React.createElement("div", {
-                style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: (Z.MODAL_HIGH || 9000) + 10, padding: '20px' },
+                style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000100, padding: '20px' },
                 onClick: () => setShowPreview(false)
               }, /*#__PURE__*/
                 React.createElement("div", {
