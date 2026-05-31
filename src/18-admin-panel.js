@@ -68,7 +68,7 @@
     return (/*#__PURE__*/
       React.createElement("div", { className: "admin-panel-overlay",
         onClick: onClose,
-        style: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', zIndex: 'var(--z-modal-high)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' } }, /*#__PURE__*/
+        style: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', zIndex: 'var(--z-modal-high)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' } }, /*#__PURE__*/
       React.createElement("div", { className: "admin-panel-container",
         onClick: (e) => e.stopPropagation(),
         style: { width: '95%', maxWidth: '1000px', height: '90%', background: '#0f172a', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' } }, /*#__PURE__*/

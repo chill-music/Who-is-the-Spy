@@ -329,6 +329,7 @@
         .adj-modal-overlay {
           position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center;
           background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); animation: modalIn 0.3s ease-out;
+          pointer-events: auto;
         }
         .adj-modal-content {
           width: 90%; max-width: 400px; background: #0f172a; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);

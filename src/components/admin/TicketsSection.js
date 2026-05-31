@@ -133,7 +133,7 @@
 
       /* ── In-app "No Admin" dialog ─────────────────────────────────────── */
       noAdminDialog && /*#__PURE__*/
-      React.createElement('div', { style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' } },
+      React.createElement('div', { style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', pointerEvents: 'auto' } },
         React.createElement('div', { style: { background: '#1e293b', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '16px', padding: '24px', maxWidth: '340px', width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' } },
           React.createElement('div', { style: { fontSize: '24px', marginBottom: '10px', textAlign: 'center' } }, '⚠️'),
           React.createElement('div', { style: { fontSize: '13px', fontWeight: 700, color: '#f59e0b', marginBottom: '8px', textAlign: 'center' } },
