@@ -117,7 +117,7 @@
         /* ── In-app Staff Message Modal (replaces window.prompt) ─────────── */
         msgModal && /*#__PURE__*/
         React.createElement('div', {
-          style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.70)', backdropFilter: 'blur(8px)' },
+          style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.70)', backdropFilter: 'blur(8px)', pointerEvents: 'auto' },
           onClick: () => { setMsgModal(null); setMsgText(''); }
         },
           React.createElement('div', {

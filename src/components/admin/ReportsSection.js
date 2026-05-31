@@ -316,7 +316,7 @@
 
       /* ── Warn user modal (in-app, replaces window.prompt) ─── */
       warnTarget && React.createElement('div', {
-        style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)' },
+        style: { position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', pointerEvents: 'auto' },
         onClick: function () { setWarnTarget(null); setWarnMsg(''); }
       },
         React.createElement('div', {
