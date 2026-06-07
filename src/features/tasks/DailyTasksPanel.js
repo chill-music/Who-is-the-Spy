@@ -2,15 +2,10 @@
   var { useState, useEffect } = React;
 
   var DailyTasksComponent = ({ userData, user, lang, onClaim, onNotification }) => {
-    var [tick, setTick] = useState(0);
-    useEffect(() => {
-      var t = setInterval(() => setTick((p) => p + 1), 30000);
-      return () => clearInterval(t);
-    }, []);
-
     var userTasks = userData?.dailyTasks || {};
-    var sessionStart = userTasks.sessionStartTime?.toDate?.() || new Date();
-    var minutesOnline = Math.floor((Date.now() - sessionStart.getTime()) / 60000);
+    
+    // 🔒 Secure Source of Truth: Use only the minutes stored in Firestore (no client-side math)
+    var minutesOnline = userTasks.onlineMinutes || 0;
 
     var claimedCount = DAILY_TASKS_CONFIG.filter((box) => userTasks.boxes?.[box.id - 1]?.status === 'claimed').length;
     var availableCount = DAILY_TASKS_CONFIG.filter((box) => {
@@ -129,8 +124,17 @@
             } }, /*#__PURE__*/
 
 
-          React.createElement("div", { style: { fontSize: '22px', lineHeight: 1, marginBottom: '5px' } },
-          isClaimed ? '📭' : isAvailable ? '📬' : isVipLocked ? '🔒' : '📪'
+          React.createElement("div", { style: { fontSize: '22px', lineHeight: 1, marginBottom: '5px', display: 'flex', justifyContent: 'center' } },
+            /*#__PURE__*/React.createElement("img", {
+              src: isVip ? "icos/gift box vip.gif" : "icos/gift box.gif",
+              alt: "Box",
+              style: {
+                width: '32px',
+                height: '32px',
+                objectFit: 'contain',
+                filter: isClaimed ? 'grayscale(1) opacity(0.5)' : 'none'
+              }
+            })
           ), /*#__PURE__*/
 
 

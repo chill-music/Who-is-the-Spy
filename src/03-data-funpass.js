@@ -143,6 +143,81 @@ window.FUN_PASS_PRICE = FUN_PASS_PRICE;
 window.FUN_PASS_LEVELS = FUN_PASS_LEVELS;
 window.FUN_PASS_DAILY_MISSIONS = FUN_PASS_DAILY_MISSIONS;
 window.FUN_PASS_WEEKLY_MISSIONS = FUN_PASS_WEEKLY_MISSIONS;
+window.FUN_PASS_DISABLED = false;
+
+// ── Firestore config document path ──
+var FUN_PASS_CONFIG_COLLECTION = 'funPass_config';
+var FUN_PASS_CONFIG_DOC = 'config';
+
+// ── Auto-renewal: check if season should advance ──
+function autoRenewSeason(cfg) {
+  if (!cfg || !cfg.seasonEndDate || !cfg.lastRenewed) return cfg;
+  var today = new Date().toISOString().slice(0, 10);
+  if (today <= cfg.seasonEndDate) return cfg;
+
+  // Season has ended — check if renewal interval has passed
+  var interval = cfg.renewalIntervalMonths || 2;
+  var lastRenewed = new Date(cfg.lastRenewed);
+  var now = new Date();
+  var monthsElapsed = (now.getFullYear() - lastRenewed.getFullYear()) * 12 + (now.getMonth() - lastRenewed.getMonth());
+  if (monthsElapsed < interval) return cfg;
+
+  // Enough time has passed — auto-renew
+  var newNum = parseInt(cfg.seasonId || '0', 10) + 1;
+  var newEndDate = new Date(now);
+  newEndDate.setMonth(newEndDate.getMonth() + interval);
+  var newCfg = {
+    seasonId: String(newNum),
+    seasonNameEn: 'Season ' + newNum,
+    seasonNameAr: '\u0627\u0644\u0645\u0648\u0633\u0645 \u0627\u0644\u062e\u0627\u0645\u0633 ' + toArabicNumeral(newNum),
+    seasonEndDate: newEndDate.toISOString().slice(0, 10),
+    price: cfg.price || 2000,
+    disabled: cfg.disabled || false,
+    lastRenewed: now.toISOString(),
+    renewalIntervalMonths: interval
+  };
+  console.log('[FunPass] Auto-renewed season', newCfg.seasonId, 'ends', newCfg.seasonEndDate);
+  return newCfg;
+}
+
+function toArabicNumeral(n) {
+  var arabicNums = ['\u0660','\u0661','\u0662','\u0663','\u0664','\u0665','\u0666','\u0667','\u0668','\u0669'];
+  return String(n).split('').map(function(d) { return arabicNums[parseInt(d)] || d; }).join('');
+}
+
+// ── Fetch live season config from Firestore document ──
+// Falls back to hardcoded defaults if the doc doesn't exist yet.
+window.fetchFunPassConfig = async function () {
+  try {
+    if (typeof firebase === 'undefined' || !firebase.firestore) return;
+    var db = firebase.firestore();
+    var appId = window.appId || 'pro_spy_v25_final_fix_complete';
+    var docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection(FUN_PASS_CONFIG_COLLECTION).doc(FUN_PASS_CONFIG_DOC);
+    var docSnap = await docRef.get();
+    if (docSnap.exists) {
+      var cfg = docSnap.data();
+      // Apply auto-renewal if season ended
+      cfg = autoRenewSeason(cfg);
+      // Write renewed config back to Firestore if it changed
+      if (cfg.seasonId !== (docSnap.data().seasonId || '') || cfg.seasonEndDate !== (docSnap.data().seasonEndDate || '')) {
+        try { await docRef.set(cfg); } catch (_) {}
+      }
+      window.FUN_PASS_SEASON_ID   = cfg.seasonId || window.FUN_PASS_SEASON_ID;
+      window.FUN_PASS_SEASON_NAME_EN = cfg.seasonNameEn || ('Season ' + cfg.seasonId);
+      window.FUN_PASS_SEASON_NAME_AR = cfg.seasonNameAr || ('\u0627\u0644\u0645\u0648\u0633\u0645 ' + cfg.seasonId);
+      window.FUN_PASS_SEASON_END  = cfg.seasonEndDate || window.FUN_PASS_SEASON_END;
+      window.FUN_PASS_DISABLED    = cfg.disabled === true;
+      if (cfg.price) window.FUN_PASS_PRICE = cfg.price;
+      console.log('[FunPass] Loaded config from Firestore — season', cfg.seasonId, 'ends', cfg.seasonEndDate, 'disabled:', cfg.disabled);
+    }
+  } catch (e) {
+    console.warn('[FunPass] Could not load config from Firestore, using local defaults:', e.message || e);
+  }
+};
+
+// Auto-fetch on load (non-blocking — app continues with local defaults until resolved)
+window.fetchFunPassConfig();
+
 window.LOGIN_REWARDS = LOGIN_REWARDS;
 window.LOGIN_REWARDS_CONFIG = LOGIN_REWARDS_CONFIG;
 window.getCurrentCycleMonth = getCurrentCycleMonth;

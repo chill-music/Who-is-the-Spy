@@ -88,6 +88,8 @@
       )
       ), /*#__PURE__*/
 
+      /* Fun Pass promo — hidden when disabled */
+      !window.FUN_PASS_DISABLED && /*#__PURE__*/
       React.createElement("div", { className: "lobby-reveal delay-2" }, /*#__PURE__*/
       React.createElement("div", { className: "fp-promo-new hover-lift pulse-subtle shimmer-premium", style: { borderRadius: 'var(--radius-lg)' }, onClick: () => {if (isLoggedIn) setShowFunPass(true);else requireLogin();} }, /*#__PURE__*/
       React.createElement("div", { className: "fp-promo-emoji" }, "\uD83C\uDF9F\uFE0F"), /*#__PURE__*/

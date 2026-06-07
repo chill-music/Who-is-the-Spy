@@ -31,6 +31,16 @@
 
     if (!show) return null;
 
+    // ── Check if Fun Pass is disabled globally ──────────────────────────
+    var isDisabled = window.FUN_PASS_DISABLED === true;
+
+    // ── Check if season has expired ─────────────────────────────────────
+    var isSeasonExpired = false;
+    try {
+      var _today = new Date().toISOString().slice(0, 10);
+      isSeasonExpired = _today > FUN_PASS_SEASON_END;
+    } catch (_) {}
+
     // ══════════════════════════════════════════
     // MISSIONS SYSTEM - CLEAN REBUILD
     // ══════════════════════════════════════════
@@ -194,7 +204,97 @@
           borderRadius: '18px', width: '100%', maxWidth: '420px',
           maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,215,0,0.05)'
-        } }, /*#__PURE__*/
+        } },
+
+      /* ── Disabled State UI ────────────────────────────────────────────── */
+      isDisabled && !isSeasonExpired ? /*#__PURE__*/
+      React.createElement("div", { style: { padding: '48px 24px', textAlign: 'center' } },
+        React.createElement("div", { style: { fontSize: '52px', marginBottom: '16px', filter: 'grayscale(40%)' } }, '🔒'),
+        React.createElement("div", { style: {
+            fontSize: '20px', fontWeight: 900,
+            background: 'linear-gradient(135deg,#ffd700,#ff8800)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            marginBottom: '10px'
+          } }, 'FUN PASS'),
+        React.createElement("div", { style: {
+            fontSize: '13px', fontWeight: 700, color: '#ef4444', marginBottom: '8px',
+            letterSpacing: '0.5px'
+          } },
+          lang === 'ar' ? 'معطّل مؤقتاً' : 'TEMPORARILY DISABLED'
+        ),
+        React.createElement("div", { style: {
+            fontSize: '11px', color: '#9ca3af', marginBottom: '24px',
+            lineHeight: '1.6', maxWidth: '280px', margin: '0 auto 24px'
+          } },
+          lang === 'ar' ? 'تم تعطيل Fun Pass مؤقتاً. يرجى المحاولة لاحقاً.' : 'Fun Pass is temporarily disabled. Please try again later.'
+        ),
+        React.createElement("button", { onClick: onClose, style: {
+            padding: '10px 32px', borderRadius: '10px', background: 'rgba(255,255,255,0.08)',
+            color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px',
+            fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+          } }, lang === 'ar' ? 'إغلاق' : 'Close')
+      )
+      :
+      isSeasonExpired ? /*#__PURE__*/
+      React.createElement("div", { style: { padding: '40px 24px', textAlign: 'center' } },
+        React.createElement("div", { style: { fontSize: '48px', marginBottom: '16px' } }, '⏸️'),
+        React.createElement("div", { style: { fontSize: '18px', fontWeight: 900, color: '#fbbf24', marginBottom: '8px' } }, 'FUN PASS'),
+        React.createElement("div", { style: { fontSize: '13px', fontWeight: 700, color: '#ef4444', marginBottom: '12px' } },
+          lang === 'ar' ? 'انتهى الموسم' : 'Season Ended'
+        ),
+        React.createElement("div", { style: { fontSize: '11px', color: '#9ca3af', marginBottom: '8px' } },
+          lang === 'ar' ? 'انتهى الموسم في' : 'Season ended on', ' ', FUN_PASS_SEASON_END
+        ),
+        React.createElement("div", { style: { fontSize: '11px', color: '#6b7280', marginBottom: '20px' } },
+          lang === 'ar' ? 'سيتم التجديد تلقائياً قريباً' : 'Renewal is coming soon. Stay tuned!'
+        ),
+        /* Owner/Admin manual renew button — writes directly to Firestore */
+        (currentUser?.uid === window.OWNER_UID || userData?.role === 'owner' || userData?.role === 'admin') && /*#__PURE__*/
+        React.createElement("button", {
+          onClick: async () => {
+            try {
+              var db = firebase.firestore();
+              var appId = window.appId || 'pro_spy_v25_final_fix_complete';
+              var docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('funPass_config').doc('config');
+              var docSnap = await docRef.get();
+              var current = docSnap.exists ? docSnap.data() : {};
+              var newNum = parseInt(current.seasonId || FUN_PASS_SEASON_ID || '0', 10) + 1;
+              var now = new Date();
+              var endDate = new Date(now);
+              endDate.setMonth(endDate.getMonth() + (current.renewalIntervalMonths || 2));
+              var arabicNums = ['\u0660','\u0661','\u0662','\u0663','\u0664','\u0665','\u0666','\u0667','\u0668','\u0669'];
+              var arNum = String(newNum).split('').map(function(d) { return arabicNums[parseInt(d)] || d; }).join('');
+              await docRef.set({
+                seasonId: String(newNum),
+                seasonNameEn: 'Season ' + newNum,
+                seasonNameAr: '\u0627\u0644\u0645\u0648\u0633\u0645 \u0627\u0644\u062e\u0627\u0645\u0633 ' + arNum,
+                seasonEndDate: endDate.toISOString().slice(0, 10),
+                price: current.price || 2000,
+                disabled: current.disabled || false,
+                lastRenewed: now.toISOString(),
+                renewalIntervalMonths: current.renewalIntervalMonths || 2
+              });
+              if (window.showToast) window.showToast('\u2705 ' + (lang === 'ar' ? '\u062a\u0645 \u062a\u062c\u062f\u064a\u062f \u0627\u0644\u0645\u0648\u0633\u0645!' : 'Season renewed!'));
+              await window.fetchFunPassConfig();
+              onClose();
+            } catch (e) {
+              if (window.showToast) window.showToast('\u274c ' + e.message);
+            }
+          },
+          style: {
+            padding: '10px 20px', borderRadius: '10px', border: 'none',
+            background: 'linear-gradient(135deg,#10b981,#059669)',
+            color: '#fff', fontSize: '12px', fontWeight: 800, cursor: 'pointer',
+            marginBottom: '12px'
+          }
+        }, '🔄 ', lang === 'ar' ? 'تجديد الآن' : 'Renew Now'),
+        React.createElement("div", null,
+          React.createElement("button", { onClick: onClose, style: {
+            padding: '10px 24px', borderRadius: '10px', background: 'rgba(255,255,255,0.08)',
+            color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', cursor: 'pointer'
+          } }, lang === 'ar' ? 'إغلاق' : 'Close')
+        )
+      )
+      :
 
       React.createElement("div", { style: {
           padding: '14px 16px',

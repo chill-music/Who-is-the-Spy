@@ -27,15 +27,17 @@
                 } catch (e) { console.error('[PRO SPY ERROR] usePresence initial online:', e); }
             })();
 
-            // Heartbeat every 3 minutes
+            // ⏱️ Secure Heartbeat: Increment online minutes every 60 seconds
             var interval = setInterval(async () => {
                 try {
-                    await usersCollection.doc(user.uid).set({
+                    await usersCollection.doc(user.uid).update({
                         lastActive: TS(),
-                        onlineStatus: 'online'
-                    }, { merge: true });
+                        onlineStatus: 'online',
+                        // Increment cumulative daily online minutes in Firestore
+                        'dailyTasks.onlineMinutes': firebase.firestore.FieldValue.increment(1)
+                    });
                 } catch (e) { console.error('[PRO SPY ERROR] usePresence heartbeat:', e); }
-            }, 180000);
+            }, 60000);
 
             // Set offline immediately when page closes
             var handleOffline = async () => {
@@ -98,20 +100,19 @@
         useEffect(() => {
             if (!isLoggedIn || !user || !userData) return;
 
-            // Initialize session start time if not set today
-            var sessionStart = userData.dailyTasks?.sessionStartTime?.toDate?.();
+            var lastResetDay = userData.dailyTasks?.lastResetDay;
             var today = new Date().toDateString();
-            var sessionDay = sessionStart ? sessionStart.toDateString() : null;
 
-            if (sessionDay !== today) {
-                // New day - reset boxes and set session start
+            if (lastResetDay !== today) {
+                // New day - reset minutes and boxes
                 (async () => {
                     try {
-                        await usersCollection.doc(user.uid).set({
-                            'dailyTasks.sessionStartTime': TS(),
+                        await usersCollection.doc(user.uid).update({
+                            'dailyTasks.lastResetDay': today,
+                            'dailyTasks.onlineMinutes': 0,
                             'dailyTasks.boxes': Array(8).fill(null).map(() => ({ status: 'unclaimed' }))
-                        }, { merge: true });
-                    } catch (e) { console.error('[PRO SPY ERROR] daily session reset:', e); }
+                        });
+                    } catch (e) { console.error('[PRO SPY ERROR] daily reset:', e); }
                 })();
             }
         }, [isLoggedIn, user?.uid, userData?.uid]);

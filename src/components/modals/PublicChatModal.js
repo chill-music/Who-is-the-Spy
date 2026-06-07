@@ -30,7 +30,7 @@
 
     useEffect(() => {
       if (!show) return;
-      
+
       // --- FIX 1: Add Visual Viewport Listener ---
       const viewport = window.visualViewport;
       if (!viewport) return;
@@ -41,7 +41,7 @@
       };
       viewport.addEventListener('resize', handleResize);
       // -------------------------
-      
+
       var unsub = publicChatCollection.
         orderBy('createdAt', 'asc').
         limitToLast(100).
@@ -297,7 +297,7 @@
         React.createElement("input", { ref: fileInputRef, type: "file", accept: "image/*", style: { display: 'none' }, onChange: handleImgUpload }), /*#__PURE__*/
         React.createElement("div", { style: { position: 'fixed', inset: 0, zIndex: Z.MODAL_HIGH, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }, onClick: onClose }, /*#__PURE__*/
           React.createElement("div", {
-            onClick: (e) => e.stopPropagation(), 
+            onClick: (e) => e.stopPropagation(),
             className: "modal-animate-in",
             style: {
               width: '100%', maxWidth: 'min(480px, calc(100vw - 8px))',
@@ -329,7 +329,7 @@
                     try {
                       var gData = JSON.parse(msg.text.split('|')[1]);
                       var isMe = gData.senderId === currentUID;
-                      
+
                       // Rarity Configuration mapping for visuals
                       var rarity = gData.rarity || 'Common';
                       var rarityColors = {
@@ -423,19 +423,21 @@
                     ), /*#__PURE__*/
                     React.createElement("div", { style: { maxWidth: 'min(72%, calc(100vw - 80px))', minWidth: 0 } }, /*#__PURE__*/
 
-                      React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '3px', paddingLeft: isMe ? 0 : '2px', paddingRight: isMe ? '2px' : 0, justifyContent: isMe ? 'flex-end' : 'flex-start', flexWrap: 'wrap', cursor: 'pointer' }, onClick: () => openMiniProfilePub(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }) }, /*#__PURE__*/
-                        React.createElement("span", { style: { fontSize: '10px', color: nameColor, fontWeight: 800 } }, isMe ? lang === 'ar' ? 'أنت' : 'You' : msg.senderName),
-                        vipCfg && /*#__PURE__*/React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: vipCfg.nameColor, color: '#000', padding: '1px 4px', borderRadius: '3px' } }, "VIP", msg.senderVipLevel),
-                        msg.senderVipLevel > 0 && typeof VIP_CHAT_TITLE_URLS !== 'undefined' && VIP_CHAT_TITLE_URLS?.[msg.senderVipLevel] && /*#__PURE__*/React.createElement("img", { src: VIP_CHAT_TITLE_URLS[msg.senderVipLevel], alt: "", style: { height: '13px', objectFit: 'contain' } }),
+                      React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', marginBottom: '3px', paddingLeft: isMe ? 0 : '2px', paddingRight: isMe ? '2px' : 0, cursor: 'pointer' }, onClick: () => openMiniProfilePub(msg.senderId, { name: msg.senderName, photo: msg.senderPhoto }) }, /*#__PURE__*/
+                        React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: '4px' } },
+                          React.createElement("span", { style: { fontSize: '10px', color: nameColor, fontWeight: 800 } }, isMe ? lang === 'ar' ? 'أنت' : 'You' : msg.senderName),
+                          vipCfg && /*#__PURE__*/React.createElement("span", { style: { fontSize: '8px', fontWeight: 900, background: vipCfg.nameColor, color: '#000', padding: '1px 4px', borderRadius: '3px' } }, "VIP", msg.senderVipLevel),
 
-                        (msg.senderBadges || []).slice(0, 3).map((b, bi) => {
-                          if (!b) return null;
-                          var badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find((a) => a.id === b) : null;
-                          if (!badge) return null;
-                          return badge.imageUrl ? /*#__PURE__*/
-                            React.createElement("img", { key: bi, src: badge.imageUrl, alt: "", onError: (e) => e.target.style.display = 'none', style: { width: '13px', height: '13px', objectFit: 'contain', flexShrink: 0 } }) : /*#__PURE__*/
-                            React.createElement("span", { key: bi, style: { fontSize: '11px' } }, badge.icon || '🏅');
-                        })
+                          (msg.senderBadges || []).slice(0, 3).map((b, bi) => {
+                            if (!b) return null;
+                            var badge = typeof ACHIEVEMENTS !== 'undefined' ? ACHIEVEMENTS.find((a) => a.id === b) : null;
+                            if (!badge) return null;
+                            return badge.imageUrl ? /*#__PURE__*/
+                              React.createElement("img", { key: bi, src: badge.imageUrl, alt: "", onError: (e) => e.target.style.display = 'none', style: { width: '13px', height: '13px', objectFit: 'contain', flexShrink: 0 } }) : /*#__PURE__*/
+                              React.createElement("span", { key: bi, style: { fontSize: '11px' } }, badge.icon || '🏅');
+                          })
+                        ),
+                        msg.senderVipLevel > 0 && window.VIPChatTitle && React.createElement(window.VIPChatTitle, { userData: { vip: { level: msg.senderVipLevel } }, size: 'md' })
                       ),
                       editingMsgId === msg.id ? /*#__PURE__*/
                         React.createElement("div", { style: { display: 'flex', gap: '4px', alignItems: 'center' } }, /*#__PURE__*/
