@@ -148,7 +148,7 @@
     };
 
     return (/*#__PURE__*/
-      React.createElement("div", { className: "onboarding-overlay", style: { zIndex: window.Z.MODAL } }, /*#__PURE__*/
+      React.createElement("div", { className: "onboarding-overlay", style: { zIndex: window.Z.MODAL, pointerEvents: 'auto' } }, /*#__PURE__*/
       React.createElement("div", { className: "onboarding-card animate-pop" }, /*#__PURE__*/
       React.createElement("div", { className: "onboarding-header" }, /*#__PURE__*/
       React.createElement("div", { className: "onboarding-spy-icon" }, "\uD83D\uDD75\uFE0F"), /*#__PURE__*/
