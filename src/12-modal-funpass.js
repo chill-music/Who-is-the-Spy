@@ -248,7 +248,10 @@
           lang === 'ar' ? 'سيتم التجديد تلقائياً قريباً' : 'Renewal is coming soon. Stay tuned!'
         ),
         /* Owner/Admin manual renew button — writes directly to Firestore */
-        (currentUser?.uid === window.OWNER_UID || userData?.role === 'owner' || userData?.role === 'admin') && /*#__PURE__*/
+        // FIX: 'currentUser' was an undeclared identifier (ReferenceError crashed
+        // the whole app on the expired-season screen). The component's prop is `user`.
+        // Optional chaining does NOT guard against undeclared variables.
+        (user?.uid === window.OWNER_UID || userData?.role === 'owner' || userData?.role === 'admin') && /*#__PURE__*/
         React.createElement("button", {
           onClick: async () => {
             try {
