@@ -132,6 +132,10 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
           'ban.removedAt': TS(),
           'ban.expiresAt': null
         });
+        // R-9 v2: pardon TamperGuard offenses (gate release, history kept)
+        if (window.TamperGuard && window.TamperGuard.pardon) {
+          try { await window.TamperGuard.pardon(targetData.id); } catch (e) {}
+        }
         onBanApplied({ isBanned: false });
         onClose();
       } else {
