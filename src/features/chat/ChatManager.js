@@ -277,12 +277,20 @@
                 }
                 await usersCollection.doc(user.uid).update(senderUpdate);
 
-                // 💰 Gift Receiver bonus — written directly to Firestore.
-                // SecurityService only allows writes for the current authenticated user,
-                // so we bypass it here since receiverId may differ from the sender.
+                // 💰 Gift Receiver bonus — R-9: the last raw currency writer.
+                // Routed through the sanctioned cross-user credit path so it is
+                // audited and whitelisted inside TamperGuard.
                 var receiverId = isSelfSend ? user.uid : targetUser.uid;
                 if (totalBonus > 0) {
-                    await usersCollection.doc(receiverId).update({ currency: firebase.firestore.FieldValue.increment(totalBonus) });
+                    if (window.SecurityService && window.SecurityService.applyGiftReceiverCredit) {
+                        await window.SecurityService.applyGiftReceiverCredit(
+                            receiverId, totalBonus,
+                            'Gift Receiver Bonus: ' + gift.id + ' x' + qty,
+                            { fromUserId: user.uid, giftEventId: giftEventId }
+                        );
+                    } else {
+                        await usersCollection.doc(receiverId).update({ currency: firebase.firestore.FieldValue.increment(totalBonus) });
+                    }
                 }
                 
                 var receiverUpdates = {
