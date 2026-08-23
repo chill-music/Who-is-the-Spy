@@ -146,6 +146,18 @@ var AdminBanModal = ({ targetData, lang, onClose, onBanApplied }) => {
           duration: banDuration
         };
         await usersCollection.doc(targetData.id).update({ ban: banData });
+        // R-9 v2: unified permanent ban history
+        if (window.TamperGuard && window.TamperGuard.logStaffBan) {
+          try {
+            window.TamperGuard.logStaffBan({
+              targetUid: targetData.id,
+              reasonEn: banReason || 'Staff ban',
+              reasonAr: banReason || '',
+              durationMs: expiresAt ? expiresAt.getTime() - Date.now() : null,
+              issuedBy: null
+            });
+          } catch (e) {}
+        }
         onBanApplied({ ...banData, expiresAt });
         onClose();
       }
