@@ -873,16 +873,51 @@ window.TS = TS;
 window.fetchMiniProfileData = fetchMiniProfileData;
 if (typeof PortalModal !== 'undefined') window.PortalModal = PortalModal;
 
-// 🛡️ SECURITY SERVICE — Centralized Economy Protection
+// 🛡️ SECURITY SERVICE — Centralized Economy Protection (hardened, see SECURITY_AUDIT.md R-3)
 window.SecurityService = {
-    applyCurrencyTransaction: async function (uid, amount, reason, meta = {}) {
-        if (!uid || typeof amount !== 'number' || amount === 0) return { success: false };
+    // Client-side burst guard: max 40 economy writes per minute per session.
+    // Stops runaway loops (gift combo spam, retry storms) from draining balances.
+    _txTimes: [],
+    _rateOk: function () {
+        var now = Date.now();
+        this._txTimes = this._txTimes.filter(function (t) { return now - t < 60000; });
+        if (this._txTimes.length >= 40) return false;
+        this._txTimes.push(now);
+        return true;
+    },
 
-        // UID validation: abort if window global UID diverges from authenticated user
+    /**
+     * Apply a currency delta with audit logging.
+     * Hardened behaviour:
+     *  • Debits are executed inside a Firestore transaction that reads the LIVE
+     *    balance first and REJECTS any write that would take it below zero
+     *    (fixes the check-then-debit race / negative-balance exploit).
+     *  • Optional opts.idemKey makes the operation idempotent: replaying the
+     *    same key within the ledger's lifetime is a no-op returning {duplicate:true}.
+     *  • Credits above sanity caps are quarantined to pending_finances.
+     *
+     * @param {string} uid   Target user (must equal auth user unless opts.crossUser)
+     * @param {number} amount  Signed delta (negative = spend)
+     * @param {string} reason  Audit reason string
+     * @param {object} meta    Extra audit fields (undefined values stripped)
+     * @param {object} [opts]  { idemKey?:string, crossUser?:boolean }
+     */
+    applyCurrencyTransaction: async function (uid, amount, reason, meta = {}, opts = {}) {
+        if (!uid || typeof amount !== 'number' || !isFinite(amount) || amount === 0) return { success: false, error: 'invalid_amount' };
+
+        // UID validation: abort if supplied UID diverges from authenticated user,
+        // unless explicitly flagged as a legitimate cross-user credit (e.g. gift receiver bonus).
         var authUID = firebase.auth().currentUser && firebase.auth().currentUser.uid;
-        if (authUID && uid !== authUID) {
+        var crossUser = opts.crossUser === true;
+        if (!crossUser && authUID && uid !== authUID) {
             console.error('[SEC] UID mismatch — write aborted. Supplied:', uid, '| Auth:', authUID);
             return { success: false, error: 'UID mismatch' };
+        }
+
+        // Burst guard
+        if (!this._rateOk()) {
+            console.warn('[SEC] Rate limited: too many transactions this minute.');
+            return { success: false, error: 'rate_limited' };
         }
 
         // 🛡️ CLEANING: Remove undefined values from meta to prevent Firestore crashes
@@ -893,52 +928,91 @@ window.SecurityService = {
             });
         }
 
-        // 1. Sanity Check
-        var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777'));
-        var MAX_SINGLE_REWARD = isGameWin ? 500000000 : 100000;
-
-        if (amount > MAX_SINGLE_REWARD) {
-            var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-            console.error(`[SEC] Transaction blocked: Amount ${amount} is suspicious. ID: ${transId}`);
-            try {
-                if (typeof pendingFinancesCollection !== 'undefined') {
-                    await pendingFinancesCollection.doc(transId).set({
-                        uid: uid, amount: amount, reason: reason, status: 'pending',
-                        transId: transId, meta: cleanMeta,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        ua: navigator.userAgent
-                    });
-                }
-                if (typeof guardLogCollection !== 'undefined') {
-                    await guardLogCollection.add({
-                        uid: uid, type: 'EXPLOIT_ATTEMPT', amount: amount, reason: reason, transId: transId,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(), ua: navigator.userAgent
-                    });
-                }
-            } catch (e) { console.error('[SEC] Failed to log pending transaction:', e); }
-
-            return { success: false, error: 'Safety limit exceeded', transId: transId };
+        // 1. Sanity caps (credits only). Game-win ceiling covers the largest
+        //    legitimate single-round payout (~48M at max bet ×45); anything above
+        //    is quarantined for owner review instead of being applied silently.
+        if (amount > 0) {
+            var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777') || reason.includes('Soccer Star') || reason.includes('Crash'));
+            var MAX_SINGLE_REWARD = isGameWin ? 100000000 : 100000;
+            if (amount > MAX_SINGLE_REWARD) {
+                var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                console.error(`[SEC] Transaction blocked: Amount ${amount} is suspicious. ID: ${transId}`);
+                try {
+                    if (typeof pendingFinancesCollection !== 'undefined') {
+                        await pendingFinancesCollection.doc(transId).set({
+                            uid: uid, amount: amount, reason: reason, status: 'pending',
+                            transId: transId, meta: cleanMeta,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            ua: navigator.userAgent
+                        });
+                    }
+                    if (typeof guardLogCollection !== 'undefined') {
+                        await guardLogCollection.add({
+                            uid: uid, type: 'EXPLOIT_ATTEMPT', amount: amount, reason: reason, transId: transId,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(), ua: navigator.userAgent
+                        });
+                    }
+                } catch (e) { console.error('[SEC] Failed to log pending transaction:', e); }
+                return { success: false, error: 'Safety limit exceeded', transId: transId };
+            }
         }
+        // Absurd single-spend guard (typo/overflow protection)
+        if (amount < -100000000) return { success: false, error: 'Safety limit exceeded' };
+
+        // 2. Idempotency: deterministic ledger doc doubles as the dedup marker
+        var idemKey = typeof opts.idemKey === 'string' && opts.idemKey ? opts.idemKey : null;
 
         try {
-            var batch = db.batch();
-            var userRef = usersCollection.doc(uid);
-            var logRef = goldLogCollection.doc();
+            var outcome = await db.runTransaction(async function (t) {
+                var userRef = usersCollection.doc(uid);
 
-            batch.update(userRef, { currency: firebase.firestore.FieldValue.increment(amount) });
-            batch.set(logRef, {
-                uid: uid, amount: amount, reason: reason, meta: cleanMeta,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                appVersion: window.PRO_SPY_VERSION || '2.0'
+                if (idemKey) {
+                    var idemRef = goldLogCollection.doc('idem_' + idemKey);
+                    var idemSnap = await t.get(idemRef);
+                    if (idemSnap.exists) return { dup: true };
+                }
+
+                // Floor-at-zero: debits must read the live balance inside the txn
+                if (amount < 0) {
+                    var snap = await t.get(userRef);
+                    var bal = (snap.exists && typeof snap.data().currency === 'number') ? snap.data().currency : 0;
+                    if (bal + amount < 0) return { insufficient: true, balance: bal };
+                }
+
+                t.update(userRef, { currency: firebase.firestore.FieldValue.increment(amount) });
+                var logRef = idemKey ? goldLogCollection.doc('idem_' + idemKey) : goldLogCollection.doc();
+                t.set(logRef, {
+                    uid: uid, amount: amount, reason: reason, meta: cleanMeta,
+                    idempotencyKey: idemKey,
+                    crossUser: crossUser === true,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    appVersion: window.PRO_SPY_VERSION || '2.0'
+                });
+                return { ok: true };
             });
 
-            await batch.commit();
+            if (outcome && outcome.dup) {
+                console.log('[SEC] Duplicate transaction skipped (idem):', idemKey);
+                return { success: true, duplicate: true };
+            }
+            if (outcome && outcome.insufficient) {
+                return { success: false, error: 'insufficient_funds', balance: outcome.balance };
+            }
             console.log(`[SEC] Currency update applied: ${amount}`);
             return { success: true };
         } catch (err) {
             console.error('[SEC] Transaction Error:', err);
             return { success: false, error: err.message };
         }
+    },
+
+    /**
+     * Cross-user credit helper — the ONLY sanctioned way for one user's client
+     * to credit another (gift receiver bonuses). Audited identically; skips the
+     * self-UID guard but still rate-limited and capped.
+     */
+    applyGiftReceiverCredit: function (receiverUid, amount, reason, meta) {
+        return this.applyCurrencyTransaction(receiverUid, amount, reason, meta, { crossUser: true });
     }
 };
 

@@ -65,47 +65,64 @@
                 var userRef = usersCollection.doc(user.uid);
                 var inventory = freshData?.inventory || { frames: [], titles: [], badges: [], gifts: [] };
                 var updates = {};
+                var creditAmount = 0;
 
                 switch (reward.type) {
                     case 'currency':
-                        updates.currency = firebase.firestore.FieldValue.increment(reward.amount);
+                        creditAmount = reward.amount;
                         setNotification(`${lang === 'ar' ? 'حصلت على' : 'You received'} +${reward.amount} 🧠!`);
                         break;
                     case 'frame':
-                        if (!inventory.frames?.includes(reward.itemId)) { 
-                            updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId); 
-                            setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار!' : '🎉 You received a frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`); 
-                        } else { 
-                            updates.currency = firebase.firestore.FieldValue.increment(500); 
-                            setNotification(`${lang === 'ar' ? 'الإطار مملوك! +500 إنتل' : 'Frame owned! +500 Intel'}! 🧠`); 
+                        if (!inventory.frames?.includes(reward.itemId)) {
+                            updates['inventory.frames'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+                            setNotification(`${lang === 'ar' ? '🎉 حصلت على إطار!' : '🎉 You received a frame!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                        } else {
+                            creditAmount = 500;
+                            setNotification(`${lang === 'ar' ? 'الإطار مملوك! +500 إنتل' : 'Frame owned! +500 Intel'}! 🧠`);
                         }
                         break;
                     case 'badge':
-                        if (!inventory.badges?.includes(reward.itemId)) { 
-                            updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId); 
-                            setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة!' : '🎉 You received a badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`); 
-                        } else { 
-                            updates.currency = firebase.firestore.FieldValue.increment(500); 
-                            setNotification(`${lang === 'ar' ? 'الشارة مملوكة! +500 إنتل' : 'Badge owned! +500 Intel'}! 🧠`); 
+                        if (!inventory.badges?.includes(reward.itemId)) {
+                            updates['inventory.badges'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+                            setNotification(`${lang === 'ar' ? '🎉 حصلت على شارة!' : '🎉 You received a badge!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                        } else {
+                            creditAmount = 500;
+                            setNotification(`${lang === 'ar' ? 'الشارة مملوك! +500 إنتل' : 'Badge owned! +500 Intel'}! 🧠`);
                         }
                         break;
                     case 'title':
-                        if (!inventory.titles?.includes(reward.itemId)) { 
-                            updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId); 
-                            setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب!' : '🎉 You received a title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`); 
-                        } else { 
-                            updates.currency = firebase.firestore.FieldValue.increment(500); 
-                            setNotification(`${lang === 'ar' ? 'اللقب مملوك! +500 إنتل' : 'Title owned! +500 Intel'}! 🧠`); 
+                        if (!inventory.titles?.includes(reward.itemId)) {
+                            updates['inventory.titles'] = firebase.firestore.FieldValue.arrayUnion(reward.itemId);
+                            setNotification(`${lang === 'ar' ? '🎉 حصلت على لقب!' : '🎉 You received a title!'} ${lang === 'ar' ? reward.name_ar : reward.name_en}`);
+                        } else {
+                            creditAmount = 500;
+                            setNotification(`${lang === 'ar' ? 'اللقب مملوك! +500 إنتل' : 'Title owned! +500 Intel'}! 🧠`);
                         }
                         break;
                 }
-                
+
+                // 🛡️ SECURITY (R-2): route the credit through SecurityService with an
+                // idempotency key so replays/double-clicks cannot double-credit.
+                if (creditAmount > 0) {
+                    var cycle = getCurrentCycleMonth();
+                    var creditRes = await window.SecurityService.applyCurrencyTransaction(
+                        user.uid, creditAmount, `Login Reward Day ${day}`,
+                        { day: day, cycleMonth: cycle },
+                        { idemKey: `${user.uid}_login_${cycle}_${day}` }
+                    );
+                    if (!creditRes || creditRes.success === false) {
+                        console.error('Login reward credit blocked:', creditRes && creditRes.error);
+                        setNotification(lang === 'ar' ? 'حدث خطأ!' : 'An error occurred!');
+                        return;
+                    }
+                }
+
                 updates['loginRewards.currentDay'] = day;
                 updates['loginRewards.lastClaimDate'] = TS();
                 updates['loginRewards.streak'] = firebase.firestore.FieldValue.increment(1);
                 updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
                 updates['loginRewards.cycleMonth'] = getCurrentCycleMonth();
-                
+
                 await userRef.update(updates);
                 
                 if (typeof playRewardSound === 'function') playRewardSound();
