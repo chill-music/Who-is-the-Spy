@@ -784,38 +784,70 @@ input[type=number]{-moz-appearance:textfield;}
       setClaimed(true);
       const won = Math.round(rCurBet.current * atMult);
 
-      // T007: Atomically add winnings to Firebase
-      // T014: Increment jackpot progress per successful claim
+      // T007: Winnings credited via SecurityService (audited + idempotent per round)
+      // T014: Jackpot progress incremented separately after a successful credit
       if (user?.uid && db && window.usersCollection) {
         const increment = window.firebase?.firestore?.FieldValue?.increment || db.FieldValue?.increment;
-        if (increment) {
-          const newProg = Math.round(atMult * 100) / 100;
+        const newProg = Math.round(atMult * 100) / 100;
+        const roundTag = String(rRound.current || Date.now());
+        const finishCredit = () => {
+          window.usersCollection.doc(user.uid).update({
+            crash_jackpot_prog: increment(newProg)
+          }).catch(err => console.error("[CrashGame] Jackpot progress error:", err));
+        };
+        if (window.SecurityService) {
+          window.SecurityService.applyCurrencyTransaction(
+            user.uid, won, `Crash Win x${atMult}`,
+            { roundId: roundTag },
+            { idemKey: `${user.uid}_crash_${roundTag}` }
+          ).then(res => {
+            if (!res || res.success === false) console.error("[CrashGame] Claim blocked:", res && res.error);
+            else finishCredit();
+          }).catch(err => console.error("[CrashGame] Claim error:", err));
+        } else {
           window.usersCollection.doc(user.uid).update({
             currency: window.firebase.firestore.FieldValue.increment(won),
             crash_jackpot_prog: increment(newProg)
           }).catch(err => console.error("[CrashGame] Claim error:", err));
+        }
 
-          // Check for Jackpot Win (80,000 threshold)
-          const currentProg = userData?.crash_jackpot_prog || 0;
-          if (currentProg + newProg >= 80000 && currentProg < 80000) {
-            // WE HAVE A WINNER!
-            const jpRefGlobal = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('jackpot');
-            jpRefGlobal.get().then(jpDoc => {
-              if (jpDoc.exists) {
-                const totalJp = jpDoc.data().amount || 0;
-                let share = 0.1;
-                if (rCurBet.current >= 100000) share = 0.7;
-                else if (rCurBet.current >= 1000) share = 0.3;
-                
-                const winAmount = Math.round(totalJp * share);
-                setJackpotWinDetails({ amount: winAmount, share });
-                setShowJackpotWin(true);
-                
-                // Add jackpot winnings
+        // Check for Jackpot Win (80,000 threshold)
+        const currentProg = userData?.crash_jackpot_prog || 0;
+        if (currentProg + newProg >= 80000 && currentProg < 80000) {
+          // WE HAVE A WINNER!
+          const jpRefGlobal = db.collection('artifacts').doc(window.appId || 'default').collection('public').doc('data').collection('crash_game').doc('jackpot');
+          jpRefGlobal.get().then(jpDoc => {
+            if (jpDoc.exists) {
+              const totalJp = jpDoc.data().amount || 0;
+              let share = 0.1;
+              if (rCurBet.current >= 100000) share = 0.7;
+              else if (rCurBet.current >= 1000) share = 0.3;
+
+              const winAmount = Math.round(totalJp * share);
+              setJackpotWinDetails({ amount: winAmount, share });
+              setShowJackpotWin(true);
+
+              // Add jackpot winnings via SecurityService (idempotent per round)
+              const grantJackpot = () => {
                 window.usersCollection.doc(user.uid).update({
-                  currency: window.firebase.firestore.FieldValue.increment(winAmount),
                   crash_jackpot_prog: 0 // Reset progress after win
                 }).catch(() => {});
+              };
+              if (window.SecurityService) {
+                window.SecurityService.applyCurrencyTransaction(
+                  user.uid, winAmount, 'Crash Jackpot Payout',
+                  { roundId: roundTag },
+                  { idemKey: `${user.uid}_crashjp_${roundTag}` }
+                ).then(res => {
+                  if (!res || res.success === false) console.error("[CrashGame] Jackpot payout blocked:", res && res.error);
+                  else grantJackpot();
+                }).catch(() => {});
+              } else {
+                window.usersCollection.doc(user.uid).update({
+                  currency: window.firebase.firestore.FieldValue.increment(winAmount),
+                  crash_jackpot_prog: 0
+                }).catch(() => {});
+              }
 
                 // Deduct from global jackpot
                 jpRefGlobal.update({
@@ -839,7 +871,6 @@ input[type=number]{-moz-appearance:textfield;}
           jpRef.update({
             amount: increment(Math.round(rCurBet.current * 0.005))
           }).catch(() => { });
-        }
       }
       const nb = rBal.current + won;
       rBal.current = nb;
@@ -1138,7 +1169,7 @@ input[type=number]{-moz-appearance:textfield;}
       const s = SFX.toggle();
       setSoundOn(s);
     };
-    const placeBet = () => {
+    const placeBet = async () => {
       if (phase !== "betting" || hasBet || betInput <= 0) return;
       // T006: Client-side prevention
       if (betInput > balance) {
@@ -1146,13 +1177,36 @@ input[type=number]{-moz-appearance:textfield;}
         return;
       }
       const input = betInput;
-      // T005: Atomically deduct bet from Firebase
-      if (user?.uid && db && window.usersCollection) {
+      // T005: Deduct bet via SecurityService — transactional, floor-at-zero,
+      // so a stale balance can never go negative.
+      if (user?.uid && db && window.usersCollection && window.SecurityService) {
+        const roundTag = String(rRound.current || Date.now());
+        try {
+          const res = await window.SecurityService.applyCurrencyTransaction(
+            user.uid, -input, 'Crash Bet',
+            { roundId: roundTag },
+            { idemKey: `${user.uid}_crashbet_${roundTag}` }
+          );
+          if (!res || res.success === false) {
+            // insufficient_funds / rate_limited / duplicate — abort placement
+            if (window.showToast) window.showToast(props?.lang === 'ar' ? "لا يوجد رصيد كافي" : "Insufficient funds", "error");
+            return;
+          }
+        } catch (err) {
+          console.error("[CrashGame] Bet error:", err);
+          return;
+        }
+      } else if (user?.uid && db && window.usersCollection) {
         const increment = window.firebase?.firestore?.FieldValue?.increment || db.FieldValue?.increment;
         if (increment) {
-          window.usersCollection.doc(user.uid).update({
-            currency: window.firebase.firestore.FieldValue.increment(-input)
-          }).catch(err => console.error("[CrashGame] Bet error:", err));
+          try {
+            await window.usersCollection.doc(user.uid).update({
+              currency: window.firebase.firestore.FieldValue.increment(-input)
+            });
+          } catch (err) {
+            console.error("[CrashGame] Bet error:", err);
+            return;
+          }
         }
       }
       const nb = balance - input;

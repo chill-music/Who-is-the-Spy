@@ -23,12 +23,23 @@
   var COIN_OPTS = [10, 100, 1000, 10000, 100000];
   var MAX_BET   = 1000000;
 
+  /* ── 1b. SECURITY CONSTANTS (SECURITY_AUDIT.md R-4) ──
+     Weighted wheel: weights proportional to 1/multiplier give EVERY food the
+     same RTP (~97.2%, house edge ~2.8%). Fixes the uniform-draw exploit that
+     made chicken EV 5.78x. These are the odds shown in the help modal. */
+  var WHEEL_WEIGHTS   = [1944, 1944, 1944, 1944, 972, 648, 389, 216]; /* sum 10001 */
+  var WHEEL_TOTAL     = 10001;
+  var BONUS_CHANCE    = 0.05;   /* salad 2.5% + pizza 2.5% */
+  var SPECIAL_COST    = 1000;   /* side-bet entry fee */
+  var SPECIAL_PAYOUT  = 20000;  /* fixed x20 payout when its bonus round hits */
+
   /* ── 2. STATE ── */
   var S = {
     balance: 0, selectedCoin: 100, bets: {}, specialBets: {},
     roundId: '---', phase: 'betting', timeLeft: null,
     totalWin: 0, currentUser: null, targetEndTime: 0,
-    lastWinningId: null, lastBonusType: null, lastRotationTrigger: 0
+    lastWinningId: null, lastBonusType: null, lastRotationTrigger: 0,
+    revealTsMillis: 0, publishedWinningId: null, resolvedRoundId: null
   };
 
   var lang   = 'en';
@@ -76,6 +87,59 @@
     return n.toLocaleString();
   }
   function $(id) { return document.getElementById(id); }
+
+  /* ── 4b. COMMIT-REVEAL OUTCOME ENGINE (SECURITY_AUDIT.md R-4 / G-1) ──
+     The round winner is NOT written to Firestore during betting (that let any
+     user read the doc and bet the pre-known winner). Instead:
+       1. Rotation only writes roundId + endTime.
+       2. After endTime passes, the first client to react commits a
+          `revealTs` = Firestore SERVER timestamp — unpredictable microseconds
+          that nobody (including the rotator) can know in advance.
+       3. Every client deterministically derives winner + bonus from
+          hash(revealTs, roundId). All devices always agree.
+     A determined attacker cannot bias a server-assigned commit timestamp. */
+  function _fnv1a(str) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function _pickWeightedIndex(rand) {
+    var acc = 0, x = rand * WHEEL_TOTAL;
+    for (var i = 0; i < WHEEL_WEIGHTS.length; i++) {
+      acc += WHEEL_WEIGHTS[i];
+      if (x < acc) return i;
+    }
+    return WHEEL_WEIGHTS.length - 1;
+  }
+  /* Deterministic outcome shared by every client */
+  function computeOutcome(revealMillis, roundId) {
+    var s1 = _fnv1a(roundId + '#' + revealMillis);
+    var s2 = _fnv1a('bonus#' + roundId + '#' + revealMillis);
+    var idx = _pickWeightedIndex((s1 % 100000) / 100000);
+    var r2 = (s2 % 100000) / 100000;
+    var bonus = null;
+    if (r2 < BONUS_CHANCE / 2) bonus = 'salad';
+    else if (r2 < BONUS_CHANCE) bonus = 'pizza';
+    return { index: idx, id: SYMBOLS[idx].id, name: SYMBOLS[idx].name, emoji: SYMBOLS[idx].emoji, bonusType: bonus };
+  }
+  /* Server timestamps read back as null until the server acks — poll briefly. */
+  async function _waitForRevealTs(docRef, tries) {
+    tries = tries || 12;
+    for (var i = 0; i < tries; i++) {
+      try {
+        var snap = await docRef.get({ source: 'server' });
+        if (snap.exists) {
+          var ts = snap.data().revealTs;
+          if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+        }
+      } catch (e) { /* retry */ }
+      await new Promise(function (r) { setTimeout(r, 350); });
+    }
+    return 0;
+  }
 
   /* ── 5. LOCAL RECORD STORAGE (wins only) ── */
   function _recKey() {
@@ -149,12 +213,17 @@
     unsubscribeSync = sessDoc.onSnapshot(function(doc) {
       if (!doc.exists) { GreedyCatGame.initNewRound(sessDoc); return; }
       var data = doc.data();
-      S.lastWinningId  = data.winningId;
-      S.lastBonusType  = data.bonusType;
+      /* R-4: winner is no longer readable during betting. We track the
+         reveal timestamp (if committed) and any legacy published value. */
+      S.publishedWinningId = data.winningId || null;
+      S.lastBonusType      = data.bonusType || null;
+      S.revealTsMillis     = (data.revealTs && typeof data.revealTs.toMillis === 'function')
+                             ? data.revealTs.toMillis() : 0;
       S.targetEndTime  = data.endTime && typeof data.endTime.toMillis === 'function'
                          ? data.endTime.toMillis() : 0;
       updateTimerUI();
       if (data.roundId !== S.roundId) startNewClientRound(data.roundId);
+      GreedyCatGame._tryResolve(sessDoc, data);
       if ($('gc-round-num')) $('gc-round-num').textContent = data.roundId;
     });
 
@@ -211,30 +280,44 @@
       }
 
     } else if (S.timeLeft <= 5 && S.timeLeft > 0) {
-      if (S.phase === 'betting') resolveRound({ roundId: S.roundId, winningId: S.lastWinningId, bonusType: S.lastBonusType });
+      /* R-4: betting closed visually; outcome stays unknown until endTime
+         passes and the reveal timestamp is committed server-side. */
       S.phase = 'reveal';
       if ($('gc-ticker')) $('gc-ticker').textContent = T('SPINNING');
       badge.style.background = '#e63946';
       if ($('gc-cat')) $('gc-cat').textContent = '🙀';
 
     } else if (S.timeLeft === 0) {
-      if (S.phase === 'betting') resolveRound({ roundId: S.roundId, winningId: S.lastWinningId, bonusType: S.lastBonusType });
+      /* R-4: reveal + resolve instead of trusting a pre-published winner */
+      if (S.phase === 'betting') GreedyCatGame.triggerReveal(sessDocFromTimer());
       S.phase = 'reveal';
       if ($('gc-ticker')) $('gc-ticker').textContent = T('SPINNING');
       badge.style.background = '#e63946';
-      /* Any user can attempt rotation; rate-limited per client, silent on race loss */
+      /* Any user can attempt rotation; rate-limited per client, silent on race loss.
+         Rotation archives the finished round and opens the next one. */
       if (S.currentUser && (now - S.lastRotationTrigger > 5000)) {
         var sessDoc = window.db && window.db.collection('artifacts').doc(window.appId)
           .collection('public').doc('data').collection('lucky_games_sessions').doc('greedy_cat');
         if (sessDoc) {
           S.lastRotationTrigger = now;
-          GreedyCatGame.initNewRound(sessDoc);
+          GreedyCatGame.triggerReveal(sessDoc).then(function () {
+            return GreedyCatGame.initNewRound(sessDoc);
+          }).catch(function () {});
         }
       }
     }
   }
 
-  /* ── 9. INIT NEW ROUND (server-side) ── */
+  /* Session doc accessor for timer-triggered resolution (subscribeSync scope) */
+  function sessDocFromTimer() {
+    return window.db.collection('artifacts').doc(window.appId)
+      .collection('public').doc('data')
+      .collection('lucky_games_sessions').doc('greedy_cat');
+  }
+
+  /* ── 9. INIT NEW ROUND (server-side) ──
+     SECURITY (R-4/G-1): rotation writes NO winner information. The outcome is
+     derived after betting closes from a server-assigned reveal timestamp. */
   window.GreedyCatGame.initNewRound = async function(docRef) {
     if (!window.db || !S.currentUser) return;
     /* Any logged-in user can attempt to rotate — first writer wins, others fail silently */
@@ -246,25 +329,91 @@
           var data  = doc.data();
           var endMs = data.endTime && typeof data.endTime.toMillis === 'function' ? data.endTime.toMillis() : 0;
           if (endMs > (now - 1000)) return; /* round still active – do nothing */
-          if (data.winningId) {
+          /* Archive the finished round. The result is computed deterministically
+             from its revealTs even if no client ever published winningId. */
+          var prevOutcome = null;
+          if (data.roundId) {
+            if (data.winningId) {
+              prevOutcome = { id: data.winningId, bonusType: data.bonusType || null };
+            } else if (data.revealTs && typeof data.revealTs.toMillis === 'function') {
+              var oc = computeOutcome(data.revealTs.toMillis(), data.roundId);
+              prevOutcome = { id: oc.id, bonusType: oc.bonusType };
+            }
+          }
+          if (prevOutcome) {
             await docRef.collection('results').add({
-              winningId: data.winningId, roundId: data.roundId,
+              winningId: prevOutcome.id,
+              bonusType: prevOutcome.bonusType || null,
+              roundId:   data.roundId,
               timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
             });
           }
         }
-        var nextWin = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-        var bonus   = Math.random() < 0.1 ? (Math.random() < 0.5 ? 'salad' : 'pizza') : null;
         t.set(docRef, {
-          winningId: nextWin.id, bonusType: bonus,
-          endTime:   window.firebase.firestore.Timestamp.fromMillis(now + 30000),
           roundId:   String(Math.floor(now / 1000)).slice(-6),
+          endTime:   window.firebase.firestore.Timestamp.fromMillis(now + 30000),
           timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }); /* full replace — old winningId/bonusType/revealTs are dropped */
       });
     } catch(e) {
       /* Silently ignore permission-denied / failed-precondition – another client won the race or user lacks permission */
     }
+  };
+
+  /* ── 9b. REVEAL (SECURITY_AUDIT.md R-4) ──
+     Commits the unpredictable server timestamp once betting has closed, then
+     derives and publishes the deterministic outcome for everyone. */
+  window.GreedyCatGame.triggerReveal = async function(docRef) {
+    if (!window.db || !S.currentUser || !docRef) return;
+    try {
+      await window.db.runTransaction(async function(t) {
+        var snap = await t.get(docRef);
+        if (!snap.exists) return;
+        var d = snap.data();
+        var endMs = d.endTime && typeof d.endTime.toMillis === 'function' ? d.endTime.toMillis() : 0;
+        if (!endMs || Date.now() < (endMs - 1000)) return; /* still open */
+        if (d.winningId || d.revealTs) return;             /* already revealed */
+        t.set(docRef, { revealTs: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      });
+      var millis = await _waitForRevealTs(docRef);
+      if (!millis) return;
+      var snap2 = await docRef.get({ source: 'server' });
+      var rid = snap2.exists ? (snap2.data().roundId || S.roundId) : S.roundId;
+      var oc = computeOutcome(millis, rid);
+      /* Best-effort publish so late joiners / history see it instantly */
+      docRef.set({ winningId: oc.id, bonusType: oc.bonusType }, { merge: true }).catch(function () {});
+      /* Resolve locally straight away — deterministic, no snapshot dependency */
+      if (S.resolvedRoundId !== rid) {
+        S.resolvedRoundId = rid;
+        resolveRound({ roundId: rid, winningId: oc.id, bonusType: oc.bonusType });
+      }
+    } catch (e) {
+      /* race lost to another revealer or offline — snapshots will retry via _tryResolve */
+    }
+  };
+
+  /* Resolves the current round locally once its outcome is knowable. */
+  window.GreedyCatGame._tryResolve = function(sessDoc, data) {
+    if (!data || !data.endTime) return;
+    var endMs = typeof data.endTime.toMillis === 'function' ? data.endTime.toMillis() : 0;
+    if (!endMs || Date.now() < (endMs - 1000)) return;         /* betting still open */
+    if (S.resolvedRoundId === data.roundId) return;            /* already resolved locally */
+
+    var outcome = null;
+    if (data.winningId) {
+      /* published (legacy round or post-reveal write) */
+      outcome = { id: data.winningId, bonusType: data.bonusType || null };
+    } else if (S.revealTsMillis && data.roundId) {
+      var oc = computeOutcome(S.revealTsMillis, data.roundId);
+      outcome = { id: oc.id, bonusType: oc.bonusType };
+    } else {
+      /* not revealed yet — nudge the reveal pipeline */
+      GreedyCatGame.triggerReveal(sessDoc);
+      return;
+    }
+
+    S.resolvedRoundId = data.roundId;
+    resolveRound({ roundId: data.roundId, winningId: outcome.id, bonusType: outcome.bonusType });
   };
 
   /* ── 10. CLIENT ROUND RESET ── */
@@ -272,6 +421,7 @@
     S.roundId    = rid;
     S.bets       = {};
     S.specialBets = {};
+    S.resolvedRoundId = null;
     document.querySelectorAll('.gc-slot').forEach(function(sl) {
       sl.classList.remove('winner-flash');
       var betBadge = $('gc-bet-' + sl.dataset.name);
@@ -301,16 +451,28 @@
       var hasBets = Object.keys(S.bets).length > 0;
       if (S.bets[winner.name]) gained += S.bets[winner.name] * winner.mult;
 
-      if (data.bonusType === 'salad') {
-        Object.keys(S.bets).forEach(function(n) {
-          var sym = SYMBOLS.find(function(x) { return x.name === n; });
-          if (sym && sym.cat === 'vegetable') gained += S.bets[n] * 3;
-        });
-      } else if (data.bonusType === 'pizza') {
-        Object.keys(S.bets).forEach(function(n) {
-          var sym = SYMBOLS.find(function(x) { return x.name === n; });
-          if (sym && (sym.cat === 'seafood' || sym.cat === 'meat')) gained += S.bets[n] * 3;
-        });
+      /* ── R-4 BONUS REBALANCE ──
+         Old rule paid x3 to EVERY bet in the bonus category (added a flat
+         +0.30 EV to all foods and kept chicken player-positive even on a
+         weighted wheel). New rule: the winning food pays +x3 only when its
+         category matches the round bonus. Max added EV: +0.015 per unit. */
+      if (data.bonusType && S.bets[winner.name]) {
+        var catOk = (data.bonusType === 'salad' && winner.cat === 'vegetable') ||
+                    (data.bonusType === 'pizza' && (winner.cat === 'seafood' || winner.cat === 'meat'));
+        if (catOk) gained += S.bets[winner.name] * 3;
+      }
+
+      /* ── R-4 SPECIAL BET RESOLUTION (G-3) ──
+         The 1,000 side bet used to be charged and never resolved. It now pays
+         a fixed x20 (20,000) when its matching bonus round occurs — p=2.5%
+         per type, so EV = 500 vs cost 1,000 (house edge 50%, standard for
+         fixed-odds novelty side bets; cannot be scaled up by big bettors). */
+      var specialWin = data.bonusType && S.specialBets[data.bonusType];
+      if (specialWin) {
+        gained += SPECIAL_PAYOUT;
+        delete S.specialBets[data.bonusType];
+        var spBtn = $('gc-special-' + data.bonusType);
+        if (spBtn) spBtn.classList.remove('selected');
       }
 
       if (gained > 0) {
@@ -323,7 +485,8 @@
             await window.SecurityService.applyCurrencyTransaction(
               S.currentUser.uid, gained,
               'GreedyCat Win Round #' + data.roundId,
-              { roundId: data.roundId }
+              { roundId: data.roundId },
+              { idemKey: S.currentUser.uid + '_gcwin_' + data.roundId }
             );
           } catch (e) {
             console.error('[PRO SPY ERROR] resolveRound win transaction failed:', e);
@@ -497,6 +660,7 @@
   /* ── 13. HTML BUILDER ── */
   function buildHTML() {
     var isAr = lang === 'ar';
+    var specialOdds = ' x' + (SPECIAL_PAYOUT / SPECIAL_COST); /* "x20" */
     var htmlContent = [
       '<div id="gc-root-hub">',
       '  <div id="gc-topbar">',
@@ -524,11 +688,11 @@
       '  <div id="gc-special-row">',
       '    <div class="gc-special-btn" id="gc-special-salad" onclick="GreedyCatGame.toggleSpecial(\'salad\')">',
       '      <span class="gc-special-icon">🥗</span>',
-      '      <div class="gc-special-label">' + T('SALAD') + ' x3</div>',
+      '      <div class="gc-special-label">' + T('SALAD') + specialOdds + '</div>',
       '    </div>',
       '    <div class="gc-special-btn" id="gc-special-pizza" onclick="GreedyCatGame.toggleSpecial(\'pizza\')">',
       '      <span class="gc-special-icon">🍕</span>',
-      '      <div class="gc-special-label">' + T('PIZZA') + ' x3</div>',
+      '      <div class="gc-special-label">' + T('PIZZA') + specialOdds + '</div>',
       '    </div>',
       '  </div>',
       '  <div id="gc-bet-panel">',
@@ -690,12 +854,15 @@
 
   window.GreedyCatGame.toggleSpecial = async function(type) {
     if (S.phase !== 'betting' || S.specialBets[type]) return;
-    if (S.balance < 1000) { if (window.showToast) window.showToast(T('NO_COINS')); return; }
+    if (S.balance < SPECIAL_COST) { if (window.showToast) window.showToast(T('NO_COINS')); return; }
     if (window.SecurityService && S.currentUser && S.currentUser.uid) {
       try {
-        await window.SecurityService.applyCurrencyTransaction(
-          S.currentUser.uid, -1000, 'GreedyCat ' + type + ' Bonus', { roundId: S.roundId }
+        var spRes = await window.SecurityService.applyCurrencyTransaction(
+          S.currentUser.uid, -SPECIAL_COST, 'GreedyCat ' + type + ' Side Bet',
+          { roundId: S.roundId },
+          { idemKey: S.currentUser.uid + '_gcspecial_' + S.roundId + '_' + type }
         );
+        if (spRes && spRes.success === false) return;
         S.specialBets[type] = true;
         var btn = $('gc-special-' + type);
         if (btn) btn.classList.add('selected');
@@ -707,8 +874,7 @@
   };
 
   /* ── 19. MODALS ── */
-  window.GreedyCatGame.openRecord = function() {
-    var c = $('gc-modal-content');
+  window.GreedyCatGame.openRecord = function() {    var c = $('gc-modal-content');
     if (!c) return;
     c.innerHTML =
       '<div class="gc-modal-title" style="text-align:center;font-family:\'Fredoka One\';margin-bottom:15px;">' + T('MY_RECORD') + '</div>' +
@@ -742,7 +908,9 @@
     var c    = $('gc-modal-content');
     if (!c) return;
     var isAr = lang === 'ar';
-    var probs = ['19.4%','19.4%','19.4%','19.4%','9.7%','6.5%','3.9%','2.2%'];
+    /* R-4: odds are derived from the SAME weight table the wheel uses —
+       displayed probabilities can never drift from reality again. */
+    var probs = WHEEL_WEIGHTS.map(function(w) { return (w / WHEEL_TOTAL * 100).toFixed(1) + '%'; });
     c.innerHTML =
       '<div style="font-family:\'Nunito\',sans-serif;color:#fff;">' +
       '<h2 style="text-align:center;font-family:\'Fredoka One\';margin-bottom:15px;">' + T('HOW_TO_PLAY') + '</h2>' +
@@ -750,6 +918,8 @@
       '<ul style="padding-left:18px;margin:0 0 10px;">' +
       '<li>' + (isAr ? 'لديك 30 ثانية لكل جولة لاختيار طعامك والمراهنة.' : 'You have 30s per round to pick food and place bets.') + '</li>' +
       '<li>' + (isAr ? 'الحد الأقصى للمراهنة هو 1,000,000 قطعة.' : 'Max bet per round is 1,000,000 coins.') + '</li>' +
+      '<li>' + (isAr ? 'في جولات البونص (سلطة/بيتزا) يربح الطعام الفائز +x3 إضافية إذا كان من فئته.' : 'On bonus rounds (Salad/Pizza) the winning food pays an extra x3 if it matches the category.') + '</li>' +
+      '<li>' + (isAr ? 'الرهان الخاص (1000): يدفع x20 ثابتة إذا حدثت جولة البونص المطابقة.' : 'Special bet (1,000): pays a fixed x20 if its matching bonus round occurs.') + '</li>' +
       '</ul>' +
       '<table style="width:100%;border-collapse:collapse;background:rgba(0,0,0,0.2);border-radius:8px;overflow:hidden;text-align:center;font-size:11px;">' +
       '<tr style="background:rgba(255,255,255,0.2);"><th style="padding:6px;">' + (isAr ? 'الطعام' : 'Food') + '</th><th>' + (isAr ? 'الاحتمالية' : 'Probability') + '</th></tr>' +

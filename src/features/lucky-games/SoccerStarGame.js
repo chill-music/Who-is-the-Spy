@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   "use strict";
 
   /**
@@ -13,12 +13,55 @@
     liverpool: { id: 'liverpool', name: 'Liverpool', mult: 10, bg: 'radial-gradient(circle,#C8102E,#00B2A9)', logo: 'icos/FootballClubLogo/Liverpool_FC.png' },
     manchester: { id: 'manchester', name: 'Man United', mult: 5, bg: 'radial-gradient(circle,#DA291C,#FBE122)', logo: 'icos/FootballClubLogo/Manchester_United_FC-Logo.png' },
     acmilan: { id: 'acmilan', name: 'AC Milan', mult: 5, bg: 'radial-gradient(circle,#E32221,#111)', logo: 'icos/FootballClubLogo/AC_Milan.png' },
-    bayernmunich: { id: 'bayernmunich', name: 'Bayern Munich', mult: 5, bg: 'radial-gradient(circle,#DC052D,#0066B2)', logo: 'icos/FootballClubLogo/FC_Bayern_München.png' },
+    bayernmunich: { id: 'bayernmunich', name: 'Bayern Munich', mult: 5, bg: 'radial-gradient(circle,#DC052D,#0066B2)', logo: 'icos/FootballClubLogo/FC_Bayern_MÃ¼nchen.png' },
     juventus: { id: 'juventus', name: 'Juventus', mult: 5, bg: 'radial-gradient(circle,#232323,#555)', logo: 'icos/FootballClubLogo/Juventus_FC_2017.png' }
   };
 
   const CHIPS = [100, 1000, 10000, 100000];
   const RECORDS_PER_PAGE = 10;
+
+  /* â”€â”€ R-5 SECURITY CONSTANTS (SECURITY_AUDIT.md G-4) â”€â”€
+     Weighted winner draw matching the odds table shown in HOW TO PLAY:
+     every team returns ~97.2% RTP (house edge ~2.8%). Weights sum to 100000.
+     Fixes the uniform-draw exploit that gave Barcelona EV 5.63x. */
+  const TEAM_WEIGHTS = {
+    barcelona: 2160, realmadrid: 3888, psg: 6480, liverpool: 9720,
+    manchester: 19438, acmilan: 19438, bayernmunich: 19438, juventus: 19438
+  };
+  const TEAM_IDS = Object.keys(TEAMS);
+
+  /* FNV-1a 32-bit â€” deterministic across all clients */
+  function _fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function _pickWeightedTeam(rand) {
+    const total = TEAM_IDS.reduce((a, id) => a + TEAM_WEIGHTS[id], 0);
+    let acc = 0;
+    const x = rand * total;
+    for (const id of TEAM_IDS) {
+      acc += TEAM_WEIGHTS[id];
+      if (x < acc) return id;
+    }
+    return TEAM_IDS[TEAM_IDS.length - 1];
+  }
+  /* Deterministic outcome shared by every client from server entropy */
+  function _computeSoccerOutcome(revealMillis, saltStr) {
+    const s1 = _fnv1a(saltStr + '#' + revealMillis);
+    return _pickWeightedTeam((s1 % 100000) / 100000);
+  }
+
+  /* Canonical session doc path (was a bare root-level collection â€”
+     normalized to artifacts/<appId>/public/data to match security rules). */
+  function ssSessionRef() {
+    return window.db.collection('artifacts').doc(window.appId)
+      .collection('public').doc('data')
+      .collection('lucky_games_sessions').doc('soccer_star');
+  }
 
   let containerEl = null;
   let authUser = null;
@@ -68,7 +111,7 @@
     </div>
 
     <div class="game-title">SOCCER STAR</div>
-    <div class="trophy-wrap"><div class="trophy-icon">🏆</div></div>
+    <div class="trophy-wrap"><div class="trophy-icon">ðŸ†</div></div>
 
     <div class="betting-area">
       <div class="team-grid">
@@ -93,12 +136,12 @@
 
     <div class="cups-row">
       <div class="cup-item">
-        <div class="cup-icon">🥈</div>
+        <div class="cup-icon">ðŸ¥ˆ</div>
         <div class="cup-label silver">Silver</div>
       </div>
       <div class="select-hint" id="hintText">Select The Amount Of Gold > Select Team</div>
       <div class="cup-item">
-        <div class="cup-icon">🏆</div>
+        <div class="cup-icon">ðŸ†</div>
         <div class="cup-label gold">Gold</div>
       </div>
     </div>
@@ -115,9 +158,9 @@
         <div>
           <div class="win-label">Win: <span id="totalWinDisplay">0</span></div>
           <div class="coin-display">
-            <span class="coin-icon">🧠</span>
+            <span class="coin-icon">ðŸ§ </span>
             <span id="coinDisplay">0</span>
-            <span style="font-size:11px;opacity:.6"> ›</span>
+            <span style="font-size:11px;opacity:.6"> â€º</span>
           </div>
         </div>
         <button class="clear-btn" id="clearBetsBtn">Clear</button>
@@ -125,7 +168,7 @@
       <div class="chips-row">
         ${CHIPS.map(val => `
           <button class="chip-btn ${val === currentChip ? 'active' : ''}" data-value="${val}">
-            <span class="chip-coin">🧠</span>
+            <span class="chip-coin">ðŸ§ </span>
             <span class="chip-amount">${val.toLocaleString()}</span>
           </button>
         `).join('')}
@@ -227,10 +270,10 @@
     <div id="resultPopup">
       <div class="result-box">
         <div class="result-header-bar">
-          <span style="font-size:18px">🏆</span>
+          <span style="font-size:18px">ðŸ†</span>
           <div class="result-title">RESULT</div>
-          <span style="font-size:18px">🏆</span>
-          <div class="result-close-timer" id="resultCloseBtn">5s ✕</div>
+          <span style="font-size:18px">ðŸ†</span>
+          <div class="result-close-timer" id="resultCloseBtn">5s âœ•</div>
         </div>
         <div class="result-content">
           <div class="winning-card">
@@ -240,16 +283,16 @@
                 <img src="" alt="" id="resultWinnerImg">
               </div>
               <div class="winning-info">
-                <p id="resTeamLabel">Result: <img src="" class="win-club-logo" id="resClubLogo"> <strong id="resClubName">—</strong></p>
-                <p id="resBetLabel">My Input: <strong id="resBetAmt">0</strong> 🧠</p>
-                <p id="resWinLabel">Bonus: <strong id="resWinAmt">0</strong> 🧠</p>
+                <p id="resTeamLabel">Result: <img src="" class="win-club-logo" id="resClubLogo"> <strong id="resClubName">â€”</strong></p>
+                <p id="resBetLabel">My Input: <strong id="resBetAmt">0</strong> ðŸ§ </p>
+                <p id="resWinLabel">Bonus: <strong id="resWinAmt">0</strong> ðŸ§ </p>
               </div>
             </div>
           </div>
           <div class="top3-winners-area">
             <div class="top3-title">Top Three Winners For This Round</div>
             <div id="topRoundWinnersList">
-               <div class="empty-state" style="padding:10px">📦 No Data</div>
+               <div class="empty-state" style="padding:10px">ðŸ“¦ No Data</div>
             </div>
           </div>
         </div>
@@ -313,7 +356,7 @@
             avatarContainer
           );
 
-          /* Click → MiniProfile: Enhanced capture logic for both frame and image */
+          /* Click â†’ MiniProfile: Enhanced capture logic for both frame and image */
           const openUser = (e) => {
             if (e) { e.preventDefault(); e.stopPropagation(); }
             const currentUid = (authUser && authUser.uid) ? authUser.uid : null;
@@ -401,7 +444,7 @@
     },
 
     subscribeAll: function () {
-      const sessionRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+      const sessionRef = ssSessionRef();
 
       console.log("[SoccerStar] Connecting to VERIFIED root path: lucky_games_sessions/soccer_star");
 
@@ -433,6 +476,79 @@
       if (winnersUnsub) winnersUnsub();
       if (currencyUnsub) currencyUnsub();
       if (timerInterval) clearInterval(timerInterval);
+    },
+
+    /* ── R-5 COMMIT-REVEAL ENGINE ──
+       1. Transaction: once timerEndsAt has passed and nothing is revealed,
+          commit `revealTs` = Firestore server timestamp (unpredictable —
+          no client, not even the fastest racer, can choose the outcome).
+       2. Deterministically derive winner = weightedPick(hash(revealTs, salt)).
+       3. Publish status/lastWinnerId/history for late joiners, then open the
+          next betting round after an 8s pause. */
+    triggerReveal: async function () {
+      const sessRef = ssSessionRef();
+      try {
+        await window.db.runTransaction(async t => {
+          const snap = await t.get(sessRef);
+          if (!snap.exists) return;
+          const d = snap.data();
+          const endMs = d.timerEndsAt ? (d.timerEndsAt.toMillis ? d.timerEndsAt.toMillis() : d.timerEndsAt) : 0;
+          if (!endMs || Date.now() < endMs - 1000) return;   /* round still open */
+          if (d.revealTs || d.lastWinnerId) return;          /* already revealed */
+          t.set(sessRef, { revealTs: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        });
+      } catch (e) { /* race lost — another client is revealing */ }
+
+      const millis = await this._waitForRevealTs(sessRef);
+      if (!millis) return;
+
+      let saltMs = 0, hist = [];
+      try {
+        const snap2 = await sessRef.get({ source: 'server' });
+        if (!snap2.exists) return;
+        const d = snap2.data();
+        saltMs = d.timerEndsAt ? (d.timerEndsAt.toMillis ? d.timerEndsAt.toMillis() : d.timerEndsAt) : 0;
+        if (!saltMs) return;
+        hist = Array.isArray(d.history) ? d.history.slice() : [];
+        /* Already published correctly? nothing to do except round advance */
+        if (d.lastWinnerId && d.revealTs) return;
+      } catch (e) { return; }
+
+      const rw = _computeSoccerOutcome(millis, String(saltMs));
+      if (hist.length > 20) hist.shift();
+      hist.push(rw);
+
+      sessRef.update({
+        status: 'reveal',
+        lastWinnerId: rw,
+        timer: 0,
+        history: hist
+      }).catch(err => console.warn("[SoccerStar] publish:", err.message));
+
+      setTimeout(() => {
+        sessRef.update({
+          status: 'betting',
+          timer: 30,
+          lastWinnerId: null,
+          revealTs: window.firebase.firestore.FieldValue.delete(),
+          timerEndsAt: (window.firebase && window.firebase.firestore) ? window.firebase.firestore.Timestamp.fromMillis(Date.now() + 30000) : (Date.now() + 30000)
+        }).catch(() => {});
+      }, 8000);
+    },
+
+    _waitForRevealTs: async function (sessRef, tries) {
+      tries = tries || 12;
+      for (let i = 0; i < tries; i++) {
+        try {
+          const snap = await sessRef.get({ source: 'server' });
+          if (snap.exists) {
+            const ts = snap.data().revealTs;
+            if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+          }
+        } catch (e) { /* retry */ }
+        await new Promise(r => setTimeout(r, 350));
+      }
+      return 0;
     },
 
     handleSessionUpdate: function (data) {
@@ -475,7 +591,7 @@
           // We set it to (now + timeLeft in seconds) or default 30
           const initialSecs = timeLeft > 0 ? timeLeft : 30;
           endsAt = now + (initialSecs * 1000);
-          const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+          const sessRef = ssSessionRef();
           sessRef.update({ 
             timerEndsAt: (window.firebase && window.firebase.firestore) ? window.firebase.firestore.Timestamp.fromMillis(endsAt) : endsAt
           }).catch(e => console.warn("[SoccerStar] Failed to set timerEndsAt:", e));
@@ -491,35 +607,11 @@
             status = 'reveal';
             if (area) area.classList.add('disabled');
 
-            // Frontend Auto-Drive: Sync round results
-            if (!data.lastWinnerId || data.status === 'betting') {
-              const teamsArr = Object.keys(TEAMS);
-              const rw = teamsArr[Math.floor(Math.random() * teamsArr.length)];
-              const hist = data.history || [];
-              if (hist.length > 20) hist.shift();
-              hist.push(rw);
-
-              const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
-              sessRef.get().then(snap => {
-                if (snap.exists && snap.data().status === 'betting') {
-                  sessRef.update({
-                    status: 'reveal',
-                    lastWinnerId: rw,
-                    timer: 0,
-                    history: hist,
-                    timerEndsAt: null // clear for next round
-                  });
-                  setTimeout(() => {
-                    sessRef.update({ 
-                      status: 'betting', 
-                      timer: 30, 
-                      lastWinnerId: null,
-                      timerEndsAt: (window.firebase && window.firebase.firestore) ? window.firebase.firestore.Timestamp.fromMillis(Date.now() + 30000) : (Date.now() + 30000)
-                    });
-                  }, 8000);
-                }
-              }).catch(err => console.log(err));
-            }
+            /* R-5 COMMIT-REVEAL: no client picks the winner. The first client
+               to react commits an unpredictable server timestamp; every client
+               derives the same deterministic winner from it, publishes it, and
+               advances the round. */
+            this.triggerReveal();
             this.revealResult(data);
           }
         };
@@ -536,10 +628,17 @@
           // Rescue Mechanism: In case client gets stuck at 0 due to an aborted process
           if (!this._rescueTimeout) {
             this._rescueTimeout = setTimeout(() => {
-              const sessRef = window.db.collection('lucky_games_sessions').doc('soccer_star');
+              const sessRef = ssSessionRef();
               sessRef.get().then(snap => {
                 if (snap.exists && snap.data().status === 'reveal') {
-                  sessRef.update({ status: 'betting', timer: 30, lastWinnerId: null });
+                  /* R-5: also clear reveal state so the new round starts clean */
+                  sessRef.update({
+                    status: 'betting',
+                    timer: 30,
+                    lastWinnerId: null,
+                    revealTs: window.firebase.firestore.FieldValue.delete(),
+                    timerEndsAt: (window.firebase && window.firebase.firestore) ? window.firebase.firestore.Timestamp.fromMillis(Date.now() + 30000) : (Date.now() + 30000)
+                  });
                 }
               }).catch(err => console.log('Rescue Error:', err));
               this._rescueTimeout = null;
@@ -550,9 +649,9 @@
     },
 
     placeBet: function (teamId) {
-      if (window._firestoreOnline === false) return this.showToast(lang === 'ar' ? '⚠️ لا يوجد اتصال' : '⚠️ No connection');
-      if (status !== 'betting') return this.showToast(lang === 'ar' ? 'انتظر الجولة القادمة' : 'Wait for next round');
-      if (userCoins < currentChip) return this.showToast(lang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient Intel');
+      if (window._firestoreOnline === false) return this.showToast(lang === 'ar' ? 'âš ï¸ Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø§ØªØµØ§Ù„' : 'âš ï¸ No connection');
+      if (status !== 'betting') return this.showToast(lang === 'ar' ? 'Ø§Ù†ØªØ¸Ø± Ø§Ù„Ø¬ÙˆÙ„Ø© Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©' : 'Wait for next round');
+      if (userCoins < currentChip) return this.showToast(lang === 'ar' ? 'Ø±ØµÙŠØ¯ ØºÙŠØ± ÙƒØ§ÙÙ' : 'Insufficient Intel');
 
       myBets[teamId] = (myBets[teamId] || 0) + currentChip;
       userCoins -= currentChip;
@@ -570,13 +669,30 @@
       // For this build, we'll keep the OG 'Clear' button but maybe notify user it's for the current session's visual?
       // Actually, if it's already deducted, Clear won't refund. 
       // User said "Make it work as OG", but OG was local coins.
-      this.showToast(lang === 'ar' ? 'لا يمكن استرداد الرهان المرسل' : 'Cannot refund sent bets');
+      this.showToast(lang === 'ar' ? 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ø§Ù„Ø±Ù‡Ø§Ù† Ø§Ù„Ù…Ø±Ø³Ù„' : 'Cannot refund sent bets');
     },
 
     revealResult: function (sessionData) {
       if (hasRevealed) return; // Prevent double trigger
 
-      const winnerId = sessionData.lastWinnerId;
+      /* R-5: the locally computed outcome is authoritative. If the published
+         lastWinnerId was tampered with or is missing, we derive it again from
+         the committed server timestamp and repair the doc. */
+      let winnerId = sessionData.lastWinnerId || null;
+      const rTs = sessionData.revealTs;
+      const saltMs = sessionData.timerEndsAt
+        ? (sessionData.timerEndsAt.toMillis ? sessionData.timerEndsAt.toMillis() : sessionData.timerEndsAt)
+        : 0;
+
+      if (rTs && typeof rTs.toMillis === 'function' && saltMs) {
+        const computed = _computeSoccerOutcome(rTs.toMillis(), String(saltMs));
+        if (computed !== winnerId) {
+          winnerId = computed;   // never pay out on an untrusted value
+          ssSessionRef().update({ lastWinnerId: computed })
+            .catch(() => {});
+        }
+      }
+
       if (!winnerId) return; // No winner yet
 
       const winnerTeam = TEAMS[winnerId];
@@ -587,11 +703,15 @@
       const myInput = myBets[winnerId] || 0;
       const bonus = myInput * winnerTeam.mult;
 
-      // 🛡️ SECURITY: Apply win payout via SecurityService
+      // 🛡️ SECURITY: win payout via SecurityService, idempotent per round
       if (bonus > 0 && authUser && window.SecurityService) {
         (async () => {
           try {
-            await window.SecurityService.applyCurrencyTransaction(authUser.uid, bonus, 'Soccer Star: Win', { input: myInput });
+            await window.SecurityService.applyCurrencyTransaction(
+              authUser.uid, bonus, 'Soccer Star: Win',
+              { input: myInput, teamId: winnerId },
+              { idemKey: `${authUser.uid}_sswin_${saltMs || sessionData.timer}` }
+            );
           } catch (e) {
             console.error('[PRO SPY ERROR] Soccer Star payout failed:', e);
           }
@@ -607,7 +727,7 @@
 
       // Automatically register the winning to the global recent_winners board if the user won
       if (bonus > 0 && authUser) {
-        window.db.collection('lucky_games_sessions').doc('soccer_star')
+        ssSessionRef()
           .collection('recent_winners').doc(authUser.uid).set({
             name: authUser.displayName || 'Player',
             photo: authUser.photoURL || 'icos/idon.png',
@@ -618,8 +738,8 @@
           }).catch(err => console.error(err));
       }
 
-      // Show Popup
-      this.showWinPopup(sessionData, bonus, myInput);
+      // Show Popup — pass the verified winner, never a tampered published value
+      this.showWinPopup(Object.assign({}, sessionData, { lastWinnerId: winnerId }), bonus, myInput);
 
       // Confetti if won
       if (bonus > 0) this.spawnConfetti();
@@ -656,10 +776,10 @@
 
       let cd = 5;
       const btn = document.getElementById('resultCloseBtn');
-      btn.textContent = `${cd}s ✕`;
+      btn.textContent = `${cd}s âœ•`;
       const itv = setInterval(() => {
         cd--;
-        btn.textContent = `${cd}s ✕`;
+        btn.textContent = `${cd}s âœ•`;
         if (cd <= 0) {
           clearInterval(itv);
           popup.classList.remove('show');
@@ -672,7 +792,7 @@
       if (!listEl) return;
 
       // Fetch up to 5 to easily find MVP + runners up
-      const snap = await window.db.collection('lucky_games_sessions').doc('soccer_star').collection('recent_winners')
+      const snap = await ssSessionRef().collection('recent_winners')
         .orderBy('timestamp', 'desc').limit(5).get();
 
       let winners = [];
@@ -695,7 +815,7 @@
       }
 
       if (winners.length === 0) {
-        listEl.innerHTML = `<div class="empty-state" style="padding:10px">📦 No Data Yet</div>`;
+        listEl.innerHTML = `<div class="empty-state" style="padding:10px">ðŸ“¦ No Data Yet</div>`;
         return;
       }
 
@@ -724,8 +844,8 @@
               <span class="round-winner-name">${d.name || 'User'}</span>
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end;">
-               <div class="round-winner-amt" style="font-size:10px; color:#aaa; margin-bottom: 2px;">In: ${(d.input || 0).toLocaleString()} 🧠</div>
-               <div class="round-winner-amt" style="color:#4CAF50">+${(d.amount || 0).toLocaleString()} 🧠</div>
+               <div class="round-winner-amt" style="font-size:10px; color:#aaa; margin-bottom: 2px;">In: ${(d.input || 0).toLocaleString()} ðŸ§ </div>
+               <div class="round-winner-amt" style="color:#4CAF50">+${(d.amount || 0).toLocaleString()} ðŸ§ </div>
             </div>
           </div>
       `).join('');
@@ -785,7 +905,7 @@
       const pageData = history.slice(start, end);
 
       if (pageData.length === 0) {
-        body.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div>Empty List</div></div>`;
+        body.innerHTML = `<div class="empty-state"><div class="empty-icon">ðŸ“¦</div><div>Empty List</div></div>`;
       } else {
         body.innerHTML = pageData.map(rec => {
           const t = TEAMS[rec.result] || {};
@@ -808,12 +928,12 @@
 
       const hint = document.getElementById('hintText');
       if (hint) {
-        hint.textContent = isAr ? 'اختر مبلغ الذهب > اختر الفريق' : 'Select The Amount Of Intel > Select Team';
+        hint.textContent = isAr ? 'Ø§Ø®ØªØ± Ù…Ø¨Ù„Øº Ø§Ù„Ø°Ù‡Ø¨ > Ø§Ø®ØªØ± Ø§Ù„ÙØ±ÙŠÙ‚' : 'Select The Amount Of Intel > Select Team';
       }
 
       const label = document.querySelector('.results-label');
       if (label) {
-        label.textContent = isAr ? 'النتائج :' : 'Results :';
+        label.textContent = isAr ? 'Ø§Ù„Ù†ØªØ§Ø¦Ø¬ :' : 'Results :';
       }
 
       // Removed rule-specific IDs to match the updated static template
