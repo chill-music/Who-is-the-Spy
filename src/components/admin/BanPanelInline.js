@@ -38,6 +38,18 @@
         reportedUID, reportedName,
         `Reason: ${banReason} | Duration: ${banDuration} | From report: ${reportId}`
         );
+        // R-9 v2: unified permanent ban history
+        if (window.TamperGuard && window.TamperGuard.logStaffBan) {
+          try {
+            window.TamperGuard.logStaffBan({
+              targetUid: reportedUID,
+              reasonEn: banReason.trim(),
+              reasonAr: banReason.trim(),
+              durationMs: expiresAt ? expiresAt.getTime() - Date.now() : null,
+              issuedBy: currentUser.uid
+            });
+          } catch (e) {}
+        }
         // Mark report as resolved
         if (reportId) {
           var reportDoc = await reportsCollection.doc(reportId).get().catch(() => null);

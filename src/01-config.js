@@ -1241,6 +1241,25 @@ window.TamperGuard = (function () {
         }).catch(function () { return null; });
     }
 
+    /* R-9 v2: language resolution mirrors the app's own mechanism:
+       1. live account snapshot (window._currentUserDataCache.lang)
+       2. the user doc's lang field (set at onboarding / settings)
+       3. localStorage preference
+       4. app default (Arabic) */
+    function lang_ar() {
+        var cached = window._currentUserDataCache;
+        if (cached && cached.lang === 'en') return false;
+        if (cached && cached.lang === 'ar') return true;
+        if (_me && _me.lang === 'en') return false;
+        if (_me && _me.lang === 'ar') return true;
+        try {
+            var l = localStorage.getItem('pro_spy_lang');
+            if (l === 'en') return false;
+            if (l === 'ar') return true;
+        } catch (e) {}
+        return true; // app default is Arabic-first
+    }
+
     function _isStaff() {
         var role = _roleOf(_me);
         return role === 'owner' || role === 'admin' || role === 'moderator';
@@ -1289,28 +1308,71 @@ window.TamperGuard = (function () {
         return { ms: LADDER_MS[count - 1], permanent: false };
     }
 
+    /* R-9 v2: offense docs now carry the FULL permanent record:
+       reason (both languages), mechanism, offense number, duration, end. */
+    var REASONS = {
+        raw_currency: {
+            en: 'Attempted to directly modify the currency field',
+            ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u062a\u0639\u062f\u064a\u0644 \u062d\u0642\u0644 \u0627\u0644\u0631\u0635\u064a\u062f \u0645\u0628\u0627\u0634\u0631\u0629'
+        },
+        protected_field: {
+            en: 'Attempted to modify protected account fields',   // refined per-fields below
+            ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u062a\u0639\u062f\u064a\u0644 \u062d\u0642\u0648\u0644 \u0645\u062d\u0645\u064a\u0629'
+        }
+    };
+
+    function _reasonFor(violation) {
+        if (violation.type === 'raw_currency') return REASONS.raw_currency;
+        var f = (violation.fields || [])[0];
+        if (f === 'staffRole' || f === 'role') {
+            return { en: 'Attempted to self-assign staff role (' + f + ')',
+                     ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u0627\u0639\u0637\u0627\u0621 \u0646\u0641\u0633 \u0631\u062a\u0628\u0629 \u0625\u062f\u0627\u0631\u064a\u0629' };
+        }
+        if (f === 'ban') {
+            return { en: 'Attempted to alter ban status',
+                     ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u0627\u0644\u062a\u0644\u0627\u0639\u0628 \u0645\u0639 \u062d\u0627\u0644\u0629 \u0627\u0644\u062d\u0638\u0631' };
+        }
+        if (f === 'customId') {
+            return { en: 'Attempted to change protected custom ID',
+                     ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u062a\u063a\u064a\u064a\u0631 \u0645\u0639\u0631\u0641 \u0645\u062d\u0645\u064a' };
+        }
+        return REASONS.protected_field;
+    }
+
     function recordOffense(violation) {
         var uid = _authUid();
-        if (!uid || !window.db) return Promise.resolve(1);
+        if (!uid || !window.db) return Promise.resolve(null);
         var col = window.db.collection('artifacts').doc(window.appId)
             .collection('public').doc('data')
             .collection('tamper_log').doc(uid).collection('offenses');
         return col.get().then(function (snap) {
             var count = snap.size + 1;
-            console.error('[TAMPER GUARD] Offense #' + count + ' recorded:', violation.type, violation.fields);
-            return col.add({
+            var lad = _ladderFor(count);
+            var endsAt = lad.permanent ? null : Date.now() + lad.ms;
+            var reason = _reasonFor(violation);
+            var docData = {
                 type: violation.type,
-                fields: violation.fields,
+                fields: violation.fields || [],
                 at: Date.now(),
-                ua: navigator.userAgent
-            }).then(function () { return count; });
-        }).catch(function () { return 1; });
+                ua: navigator.userAgent,
+                mechanism: 'TamperGuard',
+                reasonEn: reason.en,
+                reasonAr: reason.ar,
+                offenseNumber: count,
+                durationMs: lad.permanent ? null : lad.ms,
+                endsAt: endsAt,
+                issuedBy: uid
+            };
+            console.error('[TAMPER GUARD] Offense #' + count + ' recorded:', violation.type, violation.fields);
+            return col.add(docData).then(function () { return { count: count, lad: lad, endsAt: endsAt, docData: docData }; });
+        }).catch(function () { return null; });
     }
 
     function punish(violation) {
-        return recordOffense(violation).then(function (count) {
-            var lad = _ladderFor(count);
-            var until = lad.permanent ? null : Date.now() + lad.ms;
+        return recordOffense(violation).then(function (rec) {
+            var count = rec ? rec.count : 1;
+            var lad = rec ? rec.lad : _ladderFor(1);
+            var until = rec && rec.endsAt ? rec.endsAt : null;
             _activeBan = {
                 active: true,
                 permanent: lad.permanent,
@@ -1318,10 +1380,61 @@ window.TamperGuard = (function () {
                 count: count
             };
             try { sessionStorage.setItem('pro_spy_tamper_banned', JSON.stringify(_activeBan)); } catch (e) {}
+
+            // R-9 v2: ALSO write the native users.ban structure so the existing
+            // profile-picture ban badge (AvatarWithFrameV11 banData) and the
+            // app-wide native ban gate engage automatically. Written through the
+            // captured ORIGINAL reference (sanctioned self-enforcement; rules
+            // allow own-doc ban.isBanned=true via ownBanLockIn).
+            var uid = _authUid();
+            var reason = _reasonFor(violation);
+            if (_origDoc && uid) {
+                var banObj = {
+                    isBanned: true,
+                    reason: reason.en,
+                    reasonAr: reason.ar,
+                    bannedBy: 'TamperGuard',
+                    bannedAtMs: Date.now(),
+                    permanent: !!lad.permanent,
+                    tamperOffenseNumber: count
+                };
+                if (!lad.permanent && until) {
+                    banObj.expiresAt = window.firebase.firestore.Timestamp.fromMillis(until);
+                }
+                _origDoc(uid).update({ ban: banObj }).catch(function () {});
+            }
+
             _showOverlay(count, until, lad.permanent);
             setTimeout(function () { window.location.reload(); }, 5000);
             return _activeBan;
         });
+    }
+
+    /* R-9 v2: unified history for MANUAL staff bans - same offense trail so
+       every ban from any source is viewable in one place. */
+    function logStaffBan(opts) {
+        var uid = opts && opts.targetUid;
+        if (!uid || !window.db) return Promise.resolve(false);
+        var col = window.db.collection('artifacts').doc(window.appId)
+            .collection('public').doc('data')
+            .collection('tamper_log').doc(uid).collection('offenses');
+        return col.get().then(function (snap) {
+            var count = snap.size + 1;
+            var dur = opts.durationMs || null;
+            return col.add({
+                type: 'manual_ban',
+                fields: [],
+                at: Date.now(),
+                ua: navigator.userAgent,
+                mechanism: 'manual_staff',
+                reasonEn: opts.reasonEn || (opts.reasonAr || 'Staff ban'),
+                reasonAr: opts.reasonAr || opts.reasonEn || '',
+                offenseNumber: count,
+                durationMs: dur,
+                endsAt: dur ? Date.now() + dur : null,
+                issuedBy: opts.issuedBy || ''
+            }).then(function () { return true; });
+        }).catch(function () { return false; });
     }
 
     function _fmt(ms) {
@@ -1329,9 +1442,6 @@ window.TamperGuard = (function () {
         if (h <= 48) return h + (lang_ar() ? ' ساعة' : ' hour(s)');
         var d = Math.ceil(h / 24);
         return d + (lang_ar() ? ' يوم' : ' day(s)');
-    }
-    function lang_ar() {
-        try { return (localStorage.getItem('pro_spy_lang') || 'ar') === 'ar'; } catch (e) { return false; }
     }
 
     function _showOverlay(count, until, permanent) {
@@ -1449,6 +1559,7 @@ window.TamperGuard = (function () {
         getActiveBanSync: getActiveBanSync,
         refreshOffenses: refreshOffenses,
         renderBanScreen: renderBanScreen,
+        logStaffBan: logStaffBan,
         _inspect: inspect   // exposed for testing
     };
 })();

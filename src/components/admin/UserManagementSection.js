@@ -108,6 +108,18 @@
             'Reason: ' + banReason + ' | Duration: ' + banDuration
           );
         }
+        // R-9 v2: unified permanent ban history
+        if (window.TamperGuard && window.TamperGuard.logStaffBan) {
+          try {
+            window.TamperGuard.logStaffBan({
+              targetUid: searchResult.id,
+              reasonEn: banReason.trim(),
+              reasonAr: banReason.trim(),
+              durationMs: banDuration === 'permanent' ? null : parseInt(banDuration) * 864e5,
+              issuedBy: currentUser.uid
+            });
+          } catch (e) {}
+        }
         setSearchResult({ ...searchResult, ban: { isBanned: true, reason: banReason, duration: banDuration } });
         setShowBanForm(false); setBanReason(''); setBanDuration('permanent');
         onNotification('🔨 ' + (lang === 'ar' ? 'تم حظر المستخدم' : 'User banned'));
