@@ -5091,6 +5091,9 @@ body {
     padding: 16px;
     z-index: 9999;
     backdrop-filter: blur(6px);
+    /* FIX: must be auto so clicks are captured when the parent
+       (GlobalModals container) has pointer-events:none */
+    pointer-events: auto;
 }
 
 .onboarding-card {
