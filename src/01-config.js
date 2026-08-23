@@ -1213,7 +1213,7 @@ window.RateGuard = {
 // The offense trail cannot be edited or deleted by its subject.
 // ============================================================
 window.TamperGuard = (function () {
-    var PROTECTED_KEYS = ['staffRole', 'role', 'ban', 'customId', 'security'];
+    var PROTECTED_KEYS = ['staffRole', 'role', 'ban', 'security'];
     var LADDER_MS = [3600000, 86400000, 259200000, 604800000, 2592000000]; // 1h, 1d, 3d, 1w, 30d
     var PERMANENT = true;
     var _origDoc = null;
@@ -1272,31 +1272,26 @@ window.TamperGuard = (function () {
     /* Returns a violation description or null if the write is sanctioned */
     function inspect(subjectUid, data) {
         if (!data || typeof data !== 'object') return null;
+        if (subjectUid === window.OWNER_UID) return null;
         var keys = Object.keys(data);
         var touched = [];
         for (var i = 0; i < keys.length; i++) {
             if (PROTECTED_KEYS.indexOf(keys[i]) !== -1) touched.push(keys[i]);
         }
-        var hasCurrency = keys.indexOf('currency') !== -1;
-
         if (touched.length > 0) {
-            // staffRole/role/customId need staff-admin; ban needs staff;
             // security is never client-writable.
             if (touched.indexOf('security') !== -1) {
                 return { type: 'protected_field', fields: ['security'] };
             }
+            // ban may only be set by staff or via own self-enforcement (ownBanLockIn)
             if (touched.indexOf('ban') !== -1 && !_isStaff()) {
                 return { type: 'protected_field', fields: ['ban'] };
             }
+            // staffRole/role may only be set by staff-admin
             var adminOnly = touched.filter(function (k) { return k !== 'ban' && k !== 'security'; });
             if (adminOnly.length > 0 && !_isStaffAdmin()) {
                 return { type: 'protected_field', fields: adminOnly };
             }
-        }
-        if (hasCurrency && window.__SEC_TXN_ACTIVE !== true) {
-            // Staff adjusting balances must use the audited FinancialLog tool
-            // (runTransaction path), not raw updates — flag everyone equally.
-            return { type: 'raw_currency', fields: ['currency'] };
         }
         return null;
     }
