@@ -962,7 +962,23 @@ window.SecurityService = {
         // 2. Idempotency: deterministic ledger doc doubles as the dedup marker
         var idemKey = typeof opts.idemKey === 'string' && opts.idemKey ? opts.idemKey : null;
 
+        // 3. Execute with an OUTER retry loop on top of the SDK's automatic
+        //    transaction retries. Firestore stamps currentDocument.updateTime
+        //    on every doc a transaction touches, so concurrent writers to hot
+        //    docs (user balance written by presence, missions, gifts...) can
+        //    abort individual attempts with failed-precondition. Those show as
+        //    per-attempt warns; this loop absorbs sustained contention bursts
+        //    so callers rarely see a final rejection.
+        //    ATOMICITY NOTE: the balance increment and the ledger entry share
+        //    one commit, so a fully-failed transaction applies NEITHER: no
+        //    deduction can ever lose its audit row or vice-versa.
+        var MAX_OUTER_ATTEMPTS = 4;
+        // R-9: mark this scope as a sanctioned currency writer so TamperGuard
+        // whitelists it (console attackers will not have this flag set).
+        window.__SEC_TXN_ACTIVE = true;
         try {
+        for (var __attempt = 1; ; __attempt++) {
+          try {
             var outcome = await db.runTransaction(async function (t) {
                 var userRef = usersCollection.doc(uid);
 
@@ -1000,10 +1016,20 @@ window.SecurityService = {
             }
             console.log(`[SEC] Currency update applied: ${amount}`);
             return { success: true };
-        } catch (err) {
-            console.error('[SEC] Transaction Error:', err);
-            return { success: false, error: err.message };
+          } catch (__err) {
+            var code = __err && __err.code ? String(__err.code) : '';
+            var retriable = code === 'failed-precondition' || code === 'aborted' ||
+                            code === 'unavailable' || code === 'internal' || code === 'unknown';
+            if (retriable && __attempt < MAX_OUTER_ATTEMPTS) {
+                console.warn('[SEC] Txn attempt ' + __attempt + ' aborted (' + code + '), retrying...');
+                await new Promise(function (r) { setTimeout(r, 150 * __attempt + Math.floor(Math.random() * 250)); });
+                continue;
+            }
+            console.error('[SEC] Transaction Error:', __err);
+            return { success: false, error: __err.message };
+          }
         }
+        } finally { window.__SEC_TXN_ACTIVE = false; }
     },
 
     /**
@@ -1049,6 +1075,383 @@ window.__waitForGlobal = function (name, callback, interval, maxWait) {
         }
     }, interval);
 };
+
+// ============================================================
+// SECURITY IMAGE PIPELINE (SECURITY_AUDIT.md remedy R-7)
+// Centralized validation + compression for EVERY user-uploaded
+// image. All upload surfaces must route through here.
+//
+//   window.SecurityImage.compress(file, 'chat')
+//     -> Promise<base64 dataURL>  (rejects Error('BAD_TYPE' |
+//        'TOO_LARGE' | 'DECODE_FAILED' | 'OUTPUT_TOO_LARGE'))
+//
+// Guarantees:
+//   - MIME whitelist before anything else
+//   - source byte cap BEFORE canvas decode (decompression-bomb guard)
+//   - output dimension clamp + quality fallback passes
+//   - final base64 length asserted against the preset cap
+// ============================================================
+window.SecurityImage = {
+    LIMITS: {
+        avatar:  { maxBytes: 200 * 1024, maxDim: 300 },
+        banner:  { maxBytes: 300 * 1024, maxDim: 800 },
+        chat:    { maxBytes: 150 * 1024, maxDim: 400 },
+        moment:  { maxBytes: 600 * 1024, maxDim: 800 },
+        generic: { maxBytes: 300 * 1024, maxDim: 1024 }
+    },
+    ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
+    validate: function (file) {
+        if (!file) return { ok: false, error: 'NO_FILE' };
+        var typeOk = this.ALLOWED_TYPES.indexOf(file.type) !== -1;
+        // Some Android browsers report an empty MIME type; fall back to extension
+        if (!typeOk && file.name && /\.(jpe?g|png|webp|gif)$/i.test(file.name)) typeOk = true;
+        if (!typeOk) return { ok: false, error: 'BAD_TYPE' };
+        return { ok: true };
+    },
+    compress: function (file, opts) {
+        var self = this;
+        opts = opts || {};
+        return new Promise(function (resolve, reject) {
+            var v = self.validate(file);
+            if (!v.ok) { reject(new Error(v.error)); return; }
+
+            var maxDim   = opts.maxDim   || 400;
+            var quality  = typeof opts.quality === 'number' ? opts.quality : 0.7;
+            var maxBytes = opts.maxBytes || 150 * 1024;
+
+            // Pre-decode guard: reject absurd sources outright so a crafted
+            // decompression bomb can never reach the canvas.
+            if (file.size > Math.max(maxBytes * 6, 2 * 1024 * 1024)) {
+                reject(new Error('TOO_LARGE')); return;
+            }
+
+            var img = new Image();
+            var url = URL.createObjectURL(file);
+            img.onload = function () {
+                try {
+                    var w = img.naturalWidth || img.width;
+                    var h = img.naturalHeight || img.height;
+                    if (!w || !h) throw new Error('DECODE_FAILED');
+                    var scale = Math.min(1, maxDim / Math.max(w, h));
+                    var cw = Math.max(1, Math.round(w * scale));
+                    var ch = Math.max(1, Math.round(h * scale));
+
+                    var canvas = document.createElement('canvas');
+                    canvas.width = cw; canvas.height = ch;
+                    canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+                    URL.revokeObjectURL(url);
+
+                    var dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    var passes = 0;
+                    while (dataUrl.length > maxBytes && passes < 3 && quality > 0.35) {
+                        quality = Math.max(0.35, quality - 0.15);
+                        passes++;
+                        dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    }
+                    if (dataUrl.length > maxBytes) {
+                        reject(new Error('OUTPUT_TOO_LARGE')); return;
+                    }
+                    resolve(dataUrl);
+                } catch (e) {
+                    URL.revokeObjectURL(url);
+                    reject(e);
+                }
+            };
+            img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('DECODE_FAILED')); };
+            img.src = url;
+        });
+    }
+};
+
+// ============================================================
+// RATE GUARD (SECURITY_AUDIT.md remedy R-8)
+// Per-session client-side cooldown/flood control for messaging,
+// requests and notification writes. Not a security boundary by
+// itself (the browser owns it) - it stops accidental floods,
+// UI double-taps and naive scripted abuse.
+//
+//   RateGuard.ok(key, minIntervalMs)  -> true once, then false until elapsed
+//   RateGuard.hitCount(key, windowMs) -> rolling-window counter (burst caps)
+// ============================================================
+window.RateGuard = {
+    _last: {},
+    _hits: {},
+    ok: function (key, minIntervalMs) {
+        var now = Date.now();
+        if (this._last[key] && (now - this._last[key]) < minIntervalMs) return false;
+        this._last[key] = now;
+        return true;
+    },
+    hitCount: function (key, windowMs) {
+        var now = Date.now();
+        var arr = (this._hits[key] || []).filter(function (t) { return now - t < windowMs; });
+        arr.push(now);
+        this._hits[key] = arr;
+        return arr.length;
+    },
+    reset: function (key) {
+        delete this._last[key];
+        delete this._hits[key];
+    }
+};
+
+// ============================================================
+// TAMPER GUARD (SECURITY_AUDIT.md remedy R-9)
+// Escalating anti-tamper trap for protected user-doc fields.
+//
+// Console attackers execute inside THIS page using THIS app's
+// Firebase instance, so wrapping usersCollection.doc() intercepts
+// them. Protected keys: staffRole, role, ban, customId, security,
+// and currency (currency allowed only while a SecurityService
+// transaction is active, flagged via __SEC_TXN_ACTIVE).
+//
+// On violation: an immutable offense record is appended to
+// tamper_log/{uid}/offenses (create-only by rules) and the
+// escalating ladder is applied:
+//   1st=1h 2nd=1d 3rd=3d 4th=7d 5th=30d 6th+=permanent.
+// Enforcement: App renders the ban screen from getActiveBanSync().
+// The offense trail cannot be edited or deleted by its subject.
+// ============================================================
+window.TamperGuard = (function () {
+    var PROTECTED_KEYS = ['staffRole', 'role', 'ban', 'customId', 'security'];
+    var LADDER_MS = [3600000, 86400000, 259200000, 604800000, 2592000000]; // 1h, 1d, 3d, 1w, 30d
+    var PERMANENT = true;
+    var _origDoc = null;
+    var _me = null;          // cached own user doc snapshot for role checks
+    var _meAt = 0;
+    var _offenses = null;    // cached own offense list
+
+    function _authUid() {
+        try { return firebase.auth().currentUser && firebase.auth().currentUser.uid; } catch (e) { return null; }
+    }
+
+    function _roleOf(userData) {
+        if (!userData) return 'user';
+        if (userData.uid && userData.uid === window.OWNER_UID) return 'owner';
+        return (userData.staffRole && userData.staffRole.role) || 'user';
+    }
+
+    function _refreshMe() {
+        if (!_origDoc || !_authUid()) return Promise.resolve(null);
+        if (_me && (Date.now() - _meAt) < 60000) return Promise.resolve(_me);
+        return _origDoc(_authUid()).get().then(function (s) {
+            _me = s.exists ? s.data() : null;
+            _meAt = Date.now();
+            return _me;
+        }).catch(function () { return null; });
+    }
+
+    function _isStaff() {
+        var role = _roleOf(_me);
+        return role === 'owner' || role === 'admin' || role === 'moderator';
+    }
+    function _isStaffAdmin() {
+        var role = _roleOf(_me);
+        return role === 'owner' || role === 'admin';
+    }
+
+    /* Returns a violation description or null if the write is sanctioned */
+    function inspect(subjectUid, data) {
+        if (!data || typeof data !== 'object') return null;
+        var keys = Object.keys(data);
+        var touched = [];
+        for (var i = 0; i < keys.length; i++) {
+            if (PROTECTED_KEYS.indexOf(keys[i]) !== -1) touched.push(keys[i]);
+        }
+        var hasCurrency = keys.indexOf('currency') !== -1;
+
+        if (touched.length > 0) {
+            // staffRole/role/customId need staff-admin; ban needs staff;
+            // security is never client-writable.
+            if (touched.indexOf('security') !== -1) {
+                return { type: 'protected_field', fields: ['security'] };
+            }
+            if (touched.indexOf('ban') !== -1 && !_isStaff()) {
+                return { type: 'protected_field', fields: ['ban'] };
+            }
+            var adminOnly = touched.filter(function (k) { return k !== 'ban' && k !== 'security'; });
+            if (adminOnly.length > 0 && !_isStaffAdmin()) {
+                return { type: 'protected_field', fields: adminOnly };
+            }
+        }
+        if (hasCurrency && window.__SEC_TXN_ACTIVE !== true) {
+            // Staff adjusting balances must use the audited FinancialLog tool
+            // (runTransaction path), not raw updates — flag everyone equally.
+            return { type: 'raw_currency', fields: ['currency'] };
+        }
+        return null;
+    }
+
+    function _ladderFor(count) {
+        // count = offense number (1-based)
+        if (count <= 0) count = 1;
+        if (count >= 6) return { ms: null, permanent: PERMANENT };
+        return { ms: LADDER_MS[count - 1], permanent: false };
+    }
+
+    function recordOffense(violation) {
+        var uid = _authUid();
+        if (!uid || !window.db) return Promise.resolve(1);
+        var col = window.db.collection('artifacts').doc(window.appId)
+            .collection('public').doc('data')
+            .collection('tamper_log').doc(uid).collection('offenses');
+        return col.get().then(function (snap) {
+            var count = snap.size + 1;
+            console.error('[TAMPER GUARD] Offense #' + count + ' recorded:', violation.type, violation.fields);
+            return col.add({
+                type: violation.type,
+                fields: violation.fields,
+                at: Date.now(),
+                ua: navigator.userAgent
+            }).then(function () { return count; });
+        }).catch(function () { return 1; });
+    }
+
+    function punish(violation) {
+        return recordOffense(violation).then(function (count) {
+            var lad = _ladderFor(count);
+            var until = lad.permanent ? null : Date.now() + lad.ms;
+            _activeBan = {
+                active: true,
+                permanent: lad.permanent,
+                until: until,
+                count: count
+            };
+            try { sessionStorage.setItem('pro_spy_tamper_banned', JSON.stringify(_activeBan)); } catch (e) {}
+            _showOverlay(count, until, lad.permanent);
+            setTimeout(function () { window.location.reload(); }, 5000);
+            return _activeBan;
+        });
+    }
+
+    function _fmt(ms) {
+        var h = Math.ceil(ms / 3600000);
+        if (h <= 48) return h + (lang_ar() ? ' ساعة' : ' hour(s)');
+        var d = Math.ceil(h / 24);
+        return d + (lang_ar() ? ' يوم' : ' day(s)');
+    }
+    function lang_ar() {
+        try { return (localStorage.getItem('pro_spy_lang') || 'ar') === 'ar'; } catch (e) { return false; }
+    }
+
+    function _showOverlay(count, until, permanent) {
+        try {
+            var ar = lang_ar();
+            var dur = permanent ? (ar ? 'نهائي' : 'PERMANENT') : _fmt(until - Date.now());
+            var div = document.createElement('div');
+            div.style.cssText = 'position:fixed;inset:0;z-index:9999999;background:rgba(5,5,15,.96);' +
+                'display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;';
+            div.innerHTML =
+                '<div style="font-size:56px;margin-bottom:16px">🔒</div>' +
+                '<div style="color:#ef4444;font-weight:900;font-size:20px;margin-bottom:12px">' +
+                (ar ? 'تم اكتشاف محاولة عبث ببيانات محمية' : 'Tampering with protected data detected') + '</div>' +
+                '<div style="color:#e2e8f0;font-size:13px;max-width:420px;line-height:1.7;margin-bottom:12px">' +
+                (ar ? 'حاول حسابك تعديل حقول محمية (رصيد/رتب/حظر). تم تطبيق إجراء تأديبي تلقائي.'
+                    : 'Your account attempted to modify protected fields (balance/roles/ban). An automatic penalty has been applied.') + '</div>' +
+                '<div style="color:#fbbf24;font-weight:800;font-size:15px">' +
+                (ar ? 'مدة الإيقاف: ' + dur + ' (المخالفة رقم ' + count + ')'
+                    : 'Suspended: ' + dur + ' (offense #' + count + ')') + '</div>';
+            document.body.appendChild(div);
+        } catch (e) {}
+    }
+
+    /* ---- Offense cache & ban evaluation for the App gate ---- */
+    var _activeBan = null;
+    function refreshOffenses() {
+        var uid = _authUid();
+        if (!uid || !window.db) return Promise.resolve(null);
+        var col = window.db.collection('artifacts').doc(window.appId)
+            .collection('public').doc('data')
+            .collection('tamper_log').doc(uid).collection('offenses');
+        return col.get().then(function (snap) {
+            var docs = [];
+            snap.forEach(function (d) { docs.push(d.data()); });
+            docs.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+            _offenses = docs;
+            var n = docs.length;
+            if (n === 0) { _activeBan = { active: false }; return _activeBan; }
+            var lad = _ladderFor(n);
+            var lastAt = docs[0].at || 0;
+            var active = lad.permanent ? true : (Date.now() < lastAt + lad.ms);
+            _activeBan = { active: active, permanent: lad.permanent, until: lad.permanent ? null : lastAt + lad.ms, count: n };
+            return _activeBan;
+        }).catch(function () { return null; });
+    }
+
+    function getActiveBanSync() {
+        if (_activeBan) return _activeBan;
+        try {
+            var s = sessionStorage.getItem('pro_spy_tamper_banned');
+            if (s) { var v = JSON.parse(s); if (v && v.active) return v; }
+        } catch (e) {}
+        refreshOffenses(); // async recompute for next render
+        return null;
+    }
+
+    function renderBanScreen(ban) {
+        var ar = lang_ar();
+        var dur = ban.permanent ? (ar ? 'نهائي' : 'PERMANENT')
+            : _fmt((ban.until || 0) - Date.now());
+        return React.createElement('div', {
+            style: {
+                position: 'fixed', inset: 0, zIndex: 999999, background: '#0a0a1a',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', textAlign: 'center', padding: '24px'
+            }
+        },
+            React.createElement('div', { style: { fontSize: '64px', marginBottom: '16px' } }, '🔒'),
+            React.createElement('div', { style: { color: '#ef4444', fontWeight: 900, fontSize: '22px', marginBottom: '12px' } },
+                ar ? 'حساب موقوف — عبث ببيانات محمية' : 'ACCOUNT SUSPENDED — Protected Data Tampering'),
+            React.createElement('div', { style: { color: '#cbd5e1', fontSize: '13px', maxWidth: '440px', lineHeight: 1.7, marginBottom: '14px' } },
+                ar ? 'رُصدت محاولات تعديل حقول محمية من هذا الحساب (مثل الرصيد أو الرتب أو حالة الحظر). العقوبات تتصاعد مع تكرار المخالفة.'
+                    : 'This account was caught attempting to modify protected fields (balance/roles/ban state). Penalties escalate with each offense.'),
+            React.createElement('div', { style: { color: '#fbbf24', fontWeight: 800, fontSize: '15px', marginBottom: '10px' } },
+                (ar ? 'مدة الإيقاف: ' + dur + ' — المخالفة رقم ' : 'Suspension: ' + dur + ' — offense #') + ban.count),
+            React.createElement('button', {
+                onClick: function () { try { firebase.auth().signOut(); } catch (e) {} window.location.reload(); },
+                style: { padding: '10px 28px', borderRadius: '10px', background: 'rgba(255,255,255,.08)', color: '#9ca3af', border: '1px solid rgba(255,255,255,.1)', fontSize: '12px', cursor: 'pointer' }
+            }, ar ? 'تسجيل خروج' : 'Sign Out')
+        );
+    }
+
+    /* ---- Wrap usersCollection.doc() ---- */
+    function installWrapper() {
+        if (!window.usersCollection || typeof window.usersCollection.doc !== 'function') return;
+        _origDoc = window.usersCollection.doc.bind(window.usersCollection);
+        window.usersCollection.doc = function (subjectUid) {
+            var ref = _origDoc(subjectUid);
+            var origUpdate = ref.update.bind(ref);
+            var origSet = ref.set.bind(ref);
+
+            ref.update = function (data) {
+                var v = inspect(subjectUid, data);
+                if (v) return punish(v).then(function () {
+                    return Promise.reject(new Error('TAMPER_BLOCKED'));
+                });
+                return origUpdate.apply(null, arguments);
+            };
+            ref.set = function (data) {
+                var v = inspect(subjectUid, data);
+                if (v) return punish(v).then(function () {
+                    return Promise.reject(new Error('TAMPER_BLOCKED'));
+                });
+                return origSet.apply(null, arguments);
+            };
+            return ref;
+        };
+    }
+
+    installWrapper();
+    setTimeout(refreshOffenses, 4000);      // prime cache after auth settles
+    setInterval(function () { _me = null; }, 60000);
+
+    return {
+        getActiveBanSync: getActiveBanSync,
+        refreshOffenses: refreshOffenses,
+        renderBanScreen: renderBanScreen,
+        _inspect: inspect   // exposed for testing
+    };
+})();
 
 /**
  * Waits for multiple globals before calling callback.

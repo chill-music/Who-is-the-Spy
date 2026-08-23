@@ -850,12 +850,23 @@
     var canResubmit = isRejected; // always can resubmit after rejection
     var isModification = isApproved; // any new request after approval = modification
 
-    var handleImageChange = (e) => {
+    var handleImageChange = async (e) => {
       var file = e.target.files?.[0];
       if (!file) return;
-      var reader = new FileReader();
-      reader.onload = (ev) => setGiftImage(ev.target.result);
-      reader.readAsDataURL(file);
+      // R-7: this path previously stored the RAW readAsDataURL result with no
+      // size/type checks — an unbounded payload straight into Firestore.
+      try {
+        var compressed = await window.SecurityImage.compress(file, { maxDim: 400, quality: 0.65, maxBytes: 150 * 1024 });
+        setGiftImage(compressed);
+      } catch (err) {
+        setGiftImage('');
+        if (window.showToast) {
+          var msg = err && err.message === 'BAD_TYPE'
+            ? (lang === 'ar' ? 'صيغة الصورة غير مدعومة' : 'Unsupported image type')
+            : (lang === 'ar' ? 'الصورة كبيرة جداً' : 'Image is too large');
+          window.showToast('⚠️ ' + msg);
+        }
+      }
     };
 
     var handleSubmit = async () => {

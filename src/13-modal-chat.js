@@ -11,26 +11,11 @@
   // ════════════════════════════════════════════════════════
 
   // ── Compress image to base64 ──
-  var compressImageToBase64 = (file) => new Promise((resolve, reject) => {
-    var reader = new FileReader();
-    reader.onload = (e) => {
-      var img = new Image();
-      img.onload = () => {
-        var MAX = 400;
-        var w = img.width, h = img.height;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; } else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        var canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.65));
-      };
-      img.onerror = reject;
-      img.src = e.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+  // R-7: delegated to the centralized validated pipeline (MIME whitelist +
+  // pre-decode size guard + output cap). Kept as a local alias so existing
+  // callers in this file stay unchanged.
+  var compressImageToBase64 = (file) => window.SecurityImage.compress(file, {
+    maxDim: 400, quality: 0.65, maxBytes: 150 * 1024
   });
 
   // ── LocalStorage helpers (cache only) ──
@@ -213,6 +198,11 @@
     // ── Send text message ──
     var handleSend = async () => {
       if (!newMsg.trim() || sending || isBlocked || blockedByTarget) return;
+      // R-8: DM burst guard (1.2s between messages, max 15/min per chat)
+      if (!window.RateGuard.ok('dm:' + chatId, 1200) || window.RateGuard.hitCount('dm:' + chatId + ':burst', 60000) > 15) {
+        if (typeof onNotification === 'function') onNotification(lang === 'ar' ? '⏳ تمهل قليلاً' : '⏳ Slow down');
+        return;
+      }
       clearTypingStatus();
       setSending(true);
       var text = newMsg.trim();

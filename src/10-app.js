@@ -439,6 +439,9 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     }
 
     if (isBanned) return /*#__PURE__*/React.createElement(window.BannedScreen, { userData: userData, lang: lang });
+    // R-9: tamper-trap enforcement — immutable offense trail in tamper_log
+    var __tgBan = window.TamperGuard ? window.TamperGuard.getActiveBanSync() : null;
+    if (__tgBan && __tgBan.active) return window.TamperGuard.renderBanScreen(__tgBan);
     var isMyTurn = room?.currentTurnUID === currentUID;
     var me = Array.isArray(room?.players)
       ? room.players.find((p) => (p.uid || p.id) === currentUID)

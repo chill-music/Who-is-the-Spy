@@ -531,6 +531,12 @@
     var handleSignImageUpload = async (e) => {
       var file = e.target.files?.[0];
       if (!file || !family?.id || !canManageFamily(family, currentUID)) return;
+      // R-7: validate type + source size before decode; assert output cap
+      var v = window.SecurityImage.validate(file);
+      if (!v.ok || file.size > 2 * 1024 * 1024) {
+        onNotification(lang === 'ar' ? '⚠️ صورة غير صالحة' : '⚠️ Invalid image');
+        return;
+      }
       setUploadingSign(true);
       var reader = new FileReader();
       reader.onload = async (ev) => {
