@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   "use strict";
 
   /**
@@ -13,14 +13,14 @@
     liverpool: { id: 'liverpool', name: 'Liverpool', mult: 10, bg: 'radial-gradient(circle,#C8102E,#00B2A9)', logo: 'icos/FootballClubLogo/Liverpool_FC.png' },
     manchester: { id: 'manchester', name: 'Man United', mult: 5, bg: 'radial-gradient(circle,#DA291C,#FBE122)', logo: 'icos/FootballClubLogo/Manchester_United_FC-Logo.png' },
     acmilan: { id: 'acmilan', name: 'AC Milan', mult: 5, bg: 'radial-gradient(circle,#E32221,#111)', logo: 'icos/FootballClubLogo/AC_Milan.png' },
-    bayernmunich: { id: 'bayernmunich', name: 'Bayern Munich', mult: 5, bg: 'radial-gradient(circle,#DC052D,#0066B2)', logo: 'icos/FootballClubLogo/FC_Bayern_MÃ¼nchen.png' },
+    bayernmunich: { id: 'bayernmunich', name: 'Bayern Munich', mult: 5, bg: 'radial-gradient(circle,#DC052D,#0066B2)', logo: 'icos/FootballClubLogo/FC_Bayern_München.png' },
     juventus: { id: 'juventus', name: 'Juventus', mult: 5, bg: 'radial-gradient(circle,#232323,#555)', logo: 'icos/FootballClubLogo/Juventus_FC_2017.png' }
   };
 
   const CHIPS = [100, 1000, 10000, 100000];
   const RECORDS_PER_PAGE = 10;
 
-  /* â”€â”€ R-5 SECURITY CONSTANTS (SECURITY_AUDIT.md G-4) â”€â”€
+  /* ── R-5 SECURITY CONSTANTS (SECURITY_AUDIT.md G-4) ──
      Weighted winner draw matching the odds table shown in HOW TO PLAY:
      every team returns ~97.2% RTP (house edge ~2.8%). Weights sum to 100000.
      Fixes the uniform-draw exploit that gave Barcelona EV 5.63x. */
@@ -30,7 +30,7 @@
   };
   const TEAM_IDS = Object.keys(TEAMS);
 
-  /* FNV-1a 32-bit â€” deterministic across all clients */
+  /* FNV-1a 32-bit — deterministic across all clients */
   function _fnv1a(str) {
     let h = 0x811c9dc5;
     for (let i = 0; i < str.length; i++) {
@@ -55,7 +55,7 @@
     return _pickWeightedTeam((s1 % 100000) / 100000);
   }
 
-  /* Canonical session doc path (was a bare root-level collection â€”
+  /* Canonical session doc path (was a bare root-level collection —
      normalized to artifacts/<appId>/public/data to match security rules). */
   function ssSessionRef() {
     return window.db.collection('artifacts').doc(window.appId)
@@ -111,7 +111,7 @@
     </div>
 
     <div class="game-title">SOCCER STAR</div>
-    <div class="trophy-wrap"><div class="trophy-icon">ðŸ†</div></div>
+    <div class="trophy-wrap"><div class="trophy-icon">🏆</div></div>
 
     <div class="betting-area">
       <div class="team-grid">
@@ -136,12 +136,12 @@
 
     <div class="cups-row">
       <div class="cup-item">
-        <div class="cup-icon">ðŸ¥ˆ</div>
+        <div class="cup-icon">🥈</div>
         <div class="cup-label silver">Silver</div>
       </div>
       <div class="select-hint" id="hintText">Select The Amount Of Gold > Select Team</div>
       <div class="cup-item">
-        <div class="cup-icon">ðŸ†</div>
+        <div class="cup-icon">🏆</div>
         <div class="cup-label gold">Gold</div>
       </div>
     </div>
@@ -158,9 +158,9 @@
         <div>
           <div class="win-label">Win: <span id="totalWinDisplay">0</span></div>
           <div class="coin-display">
-            <span class="coin-icon">ðŸ§ </span>
+            <span class="coin-icon">🧠</span>
             <span id="coinDisplay">0</span>
-            <span style="font-size:11px;opacity:.6"> â€º</span>
+            <span style="font-size:11px;opacity:.6"> ›</span>
           </div>
         </div>
         <button class="clear-btn" id="clearBetsBtn">Clear</button>
@@ -168,7 +168,7 @@
       <div class="chips-row">
         ${CHIPS.map(val => `
           <button class="chip-btn ${val === currentChip ? 'active' : ''}" data-value="${val}">
-            <span class="chip-coin">ðŸ§ </span>
+            <span class="chip-coin">🧠</span>
             <span class="chip-amount">${val.toLocaleString()}</span>
           </button>
         `).join('')}
@@ -270,10 +270,10 @@
     <div id="resultPopup">
       <div class="result-box">
         <div class="result-header-bar">
-          <span style="font-size:18px">ðŸ†</span>
+          <span style="font-size:18px">🏆</span>
           <div class="result-title">RESULT</div>
-          <span style="font-size:18px">ðŸ†</span>
-          <div class="result-close-timer" id="resultCloseBtn">5s âœ•</div>
+          <span style="font-size:18px">🏆</span>
+          <div class="result-close-timer" id="resultCloseBtn">5s ✕</div>
         </div>
         <div class="result-content">
           <div class="winning-card">
@@ -283,16 +283,16 @@
                 <img src="" alt="" id="resultWinnerImg">
               </div>
               <div class="winning-info">
-                <p id="resTeamLabel">Result: <img src="" class="win-club-logo" id="resClubLogo"> <strong id="resClubName">â€”</strong></p>
-                <p id="resBetLabel">My Input: <strong id="resBetAmt">0</strong> ðŸ§ </p>
-                <p id="resWinLabel">Bonus: <strong id="resWinAmt">0</strong> ðŸ§ </p>
+                <p id="resTeamLabel">Result: <img src="" class="win-club-logo" id="resClubLogo"> <strong id="resClubName">—</strong></p>
+                <p id="resBetLabel">My Input: <strong id="resBetAmt">0</strong> 🧠</p>
+                <p id="resWinLabel">Bonus: <strong id="resWinAmt">0</strong> 🧠</p>
               </div>
             </div>
           </div>
           <div class="top3-winners-area">
             <div class="top3-title">Top Three Winners For This Round</div>
             <div id="topRoundWinnersList">
-               <div class="empty-state" style="padding:10px">ðŸ“¦ No Data</div>
+               <div class="empty-state" style="padding:10px">📦 No Data</div>
             </div>
           </div>
         </div>
@@ -356,7 +356,7 @@
             avatarContainer
           );
 
-          /* Click â†’ MiniProfile: Enhanced capture logic for both frame and image */
+          /* Click → MiniProfile: Enhanced capture logic for both frame and image */
           const openUser = (e) => {
             if (e) { e.preventDefault(); e.stopPropagation(); }
             const currentUid = (authUser && authUser.uid) ? authUser.uid : null;
@@ -450,8 +450,27 @@
 
       sessionUnsub = sessionRef.onSnapshot(doc => {
         if (!doc.exists) {
-          console.warn("[SoccerStar] Session document not found even at root path.");
-          status = 'betting'; // Default fallback
+          /* R-5 HOTFIX: the canonical artifacts-path document is never seeded
+             by anything else (unlike Greedy Cat's initNewRound). Without it,
+             handleSessionUpdate never ran and the timer stayed frozen at the
+             static HTML value. Create-if-absent here; races are harmless
+             because every seeder writes identical initial state. */
+          sessionRef.get({ source: 'server' }).then(s => {
+            if (!s.exists) {
+              sessionRef.set({
+                status: 'betting',
+                timer: 30,
+                lastWinnerId: null,
+                revealTs: null,
+                history: [],
+                timerEndsAt: (window.firebase && window.firebase.firestore)
+                  ? window.firebase.firestore.Timestamp.fromMillis(Date.now() + 30000)
+                  : (Date.now() + 30000)
+              }).then(() => console.log("[SoccerStar] Session document seeded."))
+                .catch(e => console.warn("[SoccerStar] Seed failed:", e && e.code));
+            }
+          }).catch(() => {});
+          status = 'betting'; // optimistic UI while seeding
           return;
         }
         const data = doc.data();
@@ -478,9 +497,9 @@
       if (timerInterval) clearInterval(timerInterval);
     },
 
-    /* ── R-5 COMMIT-REVEAL ENGINE ──
+    /* -- R-5 COMMIT-REVEAL ENGINE --
        1. Transaction: once timerEndsAt has passed and nothing is revealed,
-          commit `revealTs` = Firestore server timestamp (unpredictable —
+          commit `revealTs` = Firestore server timestamp (unpredictable -
           no client, not even the fastest racer, can choose the outcome).
        2. Deterministically derive winner = weightedPick(hash(revealTs, salt)).
        3. Publish status/lastWinnerId/history for late joiners, then open the
@@ -497,7 +516,7 @@
           if (d.revealTs || d.lastWinnerId) return;          /* already revealed */
           t.set(sessRef, { revealTs: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
         });
-      } catch (e) { /* race lost — another client is revealing */ }
+      } catch (e) { /* race lost - another client is revealing */ }
 
       const millis = await this._waitForRevealTs(sessRef);
       if (!millis) return;
@@ -648,20 +667,39 @@
       }
     },
 
-    placeBet: function (teamId) {
-      if (window._firestoreOnline === false) return this.showToast(lang === 'ar' ? 'âš ï¸ Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø§ØªØµØ§Ù„' : 'âš ï¸ No connection');
-      if (status !== 'betting') return this.showToast(lang === 'ar' ? 'Ø§Ù†ØªØ¸Ø± Ø§Ù„Ø¬ÙˆÙ„Ø© Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©' : 'Wait for next round');
-      if (userCoins < currentChip) return this.showToast(lang === 'ar' ? 'Ø±ØµÙŠØ¯ ØºÙŠØ± ÙƒØ§ÙÙ' : 'Insufficient Intel');
+    placeBet: async function (teamId) {
+      if (window._firestoreOnline === false) return this.showToast(lang === 'ar' ? '⚠️ لا يوجد اتصال' : '⚠️ No connection');
+      if (status !== 'betting') return this.showToast(lang === 'ar' ? 'انتظر الجولة القادمة' : 'Wait for next round');
+      if (userCoins < currentChip) return this.showToast(lang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient Intel');
 
+      // Optimistic local update (rolled back if the server rejects below)
       myBets[teamId] = (myBets[teamId] || 0) + currentChip;
       userCoins -= currentChip;
 
       document.getElementById(`me-${teamId}`).textContent = `me: ${myBets[teamId].toLocaleString()}`;
       document.getElementById('coinDisplay').textContent = userCoins.toLocaleString();
 
-      // Actual transaction logic
-      window.SecurityService.applyCurrencyTransaction(authUser.uid, -currentChip, 'Soccer Star: Bet', { teamId })
-        .catch(err => console.error(err));
+      // R-3 HOTFIX: honor the transaction result. The SDK retries contention
+      // internally; a FINAL failure means nothing was deducted server-side,
+      // so undo the optimistic UI and inform the player.
+      try {
+        const res = await window.SecurityService.applyCurrencyTransaction(
+          authUser.uid, -currentChip, 'Soccer Star: Bet', { teamId }
+        );
+        if (!res || res.success === false) {
+          throw new Error(res && res.error ? res.error : 'bet_rejected');
+        }
+      } catch (err) {
+        myBets[teamId] -= currentChip;
+        if (myBets[teamId] <= 0) delete myBets[teamId];
+        userCoins += currentChip;
+        const meEl = document.getElementById(`me-${teamId}`);
+        if (meEl) meEl.textContent = `me: ${(myBets[teamId] || 0).toLocaleString()}`;
+        const coinDisp = document.getElementById('coinDisplay');
+        if (coinDisp) coinDisp.textContent = userCoins.toLocaleString();
+        console.warn('[SoccerStar] Bet rejected:', err.message);
+        this.showToast(lang === 'ar' ? 'فشلت المراهنة، حاول مجدداً' : 'Bet failed, try again');
+      }
     },
 
     clearAllBets: function () {
@@ -669,7 +707,7 @@
       // For this build, we'll keep the OG 'Clear' button but maybe notify user it's for the current session's visual?
       // Actually, if it's already deducted, Clear won't refund. 
       // User said "Make it work as OG", but OG was local coins.
-      this.showToast(lang === 'ar' ? 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ø§Ù„Ø±Ù‡Ø§Ù† Ø§Ù„Ù…Ø±Ø³Ù„' : 'Cannot refund sent bets');
+      this.showToast(lang === 'ar' ? 'لا يمكن استرداد الرهان المرسل' : 'Cannot refund sent bets');
     },
 
     revealResult: function (sessionData) {
@@ -703,7 +741,7 @@
       const myInput = myBets[winnerId] || 0;
       const bonus = myInput * winnerTeam.mult;
 
-      // 🛡️ SECURITY: win payout via SecurityService, idempotent per round
+      // ??? SECURITY: win payout via SecurityService, idempotent per round
       if (bonus > 0 && authUser && window.SecurityService) {
         (async () => {
           try {
@@ -738,7 +776,7 @@
           }).catch(err => console.error(err));
       }
 
-      // Show Popup — pass the verified winner, never a tampered published value
+      // Show Popup - pass the verified winner, never a tampered published value
       this.showWinPopup(Object.assign({}, sessionData, { lastWinnerId: winnerId }), bonus, myInput);
 
       // Confetti if won
@@ -776,10 +814,10 @@
 
       let cd = 5;
       const btn = document.getElementById('resultCloseBtn');
-      btn.textContent = `${cd}s âœ•`;
+      btn.textContent = `${cd}s ✕`;
       const itv = setInterval(() => {
         cd--;
-        btn.textContent = `${cd}s âœ•`;
+        btn.textContent = `${cd}s ✕`;
         if (cd <= 0) {
           clearInterval(itv);
           popup.classList.remove('show');
@@ -815,7 +853,7 @@
       }
 
       if (winners.length === 0) {
-        listEl.innerHTML = `<div class="empty-state" style="padding:10px">ðŸ“¦ No Data Yet</div>`;
+        listEl.innerHTML = `<div class="empty-state" style="padding:10px">📦 No Data Yet</div>`;
         return;
       }
 
@@ -844,8 +882,8 @@
               <span class="round-winner-name">${d.name || 'User'}</span>
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end;">
-               <div class="round-winner-amt" style="font-size:10px; color:#aaa; margin-bottom: 2px;">In: ${(d.input || 0).toLocaleString()} ðŸ§ </div>
-               <div class="round-winner-amt" style="color:#4CAF50">+${(d.amount || 0).toLocaleString()} ðŸ§ </div>
+               <div class="round-winner-amt" style="font-size:10px; color:#aaa; margin-bottom: 2px;">In: ${(d.input || 0).toLocaleString()} 🧠</div>
+               <div class="round-winner-amt" style="color:#4CAF50">+${(d.amount || 0).toLocaleString()} 🧠</div>
             </div>
           </div>
       `).join('');
@@ -905,7 +943,7 @@
       const pageData = history.slice(start, end);
 
       if (pageData.length === 0) {
-        body.innerHTML = `<div class="empty-state"><div class="empty-icon">ðŸ“¦</div><div>Empty List</div></div>`;
+        body.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div>Empty List</div></div>`;
       } else {
         body.innerHTML = pageData.map(rec => {
           const t = TEAMS[rec.result] || {};
@@ -928,12 +966,12 @@
 
       const hint = document.getElementById('hintText');
       if (hint) {
-        hint.textContent = isAr ? 'Ø§Ø®ØªØ± Ù…Ø¨Ù„Øº Ø§Ù„Ø°Ù‡Ø¨ > Ø§Ø®ØªØ± Ø§Ù„ÙØ±ÙŠÙ‚' : 'Select The Amount Of Intel > Select Team';
+        hint.textContent = isAr ? 'اختر مبلغ الذهب > اختر الفريق' : 'Select The Amount Of Intel > Select Team';
       }
 
       const label = document.querySelector('.results-label');
       if (label) {
-        label.textContent = isAr ? 'Ø§Ù„Ù†ØªØ§Ø¦Ø¬ :' : 'Results :';
+        label.textContent = isAr ? 'النتائج :' : 'Results :';
       }
 
       // Removed rule-specific IDs to match the updated static template

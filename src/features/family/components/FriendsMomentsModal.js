@@ -423,28 +423,15 @@ var FriendsMomentsModal = ({ show, onClose, currentUser, currentUserData, curren
                   var f = e.target.files[0];
                   if (!f) return;
 
-                  // Add image compression matching MomentsSystem.js
-                  var reader = new FileReader();
-                  reader.onload = (ev) => {
-                    var img = new Image();
-                    img.onload = () => {
-                      var canvas = document.createElement('canvas');
-                      var MAX_W = 800, MAX_H = 800;
-                      var w = img.width, h = img.height;
-                      if (w > MAX_W || h > MAX_H) {
-                        var ratio = Math.min(MAX_W / w, MAX_H / h);
-                        w = Math.round(w * ratio);
-                        h = Math.round(h * ratio);
-                      }
-                      canvas.width = w; canvas.height = h;
-                      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                      var compressed = canvas.toDataURL('image/jpeg', 0.6);
+                  // R-7: centralized validated compression (was unchecked canvas path)
+                  window.SecurityImage.compress(f, { maxDim: 800, quality: 0.6, maxBytes: 600 * 1024 })
+                    .then(function (compressed) {
                       setCreateImage(compressed);
                       setCreateImageFile(f);
-                    };
-                    img.src = ev.target.result;
-                  };
-                  reader.readAsDataURL(f);
+                    })
+                    .catch(function () {
+                      if (window.showToast) window.showToast(lang === 'ar' ? '\u0635\u0648\u0631\u0629 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d\u0629' : 'Invalid image');
+                    });
                 }
               }), /*#__PURE__*/
               React.createElement("button", { onClick: onClose, style: { background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '8px', color: '#9ca3af', fontSize: '16px', width: '30px', height: '30px', cursor: 'pointer' } }, "\u2715")

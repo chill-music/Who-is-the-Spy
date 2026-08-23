@@ -35,25 +35,36 @@ var ProfileHeader = ({
   var handleBannerUpload = async (e) => {
     var file = e.target.files?.[0];
     if (!file || !isOwnProfile) return;
+    // R-7: validate type + reject oversized sources before decode, and assert
+    // final payload size after encode (banner keeps its center-crop layout).
+    var v = window.SecurityImage.validate(file);
+    if (!v.ok || file.size > 6 * 1024 * 1024) {
+      if (window.showToast) window.showToast(lang === 'ar' ? '⚠️ صورة غير صالحة أو كبيرة جداً' : '⚠️ Invalid or oversized image');
+      return;
+    }
     setBannerUploading(true);
     var reader = new FileReader();
     reader.onload = async (ev) => {
       var img = new Image();
       img.onload = async () => {
-        var canvas = document.createElement('canvas');
-        var W = 800,H = 200;
-        canvas.width = W;canvas.height = H;
-        var ctx = canvas.getContext('2d');
-        var scale = Math.max(W / img.width, H / img.height);
-        var sw = img.width * scale,sh = img.height * scale;
-        ctx.drawImage(img, (W - sw) / 2, (H - sh) / 2, sw, sh);
-        var base64 = canvas.toDataURL('image/jpeg', 0.55);
         try {
+          var canvas = document.createElement('canvas');
+          var W = 800,H = 200;
+          canvas.width = W;canvas.height = H;
+          var ctx = canvas.getContext('2d');
+          var scale = Math.max(W / img.width, H / img.height);
+          var sw = img.width * scale,sh = img.height * scale;
+          ctx.drawImage(img, (W - sw) / 2, (H - sh) / 2, sw, sh);
+          var base64 = canvas.toDataURL('image/jpeg', 0.55);
+          if (base64.length > 300 * 1024) base64 = canvas.toDataURL('image/jpeg', 0.42);
+          if (base64.length > 300 * 1024) throw new Error('OUTPUT_TOO_LARGE');
           if (typeof usersCollection !== 'undefined') {
             await usersCollection.doc(targetUID).update({ bannerURL: base64 });
             setBannerURL(base64);
           }
-        } catch (err) {}
+        } catch (err) {
+          if (window.showToast) window.showToast(lang === 'ar' ? '⚠️ فشل رفع الغلاف' : '⚠️ Banner upload failed');
+        }
         setBannerUploading(false);
       };
       img.src = ev.target.result;

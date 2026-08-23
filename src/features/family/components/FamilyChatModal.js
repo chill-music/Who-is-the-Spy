@@ -212,6 +212,15 @@ var FamilyChatModal = (props) => {
     extra = extra || {};
     if ((!text || !text.trim()) && type === 'text') return;
     if (!familyId || !currentUID || sendingMsg) return;
+    // R-8: flood control (only for plain chat text; system/donation/gift
+    // messages bypass so game events never get swallowed)
+    if (type === 'text') {
+      var isAnnouncementCmd0 = canManageFamilyChat && (text || '').trim().toLowerCase().startsWith('announcement ');
+      if (!isAnnouncementCmd0 && (!window.RateGuard.ok('fam:' + familyId, 2000) || window.RateGuard.hitCount('fam:' + familyId + ':burst', 30000) > 10)) {
+        if (typeof onNotification === 'function') onNotification(lang === 'ar' ? '⏳ تمهل قليلاً بين الرسائل' : '⏳ Slow down between messages');
+        return;
+      }
+    }
     setSendingMsg(true);
     try {
       var msgText = (text || '').trim();

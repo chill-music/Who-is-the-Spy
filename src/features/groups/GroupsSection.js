@@ -107,6 +107,11 @@
 
     var sendMessage = async () => {
       if (!msgText.trim() || !activeGroup) return;
+      // R-8: flood control (group chat had no guard at all)
+      if (!window.RateGuard.ok('grp:' + activeGroup.id, 2000) || window.RateGuard.hitCount('grp:' + activeGroup.id + ':burst', 30000) > 10) {
+        onNotification(lang === 'ar' ? '⏳ تمهل قليلاً بين الرسائل' : '⏳ Slow down between messages');
+        return;
+      }
       var text = msgText.trim();setMsgText('');
       try {
         var vipLvl = typeof window.getVIPLevel === 'function' ? window.getVIPLevel(currentUserData) : 0;
@@ -131,7 +136,9 @@
       var file = e.target.files?.[0];if (!file || !activeGroup) return;
       setUploadingImg(true);
       try {
-        var base64 = await compressImageToBase64(file);
+        // R-7: compressImageToBase64 was undefined here (ReferenceError) —
+        // route through the centralized validated pipeline.
+        var base64 = await window.SecurityImage.compress(file, { maxDim: 400, quality: 0.65, maxBytes: 150 * 1024 });
         await groupsCollection.doc(activeGroup.id).collection('messages').add({
           text: '📷', senderId: currentUID, type: 'image', imageData: base64, createdAt: TS()
         });
@@ -236,7 +243,8 @@
           handleGroupPhotoUpload: async (e) => {
             var file = e.target.files?.[0];if (!file || !activeGroup) return;
             try {
-              var base64 = await compressImageToBase64(file);
+              // R-7: validated pipeline (was undefined compressImageToBase64)
+              var base64 = await window.SecurityImage.compress(file, { maxDim: 300, quality: 0.7, maxBytes: 120 * 1024 });
               await groupsCollection.doc(activeGroup.id).update({ photoURL: base64 });
               onNotification(lang === 'ar' ? '✅ تم التحديث' : '✅ Updated');
             } catch (e) { console.error('[PRO SPY ERROR] handleGroupPhotoUpload:', e); }

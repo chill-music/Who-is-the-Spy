@@ -1039,33 +1039,10 @@ var sendMessage = async ({ familyId, currentUID, currentUserData, text, image, t
 
 /**
  * Handles image file upload and returns a data URL (resized).
+ * R-7: routed through the centralized validated pipeline.
  */
 var handleImageUpload = (file) => {
-    return new Promise((resolve, reject) => {
-        if (!file) { reject('No file'); return; }
-        var reader = new FileReader();
-        reader.onload = (e) => {
-            var img = new Image();
-            img.onload = () => {
-                var canvas = document.createElement('canvas');
-                var { width, height } = img;
-                var MAX_SIZE = 800;
-                if (width > height) {
-                    if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-                } else {
-                    if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.8));
-            };
-            img.onerror = reject;
-            img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
+    return window.SecurityImage.compress(file, { maxDim: 800, quality: 0.8, maxBytes: 250 * 1024 });
 };
 
 /**

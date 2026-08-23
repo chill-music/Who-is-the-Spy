@@ -116,22 +116,15 @@
     var handlePhotoChange = (e) => {
       var file = e.target.files?.[0];
       if (!file) return;
-      var reader = new FileReader();
-      reader.onload = (ev) => {
-        var img = new Image();
-        img.onload = () => {
-          var canvas = document.createElement('canvas');
-          var MAX = 300;
-          var w = img.width,h = img.height;
-          if (w > h) {if (w > MAX) {h = Math.round(h * MAX / w);w = MAX;}} else
-          {if (h > MAX) {w = Math.round(w * MAX / h);h = MAX;}}
-          canvas.width = w;canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          setPhotoURL(canvas.toDataURL('image/jpeg', 0.75));
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
+      // R-7: centralized validated compression (was raw FileReader + canvas
+      // with no type or size checks)
+      window.SecurityImage.compress(file, { maxDim: 300, quality: 0.75, maxBytes: 200 * 1024 })
+        .then(function (dataUrl) { setPhotoURL(dataUrl); })
+        .catch(function () {
+          setErrorMsg(lang === 'ar'
+            ? '\u0635\u0648\u0631\u0629 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d\u0629 \u0623\u0648 \u0643\u0628\u064a\u0631\u0629 \u062c\u062f\u0627\u064b'
+            : 'Invalid or oversized image');
+        });
     };
 
     var handleComplete = () => {

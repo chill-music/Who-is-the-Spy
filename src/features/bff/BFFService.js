@@ -92,6 +92,18 @@
         return { ok: false };
       }
 
+      // R-8 (S-3): respect the target's post-decline cooldown for this requester
+      try {
+        var targetDoc = await usersCollection.doc(toUID).get();
+        var blockUntil = targetDoc.exists && targetDoc.data().cooldowns?.bff?.[fromUID];
+        if (blockUntil && Date.now() < blockUntil) {
+          onNotification && onNotification(lang === 'ar'
+            ? '⏳ رفض هذا الطلب مؤخراً — انتظر قبل المحاولة مجدداً'
+            : '⏳ They recently declined — wait before trying again');
+          return { ok: false };
+        }
+      } catch (_) { /* best-effort */ }
+
       // Check slot limit (count active only)
       var totalActive = allMyDocs.filter((r) => r.status === 'active').length;
       var extraSlots = fromData?.bffExtraSlots || 0;
@@ -174,6 +186,19 @@
 
   var declineBFFRequest = async ({ bffDocId, fromUID, tokenId, onNotification, lang }) => {
     try {
+      // R-8 (S-3): identify both sides so the decliner can cooldown-block the
+      // requester from immediately re-sending.
+      var requesterUID = fromUID || null;
+      var declinerUID = null;
+      try {
+        var reqDoc = await bffCollection.doc(bffDocId).get();
+        if (reqDoc.exists) {
+          var rd = reqDoc.data();
+          requesterUID = rd.requestedBy || rd.uid1;
+          declinerUID = (rd.uid1 === requesterUID) ? rd.uid2 : rd.uid1;
+        }
+      } catch (_) { /* best-effort */ }
+
       // Refund token
       var token = BFF_TOKEN_ITEMS.find((t) => t.id === tokenId);
       if (token && fromUID) {
@@ -182,6 +207,11 @@
         }).catch(() => {});
       }
       await bffCollection.doc(bffDocId).delete();
+      if (declinerUID && requesterUID && declinerUID !== requesterUID) {
+        await usersCollection.doc(declinerUID).update({
+          ['cooldowns.bff.' + requesterUID]: Date.now() + 10 * 60 * 1000
+        }).catch(() => {});
+      }
       onNotification && onNotification(lang === 'ar' ? 'تم الرفض وإعادة التوكن' : 'Declined & token refunded');
       return { ok: true };
     } catch (e) {

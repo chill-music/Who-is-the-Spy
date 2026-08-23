@@ -77,20 +77,17 @@
       var file = e.target.files?.[0];
       if (!file || !doc?.id) return;
       setUploadErr('');
-      if (!file.type.startsWith('image/')) {
-        setUploadErr(lang === 'ar' ? 'ملف غير صالح' : 'Invalid file');
-        return;
-      }
+      // R-7: validated pipeline (was unchecked createImageBitmap + fixed canvas)
       setUploading(true);
       try {
-        var bmp = await createImageBitmap(file);
-        var canvas = document.createElement('canvas'); // ... simplified compression
-        canvas.width = 800;canvas.height = 600;
-        canvas.getContext('2d').drawImage(bmp, 0, 0, 800, 600);
-        var base64 = canvas.toDataURL('image/jpeg', 0.8);
+        var base64 = await window.SecurityImage.compress(file, { maxDim: 800, quality: 0.8, maxBytes: 250 * 1024 });
         await couplesCollection.doc(doc.id).update({ couplePhotoUrl: base64 });
         onNotification && onNotification(lang === 'ar' ? '✅ تم الرفع' : '✅ Uploaded');
-      } catch (err) {setUploadErr('Error');}
+      } catch (err) {
+        setUploadErr(err && err.message === 'BAD_TYPE'
+          ? (lang === 'ar' ? 'ملف غير صالح' : 'Invalid file')
+          : 'Error');
+      }
       setUploading(false);
     };
 

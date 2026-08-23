@@ -39,7 +39,8 @@
     roundId: '---', phase: 'betting', timeLeft: null,
     totalWin: 0, currentUser: null, targetEndTime: 0,
     lastWinningId: null, lastBonusType: null, lastRotationTrigger: 0,
-    revealTsMillis: 0, publishedWinningId: null, resolvedRoundId: null
+    revealTsMillis: 0, publishedWinningId: null, resolvedRoundId: null,
+    zeroSince: 0
   };
 
   var lang   = 'en';
@@ -265,6 +266,7 @@
     badge.textContent = S.timeLeft + 's';
 
     if (S.timeLeft > 5) {
+      S.zeroSince = 0;
       if (S.phase !== 'betting') {
         S.phase = 'betting';
         if ($('gc-ticker')) $('gc-ticker').textContent = T('PLACE_BETS');
@@ -289,7 +291,7 @@
 
     } else if (S.timeLeft === 0) {
       /* R-4: reveal + resolve instead of trusting a pre-published winner */
-      if (S.phase === 'betting') GreedyCatGame.triggerReveal(sessDocFromTimer());
+      if (S.phase === 'betting') { S.zeroSince = Date.now(); GreedyCatGame.triggerReveal(sessDocFromTimer()); }
       S.phase = 'reveal';
       if ($('gc-ticker')) $('gc-ticker').textContent = T('SPINNING');
       badge.style.background = '#e63946';
@@ -305,6 +307,20 @@
           }).catch(function () {});
         }
       }
+
+      /* HOTFIX WATCHDOG: if expiry hangs >75s (rotation kept failing / no
+         round ever initialized) with live unsettled stakes — refund them.
+         The shared settlement guard prevents any later double-pay. */
+      if (S.zeroSince && (now - S.zeroSince > 75000)) {
+        var pending = Object.keys(S.bets).length > 0 || Object.keys(S.specialBets).length > 0;
+        if (pending && S.resolvedRoundId !== S.roundId) {
+          var dead = { roundId: S.roundId, bets: Object.assign({}, S.bets), specialBets: Object.assign({}, S.specialBets) };
+          S.bets = {}; S.specialBets = {};
+          _clearBetUI();
+          _refundStake(dead);
+        }
+        S.zeroSince = 0;
+      }
     }
   }
 
@@ -317,46 +333,70 @@
 
   /* ── 9. INIT NEW ROUND (server-side) ──
      SECURITY (R-4/G-1): rotation writes NO winner information. The outcome is
-     derived after betting closes from a server-assigned reveal timestamp. */
-  window.GreedyCatGame.initNewRound = async function(docRef) {
+     derived after betting closes from a server-assigned reveal timestamp.
+     HOTFIX (contention): the results archive moved OUT of the transaction —
+     awaiting a subcollection .add() inside runTransaction stretched the
+     read→commit window across a network round-trip while every client races
+     the same doc at expiry, causing failed-precondition retry storms (and
+     possible duplicate archives on retry). Now: the transaction only flips
+     the doc; exactly ONE client wins rotation and archives afterwards. */
+  window.GreedyCatGame.initNewRound = async function(docRef, _attempt) {
     if (!window.db || !S.currentUser) return;
-    /* Any logged-in user can attempt to rotate — first writer wins, others fail silently */
     var now = Date.now();
+    var archived = null;
     try {
-      await window.db.runTransaction(async function(t) {
+      archived = await window.db.runTransaction(async function(t) {
         var doc = await t.get(docRef);
         if (doc.exists) {
           var data  = doc.data();
           var endMs = data.endTime && typeof data.endTime.toMillis === 'function' ? data.endTime.toMillis() : 0;
-          if (endMs > (now - 1000)) return; /* round still active – do nothing */
-          /* Archive the finished round. The result is computed deterministically
-             from its revealTs even if no client ever published winningId. */
-          var prevOutcome = null;
-          if (data.roundId) {
-            if (data.winningId) {
-              prevOutcome = { id: data.winningId, bonusType: data.bonusType || null };
-            } else if (data.revealTs && typeof data.revealTs.toMillis === 'function') {
-              var oc = computeOutcome(data.revealTs.toMillis(), data.roundId);
-              prevOutcome = { id: oc.id, bonusType: oc.bonusType };
+          if (endMs > (now - 1000)) return { active: true }; /* round still active – do nothing */
+        }
+        /* Compute the finished round's outcome deterministically (from its
+           revealTs / published winner even if this client never resolved it). */
+        var out = null, prevRoundId = null;
+        if (doc.exists) {
+          var d2 = doc.data();
+          prevRoundId = d2.roundId || null;
+          if (prevRoundId) {
+            if (d2.winningId) {
+              out = { id: d2.winningId, bonusType: d2.bonusType || null };
+            } else if (d2.revealTs && typeof d2.revealTs.toMillis === 'function') {
+              var oc = computeOutcome(d2.revealTs.toMillis(), prevRoundId);
+              out = { id: oc.id, bonusType: oc.bonusType };
             }
           }
-          if (prevOutcome) {
-            await docRef.collection('results').add({
-              winningId: prevOutcome.id,
-              bonusType: prevOutcome.bonusType || null,
-              roundId:   data.roundId,
-              timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
-            });
-          }
         }
+        /* Rotate. Exactly ONE client's commit wins; all others conflict,
+           retry, then see the fresh active round and bail at the top. */
         t.set(docRef, {
           roundId:   String(Math.floor(now / 1000)).slice(-6),
           endTime:   window.firebase.firestore.Timestamp.fromMillis(now + 30000),
           timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
         }); /* full replace — old winningId/bonusType/revealTs are dropped */
+        return { rotated: true, out: out, roundId: prevRoundId };
       });
+      /* Post-commit archive by the single winning rotator (dedupe for free:
+         losing racers bail out at the top of their retry). */
+      if (archived && archived.rotated && archived.out && archived.roundId) {
+        try {
+          await docRef.collection('results').add({
+            winningId: archived.out.id,
+            bonusType: archived.out.bonusType || null,
+            roundId:   archived.roundId,
+            timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } catch (e2) { /* history archive is best-effort */ }
+      }
     } catch(e) {
-      /* Silently ignore permission-denied / failed-precondition – another client won the race or user lacks permission */
+      /* Transaction exhausted its automatic retries (heavy contention or
+         offline). Retry ONCE more quietly before giving up so rotation
+         cannot stall permanently. */
+      console.warn('[GreedyCat] initNewRound txn failed:', e && e.code ? e.code : e);
+      var att = (_attempt || 0);
+      if (att < 2) {
+        setTimeout(function () { GreedyCatGame.initNewRound(docRef, att + 1); }, 2500 * (att + 1));
+      }
     }
   };
 
@@ -416,12 +456,13 @@
     resolveRound({ roundId: data.roundId, winningId: outcome.id, bonusType: outcome.bonusType });
   };
 
-  /* ── 10. CLIENT ROUND RESET ── */
-  function startNewClientRound(rid) {
-    S.roundId    = rid;
-    S.bets       = {};
-    S.specialBets = {};
-    S.resolvedRoundId = null;
+  /* ── 10. CLIENT ROUND RESET ──
+     HOTFIX (money loss): this used to wipe S.bets unconditionally, so if
+     ANOTHER client rotated the round before ours finished resolving, the
+     player's stakes vanished with no settlement. Now unsettled bets are
+     stashed and reconciled against the archived result — or refunded if the
+     round never completed. */
+  function _clearBetUI() {
     document.querySelectorAll('.gc-slot').forEach(function(sl) {
       sl.classList.remove('winner-flash');
       var betBadge = $('gc-bet-' + sl.dataset.name);
@@ -429,10 +470,120 @@
     });
     if ($('gc-special-salad')) $('gc-special-salad').classList.remove('selected');
     if ($('gc-special-pizza')) $('gc-special-pizza').classList.remove('selected');
+  }
+
+  function startNewClientRound(rid) {
+    var hadStakes = Object.keys(S.bets).length > 0 || Object.keys(S.specialBets).length > 0;
+    var previousRoundId = S.roundId;
+    var wasUnresolved = S.resolvedRoundId !== previousRoundId;
+
+    /* Stash outstanding money BEFORE touching any state */
+    if (hadStakes && wasUnresolved && previousRoundId && previousRoundId !== '---' && previousRoundId !== rid) {
+      var stash = {
+        roundId: previousRoundId,
+        bets: Object.assign({}, S.bets),
+        specialBets: Object.assign({}, S.specialBets)
+      };
+      /* Explicitly captured — rapid successive rotations can't lose a stash */
+      setTimeout(function () { GreedyCatGame._recoverStaleRound(stash, 0); }, 2000);
+    }
+
+    S.roundId    = rid;
+    S.bets       = {};
+    S.specialBets = {};
+    S.resolvedRoundId = null;
+    _clearBetUI();
     var strip = $('gc-winner-strip');
     if (strip) { strip.innerHTML = ''; strip.style.display = 'none'; }
+
     updateUI();
   }
+
+  /* ── 10b. SETTLEMENT GUARANTEE (HOTFIX) ──
+     One settlement per round per device — the live path, the recovered path
+     and the refund path all share this guard, so money can never be paid
+     twice locally. Cross-device double-pay is prevented by SecurityService
+     idempotency keys (win: _gcwin_<round>, refund: _gcrefund_<round>). */
+  function _settlementGuard(roundId) {
+    var k = 'gc_settled_' + roundId;
+    try {
+      if (localStorage.getItem(k)) return false;
+      localStorage.setItem(k, '1');
+    } catch (e) { /* private mode — proceed; idem keys still protect funds */ }
+    return true;
+  }
+
+  function _refundStake(st) {
+    if (!_settlementGuard(st.roundId)) return;
+    var total = 0;
+    Object.keys(st.bets).forEach(function (k) { total += st.bets[k]; });
+    Object.keys(st.specialBets).forEach(function () { total += SPECIAL_COST; });
+    if (total > 0 && window.SecurityService && S.currentUser && S.currentUser.uid) {
+      window.SecurityService.applyCurrencyTransaction(
+        S.currentUser.uid, total,
+        'GreedyCat Refund: round ' + st.roundId + ' did not complete',
+        { roundId: st.roundId },
+        { idemKey: S.currentUser.uid + '_gcrefund_' + st.roundId }
+      ).then(function (r) {
+        if (r && r.success && window.showToast) {
+          window.showToast('🛡️ ' + (lang === 'ar' ? 'تم إرجاع مراهنتك — لم تُكمل الجولة' : 'Stake refunded — round did not complete'));
+        }
+      }).catch(function () {});
+    }
+  }
+
+  /* Settle a stashed round from its archived result */
+  function _applyArchivedOutcome(st, winId, bonusType) {
+    var winner = null;
+    for (var i = 0; i < SYMBOLS.length; i++) { if (SYMBOLS[i].id === winId) { winner = SYMBOLS[i]; break; } }
+    if (!winner || !_settlementGuard(st.roundId)) return;
+
+    var gained = 0;
+    if (st.bets[winner.name]) gained += st.bets[winner.name] * winner.mult;
+    if (bonusType && st.bets[winner.name]) {
+      var catOk = (bonusType === 'salad' && winner.cat === 'vegetable') ||
+                  (bonusType === 'pizza' && (winner.cat === 'seafood' || winner.cat === 'meat'));
+      if (catOk) gained += st.bets[winner.name] * 3;
+    }
+    if (bonusType && st.specialBets[bonusType]) gained += SPECIAL_PAYOUT;
+
+    if (gained > 0 && window.SecurityService && S.currentUser && S.currentUser.uid) {
+      /* Same idem key as the live path → server dedupes if it already paid */
+      window.SecurityService.applyCurrencyTransaction(
+        S.currentUser.uid, gained,
+        'GreedyCat Win Round #' + st.roundId + ' (recovered)',
+        { roundId: st.roundId },
+        { idemKey: S.currentUser.uid + '_gcwin_' + st.roundId }
+      ).catch(function () {});
+      if (window.showToast) window.showToast('✅ +' + fmtNum(gained) + (lang === 'ar' ? ' (جولة تمت تسويتها لاحقاً)' : ' (late-settled round)'));
+    } else if (Object.keys(st.bets).length > 0) {
+      if (window.showToast) window.showToast(lang === 'ar' ? 'جولة سابقة: خسرت' : 'Previous round: no win');
+    }
+  }
+
+  /* Reconcile staked money from a round this device never settled: read the
+     archived result; refund if the round never completed after ~10 attempts
+     (~40s). The stash is captured explicitly so back-to-back rotations can't
+     lose anyone's recovery. */
+  window.GreedyCatGame._recoverStaleRound = async function(st, attempt) {
+    if (!st || !window.db || !S.currentUser) return;
+    attempt = attempt || 0;
+    try {
+      var snap = await sessDocFromTimer().collection('results')
+        .where('roundId', '==', st.roundId).limit(1).get();
+      if (!snap.empty) {
+        var d = snap.docs[0].data();
+        _applyArchivedOutcome(st, d.winningId, d.bonusType || null);
+        return;
+      }
+    } catch (e) { /* transient */ }
+    if (attempt < 10) {
+      setTimeout(function () { GreedyCatGame._recoverStaleRound(st, attempt + 1); }, 4000);
+    } else {
+      /* Round never archived → it failed to initialize/complete. Refund. */
+      _refundStake(st);
+    }
+  };
 
   /* ── 11. RESOLVE ROUND ── */
   async function resolveRound(data) {
@@ -443,6 +594,11 @@
     setTimeout(async function() {
       var winner = SYMBOLS.find(function(s) { return s.id === data.winningId; });
       if (!winner) return;
+
+      /* HOTFIX: shared settlement guard — consumed only once the outcome is
+         known valid; a round settles exactly once per device across the
+         live/recovered/refund paths. */
+      if (!_settlementGuard(data.roundId)) { S.bets = {}; S.specialBets = {}; return; }
 
       var winSl = document.querySelector('.gc-slot[data-i="' + SYMBOLS.indexOf(winner) + '"]');
       if (winSl) winSl.classList.add('winner-flash');
@@ -513,6 +669,12 @@
       }
 
       if ($('gc-spin-indicator')) $('gc-spin-indicator').classList.remove('spinning');
+
+      /* HOTFIX: stakes are cleared only AFTER settlement completes. If a new
+         round snapshot arrives before this point, startNewClientRound stashed
+         them instead of discarding. */
+      S.bets = {};
+      S.specialBets = {};
     }, 3000);
   }
 

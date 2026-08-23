@@ -28,6 +28,18 @@
         return { ok: false, err: 'Already exists' };
       }
 
+      // R-8 (S-3): respect the target's post-decline cooldown for this proposer
+      try {
+        var targetDoc = await usersCollection.doc(toUID).get();
+        var blockUntil = targetDoc.exists && targetDoc.data().cooldowns?.proposal?.[fromUID];
+        if (blockUntil && Date.now() < blockUntil) {
+          onNotification && onNotification(lang === 'ar'
+            ? '⏳ رفض هذا الطلب مؤخراً — انتظر قبل المحاولة مجدداً'
+            : '⏳ They recently declined — wait before trying again');
+          return { ok: false, err: 'Cooldown active' };
+        }
+      } catch (_) { /* cooldown check is best-effort */ }
+
       var batch = db.batch();
       // Deduct currency
       // 🛡️ SECURITY: Wedding Cost
@@ -126,6 +138,13 @@
     try {
       var batch = db.batch();
       batch.delete(couplesCollection.doc(coupleDocId));
+      // R-8 (S-3): the declined proposer is cooldown-blocked from re-proposing
+      // the same person for 10 minutes (harassment loop prevention).
+      if (fromUID) {
+        batch.update(usersCollection.doc(fromUID), {
+          ['cooldowns.proposal.' + toUID]: Date.now() + 10 * 60 * 1000
+        });
+      }
       // Refund ring cost to proposer
       if (window.SecurityService) {
         await window.SecurityService.applyCurrencyTransaction(fromUID, ringCost + (giftCost || 0), 'Proposal Refund');

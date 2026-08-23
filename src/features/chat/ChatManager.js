@@ -54,25 +54,34 @@
             var user = context.user;
             var isLoggedIn = context.isLoggedIn;
             var userData = context.userData;
+            var lang = context.lang;
             var t = context.t;
             var createNotification = context.createNotification;
 
             if (!targetUid || !isLoggedIn) return;
             if (userData.friends?.includes(targetUid)) return;
             if (userData.friendRequests?.includes(targetUid)) return;
-            
+            // R-8 (S-2): one attempt per target per minute per session
+            if (!window.RateGuard.ok('friendreq:' + targetUid, 60000)) return;
+
             try {
                 // Dependency: usersCollection, firebase (global)
-                await usersCollection.doc(targetUid).update({ 
-                    friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid) 
+                var targetDoc = await usersCollection.doc(targetUid).get();
+                if (targetDoc.exists) {
+                    var td = targetDoc.data();
+                    // Already requested previously? Don't re-add or re-notify.
+                    if ((td.friendRequests || []).includes(user.uid)) return;
+                }
+                await usersCollection.doc(targetUid).update({
+                    friendRequests: firebase.firestore.FieldValue.arrayUnion(user.uid)
                 });
-                
+
                 if (typeof createNotification === 'function') {
                     await createNotification(
-                        targetUid, 
-                        'friend_request', 
-                        userData.displayName + " " + t.friendRequest, 
-                        user.uid, 
+                        targetUid,
+                        'friend_request',
+                        userData.displayName + " " + t.friendRequest,
+                        user.uid,
                         userData.displayName
                     );
                 }
