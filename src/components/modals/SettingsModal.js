@@ -142,25 +142,14 @@
                   ref: photoInputRef, id: "settings-photo-input", type: "file", style: { display: 'none' }, accept: "image/*", onChange: async (e) => {
                     var file = e.target.files?.[0];
                     if (!file || !user) return;
-                    var reader = new FileReader();
-                    reader.onload = async (ev) => {
-                      var img = new Image();
-                      img.onload = async () => {
-                        var canvas = document.createElement('canvas');
-                        var MAX = 300;
-                        var w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } } else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        var base64 = canvas.toDataURL('image/jpeg', 0.75);
-                        try {
-                          await usersCollection.doc(user.uid).update({ photoURL: base64 });
-                          onNotification(lang === 'ar' ? 'تم تحديث الصورة!' : 'Photo updated!');
-                        } catch (err) { }
-                      };
-                      img.src = ev.target.result;
-                    };
-                    reader.readAsDataURL(file);
+                    // R-7: validated pipeline (was unchecked FileReader + canvas)
+                    try {
+                      var base64 = await window.SecurityImage.compress(file, { maxDim: 300, quality: 0.75, maxBytes: 200 * 1024 });
+                      await usersCollection.doc(user.uid).update({ photoURL: base64 });
+                      onNotification(lang === 'ar' ? 'تم تحديث الصورة!' : 'Photo updated!');
+                    } catch (err) {
+                      onNotification(lang === 'ar' ? 'صورة غير صالحة أو كبيرة جداً' : 'Invalid or oversized image');
+                    }
                   }
                 })
               ), /*#__PURE__*/

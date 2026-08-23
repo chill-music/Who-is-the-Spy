@@ -72,6 +72,11 @@
 
     var sendMsg = async () => {
       if (!msgText.trim() || !user || !isLoggedIn || sending) return;
+      // R-8: flood control (lobby box has a 5s cooldown; the modal had none)
+      if (!window.RateGuard.ok('publicchat', 3000) || window.RateGuard.hitCount('publicchat:burst', 30000) > 8) {
+        onNotification(lang === 'ar' ? '⏳ تمهل قليلاً بين الرسائل' : '⏳ Slow down between messages');
+        return;
+      }
       var text = msgText.trim(); setMsgText(''); setSending(true);
       try {
         var vipLevel = typeof window.getVIPLevel === 'function' ? window.getVIPLevel(currentUser) || 0 : 0;
@@ -93,10 +98,11 @@
 
     var handleImgUpload = async (e) => {
       var file = e.target.files?.[0];
-      if (!file || !file.type.startsWith('image/') || !user || uploadingImg) return;
+      if (!file || !user || uploadingImg) return;
       setUploadingImg(true);
       try {
-        var base64 = await compressImageToBase64(file);
+        // R-7: validated pipeline (compressImageToBase64 was undefined here)
+        var base64 = await window.SecurityImage.compress(file, { maxDim: 400, quality: 0.65, maxBytes: 150 * 1024 });
         await publicChatCollection.add({
           type: 'image', imageData: base64, text: '📷',
           senderId: user.uid, senderName: currentUser?.displayName || 'User',

@@ -86,7 +86,16 @@
 
         // ── Notification Functions ──
         var createNotification = useCallback(async (toUserId, type, message, fromUserId, fromName, giftData = null) => {
-            try { await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: TS(), read: false }); } catch (e) { }
+            try {
+                // R-8 (S-1): throttle pure social-ping types so one user cannot
+                // flood a victim's bell. Economy events (gift/couple_*/bff_*,
+                // which carry real state) are deliberately exempt.
+                if (type === 'message' || type === 'friend_request') {
+                    if (!window.RateGuard.ok('notif:' + toUserId + ':' + type, 15000)) return;
+                    if (window.RateGuard.hitCount('notifburst:' + toUserId, 60000) > 5) return;
+                }
+                await notificationsCollection.add({ toUserId, fromUserId, fromName, type, message, giftData, timestamp: TS(), read: false });
+            } catch (e) { }
         }, []);
 
         var markNotificationRead = useCallback(async (notifId) => {
