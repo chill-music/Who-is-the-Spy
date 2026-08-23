@@ -49,6 +49,11 @@
           'ban.unbannedBy': currentUser.uid,
           'ban.unbannedAt': TS()
         });
+        // R-9 v2: pardon the TamperGuard offense trail so the suspension gate
+        // releases immediately (history stays permanent, just neutralized)
+        if (window.TamperGuard && window.TamperGuard.pardon) {
+          await window.TamperGuard.pardon(searchResult.id, currentUser.uid);
+        }
         if (window.logStaffAction) {
           await window.logStaffAction(currentUser.uid, currentUserData?.displayName, 'UNBAN_USER', searchResult.id, searchResult.displayName, 'Unbanned via Admin Panel');
         }

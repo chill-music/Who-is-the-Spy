@@ -1310,8 +1310,7 @@ window.TamperGuard = (function () {
 
     /* R-9 v2: offense docs now carry the FULL permanent record:
        reason (both languages), mechanism, offense number, duration, end. */
-    var REASONS = {
-        raw_currency: {
+    var REASONS = {        raw_currency: {
             en: 'Attempted to directly modify the currency field',
             ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u062a\u0639\u062f\u064a\u0644 \u062d\u0642\u0644 \u0627\u0644\u0631\u0635\u064a\u062f \u0645\u0628\u0627\u0634\u0631\u0629'
         },
@@ -1465,6 +1464,35 @@ window.TamperGuard = (function () {
         } catch (e) {}
     }
 
+    /* R-9 v2: STAFF PARDON - stamps every offense with pardonedAt/pardonedBy
+       so the trail stays permanent (audit) but stops counting toward any
+       active or future suspension. The subject can never do this. */
+    function pardon(targetUid, issuedBy) {
+        var uid = targetUid || _authUid();
+        if (!uid || !window.db) return Promise.resolve(false);
+        var col = window.db.collection('artifacts').doc(window.appId)
+            .collection('public').doc('data')
+            .collection('tamper_log').doc(uid).collection('offenses');
+        return col.get().then(function (snap) {
+            if (snap.empty) return true;
+            var batch = window.db.batch();
+            snap.forEach(function (d) {
+                batch.update(d.ref, {
+                    pardonedAt: Date.now(),
+                    pardonedBy: issuedBy || _authUid() || ''
+                });
+            });
+            return batch.commit().then(function () {
+                if (uid === _authUid()) {
+                    try { sessionStorage.removeItem('pro_spy_tamper_banned'); } catch (e) {}
+                    _offenses = null;
+                    _activeBan = { active: false };
+                }
+                return true;
+            });
+        }).catch(function () { return false; });
+    }
+
     /* ---- Offense cache & ban evaluation for the App gate ---- */
     var _activeBan = null;
     function refreshOffenses() {
@@ -1475,7 +1503,10 @@ window.TamperGuard = (function () {
             .collection('tamper_log').doc(uid).collection('offenses');
         return col.get().then(function (snap) {
             var docs = [];
-            snap.forEach(function (d) { docs.push(d.data()); });
+            snap.forEach(function (d) {
+                var v = d.data();
+                if (!v.pardonedAt) docs.push(v);   // pardoned offenses no longer count
+            });
             docs.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
             _offenses = docs;
             var n = docs.length;
@@ -1560,6 +1591,7 @@ window.TamperGuard = (function () {
         refreshOffenses: refreshOffenses,
         renderBanScreen: renderBanScreen,
         logStaffBan: logStaffBan,
+        pardon: pardon,
         _inspect: inspect   // exposed for testing
     };
 })();
