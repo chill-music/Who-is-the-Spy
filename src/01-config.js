@@ -1293,6 +1293,14 @@ window.TamperGuard = (function () {
                 return { type: 'protected_field', fields: adminOnly };
             }
         }
+        // RAW CURRENCY GUARD (restored): any write touching 'currency' outside
+        // a sanctioned SecurityService transaction (__SEC_TXN_ACTIVE) — or the
+        // marked onboarding creation — is an offense. This fires at ATTEMPT
+        // time in the wrapper, so raw console exploits are caught even though
+        // Firestore rules separately reject them server-side.
+        if (keys.indexOf('currency') !== -1 && window.__SEC_TXN_ACTIVE !== true) {
+            return { type: 'raw_currency', fields: ['currency'] };
+        }
         return null;
     }
 

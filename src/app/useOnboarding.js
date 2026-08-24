@@ -95,7 +95,14 @@
             };
 
             try {
-                await pendingNewUserRef.set(newUserData);
+                // Sanctioned initial currency seeding (currency: 100) — marked
+                // so TamperGuard's raw-currency guard exempts THIS write only.
+                window.__SEC_TXN_ACTIVE = true;
+                try {
+                    await pendingNewUserRef.set(newUserData);
+                } finally {
+                    window.__SEC_TXN_ACTIVE = false;
+                }
                 setUserData(newUserData);
                 setNickname(displayName);
                 setUser(u);
