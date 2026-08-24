@@ -95,6 +95,10 @@
 
                     /* Helper: write user data fields into React state */
                     var applyUserData = function(data) {
+                        // Live account snapshot — consumed synchronously by
+                        // TamperGuard (lang_ar/_roleOf) so security overlays
+                        // render in the user's real language from frame #1.
+                        window._currentUserDataCache = data;
                         setUserData(data);
                         if (data.displayName) setNickname(data.displayName);
                         if (data.lang && (data.lang === 'ar' || data.lang === 'en')) {

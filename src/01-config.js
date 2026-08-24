@@ -1241,12 +1241,23 @@ window.TamperGuard = (function () {
         }).catch(function () { return null; });
     }
 
+    /* Sync prime from the live account snapshot maintained by useAuthState.
+       Guarantees lang_ar()/_isStaff resolve correctly on the FIRST render
+       of a ban overlay — no Arabic flash while an async fetch is pending. */
+    function _cacheMe() {
+        if (!_me && window._currentUserDataCache) {
+            _me = window._currentUserDataCache;
+            _meAt = Date.now();
+        }
+    }
+
     /* R-9 v2: language resolution mirrors the app's own mechanism:
        1. live account snapshot (window._currentUserDataCache.lang)
        2. the user doc's lang field (set at onboarding / settings)
        3. localStorage preference
        4. app default (Arabic) */
     function lang_ar() {
+        _cacheMe();
         var cached = window._currentUserDataCache;
         if (cached && cached.lang === 'en') return false;
         if (cached && cached.lang === 'ar') return true;
@@ -1261,10 +1272,12 @@ window.TamperGuard = (function () {
     }
 
     function _isStaff() {
+        _cacheMe();
         var role = _roleOf(_me);
         return role === 'owner' || role === 'admin' || role === 'moderator';
     }
     function _isStaffAdmin() {
+        _cacheMe();
         var role = _roleOf(_me);
         return role === 'owner' || role === 'admin';
     }
@@ -1586,7 +1599,7 @@ window.TamperGuard = (function () {
     }
 
     installWrapper();
-    setTimeout(refreshOffenses, 4000);      // prime cache after auth settles
+    setTimeout(function () { refreshOffenses(); _refreshMe(); }, 4000); // prime caches after auth settles
     setInterval(function () { _me = null; }, 60000);
 
     return {
