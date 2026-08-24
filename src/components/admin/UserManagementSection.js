@@ -25,8 +25,26 @@
     var [banReason,    setBanReason]    = useState('');
     var [banDuration,  setBanDuration]  = useState('permanent');
 
-    var myRole = currentUserData?.role || '';
+    // Currency adjustment state (Owner-only)
+    var [showCoinForm, setShowCoinForm] = useState(false);
+    var [coinMode,     setCoinMode]     = useState('add');
+    var [coinAmount,   setCoinAmount]   = useState('');
+    var [coinReason,   setCoinReason]   = useState('');
+
+    // VIP grant state (Admin+Owner)
+    var [showVipForm,  setShowVipForm]  = useState(false);
+    var [vipLevel,     setVipLevel]     = useState('1');
+    var [vipDuration,  setVipDuration]  = useState('7');
+    var [vipUnit,      setVipUnit]      = useState('d');
+
+    // Moderator appeal escalation state
+    var [appealNote,   setAppealNote]   = useState('');
+
+    // Role resolution via the canonical staff system (staffRole.role / OWNER_UID)
+    var myRole = (window.getUserRole ? window.getUserRole(currentUserData, currentUser.uid) : null) || '';
     var isOwner = myRole === 'owner';
+    var isAdminPlus = isOwner || myRole === 'admin';
+    var isStaff = isAdminPlus || myRole === 'moderator';
 
     // ── Search ──────────────────────────────────────────────────────────
     var handleSearch = async (e) => {
@@ -96,11 +114,16 @@
       }
       setProcessing(true);
       try {
+        var DUR_MS = { '1h': 36e5, '12h': 432e5, '1d': 864e5, '3d': 2592e5, '7d': 6048e5 };
+        var durMs = banDuration === 'permanent' ? null : (DUR_MS[banDuration] || null);
         await usersCollection.doc(searchResult.id).update({
           ban: {
             isBanned: true,
             reason: banReason.trim(),
             duration: banDuration,
+            // CRITICAL: temporary bans MUST carry expiresAt — isBannedUser()
+            // treats a ban without expiresAt as PERMANENT
+            expiresAt: durMs ? firebase.firestore.Timestamp.fromMillis(Date.now() + durMs) : null,
             bannedBy: currentUser.uid,
             bannedByName: currentUserData?.displayName || 'Admin',
             bannedAt: TS()
@@ -120,7 +143,7 @@
               targetUid: searchResult.id,
               reasonEn: banReason.trim(),
               reasonAr: banReason.trim(),
-              durationMs: banDuration === 'permanent' ? null : parseInt(banDuration) * 864e5,
+              durationMs: durMs,
               issuedBy: currentUser.uid
             });
           } catch (e) {}
@@ -128,6 +151,129 @@
         setSearchResult({ ...searchResult, ban: { isBanned: true, reason: banReason, duration: banDuration } });
         setShowBanForm(false); setBanReason(''); setBanDuration('permanent');
         onNotification('🔨 ' + (lang === 'ar' ? 'تم حظر المستخدم' : 'User banned'));
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+      setProcessing(false);
+    };
+
+    // ── Currency adjustment (OWNER-ONLY, fully audited) ─────────────────
+    var handleCoinAdjust = async () => {
+      var amt = parseInt(coinAmount, 10);
+      if (!searchResult || processing || !amt || amt <= 0 || !coinReason.trim()) return;
+      setProcessing(true);
+      try {
+        var ref = usersCollection.doc(searchResult.id);
+        var oldBal = 0, newBal = 0, delta = 0;
+        await db.runTransaction(async (tx) => {
+          var snap = await tx.get(ref);
+          oldBal = snap.data()?.currency || 0;
+          newBal = coinMode === 'add' ? oldBal + amt : Math.max(0, oldBal - amt);
+          delta = newBal - oldBal;
+          tx.update(ref, { currency: newBal });
+        });
+        // AUDIT TRAIL 1: permanent economy ledger (gold_transactions)
+        await goldLogCollection.add({
+          type: 'admin_adjust',
+          targetUid: searchResult.id,
+          targetName: searchResult.displayName || '',
+          oldBalance: oldBal,
+          newBalance: newBal,
+          delta: delta,
+          reason: coinReason.trim(),
+          byUid: currentUser.uid,
+          byName: currentUserData?.displayName || 'Owner',
+          at: TS()
+        });
+        // AUDIT TRAIL 2: staff activity log
+        if (window.logStaffAction) {
+          await window.logStaffAction(
+            currentUser.uid, currentUserData?.displayName,
+            'ADJUST_CURRENCY', searchResult.id, searchResult.displayName,
+            (delta >= 0 ? '+' : '') + delta + ' (old: ' + oldBal + ' → new: ' + newBal + ') | Reason: ' + coinReason.trim()
+          );
+        }
+        setSearchResult({ ...searchResult, currency: newBal });
+        setShowCoinForm(false); setCoinAmount(''); setCoinReason('');
+        onNotification('✅ ' + (lang === 'ar' ? 'تم تعديل الرصيد' : 'Balance updated: ' + (delta >= 0 ? '+' : '') + delta));
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+      setProcessing(false);
+    };
+
+    // ── VIP grant / revoke (ADMIN + OWNER) ──────────────────────────────
+    var handleVipGrant = async () => {
+      var dur = parseInt(vipDuration, 10);
+      if (!searchResult || processing || !dur || dur <= 0) return;
+      setProcessing(true);
+      try {
+        var ms = vipUnit === 'h' ? dur * 36e5 : dur * 864e5;
+        var expiresAt = firebase.firestore.Timestamp.fromMillis(Date.now() + ms);
+        await usersCollection.doc(searchResult.id).update({
+          vip: {
+            level: parseInt(vipLevel, 10),
+            expiresAt: expiresAt,
+            grantedBy: currentUser.uid,
+            grantedByName: currentUserData?.displayName || 'Staff',
+            grantedAt: TS()
+          }
+        });
+        if (window.logStaffAction) {
+          await window.logStaffAction(
+            currentUser.uid, currentUserData?.displayName,
+            'GRANT_VIP', searchResult.id, searchResult.displayName,
+            'VIP' + vipLevel + ' for ' + dur + vipUnit
+          );
+        }
+        setSearchResult({ ...searchResult, vip: { level: parseInt(vipLevel, 10), expiresAt: expiresAt } });
+        setShowVipForm(false);
+        onNotification('👑 ' + (lang === 'ar' ? 'تم منح VIP' : 'VIP granted'));
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+      setProcessing(false);
+    };
+
+    var handleVipRevoke = async () => {
+      if (!searchResult || processing) return;
+      setProcessing(true);
+      try {
+        await usersCollection.doc(searchResult.id).update({
+          vip: { level: 0, expiresAt: null, revokedBy: currentUser.uid, revokedAt: TS() }
+        });
+        if (window.logStaffAction) {
+          await window.logStaffAction(
+            currentUser.uid, currentUserData?.displayName,
+            'REVOKE_VIP', searchResult.id, searchResult.displayName, 'VIP revoked via Admin Panel'
+          );
+        }
+        setSearchResult({ ...searchResult, vip: { level: 0, expiresAt: null } });
+        onNotification('✅ ' + (lang === 'ar' ? 'تم سحب VIP' : 'VIP revoked'));
+      } catch (e) { onNotification('❌ Error: ' + e.message); }
+      setProcessing(false);
+    };
+
+    // ── Ban appeal escalation (MODERATOR path — no unban rights) ────────
+    var handleEscalateAppeal = async () => {
+      if (!searchResult || processing || !appealNote.trim()) return;
+      setProcessing(true);
+      try {
+        await ticketsCollection.add({
+          type: 'ban_appeal',
+          status: 'open',
+          escalated: true,
+          targetUid: searchResult.id,
+          targetName: searchResult.displayName || '',
+          banReason: searchResult.ban?.reason || '',
+          note: appealNote.trim(),
+          createdBy: currentUser.uid,
+          createdByName: currentUserData?.displayName || 'Moderator',
+          createdAt: TS()
+        });
+        if (window.logStaffAction) {
+          await window.logStaffAction(
+            currentUser.uid, currentUserData?.displayName,
+            'ESCALATE_BAN_APPEAL', searchResult.id, searchResult.displayName,
+            'Note: ' + appealNote.trim()
+          );
+        }
+        setAppealNote('');
+        onNotification('⏫ ' + (lang === 'ar' ? 'تم ترقية طلب الاستئناف للإدارة' : 'Appeal escalated to Admin/Owner'));
       } catch (e) { onNotification('❌ Error: ' + e.message); }
       setProcessing(false);
     };
@@ -213,20 +359,36 @@
         React.createElement('div', { style: { padding: '12px', borderRadius: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '12px' } },
           React.createElement('div', { style: { fontSize: '11px', color: '#ef4444', fontWeight: 700 } }, '⛔ ', lang === 'ar' ? 'هذا المستخدم محظور!' : 'User is Banned!'),
           React.createElement('div', { style: { fontSize: '10px', color: '#6b7280', marginTop: '4px' } }, lang === 'ar' ? 'السبب:' : 'Reason:', ' ', searchResult.ban.reason),
-          isOwner &&
+
+          /* Unban — ADMIN + OWNER only (server-side enforced too) */
+          isAdminPlus &&
           React.createElement('button', { onClick: handleUnban, disabled: processing, className: 'btn-neon', style: { marginTop: '10px', width: '100%', padding: '8px', minHeight: '44px' } },
             processing ? '⏳' : '✅ ' + (lang === 'ar' ? 'رفع الحظر' : 'Unban User')
+          ),
+
+          /* Moderator: cannot unban — escalate the appeal instead */
+          myRole === 'moderator' &&
+          React.createElement('div', { style: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' } },
+            React.createElement('div', { style: { fontSize: '10px', color: '#f59e0b', fontWeight: 700 } },
+              '⏫ ', lang === 'ar' ? 'لا تملك صلاحية رفع الحظر — يمكنك ترقية الاستئناف للإدارة' : 'No unban permission — escalate this appeal to an Admin/Owner'),
+            React.createElement('input', { className: 'input-dark', placeholder: lang === 'ar' ? 'ملاحظة حول استئناف المستخدم...' : 'Note about the user\'s appeal...',
+              value: appealNote, onChange: (e) => setAppealNote(e.target.value),
+              style: { padding: '9px', borderRadius: '8px', fontSize: '12px', width: '100%', minHeight: '44px' } }),
+            React.createElement('button', { onClick: handleEscalateAppeal, disabled: processing || !appealNote.trim(),
+              style: { padding: '8px', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.35)', background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontSize: '12px', fontWeight: 700, cursor: appealNote.trim() ? 'pointer' : 'not-allowed', minHeight: '44px' } },
+              '⏫ ' + (lang === 'ar' ? 'ترقية طلب رفع الحظر' : 'Escalate Ban Appeal'))
           )
         ) :
         React.createElement('div', { style: { fontSize: '11px', color: '#10b981', textAlign: 'center', marginBottom: '12px' } }, '🟢 ', lang === 'ar' ? 'حساب نشط ومفعل' : 'Active Account'),
 
-        /* Owner actions — Ban + Verify */
-        isOwner && !searchResult.ban?.isBanned &&
+        /* Staff actions — Ban (mod+admin+owner), Verify (owner) */
+        isStaff && !searchResult.ban?.isBanned &&
         searchResult.id !== window.OWNER_UID && searchResult.uid !== window.OWNER_UID &&
         React.createElement('div', { style: { borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '14px' } },
 
-          /* Verify Account button */
-          searchResult.verified
+          /* Verify Account button (OWNER-only) */
+          isOwner &&
+          (searchResult.verified
           ? React.createElement('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '10px', background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.25)', color: '#10b981', fontSize: '12px', fontWeight: 700, marginBottom: '10px' } },
               '✅ ', lang === 'ar' ? 'موثّق بالفعل' : 'Already Verified'
             )
@@ -235,9 +397,74 @@
               style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(16,185,129,0.3)',
                 background: 'rgba(16,185,129,0.07)', color: '#10b981', fontSize: '12px', fontWeight: 700,
                 cursor: 'pointer', marginBottom: '10px', minHeight: '44px' }
-            }, processing ? '⏳' : '✅ ' + (lang === 'ar' ? 'توثيق الحساب' : 'Verify Account')),
+            }, processing ? '⏳' : '✅ ' + (lang === 'ar' ? 'توثيق الحساب' : 'Verify Account'))),
 
-          /* Ban toggle button */
+          /* Currency adjustment (OWNER-only) */
+          isOwner &&
+          React.createElement('div', { style: { marginBottom: '10px' } },
+            React.createElement('button', {
+              onClick: () => setShowCoinForm(!showCoinForm),
+              style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.3)',
+                background: showCoinForm ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.07)',
+                color: '#f59e0b', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }
+            }, (showCoinForm ? '✕ ' : '💰 ') + (lang === 'ar' ? 'تعديل الرصيد (مالك فقط)' : 'Adjust Balance (Owner only)')),
+            showCoinForm &&
+            React.createElement('div', { className: 'admin-form-stack', style: { background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' } },
+              React.createElement('div', { style: { display: 'flex', gap: '8px' } },
+                React.createElement('select', { value: coinMode, onChange: (e) => setCoinMode(e.target.value),
+                  style: { flex: 1, padding: '9px', borderRadius: '8px', fontSize: '12px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', minHeight: '44px' } },
+                  React.createElement('option', { value: 'add', style: { background: '#1e293b' } }, '➕ ' + (lang === 'ar' ? 'إضافة' : 'Add')),
+                  React.createElement('option', { value: 'remove', style: { background: '#1e293b' } }, '➖ ' + (lang === 'ar' ? 'خصم' : 'Remove'))
+                ),
+                React.createElement('input', { className: 'input-dark', type: 'number', min: '1', placeholder: lang === 'ar' ? 'الكمية' : 'Amount',
+                  value: coinAmount, onChange: (e) => setCoinAmount(e.target.value),
+                  style: { flex: 2, padding: '9px', borderRadius: '8px', fontSize: '12px', minHeight: '44px' } })
+              ),
+              React.createElement('input', { className: 'input-dark', placeholder: lang === 'ar' ? 'السبب (يُسجَّل في سجل التدقيق)...' : 'Reason (written to audit log)...',
+                value: coinReason, onChange: (e) => setCoinReason(e.target.value),
+                style: { padding: '9px', borderRadius: '8px', fontSize: '12px', width: '100%', minHeight: '44px' } }),
+              React.createElement('button', { onClick: handleCoinAdjust, disabled: processing || !parseInt(coinAmount, 10) || !coinReason.trim(),
+                style: { padding: '9px', borderRadius: '8px', background: processing ? '#374151' : '#f59e0b', color: 'white', fontSize: '12px', fontWeight: 700, border: 'none', cursor: coinReason.trim() && parseInt(coinAmount, 10) ? 'pointer' : 'not-allowed', minHeight: '44px' } },
+                processing ? '⏳' : '💰 ' + (lang === 'ar' ? 'تطبيق التعديل' : 'Apply Adjustment'))
+            )
+          ),
+
+          /* VIP grant / revoke (ADMIN + OWNER) */
+          isAdminPlus &&
+          React.createElement('div', { style: { marginBottom: '10px' } },
+            (searchResult.vip?.level || 0) > 0 ?
+            React.createElement('button', { onClick: handleVipRevoke, disabled: processing,
+              style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.35)', background: 'rgba(139,92,246,0.1)', color: '#a78bfa', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' } },
+              '👑 ' + (lang === 'ar' ? 'سحب VIP' : 'Revoke VIP') + ' (' + searchResult.vip.level + ')')
+            : React.createElement('button', {
+              onClick: () => setShowVipForm(!showVipForm),
+              style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.3)',
+                background: showVipForm ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.07)',
+                color: '#a78bfa', fontSize: '12px', fontWeight: 700, cursor: 'pointer', minHeight: '44px' }
+            }, (showVipForm ? '✕ ' : '👑 ') + (lang === 'ar' ? 'منح VIP' : 'Grant VIP')),
+            showVipForm && (searchResult.vip?.level || 0) === 0 &&
+            React.createElement('div', { className: 'admin-form-stack', style: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' } },
+              React.createElement('div', { style: { display: 'flex', gap: '8px' } },
+                React.createElement('select', { value: vipLevel, onChange: (e) => setVipLevel(e.target.value),
+                  style: { flex: 1, padding: '9px', borderRadius: '8px', fontSize: '12px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', minHeight: '44px' } },
+                  [1,2,3,4,5,6,7,8,9,10].map((n) => React.createElement('option', { key: n, value: String(n), style: { background: '#1e293b' } }, 'VIP ' + n))
+                ),
+                React.createElement('input', { className: 'input-dark', type: 'number', min: '1', placeholder: lang === 'ar' ? 'المدة' : 'Duration',
+                  value: vipDuration, onChange: (e) => setVipDuration(e.target.value),
+                  style: { flex: 1, padding: '9px', borderRadius: '8px', fontSize: '12px', minHeight: '44px' } }),
+                React.createElement('select', { value: vipUnit, onChange: (e) => setVipUnit(e.target.value),
+                  style: { flex: 1, padding: '9px', borderRadius: '8px', fontSize: '12px', background: '#1e293b', color: '#e5e7eb', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', minHeight: '44px' } },
+                  React.createElement('option', { value: 'h', style: { background: '#1e293b' } }, lang === 'ar' ? 'ساعة' : 'Hours'),
+                  React.createElement('option', { value: 'd', style: { background: '#1e293b' } }, lang === 'ar' ? 'يوم' : 'Days')
+                )
+              ),
+              React.createElement('button', { onClick: handleVipGrant, disabled: processing || !parseInt(vipDuration, 10),
+                style: { padding: '9px', borderRadius: '8px', background: processing ? '#374151' : '#8b5cf6', color: 'white', fontSize: '12px', fontWeight: 700, border: 'none', cursor: parseInt(vipDuration, 10) ? 'pointer' : 'not-allowed', minHeight: '44px' } },
+                processing ? '⏳' : '👑 ' + (lang === 'ar' ? 'منح عضوية VIP' : 'Grant VIP'))
+            )
+          ),
+
+          /* Ban toggle button (all staff) */
           React.createElement('button', {
             onClick: () => setShowBanForm(!showBanForm),
             style: { width: '100%', padding: '9px', borderRadius: '10px', border: '1px solid rgba(239,68,68,0.3)',
@@ -256,7 +483,9 @@
               React.createElement('option', { value: 'permanent', style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'دائم' : 'Permanent'),
               React.createElement('option', { value: '7d',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? '7 أيام' : '7 Days'),
               React.createElement('option', { value: '3d',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? '3 أيام' : '3 Days'),
-              React.createElement('option', { value: '1d',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'يوم واحد' : '1 Day')
+              React.createElement('option', { value: '1d',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'يوم واحد' : '1 Day'),
+              React.createElement('option', { value: '12h',        style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? '12 ساعة' : '12 Hours'),
+              React.createElement('option', { value: '1h',         style: { background: '#1e293b', color: '#e5e7eb' } }, lang === 'ar' ? 'ساعة واحدة' : '1 Hour')
             ),
             React.createElement('button', {
               onClick: handleBan, disabled: processing || !banReason.trim(),
