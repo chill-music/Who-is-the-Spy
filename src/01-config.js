@@ -1251,6 +1251,28 @@ window.TamperGuard = (function () {
         }
     }
 
+    /* ---- LIVE BAN: users.ban is the SINGLE SOURCE OF TRUTH ----
+       Historical fields (reason/reasonAr/bannedBy/tamperOffenseNumber)
+       NEVER imply an active ban. Only ban.isBanned === true does, and a
+       temporary ban auto-expires the moment expiresAt passes. */
+    function _msOf(ts) {
+        if (!ts) return null;
+        if (typeof ts.toMillis === 'function') return ts.toMillis();
+        if (typeof ts === 'number') return ts;
+        var t = new Date(ts).getTime();
+        return isNaN(t) ? null : t;
+    }
+    function _liveBanObj() {
+        var d = window._currentUserDataCache;
+        return (d && d.ban) ? d.ban : null;
+    }
+    function _banObjActive(b) {
+        if (!b || b.isBanned !== true) return false;
+        var exp = _msOf(b.expiresAt);
+        if (exp !== null && exp <= Date.now()) return false; // expired → free
+        return true;
+    }
+
     /* R-9 v2: language resolution mirrors the app's own mechanism:
        1. live account snapshot (window._currentUserDataCache.lang)
        2. the user doc's lang field (set at onboarding / settings)
@@ -1525,24 +1547,38 @@ window.TamperGuard = (function () {
             });
             docs.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
             _offenses = docs;
-            var n = docs.length;
-            if (n === 0) { _activeBan = { active: false }; return _activeBan; }
-            var lad = _ladderFor(n);
-            var lastAt = docs[0].at || 0;
-            var active = lad.permanent ? true : (Date.now() < lastAt + lad.ms);
-            _activeBan = { active: active, permanent: lad.permanent, until: lad.permanent ? null : lastAt + lad.ms, count: n };
-            return _activeBan;
+            /* OFFENSE TRAIL = history + escalation COUNT only.
+               It must NEVER drive the live gate — users.ban is the single
+               source of truth (see getActiveBanSync). Deriving activity here
+               previously kept users locked out even after isBanned=false. */
+            return { count: docs.length };
         }).catch(function () { return null; });
     }
 
     function getActiveBanSync() {
-        if (_activeBan) return _activeBan;
+        var liveObj = _liveBanObj();
+        if (!_banObjActive(liveObj)) {
+            // users.ban is the single source of truth: not banned, or a
+            // temporary ban whose expiresAt has passed → purge every local
+            // lock (memory + sessionStorage) so access is restored instantly.
+            _activeBan = { active: false };
+            try { sessionStorage.removeItem('pro_spy_tamper_banned'); } catch (e) {}
+            return null;
+        }
+        if (_activeBan && _activeBan.active) return _activeBan;
         try {
             var s = sessionStorage.getItem('pro_spy_tamper_banned');
             if (s) { var v = JSON.parse(s); if (v && v.active) return v; }
         } catch (e) {}
-        refreshOffenses(); // async recompute for next render
-        return null;
+        // Fresh reload while banned: derive the view from the LIVE doc itself.
+        // Language resolves from the same snapshot (lang_ar → _cacheMe), so
+        // the screen is correct from frame #1 with no async gap.
+        return {
+            active: true,
+            permanent: !!liveObj.permanent,
+            until: _msOf(liveObj.expiresAt),
+            count: liveObj.tamperOffenseNumber || 1
+        };
     }
 
     function renderBanScreen(ban) {
