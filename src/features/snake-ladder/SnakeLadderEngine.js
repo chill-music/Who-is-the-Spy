@@ -41,15 +41,23 @@ class SnakeLadderEngine {
 
     /**
      * Executes a turn for the current player
+     * @param {number} [explicitRoll] - T-S1: verified dice value (1-6) derived
+     *        from the commit-reveal server timestamp (online mode). When omitted
+     *        (offline/local rooms only), falls back to local randomness.
      * @returns {Object} Action results for animation
      */
-    async executeTurn() {
+    async executeTurn(explicitRoll) {
         if (this.status !== 'playing') return null;
 
         const player = this.players[this.currentTurnIndex];
         if (player.isFinished) return this.nextTurn();
 
-        const rollResult = Math.floor(Math.random() * 6) + 1;
+        // T-S1 (S-BUG-2): online rolls MUST be passed in by the caller, derived
+        // from a Firestore server timestamp via SnakeLadderFair.deriveRoll().
+        // Local Math.random remains ONLY for offline/pass-and-play rooms.
+        const rollResult = (explicitRoll >= 1 && explicitRoll <= 6)
+            ? Math.floor(explicitRoll)
+            : Math.floor(Math.random() * 6) + 1;
         const oldPos = player.position;
         let newPos = oldPos + rollResult;
         let bonusTurn = false;
@@ -117,10 +125,16 @@ class SnakeLadderEngine {
 
         this.lastAction = { ...result, timestamp: Date.now() };
 
+        /* T-S1 FIX (S-BUG-1): the old code set result.isDoubleTurn = true when
+           the turn PASSED to the next player — inverted semantics that broke
+           any consumer keying off it. Corrected: isDoubleTurn/isBonusTurn are
+           true ONLY when the current player earned an extra roll (6, capture,
+           or starting). */
         if (!bonusTurn) {
             this.nextTurn();
-            result.isDoubleTurn = true;
         }
+        result.isBonusTurn = bonusTurn;
+        result.isDoubleTurn = bonusTurn;
 
         return result;
     }

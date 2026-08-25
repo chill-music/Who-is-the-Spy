@@ -5,6 +5,34 @@
  */
 
 (function() {
+    /* ════════════════════════════════════════════════════════════════
+       T-S1: COMMIT-REVEAL FAIRNESS (same primitive as Greedy Cat R-4)
+       A roll is derived from hash(roomId#turnKey#serverTimestampMs).
+       The timestamp is assigned BY FIRESTORE after the roll request is
+       committed — no client can choose, bias, or predict it, and every
+       client can re-derive the same dice value from the recorded inputs.
+       ════════════════════════════════════════════════════════════════ */
+    function _fnv1a(str) {
+        var h = 0x811c9dc5;
+        for (var i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 0x01000193);
+        }
+        return h >>> 0;
+    }
+
+    /* Unbiased 1..6 from a 32-bit hash via rejection sampling. */
+    function deriveRoll(roomId, turnKey, revealMs) {
+        var salted = String(roomId) + '#' + String(turnKey) + '#' + String(revealMs);
+        var limit = Math.floor(4294967296 / 6) * 6;
+        var c = 0, h;
+        do { h = _fnv1a(salted + '|' + (c++)); } while (h >= limit && c < 64);
+        return (h % 6) + 1;
+    }
+
+    /* Exposed for verification UI / tests: anyone can recompute a recorded roll. */
+    window.SnakeLadderFair = { fnv1a: _fnv1a, deriveRoll: deriveRoll };
+
     class SnakeLadderService {
         constructor() {
             this.roomRef = null;
@@ -49,27 +77,65 @@
         }
 
         /**
+         * T-S1: Commits a server timestamp for the current roll request and
+         * returns its millisecond value. Called BEFORE the dice is derived —
+         * the acting client cannot know the value it is committing to.
+         * @param {string} turnKey - unique per-roll key (recorded for audit)
+         * @returns {Promise<number>} reveal timestamp in milliseconds
+         */
+        async commitRollReveal(turnKey) {
+            if (!this.roomRef) return null;
+            await this.roomRef.update({
+                lastRollCommitKey: String(turnKey),
+                lastRollCommitTs: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // Read back the SERVER-assigned value (bypass local cache)
+            const snap = await this.roomRef.get({ source: 'server' });
+            const ts = snap.data()?.lastRollCommitTs;
+            const ms = ts && typeof ts.toMillis === 'function' ? ts.toMillis()
+                     : (typeof ts === 'number' ? ts : Date.now());
+            return ms;
+        }
+
+        /**
          * Submits a move action to Firestore.
          * Authoritative player (turn owner) sends the action.
+         * @param {Object|null} rollCommit - T-S1 audit record {key, revealMs}
          */
-        async submitMove(diceRoll, newPositions, nextTurnIndex, resultSequence = [], startPos = 0) {
+        async submitMove(diceRoll, newPositions, nextTurnIndex, resultSequence = [], startPos = 0, rollCommit = null) {
             if (!this.roomRef) return;
 
             try {
-                await this.roomRef.update({
+                const update = {
                     lastAction: {
                         type: 'move',
                         playerUid: firebase.auth().currentUser.uid,
                         roll: diceRoll,
                         sequence: resultSequence,
                         startPos: startPos,
+                        // T-S1: verification inputs — any client can recompute
+                        // SnakeLadderFair.deriveRoll(roomId, key, revealMs)
+                        // and MUST get the same dice value.
+                        rollCommit: rollCommit || null,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     },
                     playerPositions: newPositions, // Map of uid -> position
                     currentTurnIndex: nextTurnIndex,
                     turnStartTime: Date.now(),
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                };
+                // T-S1: append-only per-roll audit trail (roomId#key#ts → roll)
+                if (rollCommit) {
+                    update.rollsLog = firebase.firestore.FieldValue.arrayUnion({
+                        key: rollCommit.key,
+                        revealMs: rollCommit.revealMs,
+                        roll: diceRoll,
+                        by: firebase.auth().currentUser.uid,
+                        at: Date.now()
+                    });
+                }
+                await this.roomRef.update(update);
             } catch (err) {
                 console.error(`[SNL-Service] Failed to submit move:`, err);
             }

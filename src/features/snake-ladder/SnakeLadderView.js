@@ -365,7 +365,28 @@
             }, 80);
 
             // Execute locally in engine
-            const result = await engine.executeTurn();
+            /* T-S1 COMMIT-REVEAL: online rolls derive from a Firestore SERVER
+               timestamp committed BEFORE derivation (SnakeLadderFair), so no
+               client — including the roller — can bias or predict the dice.
+               Offline rooms (no Firestore ref) keep local randomness. The
+               commit round-trip overlaps with the dice jitter animation. */
+            let committedRoll = null;
+            let rollCommit = null;
+            if (service.roomRef) {
+                try {
+                    const turnKey = 't' + roomData.currentTurnIndex + '_' + Date.now() + '_' +
+                        Math.random().toString(36).slice(2, 8);
+                    const revealMs = await service.commitRollReveal(turnKey);
+                    committedRoll = window.SnakeLadderFair.deriveRoll(service.roomRef.id, turnKey, revealMs);
+                    rollCommit = { key: turnKey, revealMs: revealMs };
+                } catch (e) {
+                    console.warn('[SNL] Roll commit failed — aborting turn for fairness:', e);
+                    clearInterval(jitterInterval);
+                    setIsRolling(false);
+                    return;
+                }
+            }
+            const result = await engine.executeTurn(committedRoll || undefined);
             
             setTimeout(async () => {
                 setDiceValue(result.roll);
@@ -381,7 +402,8 @@
                     Object.fromEntries(newState.players.map(p => [p.uid, p.position])), 
                     newState.currentTurnIndex,
                     result.sequence,
-                    playerStartPos
+                    playerStartPos,
+                    rollCommit
                 );
                 
                 await playActionSequence(result.sequence, result.playerUid, playerStartPos);
