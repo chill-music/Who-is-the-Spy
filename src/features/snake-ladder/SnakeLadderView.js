@@ -927,7 +927,7 @@ const [pot, setPot] = useState(0);
                             key: tier,
                             onClick: () => setSelectedBetTier(tier),
                             className: `w-14 h-8 rounded-full relative transition-all duration-300 ${selectedBetTier === tier ? 'bg-[#10b981]/40' : 'bg-black/30'}`,
-                            style: { border: `1px solid ${selectedBetTier === tier ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.1)'} }
+                            style: { border: `1px solid ${selectedBetTier === tier ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.1)'}` }
                         }, tier)),
                         el('div', { className: 'text-[10px] text-white/40' }, lang === 'ar' ? '10=ضعيف | 20=معتدل | 50=كبير' : '10=Low | 20=Medium | 50=High')
                     ),
