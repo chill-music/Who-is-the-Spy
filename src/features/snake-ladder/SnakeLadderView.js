@@ -996,11 +996,12 @@ const [pot, setPot] = useState(0);
                 timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
                 read: false
             });
+            var unreadKey = 'unread.' + friend.uid;
             await chatsRef.doc(chatId).set({
                 members: [user.uid, friend.uid],
                 lastMessage: '🐍 Snake & Ladder Invitation',
                 timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                [`unread.${friend.uid}`]: window.firebase.firestore.FieldValue.increment(1)
+                [unreadKey]: window.firebase.firestore.FieldValue.increment(1)
             }, { merge: true });
             
             setSentTo(prev => ({ ...prev, [friend.uid]: true }));
