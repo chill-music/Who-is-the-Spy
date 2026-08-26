@@ -1047,11 +1047,9 @@ const [pot, setPot] = useState(0);
                         el('button', {
                             onClick: () => sendInvite(f),
                             disabled: !!sentTo[f.uid],
-                            className: `px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                sentTo[f.uid]
-                                    ? 'bg-[rgba(16,185,129,0.15)] text-[#10b981] cursor-default'
-                                    : 'bg-[#10b981] text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] active:scale-95 cursor-pointer'
-                            }`
+                            className: 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ' + (sentTo[f.uid]
+                                ? 'bg-[rgba(16,185,129,0.15)] text-[#10b981] cursor-default'
+                                : 'bg-[#10b981] text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] active:scale-95 cursor-pointer')
                         }, sentTo[f.uid] ? (lang === 'ar' ? '✓ تم' : '✓ Sent') : (lang === 'ar' ? 'دعوة' : 'Invite'))
                     ))
                 )
