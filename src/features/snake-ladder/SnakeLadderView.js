@@ -985,7 +985,7 @@ const [pot, setPot] = useState(0);
             
             await msgRef.set({
                 type: 'snl_room_invite',
-                text: `🐍 ${user.displayName || 'A friend'} invites you to play Snake & Ladder Pro!`,
+                text: '🐍 ' + (user.displayName || 'A friend') + ' invites you to play Snake & Ladder Pro!',
                 roomId: room.id || room.roomId,
                 roomCode: room.id || room.roomId,
                 isPrivate: room.isPrivate || false,
