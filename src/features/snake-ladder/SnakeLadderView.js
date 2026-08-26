@@ -660,7 +660,9 @@ const [pot, setPot] = useState(0);
                 settings: audioRef.current,
                 lang, t,
                 onClose: () => setShowSettingsModal(false),
-                onUpdate: updateAudioSettings
+                onUpdate: updateAudioSettings,
+                selectedBetTier,
+                setSelectedBetTier
             }),
 
             // Playground (10x10 Grid)
@@ -846,7 +848,7 @@ const [pot, setPot] = useState(0);
     window.SnakeLadderView = SnakeLadderView;
 
     // ── Settings Modal ───────────────────────────────────────────────────────
-    const SNLSettingsModal = ({ settings, lang, t, onClose, onUpdate }) => {
+    const SNLSettingsModal = ({ settings, lang, t, onClose, onUpdate, selectedBetTier, setSelectedBetTier }) => {
         const el = React.createElement;
         const [mVol, setMVol] = React.useState(settings.bgmVolume);
         const [sVol, setSVol] = React.useState(settings.sfxVolume);
