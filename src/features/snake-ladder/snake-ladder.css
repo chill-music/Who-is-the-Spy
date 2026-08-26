@@ -4,6 +4,16 @@
    - All assets relative to /icos/snake-ladder/ or /audio/snake-ladder/
    ============================================================ */
 
+:root {
+    --snl-bg: #0a0a1a;
+    --snl-bg-subtle: #111827;
+    --snl-accent: #06fffc;
+    --snl-accent2: #bc09e1;
+    --snl-card: rgba(10,10,26,0.6);
+    --snl-text: #e2e8f0;
+    --snl-muted: #64748b;
+}
+
 #snl-game-container {
     position: relative;
     width: 100%;
@@ -13,7 +23,7 @@
     font-family: inherit;
     color: #fff;
     user-select: none;
-    background-image: url("/icos/snake-ladder/garden.jpg");
+    background: var(--snl-bg);
     background-size: cover;
     background-position: center;
     display: flex;
@@ -269,7 +279,9 @@
     box-shadow: 0 4px 0 rgba(0,0,0,0.3);
     transition: all 0.2s;
     cursor: default;
-    overflow: hidden;
+    /* T-SP2: overflow visible so the tumbling 3D cube can hop slightly
+       outside the frame mid-roll without being clipped */
+    overflow: visible;
 }
 
 .snl-dice-box.clickable {
@@ -281,18 +293,50 @@
     box-shadow: 0 2px 0 rgba(0,0,0,0.3);
 }
 
-/* The inner .snl-dice-visual carries the actual sprite */
-.snl-dice-visual {
+/* ── T-SP2: 3D DICE — real cube, tumble/bounce/settle ───────────────
+   Each cube face shows one value from the original dice.webp sprite row
+   (DICE_OFFSETS positions X at background-position-y 110px, unchanged). */
+.snl-dice-scene {
     width: 50px;
     height: 50px;
+    perspective: 240px;      /* depth for the cube faces */
+}
+
+.snl-dice-3d {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    /* Springy settle onto the final face (overshoot = bounce feel) */
+    transition: transform 0.3s cubic-bezier(0.2, 1.5, 0.45, 1);
+}
+
+.snl-dice-3d.rolling {
+    animation: snl-dice-tumble 0.95s cubic-bezier(0.35, 0.1, 0.3, 1);
+}
+
+.snl-dice-face {
+    position: absolute;
+    inset: 0;
     background-image: url("/icos/snake-ladder/dice.webp");
-    background-size: 396px;         /* exactly as original */
-    background-position-y: 110px;   /* exactly as original: background-position: Xpx 110px */
-    /* NOTE: background-repeat intentionally left as default (repeat) — the
-       DICE_OFFSETS values (380, 318, …) use CSS tiling math, same as the
-       original game. Removing repeat breaks sprite positioning. */
+    background-size: 396px;
+    background-position-y: 110px;
     border-radius: 4px;
-    transition: background-position-x 0.15s ease-out;
+    backface-visibility: hidden;
+}
+
+/* Tumble: multi-axis spins with two translate hops (bounce arc),
+   decelerating into the settle transition. Final frame ends at a full
+   identity-equivalent rotation (720 / -1080 ≡ 0 / 0) so the handoff to
+   the resting cube orientation is seamless — no visible snap. */
+@keyframes snl-dice-tumble {
+    0%   { transform: translate3d(0, 0, 0)       rotateX(0deg)    rotateY(0deg); }
+    18%  { transform: translate3d(5px, -13px, 0) rotateX(150deg)  rotateY(-190deg); }
+    36%  { transform: translate3d(-6px, -3px, 0) rotateX(300deg)  rotateY(-370deg); }
+    54%  { transform: translate3d(4px, -9px, 0)  rotateX(460deg)  rotateY(-540deg); }
+    72%  { transform: translate3d(-3px, -4px, 0) rotateX(610deg)  rotateY(-720deg); }
+    88%  { transform: translate3d(1px, -1px, 0)  rotateX(690deg)  rotateY(-940deg); }
+    100% { transform: translate3d(0, 0, 0)       rotateX(720deg)  rotateY(-1080deg); }
 }
 
 /* Win Podium Overlay */
@@ -352,7 +396,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url("/icos/snake-ladder/garden.jpg");
+    background: var(--snl-bg);
     background-size: cover;
     background-position: center;
     opacity: 0.08;
@@ -647,4 +691,21 @@
     border-radius: 50%;
     font-family: inherit;
     letter-spacing: 0.5px;
+}
+
+@media (max-width: 640px) {
+    .snl-player {
+        width: 40px;
+        height: 40px;
+        transform: translate(-50%, -50%) scale(0.7);
+    }
+    .snl-player-name {
+        font-size: 9px;
+        padding: 1px 4px;
+        top: -20px;
+    }
+    .snl-dice-box {
+        width: 40px;
+        height: 40px;
+    }
 }

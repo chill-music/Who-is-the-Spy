@@ -60,7 +60,9 @@
     { id: 'crash_game', nameAr: 'صاروخ الحظ', nameEn: 'Rocket Crash', emoji: '🚀', active: true, gradient: 'linear-gradient(135deg,#4A00E0,#8E2DE2)', glowColor: 'rgba(142,45,226,0.5)' },
     { id: 'game5', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '🎯', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' },
     { id: 'game6', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '🏆', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' },
-    { id: 'game7', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '⚡', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' }];
+    { id: 'game7', nameAr: 'قريباً', nameEn: 'Coming Soon', emoji: '⚡', active: false, gradient: 'linear-gradient(135deg,#1a1a2e,#16213e)', glowColor: 'rgba(255,255,255,0.05)' },
+    { id: 'crown_dice', nameAr: 'نرد التاج', nameEn: 'Crown Dice', emoji: '♔', active: true, gradient: 'linear-gradient(135deg,#9b27b0,#c2185b)', glowColor: 'rgba(155,39,179,0.5)' },
+    { id: 'phoenix_wheel', nameAr: 'عجلة فينيكس', nameEn: 'Phoenix Wheel', emoji: '🔥', active: true, gradient: 'linear-gradient(135deg,#ff6b6b,#ee5a24)', glowColor: 'rgba(255,107,107,0.5)' }];
 
 
   /* ── Single Game Slot Card ── */
@@ -243,7 +245,45 @@
       } else {
         if (window.Super777Game) { try { window.Super777Game.stop(); } catch (e) { } }
       }
-    }, [activeGame]);
+    }, [activeGame]),
+
+    /* Start / stop Crown Dice when activeGame changes */
+    useEffect(function () {
+      if (activeGame === 'crown_dice') {
+        var timer5 = setTimeout(function () {
+          if (window.CrownDiceGame && gameContainerRef.current) {
+            window.cdGameUserData = props.userData || null;
+            window.currentUserData = props.userData || null;
+            window.CrownDiceGame.start(gameContainerRef.current, { lang: lang });
+            if (lang && typeof window.CrownDiceGame.setLanguage === 'function') {
+              window.CrownDiceGame.setLanguage(lang);
+            }
+          }
+        }, 80);
+        return function () { clearTimeout(timer5); };
+      } else {
+        if (window.CrownDiceGame) { try { window.CrownDiceGame.stop(); } catch (e) { } }
+      }
+    }, [activeGame]),
+
+    /* Start / stop Phoenix Wheel when activeGame changes */
+    useEffect(function () {
+      if (activeGame === 'phoenix_wheel') {
+        var timer6 = setTimeout(function () {
+          if (window.PhoenixWheelGame && gameContainerRef.current) {
+            window.pwGameUserData = props.userData || null;
+            window.currentUserData = props.userData || null;
+            window.PhoenixWheelGame.start(gameContainerRef.current, { lang: lang });
+            if (lang && typeof window.PhoenixWheelGame.setLanguage === 'function') {
+              window.PhoenixWheelGame.setLanguage(lang);
+            }
+          }
+        }, 80);
+        return function () { clearTimeout(timer6); };
+      } else {
+        if (window.PhoenixWheelGame) { try { window.PhoenixWheelGame.stop(); } catch (e) { } }
+      }
+    }, [activeGame]),
 
     /* Start / stop Greedy Cat when activeGame changes */
     useEffect(function () {
@@ -423,6 +463,12 @@
                 lang: lang
               })
             ),
+
+            activeGame === 'crown_dice' && window.CrownDiceGame &&
+            React.createElement('div', { id: 'cd-root-hub', style: { width: '100%', minHeight: '60vh', position: 'relative' } }),
+
+            activeGame === 'phoenix_wheel' && window.PhoenixWheelGame &&
+            React.createElement('div', { id: 'pw-root-hub', style: { width: '100%', minHeight: '60vh', position: 'relative' } }),
 
             /* ── GAMES GRID (hub view) ── */
             !activeGame &&

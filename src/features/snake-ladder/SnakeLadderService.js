@@ -343,7 +343,7 @@
          * @param {string} roomId
          * @param {string} gameId
          */
-        async startGame(roomId, gameId) {
+        async startGame(roomId, gameId, stakeTier) {
             let ref = this.roomRef;
 
             if (!ref && roomId) {
@@ -364,15 +364,20 @@
                 const positions = {};
                 players.forEach(p => { positions[p.uid] = 0; });
 
-                await ref.update({
+                // T-S10: store selected stake tier for matchmaking filtering
+                const updateData = {
                     status: 'playing',
                     playerPositions: positions,
                     currentTurnIndex: 0,
                     turnStartTime: Date.now(),
                     startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log(`[SNL-Service] Game started for room ${roomId}`);
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                if (stakeTier) {
+                    updateData.stakeTier = stakeTier;
+                }
+                await ref.update(updateData);
+                console.log(`[SNL-Service] Game started for room ${roomId}` + (stakeTier ? ` with stake tier ${stakeTier}` : ''));
             } catch (err) {
                 console.error(`[SNL-Service] Error starting game:`, err);
             }

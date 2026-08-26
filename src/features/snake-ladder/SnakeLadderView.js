@@ -10,8 +10,23 @@
         const [roomData, setRoomData] = useState(null);
         const [engine, setEngine] = useState(null);
         const [isRolling, setIsRolling] = useState(false);
-        const [diceValue, setDiceValue] = useState(1);
-        const [diceOffset, setDiceOffset] = useState(380); // Default for '1'
+const [diceValue, setDiceValue] = useState(1);
+/* T-SP2: 3D cube orientation per face value [rotateX, rotateY].
+   Cube construction: front=1, right=2, top=3, bottom=4, left=5, back=6
+   (opposite faces sum to 7, like a real die). */
+const DICE_ORIENT = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
+const DICE_FACES = [
+    { v: 1, t: 'translateZ(25px)' },
+    { v: 2, t: 'rotateY(90deg) translateZ(25px)' },
+    { v: 3, t: 'rotateX(90deg) translateZ(25px)' },
+    { v: 4, t: 'rotateX(-90deg) translateZ(25px)' },
+    { v: 5, t: 'rotateY(-90deg) translateZ(25px)' },
+    { v: 6, t: 'rotateY(180deg) translateZ(25px)' }
+];
+/* T-SP9: betting tier state and round pot */
+const BET_TIERS = ['10', '20', '50'];
+const [selectedBetTier, setSelectedBetTier] = useState(null);
+const [pot, setPot] = useState(0);
         const [showMatchmaking, setShowMatchmaking] = useState(!roomId);
         const [viewRoomId, setViewRoomId] = useState(roomId);
         const [showInviteModal, setShowInviteModal] = useState(false);
@@ -150,6 +165,17 @@
         const [animatedPositions, setAnimatedPositions] = useState({});
         const isAnimatingRef = useRef(false);
         const [enteringPlayers, setEnteringPlayers] = useState({}); // { uid: true } when entering
+        /* T-SP1: per-move motion profile — the token CSS transition duration
+           and easing are set to MATCH the sequencer timing for each motion
+           type (hop / snake / ladder / capture), eliminating the choppy
+           catch-up wobble caused by the old fixed 600ms spring. */
+        const [tokenAnim, setTokenAnim] = useState({ dur: 170, ease: 'cubic-bezier(0.3, 0.9, 0.45, 1)' });
+        const TOKEN_MOTION = {
+            hop:     { dur: 170, ease: 'cubic-bezier(0.3, 0.9, 0.45, 1)' },  // snappy ease-out per tile
+            snake:   { dur: 520, ease: 'cubic-bezier(0.65, 0, 0.35, 1)' },   // long glide down
+            ladder:  { dur: 520, ease: 'cubic-bezier(0.22, 1, 0.36, 1)' },   // accelerating climb
+            capture: { dur: 420, ease: 'cubic-bezier(0.55, 0, 0.55, 0.2)' }  // heavy drop
+        };
 
         useEffect(() => {
             if (viewRoomId) {
@@ -232,8 +258,7 @@
             lastActionRef.current = action.timestamp;
 
             if (action.roll) {
-                setDiceValue(action.roll);
-                setDiceOffset(DICE_OFFSETS[action.roll - 1]);
+                setDiceValue(action.roll); // T-SP2: cube orientation derives from diceValue
             }
             if (action.sequence) {
                 await playActionSequence(action.sequence, action.playerUid, action.startPos || 0);
@@ -315,24 +340,30 @@
             for (const step of sequence) {
                 if (step.type === 'move') {
                     playAudio('move.mp3');
+                    /* T-SP1: motion profile matches hop timing — token glides
+                       fluidly tile-to-tile instead of teleport-and-catch-up */
+                    setTokenAnim(TOKEN_MOTION.hop);
                     currentPositions[step.playerUid || targetUid] = step.pos;
                     setAnimatedPositions({ ...currentPositions });
-                    await new Promise(r => setTimeout(r, 200));
+                    await new Promise(r => setTimeout(r, 190));
                 } else if (step.type === 'snake') {
                     playAudio('fall.mp3');
+                    setTokenAnim(TOKEN_MOTION.snake);
                     currentPositions[step.playerUid || targetUid] = step.pos;
                     setAnimatedPositions({ ...currentPositions });
-                    await new Promise(r => setTimeout(r, 400));
+                    await new Promise(r => setTimeout(r, 540));
                 } else if (step.type === 'ladder') {
                     playAudio('rise.mp3');
+                    setTokenAnim(TOKEN_MOTION.ladder);
                     currentPositions[step.playerUid || targetUid] = step.pos;
                     setAnimatedPositions({ ...currentPositions });
-                    await new Promise(r => setTimeout(r, 400));
+                    await new Promise(r => setTimeout(r, 540));
                 } else if (step.type === 'captured') {
                     playAudio('fall.mp3');
+                    setTokenAnim(TOKEN_MOTION.capture);
                     currentPositions[step.targetUid] = step.newPos;
                     setAnimatedPositions({ ...currentPositions });
-                    await new Promise(r => setTimeout(r, 300));
+                    await new Promise(r => setTimeout(r, 440));
                 }
             }
             isAnimatingRef.current = false;
@@ -355,21 +386,39 @@
 
             setIsRolling(true);
             playAudio('roll.mp3');
-            
-            // Dice jitter animation (simulated)
-            let jitterCount = 0;
-            const jitterInterval = setInterval(() => {
-                setDiceOffset(DICE_OFFSETS[Math.floor(Math.random() * 6)]);
-                jitterCount++;
-                if (jitterCount > 10) clearInterval(jitterInterval);
-            }, 80);
+
+            /* T-SP9: place bet — idempotent debit via SecurityService.
+               The key `snl_bet_{roomId}_{tier}` ensures the player is charged
+               only once per tier per room, preventing double-charge on re-rolls. */
+            if (selectedBetTier) {
+                const betAmount = parseInt(selectedBetTier);
+                const idemKey = `snl_bet_${roomData.id}_${selectedBetTier}`;
+                try {
+                    window.SecurityService.applyCurrencyTransaction(
+                        user?.uid,
+                        -betAmount,           // debit (negative amount)
+                        `Snake Ladder Bet ${selectedBetTier}`,
+                        { roomId: roomData.id, tier: selectedBetTier },
+                        { idemKey }
+                    );
+                    // Add to local pot display state (backend tracks real balance)
+                    setPot(prev => prev + betAmount);
+                } catch (e) {
+                    console.warn('[SNL] Bet debit failed:', e);
+                    // Continue without debit — player can still roll
+                }
+            }
+
+            /* T-SP2: the flat jitter loop is gone — `isRolling` now drives the
+               CSS 3D tumble animation (.snl-dice-3d.rolling) which plays a
+               multi-axis bounce/settle arc for the full roll duration. */
 
             // Execute locally in engine
             /* T-S1 COMMIT-REVEAL: online rolls derive from a Firestore SERVER
                timestamp committed BEFORE derivation (SnakeLadderFair), so no
                client — including the roller — can bias or predict the dice.
                Offline rooms (no Firestore ref) keep local randomness. The
-               commit round-trip overlaps with the dice jitter animation. */
+               commit round-trip overlaps with the dice tumble animation. */
             let committedRoll = null;
             let rollCommit = null;
             if (service.roomRef) {
@@ -381,7 +430,6 @@
                     rollCommit = { key: turnKey, revealMs: revealMs };
                 } catch (e) {
                     console.warn('[SNL] Roll commit failed — aborting turn for fairness:', e);
-                    clearInterval(jitterInterval);
                     setIsRolling(false);
                     return;
                 }
@@ -389,9 +437,9 @@
             const result = await engine.executeTurn(committedRoll || undefined);
             
             setTimeout(async () => {
+                // T-SP2: settling — cube tumbles to the orientation of the
+                // rolled face with a springy overshoot bounce
                 setDiceValue(result.roll);
-                // Use original parity logic for background position
-                setDiceOffset(DICE_OFFSETS[result.roll - 1]);
 
                 if (result.roll === 6) playAudio('bonus.mp3');
 
@@ -437,7 +485,10 @@
          */
         const handleStartGame = async () => {
             if (!viewRoomId || !service) return;
-            await service.startGame(viewRoomId, gameId);
+            await service.startGame(viewRoomId, gameId, selectedBetTier);
+            // Reset betting state for new game
+            setSelectedBetTier(null);
+            setPot(0);
         };
 
         /**
@@ -646,7 +697,10 @@
                                     top: `${finalCoords.y}%`,
                                     backgroundPosition: getPieceBgPos(i),
                                     zIndex: (curIdx === i) ? 20 : (10 + overlapIdx),
-                                    transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)', // Snappy spring move
+                                    /* T-SP1: transition ONLY position, with the
+                                       per-move duration/easing from the sequencer
+                                       (was: 'all 0.6s' fighting 200ms steps) */
+                                    transition: `left ${tokenAnim.dur}ms ${tokenAnim.ease}, top ${tokenAnim.dur}ms ${tokenAnim.ease}`,
                                     opacity: (p.left || p.isAFK) ? 0.7 : 1
                                 }
                             }, 
@@ -684,7 +738,7 @@
                                 style: { 
                                     width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', 
                                     marginBottom: '4px', border: curIdx === i ? '2px solid #10b981' : '2px solid rgba(255,255,255,0.1)', 
-                                    borderRadius: '50%', padding: '2px', overflow: 'hidden', background: '#000',
+                                    borderRadius: '50%', padding: '2px', overflow: 'hidden', background: 'rgba(16,185,129,0.08)',
                                     position: 'relative' 
                                 } 
                             },
@@ -741,10 +795,25 @@
                         className: `snl-dice-box ${isMyTurn && !isRolling ? 'clickable' : ''}`,
                         onClick: (isMyTurn && !isRolling) ? handleRoll : null
                     },
-                        el('div', { 
-                            className: 'snl-dice-visual', 
-                            style: { backgroundPositionX: `${diceOffset}px` } 
-                        })
+                        /* T-SP2: real 3D cube — 6 faces from the sprite sheet,
+                           tumbles while rolling, springy settle onto result */
+                        el('div', { className: 'snl-dice-scene' },
+                            el('div', { 
+                                className: `snl-dice-3d ${isRolling ? 'rolling' : ''}`,
+                                style: { 
+                                    transform: `rotateX(${DICE_ORIENT[diceValue][0]}deg) rotateY(${DICE_ORIENT[diceValue][1]}deg)` 
+                                } 
+                            },
+                                DICE_FACES.map(f => el('div', {
+                                    key: f.v,
+                                    className: 'snl-dice-face',
+                                    style: { 
+                                        transform: f.t, 
+                                        backgroundPositionX: `${DICE_OFFSETS[f.v - 1]}px` 
+                                    } 
+                                }))
+                            )
+                        )
                     )
                 )
             ),
@@ -844,6 +913,27 @@
                             onChange: (e) => { const v = parseFloat(e.target.value); setSVol(v); onUpdate(mVol, v, muted); },
                             className: 'snl-range-slider'
                         })
+                    )
+                ),
+
+                /* T-SP9: betting tier selector */
+                el('div', { className: 'space-y-4 p-4 bg-black/50 rounded-xl border border-white/10' },
+                    el('div', { className: 'flex items-center justify-between mb-3' },
+                        el('div', { className: 'text-sm font-black text-white' }, lang === 'ar' ? 'راهن' : 'Bet'),
+                        el('div', { className: 'text-[10px] text-white/60 font-bold' }, selectedBetTier ? `${selectedBetTier} ${lang === 'ar' ? 'قیمت' : 'Stake'}` : '--')
+                    ),
+                    el('div', { className: 'flex gap-3' },
+                        BET_TIERS.map(tier => el('button', {
+                            key: tier,
+                            onClick: () => setSelectedBetTier(tier),
+                            className: `w-14 h-8 rounded-full relative transition-all duration-300 ${selectedBetTier === tier ? 'bg-[#10b981]/40' : 'bg-black/30'}`,
+                            style: { border: `1px solid ${selectedBetTier === tier ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.1)'} }
+                        }, tier)),
+                        el('div', { className: 'text-[10px] text-white/40' }, lang === 'ar' ? '10=ضعيف | 20=معتدل | 50=كبير' : '10=Low | 20=Medium | 50=High')
+                    ),
+                    el('div', { className: 'mt-2 text-right' },
+                        el('div', { className: 'text-[12px] text-white/60' }, lang === 'ar' ? 'البوت' : 'Pot'),
+                        el('div', { className: 'text-2xl font-black text-[#10b981]' }, pot)
                     )
                 ),
 

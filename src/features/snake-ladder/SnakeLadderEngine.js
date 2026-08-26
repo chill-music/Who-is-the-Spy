@@ -7,6 +7,7 @@
 
 class SnakeLadderEngine {
     constructor(config = {}) {
+        this.config = config; // store for randomizeSnakesAndLadders seed
         this.boardSize = config.boardSize || 100;
         this.snakesAndLadders = config.snakesAndLadders || {
             // SNAKES_AND_LADDERS_02 from original constant.js (Garden 2 theme)
@@ -22,6 +23,94 @@ class SnakeLadderEngine {
 
         this.onStateChange = config.onStateChange || (() => {});
         this.onEvent = config.onEvent || (() => {}); // For sounds/animations
+    }
+
+    /* T-SP6: generate a random valid snakes-and-ladders config for this game.
+       - Creates exactly `numLadders` ladders (start < dest) and `numSnakes` snakes (start > dest).
+       - All start squares are unique; all destination squares are unique.
+       - No square appears both as a start and as a destination.
+       - Falls back to the classic hardcoded config if randomization fails after attempts.
+       - Use before starting a new game: engine.randomizeSnakesAndLadders();
+       - Optional seed for reproducible random boards (passed as config.seed). */
+    randomizeSnakesAndLadders() {
+        const boardSize = this.boardSize;
+        const numLadders = 5;
+        const numSnakes = 5;
+        const total = numLadders + numSnakes;
+
+        // Use seeded PRNG for reproducibility across rooms
+        const seed = this.config?.seed || Date.now();
+        let rng = (s) => { let x = Math.sin(s) * 10000; return x - Math.floor(x); };
+        let random = (lo, hi) => {
+            const seedVal = ((seed | 0) * 9301 + 49297) | 0;
+            seed = seedVal;
+            return Math.floor(lo + (seed % (hi - lo + 1)));
+        };
+
+        // Collect all used squares (starts + dests) to avoid collisions
+        const used = new Set();
+        const config = {};
+
+        // Generate ladders (start < dest)
+        for (let i = 0; i < numLadders; i++) {
+            let start, dest;
+            let attempts = 0;
+            do {
+                // Start: any square from 1 to boardSize-1 that's not used
+                start = random(1, boardSize - 1);
+                attempts++;
+                if (attempts > 200) { /* fallback */ break; }
+            } while (used.has(start));
+            used.add(start);
+
+            // Dest: any square from start+1 to boardSize that's not used
+            dest = random(start + 1, boardSize);
+            attempts = 0;
+            while (used.has(dest) && attempts < 200) {
+                dest = random(start + 1, boardSize);
+                attempts++;
+            }
+            if (used.has(dest)) { /* fallback */ break; }
+            used.add(dest);
+
+            config[start] = dest;
+        }
+
+        // Generate snakes (start > dest)
+        for (let i = 0; i < numSnakes; i++) {
+            let start, dest;
+            let attempts = 0;
+            do {
+                // Start: any square from 2 to boardSize that's not used
+                start = random(2, boardSize);
+                attempts++;
+                if (attempts > 200) { /* fallback */ break; }
+            } while (used.has(start));
+            used.add(start);
+
+            // Dest: any square from 1 to start-1 that's not used
+            dest = random(1, start - 1);
+            attempts = 0;
+            while (used.has(dest) && attempts < 200) {
+                dest = random(1, start - 1);
+                attempts++;
+            }
+            if (used.has(dest)) { /* fallback */ break; }
+            used.add(dest);
+
+            config[start] = dest;
+        }
+
+        // If we didn't get all ladders+snakes, fallback to classic config
+        if (Object.keys(config).length < total) {
+            this.snakesAndLadders = {
+                5: 58, 14: 49, 53: 72, 64: 83,
+                38: 20, 51: 10, 76: 54, 91: 73, 97: 61
+            };
+            return;
+        }
+
+        this.snakesAndLadders = config;
     }
 
     /**
@@ -98,11 +187,11 @@ class SnakeLadderEngine {
             this.players.forEach(other => {
                 if (other.uid !== player.uid && !other.isFinished && other.position === player.position && player.position !== 0) {
                     const captureOldPos = other.position;
-                    other.position = 0;
+                    other.position = Math.max(1, other.position - 10);
                     result.sequence.push({ 
                         targetUid: other.uid, 
                         oldPos: captureOldPos, 
-                        newPos: 0, 
+                        newPos: other.position, 
                         type: 'captured' 
                     });
                     bonusTurn = true; // Bonus for capturing
