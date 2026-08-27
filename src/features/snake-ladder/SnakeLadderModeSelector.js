@@ -19,6 +19,11 @@
             lang === 'ar' ? 'لاعب 4' : 'Player 4'
         ]);
         const [password, setPassword] = useState('');
+        const [showJoinRoom, setShowJoinRoom] = useState(false);
+        const [joinCode, setJoinCode] = useState('');
+        const [joinPassword, setJoinPassword] = useState('');
+        const [joinError, setJoinError] = useState('');
+        const [joinLoading, setJoinLoading] = useState(false);
         const logoUrl = 'icos/snake-ladder/SnakeLadderloge.png';
 
         const t = {
@@ -35,7 +40,18 @@
                 botsDesc: 'تدرب مع البوتات بأي وقت',
                 createPrivate: 'إنشاء غرفة خاصة',
                 back: 'رجوع',
-                passPlaceholder: 'كلمة السر'
+                passPlaceholder: 'كلمة السر',
+                joinRoom: 'انضم لغرفة',
+                joinRoomDesc: 'ادخل كود الغرفة للانضمام',
+                enterCode: 'أدخل كود الغرفة',
+                joinPasswordPlaceholder: 'كلمة السر (إن وُجدت)',
+                joinBtn: 'انضم',
+                joinLoading: 'جاري...',
+                roomNotFound: 'الغرفة غير موجودة',
+                wrongPassword: 'كلمة السر غير صحيحة',
+                roomFull: 'الغرفة ممتلئة',
+                gameStarted: 'اللعبة بدأت بالفعل',
+                joinError: 'خطأ في الانضمام'
             },
             en: {
                 title: 'Snake & Ladder Pro',
@@ -50,9 +66,64 @@
                 botsDesc: 'Practice with AI bots',
                 createPrivate: 'Create Private Room',
                 back: 'Back',
-                passPlaceholder: 'Enter Password'
+                passPlaceholder: 'Enter Password',
+                joinRoom: 'Join Room',
+                joinRoomDesc: 'Enter room code to join',
+                enterCode: 'Enter Room Code',
+                joinPasswordPlaceholder: 'Password (if required)',
+                joinBtn: 'Join',
+                joinLoading: 'Joining...',
+                roomNotFound: 'Room not found',
+                wrongPassword: 'Incorrect password',
+                roomFull: 'Room is full',
+                gameStarted: 'Game already started',
+                joinError: 'Error joining room'
             }
         }[lang || 'ar'];
+
+        const handleJoinRoom = async () => {
+            setJoinError('');
+            if (!joinCode.trim()) {
+                setJoinError(t.enterCode);
+                return;
+            }
+            setJoinLoading(true);
+            try {
+                const code = joinCode.trim().toUpperCase();
+                const col = (window.RoomService && typeof window.RoomService.getCollection === 'function')
+                    ? window.RoomService.getCollection('snake_ladder_pro')
+                    : window.firebase.firestore().collection('artifacts').doc(window.appId).collection('public').doc('data').collection('snake_rooms');
+                const snap = await col.doc(code).get();
+                if (!snap.exists) {
+                    setJoinError(t.roomNotFound);
+                    setJoinLoading(false);
+                    return;
+                }
+                const data = snap.data();
+                if (data.isPrivate && data.password !== joinPassword.trim()) {
+                    setJoinError(t.wrongPassword);
+                    setJoinLoading(false);
+                    return;
+                }
+                const players = Array.isArray(data.players) ? data.players : Object.values(data.players || {});
+                const activePlayers = players.filter(function(p) { return !p.left; });
+                if (data.maxPlayers && activePlayers.length >= data.maxPlayers) {
+                    setJoinError(t.roomFull);
+                    setJoinLoading(false);
+                    return;
+                }
+                if (data.status !== 'waiting') {
+                    setJoinError(t.gameStarted);
+                    setJoinLoading(false);
+                    return;
+                }
+                onSelectMode('join', { roomCode: code, password: joinPassword.trim() || null });
+            } catch (e) {
+                console.error('[SNL] Join validation error:', e);
+                setJoinError(t.joinError);
+            }
+            setJoinLoading(false);
+        };
 
         const modalStyle = {
             position: 'fixed',
@@ -148,7 +219,7 @@
 
                 // Body
                 el('div', { className: 'p-6 pt-4 relative z-10' },
-                    !(showCreateRoom || showParty || showBots) ? el('div', { className: 'animate-in slide-in-from-right duration-300' },
+                    !(showCreateRoom || showParty || showBots || showJoinRoom) ? el('div', { className: 'animate-in slide-in-from-right duration-300' },
                         OptionButton({
                             icon: '🌐', label: t.online, desc: t.onlineDesc, color: '#10b981',
                             onClick: () => onSelectMode('online', { isPrivate: false })
@@ -156,6 +227,10 @@
                         OptionButton({
                             icon: '➕', label: lang === 'ar' ? 'إنشاء غرفة' : 'Create Room', desc: lang === 'ar' ? 'أنشئ غرفتك الخاصة' : 'Host your own room', color: '#a78bfa',
                             onClick: () => setShowCreateRoom(true)
+                        }),
+                        OptionButton({
+                            icon: '🔗', label: t.joinRoom, desc: t.joinRoomDesc, color: '#06b6d4',
+                            onClick: () => setShowJoinRoom(true)
                         }),
                         el('div', { className: 'my-4 flex items-center gap-3' },
                             el('div', { className: 'flex-1 h-px bg-white/5' }),
@@ -197,6 +272,37 @@
                             el('button', {
                                 onClick: () => setShowCreateRoom(false),
                                 className: 'w-full text-[var(--spy-muted)] text-xs font-bold hover:text-white transition-colors'
+                            }, '← ' + t.back)
+                        )
+                    ) : showJoinRoom ? (
+                        el('div', { className: 'animate-in slide-in-from-left duration-300 space-y-4' },
+                            el('div', { style: { background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)', padding: '20px', borderRadius: '20px' } },
+                                el('div', { style: { fontSize: '10px', fontWeight: '900', color: '#06b6d4', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' } }, '🔗 ' + (lang === 'ar' ? 'انضم لغرفة' : 'JOIN ROOM')),
+                                el('input', {
+                                    type: 'text',
+                                    placeholder: t.enterCode,
+                                    value: joinCode,
+                                    onChange: function(e) { setJoinCode(e.target.value.toUpperCase().slice(0, 10)); setJoinError(''); },
+                                    maxLength: 10,
+                                    style: { width: '100%', boxSizing: 'border-box', padding: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '12px', color: 'white', fontWeight: '900', fontSize: '18px', textAlign: 'center', letterSpacing: '3px', outline: 'none', textTransform: 'uppercase', marginBottom: '12px' }
+                                }),
+                                el('input', {
+                                    type: 'text',
+                                    placeholder: t.joinPasswordPlaceholder,
+                                    value: joinPassword,
+                                    onChange: function(e) { setJoinPassword(e.target.value); setJoinError(''); },
+                                    style: { width: '100%', boxSizing: 'border-box', padding: '12px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: '12px', color: 'white', fontWeight: 'bold', fontSize: '14px', textAlign: 'center', outline: 'none', textTransform: 'uppercase', marginBottom: '12px' }
+                                }),
+                                joinError ? el('div', { style: { color: '#ff4d4d', fontSize: '12px', textAlign: 'center', fontWeight: 'bold', padding: '8px', background: 'rgba(255,77,77,0.1)', borderRadius: '8px', border: '1px solid rgba(255,77,77,0.2)', marginBottom: '12px' } }, joinError) : null,
+                                el('button', {
+                                    disabled: !joinCode.trim() || joinLoading,
+                                    onClick: handleJoinRoom,
+                                    style: { width: '100%', padding: '16px', background: joinLoading ? 'rgba(6,182,212,0.3)' : 'linear-gradient(135deg, #06b6d4, #0891b2)', color: 'white', fontWeight: '900', borderRadius: '14px', border: 'none', fontSize: '14px', letterSpacing: '1px', cursor: joinLoading ? 'not-allowed' : 'pointer', opacity: (!joinCode.trim() || joinLoading) ? 0.5 : 1, transition: 'all 0.2s' }
+                                }, joinLoading ? t.joinLoading : '🚀 ' + t.joinBtn)
+                            ),
+                            el('button', {
+                                onClick: function() { setShowJoinRoom(false); setJoinError(''); setJoinCode(''); setJoinPassword(''); },
+                                style: { width: '100%', color: 'rgba(255,255,255,0.4)', fontSize: '12px', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer', padding: '8px', transition: 'color 0.2s' }
                             }, '← ' + t.back)
                         )
                     ) : showParty ? (

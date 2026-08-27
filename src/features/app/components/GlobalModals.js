@@ -771,6 +771,12 @@
                 if (typeof setRoomId === 'function') setRoomId(null);
                 if (typeof setActiveView === 'function') setActiveView('game');
                 setShowSetupModal(false);
+              } else if ((setupGameId === 'snake_ladder_pro' || setupGameId === 'snake-ladder') && mode === 'join') {
+                // Join by Code
+                console.log("[SNL-Setup] Joining room by code:", options.roomCode);
+                sessionStorage.removeItem('snl_rejoin_declined');
+                if (typeof setActiveGameId === 'function') setActiveGameId('snake_ladder_pro');
+                handleJoinGame(options.roomCode, options.password, { gameId: setupGameId });
               } else {
                 // Private Online, Public Custom Online, Offline Party, or Vs Computer
                 sessionStorage.removeItem('snl_rejoin_declined');
