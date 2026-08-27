@@ -662,19 +662,20 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                   React.createElement(window.AvatarWithFrame, { photoURL: currentUserData?.photoURL || currentUserData?.photo, equipped: currentUserData?.equipped, size: "xs", lang: lang }) : /*#__PURE__*/
                   React.createElement("button", {
                     className: "snlogin-btn",
-                    onClick: function() { gameActions.handleGoogleLogin(); },
+                    onClick: function(e) { e.stopPropagation(); e.preventDefault(); gameActions.handleGoogleLogin(); },
                     style: {
                       background: 'linear-gradient(135deg, #10b981, #059669)',
                       color: 'white',
                       fontWeight: '900',
                       fontSize: '10px',
                       letterSpacing: '0.5px',
-                      padding: '6px 14px',
-                      borderRadius: '20px',
-                      border: 'none',
+                      padding: '7px 16px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(16,185,129,0.4)',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
-                      lineHeight: '1'
+                      lineHeight: '1',
+                      boxShadow: '0 2px 12px rgba(16,185,129,0.3)'
                     }
                   }, lang === 'ar' ? '\u062F\u062E\u0648\u0644' : 'LOGIN')
 
@@ -779,7 +780,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
           !room && activeView === 'chat' && /*#__PURE__*/
           React.createElement("div", { style: { paddingBottom: '8px' } },
 
-            isGuest && !isLoggedIn && /*#__PURE__*/
+            !isLoggedIn && /*#__PURE__*/
             React.createElement("div", { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', gap: '16px', textAlign: 'center' } }, /*#__PURE__*/
               React.createElement("div", { style: { fontSize: '48px' } }, "\uD83D\uDD10"), /*#__PURE__*/
               React.createElement("div", { style: { fontSize: '16px', fontWeight: 800, color: '#e5e7eb' } }, lang === 'ar' ? 'سجّل دخولك أولاً' : 'Login Required'), /*#__PURE__*/
@@ -790,7 +791,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
             ),
 
 
-            (!isGuest || isLoggedIn) && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+            isLoggedIn && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
               React.createElement("div", { style: { display: 'flex', gap: '4px', padding: '10px 16px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '10px' } }, /*#__PURE__*/
                 React.createElement("button", {
                   onClick: () => setChatSubTab('friends'),
