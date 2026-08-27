@@ -662,7 +662,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                   React.createElement(window.AvatarWithFrame, { photoURL: currentUserData?.photoURL || currentUserData?.photo, equipped: currentUserData?.equipped, size: "xs", lang: lang }) : /*#__PURE__*/
                   React.createElement("button", {
                     className: "snlogin-btn",
-                    onClick: function(e) { e.stopPropagation(); e.preventDefault(); gameActions.handleGoogleLogin(); },
+                    onClick: function(e) { e.stopPropagation(); gameActions.handleGoogleLogin(); },
                     style: {
                       background: 'linear-gradient(135deg, #10b981, #059669)',
                       color: 'white',
