@@ -123,7 +123,10 @@
                 updates['loginRewards.totalClaims'] = firebase.firestore.FieldValue.increment(1);
                 updates['loginRewards.cycleMonth'] = getCurrentCycleMonth();
 
-                await userRef.update(updates);
+                var __rel = window.SecurityGuard && window.SecurityGuard.arm('loginrewards');
+                try {
+                    await userRef.update(updates);
+                } finally { if (__rel) __rel(); }
                 
                 if (typeof playRewardSound === 'function') playRewardSound();
                 

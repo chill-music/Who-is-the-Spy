@@ -101,7 +101,10 @@
                                         ? firebase.firestore.FieldValue.increment(1)
                                         : 0;
 
-                                    await usersCollection.doc(user.uid).update(statUpdates);
+                                    var __rel = window.SecurityGuard && window.SecurityGuard.arm('stats');
+                                    try {
+                                        await usersCollection.doc(user.uid).update(statUpdates);
+                                    } finally { if (__rel) __rel(); }
                                     
                                     if (typeof incrementMissionProgress === 'function') {
                                         await incrementMissionProgress('gamesPlayed', 1);

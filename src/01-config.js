@@ -103,6 +103,9 @@ var ticketsCollection = db.collection('artifacts').doc(appId).collection('public
 var goldLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('gold_transactions');
 var pendingFinancesCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('pending_finances');
 var versioningCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('config');
+/** Unified sensitive-activity audit trail (LOCKDOWN R-14). Staff-read-only in rules;
+    written exclusively via SecurityGuard.logActivity. Immutable append-only. */
+var activityLogCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('activity_log');
 
 // ════════════════════════════════════════════════════════
 // 🧧 RED PACKETS SYSTEM CONFIG
@@ -645,6 +648,7 @@ window.MAX_BADGES = MAX_BADGES;
 window.ADMIN_UIDS = ADMIN_UIDS;
 window.OWNER_UID = OWNER_UID;
 window.versioningCollection = versioningCollection;
+window.activityLogCollection = activityLogCollection;
 window.ROLE_CONFIG = ROLE_CONFIG;
 window.FAMILY_COINS_SYMBOL = FAMILY_COINS_SYMBOL;
 window.FAMILY_SIGN_IMAGES = FAMILY_SIGN_IMAGES;
@@ -952,6 +956,7 @@ window.SecurityService = {
                             timestamp: firebase.firestore.FieldValue.serverTimestamp(), ua: navigator.userAgent
                         });
                     }
+                    try { if (window.SecurityGuard) window.SecurityGuard.logUserActivity(authUID, 'suspicious_txn', uid, { field: 'currency', delta: amount, reason: reason, meta: { transId: transId }, source: 'security_service' }); } catch (e) {}
                 } catch (e) { console.error('[SEC] Failed to log pending transaction:', e); }
                 return { success: false, error: 'Safety limit exceeded', transId: transId };
             }
@@ -1015,6 +1020,8 @@ window.SecurityService = {
                 return { success: false, error: 'insufficient_funds', balance: outcome.balance };
             }
             console.log(`[SEC] Currency update applied: ${amount}`);
+            // LOCKDOWN R-14: mirror every currency change into activity_log
+            try { if (window.SecurityGuard) window.SecurityGuard.logUserActivity(authUID, 'currency_change', uid, { delta: amount, reason: reason, meta: cleanMeta, source: 'security_service' }); } catch (e) {}
             return { success: true };
           } catch (__err) {
             var code = __err && __err.code ? String(__err.code) : '';
@@ -1041,6 +1048,93 @@ window.SecurityService = {
         return this.applyCurrencyTransaction(receiverUid, amount, reason, meta, { crossUser: true });
     }
 };
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  SecurityGuard (LOCKDOWN R-14)                                ║
+// ║  Field-group sanction flags + unified sensitive-activity log. ║
+// ║                                                              ║
+// ║  TamperGuard's PROTECTED groups (charisma, stats, inventory,  ║
+// ║  achievements, loginRewards, funPass, vip, equip, gift, crash,║
+// ║  wheel, bff, familycoins) are only writable from the app's    ║
+// ║  sanctioned code paths. Legit flows arm their group for the   ║
+// ║  duration of the write:                                        ║
+// ║    var __rel = window.SecurityGuard.arm('stats');             ║
+// ║    try { ... await usersCollection.doc(u).update(statUpdates); ... } ║
+// ║    finally { __rel(); }                                       ║
+// ║  A raw console write (no flag) is caught by inspect() as an   ║
+// ║  offense and escalates the ban ladder.                        ║
+// ║                                                              ║
+// ║  logActivity() is the ONLY writer into activity_log. It arms  ║
+// ║  the audit flag so TamperGuard whitelists the append while    ║
+// ║  rejecting hand-injected activity_log rows from the console.  ║
+// ╚══════════════════════════════════════════════════════════════╝
+window.SecurityGuard = (function () {
+    var FLAG = '__SEC_FIELD_GROUPS';
+    window[FLAG] = window[FLAG] || {};
+
+    function arm(groups) {
+        var prev = Object.assign({}, window[FLAG]);
+        (groups.split(',').map(function (g) { return g.trim(); }).filter(Boolean)).forEach(function (g) {
+            window[FLAG][g] = true;
+        });
+        return function release() { window[FLAG] = prev; };
+    }
+
+    function isArmed(group) {
+        return window[FLAG][group] === true;
+    }
+
+    /* Wraps a sanctioned write with auto-release (try/finally semantics). */
+    function fields(groups, fn) {
+        var release = arm(groups);
+        var p = Promise.resolve().then(fn);
+        p.then(release, release);
+        return p;
+    }
+
+    /* Unified sensitive-activity audit entry. Best-effort (rules are the
+       boundary; client rows trust the sanctioned flag). */
+    function logActivity(entry) {
+        if (!entry || typeof entry !== 'object') return Promise.resolve(null);
+        if (!window.activityLogCollection || !window.activityLogCollection.add) return Promise.resolve(null);
+        var prev = window.__SEC_ACTIVITY_LOG;
+        window.__SEC_ACTIVITY_LOG = true;
+        var clean = {
+            actorUID: String(entry.actorUID != null ? entry.actorUID : ''),
+            action: String(entry.action || ''),
+            at: typeof entry.at === 'number' ? entry.at : Date.now(),
+            source: entry.source || 'client'
+        };
+        if (entry.actorRole) clean.actorRole = String(entry.actorRole);
+        if (entry.subjectUID != null) clean.subjectUID = String(entry.subjectUID);
+        if (entry.field != null) clean.field = String(entry.field);
+        if (entry.delta != null) clean.delta = entry.delta;
+        if (entry.reason != null) clean.reason = String(entry.reason);
+        if (entry.meta != null && typeof entry.meta === 'object') clean.meta = entry.meta;
+        if (entry.ua != null) clean.ua = String(entry.ua);
+        return window.activityLogCollection.add(clean)
+            .then(function () { window.__SEC_ACTIVITY_LOG = prev; return true; })
+            .catch(function (e) { window.__SEC_ACTIVITY_LOG = prev; console.warn('[SEC] activity_log write failed:', e); return null; });
+    }
+
+    function logUserActivity(actorUID, action, subjectUID, opts) {
+        opts = opts || {};
+        return logActivity({
+            actorUID: actorUID,
+            action: action,
+            subjectUID: subjectUID,
+            field: opts.field,
+            delta: opts.delta,
+            reason: opts.reason,
+            meta: opts.meta,
+            at: opts.at,
+            actorRole: opts.actorRole,
+            source: opts.source || 'client'
+        });
+    }
+
+    return { arm: arm, isArmed: isArmed, fields: fields, logActivity: logActivity, logUserActivity: logUserActivity };
+})();
 
 // ✅ Collection exports are consolidated at the top of this file (line ~494)
 // goldLogCollection is exported there too — no duplicate needed here.
@@ -1213,7 +1307,6 @@ window.RateGuard = {
 // The offense trail cannot be edited or deleted by its subject.
 // ============================================================
 window.TamperGuard = (function () {
-    var PROTECTED_KEYS = ['staffRole', 'role', 'ban', 'security'];
     var LADDER_MS = [3600000, 86400000, 259200000, 604800000, 2592000000]; // 1h, 1d, 3d, 1w, 30d
     var PERMANENT = true;
     var _origDoc = null;
@@ -1304,37 +1397,123 @@ window.TamperGuard = (function () {
         return role === 'owner' || role === 'admin';
     }
 
-    /* Returns a violation description or null if the write is sanctioned */
-    function inspect(subjectUid, data) {
+    /* ---- Field-group protection tables (LOCKDOWN R-14) ----
+       PROTECTED_EXACT:   key             -> group. null group = P1 (always
+                           an offense unless a staff/staff-admin role guard
+                           below passes). group string = P2 — the write is
+                           legal only while that group is armed via
+                           SecurityGuard.arm() by a sanctioned app path.
+       PROTECTED_PREFIX:  non-exact dot-path keys (inventory.frames,
+                          stats.wins, funPass.seasons.*, vip.*, loginRewards.*)
+                          mapped to the same groups. P1 exact keys may also
+                          have prefix entries where a path is legitimately
+                          group-sanctioned (vip.xp -> gift).
+    */
+    var PROTECTED_EXACT = {
+        'staffRole': null, 'role': null, 'ban': null, 'security': null,
+        'vip': null, 'createdAt': null, 'email': null, 'isAnonymous': null,
+        'uid': null,
+        'charisma': 'charisma',
+        'giftsReceived': 'gift', 'giftsSent': 'gift', 'vip.xp': 'gift',
+        'stats': 'stats', 'xp': 'stats',
+        'achievements': 'achievements',
+        'inventory': 'inventory', 'equipped': 'equip', 'badges': 'equip',
+        'loginRewards': 'loginrewards', 'funPass': 'funpass',
+        'crash_jackpot_prog': 'crash', 'lastWheelSpin': 'wheel',
+        'bffExtraSlots': 'bff', 'familyCoins': 'familycoins',
+        'partnerId': 'couple', 'isMarried': 'couple'
+    };
+    var PROTECTED_PREFIX = [
+        { p: 'stats.', g: 'stats' },
+        { p: 'inventory.', g: 'inventory' },
+        { p: 'loginRewards.', g: 'loginrewards' },
+        { p: 'funPass.', g: 'funpass' },
+        { p: 'vip.', g: 'vip' }
+    ];
+
+    function _groupFor(key) {
+        if (PROTECTED_EXACT.hasOwnProperty(key)) return PROTECTED_EXACT[key];
+        for (var i = 0; i < PROTECTED_PREFIX.length; i++) {
+            var pe = PROTECTED_PREFIX[i];
+            if (key.indexOf(pe.p) === 0 && key.length > pe.p.length) return pe.g;
+        }
+        return undefined;
+    }
+
+    /* Returns a violation description or null if the write is sanctioned.
+       mode: 'update' (default) or 'set'. */
+    function inspect(subjectUid, data, mode) {
         if (!data || typeof data !== 'object') return null;
         if (subjectUid === window.OWNER_UID) return null;
+        mode = mode === 'set' ? 'set' : 'update';
         var keys = Object.keys(data);
+        var isSelf = subjectUid === _authUid();
+
+        // creation: a set() on one's OWN (possibly new) shell doc seeds P1
+        // identity + P2 balance/stats. Allow except truly dangerous P1.
+        if (mode === 'set' && isSelf) {
+            var danger = keys.filter(function (k) {
+                return k === 'security' || k === 'staffRole' || k === 'role' ||
+                       k === 'ban' || k === 'vip';
+            });
+            if (danger.length > 0) {
+                return { type: 'protected_field', fields: danger };
+            }
+            if (keys.indexOf('currency') !== -1 && window.__SEC_TXN_ACTIVE !== true) {
+                return { type: 'raw_currency', fields: ['currency'] };
+            }
+            return null;
+        }
+
         var touched = [];
+        var grouped = {};
         for (var i = 0; i < keys.length; i++) {
-            if (PROTECTED_KEYS.indexOf(keys[i]) !== -1) touched.push(keys[i]);
-        }
-        if (touched.length > 0) {
-            // security is never client-writable.
-            if (touched.indexOf('security') !== -1) {
-                return { type: 'protected_field', fields: ['security'] };
-            }
-            // ban may only be set by staff or via own self-enforcement (ownBanLockIn)
-            if (touched.indexOf('ban') !== -1 && !_isStaff()) {
-                return { type: 'protected_field', fields: ['ban'] };
-            }
-            // staffRole/role may only be set by staff-admin
-            var adminOnly = touched.filter(function (k) { return k !== 'ban' && k !== 'security'; });
-            if (adminOnly.length > 0 && !_isStaffAdmin()) {
-                return { type: 'protected_field', fields: adminOnly };
+            var k = keys[i];
+            if (PROTECTED_EXACT.hasOwnProperty(k) || _groupFor(k) !== undefined) {
+                if (PROTECTED_EXACT.hasOwnProperty(k)) {
+                    touched.push(k);
+                    grouped[k] = _groupFor(k);
+                } else {
+                    var g = _groupFor(k);
+                    touched.push(k);
+                    grouped[k] = g;
+                }
             }
         }
-        // RAW CURRENCY GUARD (restored): any write touching 'currency' outside
-        // a sanctioned SecurityService transaction (__SEC_TXN_ACTIVE) — or the
-        // marked onboarding creation — is an offense. This fires at ATTEMPT
-        // time in the wrapper, so raw console exploits are caught even though
-        // Firestore rules separately reject them server-side.
+
+        // Raw currency guard (always offense outside a SecurityService txn).
         if (keys.indexOf('currency') !== -1 && window.__SEC_TXN_ACTIVE !== true) {
             return { type: 'raw_currency', fields: ['currency'] };
+        }
+
+        if (touched.length === 0) return null;
+
+        // ── P1 unconditional / role-gated fields ──
+        if (touched.indexOf('security') !== -1) return { type: 'protected_field', fields: ['security'] };
+        if (touched.indexOf('ban') !== -1 && !_isStaff()) return { type: 'protected_field', fields: ['ban'] };
+        if (touched.indexOf('staffRole') !== -1 || touched.indexOf('role') !== -1) {
+            if (!_isStaffAdmin()) return { type: 'protected_field', fields: ['staffRole', 'role'].filter(function (x) { return touched.indexOf(x) !== -1; }) };
+        }
+        if (touched.indexOf('vip') !== -1 && !_isStaffAdmin()) return { type: 'protected_field', fields: ['vip'] };
+        if ((touched.indexOf('createdAt') !== -1 || touched.indexOf('email') !== -1 ||
+             touched.indexOf('isAnonymous') !== -1 || touched.indexOf('uid') !== -1) && !isSelf) {
+            // timeline/identity is never writable cross-user
+            return { type: 'protected_field', fields: ['createdAt', 'email', 'isAnonymous', 'uid'].filter(function (x) { return touched.indexOf(x) !== -1; }) };
+        }
+
+        // ── P2 group check ──
+        var unarmed = [];
+        for (var j = 0; j < touched.length; j++) {
+            var gk = grouped[touched[j]];
+            if (gk == null) continue; // P1 guest-prefix rows handled above
+            if (_isStaff()) continue; // staff flows (admin panel) are sanctioned
+            var armedSince = window.__SEC_FIELD_GROUPS || {};
+            if (armedSince[gk] !== true) {
+                if (unarmed.indexOf(gk) === -1) unarmed.push(gk);
+            }
+        }
+        if (unarmed.length > 0) {
+            return { type: 'group_field', fields: touched.filter(function (k) { return unarmed.indexOf(grouped[k]) !== -1; }) };
         }
         return null;
     }
@@ -1355,11 +1534,21 @@ window.TamperGuard = (function () {
         protected_field: {
             en: 'Attempted to modify protected account fields',   // refined per-fields below
             ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u062a\u0639\u062f\u064a\u0644 \u062d\u0642\u0648\u0644 \u0645\u062d\u0645\u064a\u0629'
+        },
+        group_field: {
+            en: 'Attempted to modify protected progression fields (charisma/stats/inventory/login rewards)',
+            ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u062a\u0639\u062f\u064a\u0644 \u062d\u0642\u0648\u0644 \u0627\u0644\u062a\u0642\u062f\u0645 \u0627\u0644\u0645\u062d\u0645\u064a\u0629'
+        },
+        audit_log: {
+            en: 'Attempted to inject data into the audit log',
+            ar: '\u0645\u062d\u0627\u0648\u0644\u0629 \u0625\u062f\u0631\u0627\u062c \u0628\u064a\u0627\u0646\u0627\u062a \u0641\u064a \u0633\u062c\u0644 \u0627\u0644\u062a\u062f\u0642\u064a\u0642'
         }
     };
 
     function _reasonFor(violation) {
         if (violation.type === 'raw_currency') return REASONS.raw_currency;
+        if (violation.type === 'group_field') return REASONS.group_field;
+        if (violation.type === 'audit_log') return REASONS.audit_log;
         var f = (violation.fields || [])[0];
         if (f === 'staffRole' || f === 'role') {
             return { en: 'Attempted to self-assign staff role (' + f + ')',
@@ -1401,6 +1590,12 @@ window.TamperGuard = (function () {
                 issuedBy: uid
             };
             console.error('[TAMPER GUARD] Offense #' + count + ' recorded:', violation.type, violation.fields);
+            try {
+                if (window.SecurityGuard) window.SecurityGuard.logUserActivity(uid, 'tamper_offense', uid, {
+                    field: (violation.fields || []).join(','), reason: reason.en,
+                    meta: { type: violation.type, offenseNumber: count }, source: 'tamper_guard'
+                });
+            } catch (e) {}
             return col.add(docData).then(function () { return { count: count, lad: lad, endsAt: endsAt, docData: docData }; });
         }).catch(function () { return null; });
     }
@@ -1617,14 +1812,14 @@ window.TamperGuard = (function () {
             var origSet = ref.set.bind(ref);
 
             ref.update = function (data) {
-                var v = inspect(subjectUid, data);
+                var v = inspect(subjectUid, data, 'update');
                 if (v) return punish(v).then(function () {
                     return Promise.reject(new Error('TAMPER_BLOCKED'));
                 });
                 return origUpdate.apply(null, arguments);
             };
             ref.set = function (data) {
-                var v = inspect(subjectUid, data);
+                var v = inspect(subjectUid, data, 'set');
                 if (v) return punish(v).then(function () {
                     return Promise.reject(new Error('TAMPER_BLOCKED'));
                 });
@@ -1635,6 +1830,26 @@ window.TamperGuard = (function () {
     }
 
     installWrapper();
+
+    /* ---- activity_log write guard (LOCKDOWN R-14) ----
+       The audit trail must ONLY be written through SecurityGuard.logActivity
+       (which arms __SEC_ACTIVITY_LOG). A raw console append is treated as
+       tampering with the audit system — recorded + unsettled like any other
+       protected-field offense. */
+    function installActivityLogGuard() {
+        if (!window.activityLogCollection || typeof window.activityLogCollection.add !== 'function') return;
+        var origAdd = window.activityLogCollection.add.bind(window.activityLogCollection);
+        window.activityLogCollection.add = function (data) {
+            if (window.__SEC_ACTIVITY_LOG !== true) {
+                return punish({ type: 'audit_log', fields: ['activity_log'] }).then(function () {
+                    return Promise.reject(new Error('TAMPER_BLOCKED'));
+                });
+            }
+            return origAdd(data);
+        };
+    }
+    installActivityLogGuard();
+
     setTimeout(function () { refreshOffenses(); _refreshMe(); }, 4000); // prime caches after auth settles
     setInterval(function () { _me = null; }, 60000);
 

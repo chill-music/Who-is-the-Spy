@@ -106,11 +106,14 @@
                             localStorage.setItem('pro_spy_lang', data.lang);
                         }
                         if (typeof checkLoginRewardsCycle === 'function' && checkLoginRewardsCycle(data)) {
-                            userRef.update({
-                                'loginRewards.currentDay': 0,
-                                'loginRewards.streak': 0,
-                                'loginRewards.cycleMonth': getCurrentCycleMonth()
-                            }).catch(() => {});
+                            var __rel = window.SecurityGuard && window.SecurityGuard.arm('loginrewards');
+                            try {
+                                userRef.update({
+                                    'loginRewards.currentDay': 0,
+                                    'loginRewards.streak': 0,
+                                    'loginRewards.cycleMonth': getCurrentCycleMonth()
+                                }).catch(() => {});
+                            } finally { if (__rel) __rel(); }
                         }
                     };
 

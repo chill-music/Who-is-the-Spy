@@ -815,9 +815,12 @@
                       reclaimedAt: TS()
                     });
                     var uniqueId = (sp.configId || 'rp_600') + '_' + Date.now();
-                    await usersCollection.doc(user.uid).update({
-                      'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
-                    });
+                    var __relRpB = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+                    try {
+                      await usersCollection.doc(user.uid).update({
+                        'inventory.red_packets': firebase.firestore.FieldValue.arrayUnion(uniqueId)
+                      });
+                    } finally { if (__relRpB) __relRpB(); }
                     setSentPackets((prev) => prev.filter((p) => p.id !== sp.id));
                   } catch (e) { }
                 }, style: { padding: '5px 12px', borderRadius: '8px', background: 'linear-gradient(135deg,rgba(239,68,68,0.2),rgba(185,28,28,0.15))', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171', fontSize: '10px', fontWeight: 800, cursor: 'pointer', flexShrink: 0 }
@@ -1176,7 +1179,12 @@
                                   claimedBy: [], maxClaims: rpSendModal.maxClaims || 5,
                                   remaining: rpSendModal.amount, createdAt: TS(), status: 'active'
                                 });
-                                await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId) });
+                                await (async () => {
+                      var __relRp = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+                      try {
+                        await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId) });
+                      } finally { if (__relRp) __relRp(); }
+                    })();
                                 await famCol.doc(myFamilyId).collection('messages').add({
                                   type: 'red_packet', rpId: rpRef.id, rpAmount: rpSendModal.amount,
                                   rpConfigId: rpSendModal.id, maxClaims: rpSendModal.maxClaims || 5,
@@ -1205,7 +1213,12 @@
                                       claimedBy: [], maxClaims: 1, remaining: rpSendModal.amount,
                                       createdAt: TS(), status: 'active'
                                     });
-                                    await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId) });
+                                    await (async () => {
+                      var __relRp = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+                      try {
+                        await usersCollection.doc(user.uid).update({ 'inventory.red_packets': firebase.firestore.FieldValue.arrayRemove(rpSendModal.inventoryId) });
+                      } finally { if (__relRp) __relRp(); }
+                    })();
                                     var chatId = [user.uid, fid].sort().join('_');
                                     await chatsCollection.doc(chatId).collection('messages').add({
                                       type: 'red_packet', rpId: rpRef.id, rpAmount: rpSendModal.amount,

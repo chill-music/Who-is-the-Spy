@@ -133,10 +133,13 @@
         } else {
           await usersCollection.doc(user.uid).update({ currency: firebase.firestore.FieldValue.increment(-FUN_PASS_PRICE) });
         }
-        await usersCollection.doc(user.uid).update({
-          [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
-          [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: TS()
-        });
+        var __rel = window.SecurityGuard && window.SecurityGuard.arm('funpass');
+        try {
+          await usersCollection.doc(user.uid).update({
+            [`funPass.seasons.${FUN_PASS_SEASON_ID}.premium`]: true,
+            [`funPass.seasons.${FUN_PASS_SEASON_ID}.purchasedDate`]: TS()
+          });
+        } finally { if (__rel) __rel(); }
         onNotification(lang === 'ar' ? '🎫 تم شراء Fun Pass!' : '🎫 Fun Pass purchased!');
       } catch (e) {onNotification(lang === 'ar' ? 'خطأ' : 'Error');}
       setBuying(false);
@@ -180,7 +183,10 @@
         } else {
           updates[`funPass.seasons.${FUN_PASS_SEASON_ID}.claimedPremium`] = firebase.firestore.FieldValue.arrayUnion(level);
         }
-        await usersCollection.doc(user.uid).update(updates);
+        var __rel2 = window.SecurityGuard && window.SecurityGuard.arm('funpass,inventory');
+        try {
+          await usersCollection.doc(user.uid).update(updates);
+        } finally { if (__rel2) __rel2(); }
         onNotification(`${lang === 'ar' ? 'تم استلام' : 'Claimed'} ${lang === 'ar' ? reward.name_ar : reward.name_en}! 🎉`);
         // 📦 If reward is an item (frame/badge/title/gift), go to inventory
         if (reward.type === 'frame' || reward.type === 'badge' || reward.type === 'title' || reward.type === 'gift') {

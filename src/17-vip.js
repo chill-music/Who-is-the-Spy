@@ -1153,12 +1153,15 @@
           await usersCollection.doc(user.uid).update({ currency: firebase.firestore.FieldValue.increment(-50000) });
         }
 
-        await usersCollection.doc(user.uid).update({
-          'vip.active': true,
-          'vip.activatedAt': hasVIP ? userData.vip.activatedAt || TS() : TS(),
-          'vip.expiresAt': expiresAt,
-          'vip.xp': firebase.firestore.FieldValue.increment(hasVIP ? 0 : 5000)
-        });
+        var __relVip2 = window.SecurityGuard && window.SecurityGuard.arm('vip,gift');
+        try {
+          await usersCollection.doc(user.uid).update({
+            'vip.active': true,
+            'vip.activatedAt': hasVIP ? userData.vip.activatedAt || TS() : TS(),
+            'vip.expiresAt': expiresAt,
+            'vip.xp': firebase.firestore.FieldValue.increment(hasVIP ? 0 : 5000)
+          });
+        } finally { if (__relVip2) __relVip2(); }
         onNotification && onNotification(lang === 'ar' ? '👑 تم تفعيل VIP! +30 يوم' : '👑 VIP Activated! +30 days');
         setShowConfirm(false);
       } catch (e) {

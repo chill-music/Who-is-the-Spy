@@ -134,9 +134,12 @@
                 if (!achievement) return;
                 var currentAchs = userData?.achievements || [];
                 if (currentAchs.includes(badgeId)) return;
-                await usersCollection.doc(user.uid).update({
-                    achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
-                });
+                var __rel = window.SecurityGuard && window.SecurityGuard.arm('achievements');
+                try {
+                    await usersCollection.doc(user.uid).update({
+                        achievements: firebase.firestore.FieldValue.arrayUnion(badgeId)
+                    });
+                } finally { if (__rel) __rel(); }
             } catch (error) { console.error('Achievement unlock error:', error); }
         }, [isLoggedIn, user, userData]);
 
@@ -174,9 +177,12 @@
 
             if (toUnlock.length > 0) {
                 try {
-                    await usersCollection.doc(user.uid).update({
-                        achievements: firebase.firestore.FieldValue.arrayUnion(...toUnlock)
-                    });
+                    var __rel = window.SecurityGuard && window.SecurityGuard.arm('achievements');
+                    try {
+                        await usersCollection.doc(user.uid).update({
+                            achievements: firebase.firestore.FieldValue.arrayUnion(...toUnlock)
+                        });
+                    } finally { if (__rel) __rel(); }
                 } catch (e) {
                     for (var id of toUnlock) { try { await unlockAchievement(id); } catch { } }
                 }
