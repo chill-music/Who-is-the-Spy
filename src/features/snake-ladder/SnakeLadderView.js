@@ -850,6 +850,7 @@ const [pot, setPot] = useState(0);
     // ── Settings Modal ───────────────────────────────────────────────────────
     const SNLSettingsModal = ({ settings, lang, t, onClose, onUpdate, selectedBetTier, setSelectedBetTier }) => {
         const el = React.createElement;
+        const BET_TIERS = ['10', '20', '50'];
         const [mVol, setMVol] = React.useState(settings.bgmVolume);
         const [sVol, setSVol] = React.useState(settings.sfxVolume);
         const [muted, setMuted] = React.useState(settings.isMuted);

@@ -709,3 +709,27 @@
         height: 40px;
     }
 }
+
+/* ── Login Button Pulse Animation ── */
+@keyframes loginPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 8px rgba(16,185,129,0.4), 0 0 20px rgba(16,185,129,0.1);
+    }
+    50% {
+        transform: scale(1.06);
+        box-shadow: 0 0 16px rgba(16,185,129,0.6), 0 0 36px rgba(16,185,129,0.2);
+    }
+}
+
+.snlogin-btn {
+    animation: loginPulse 2s ease-in-out infinite;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: background 0.2s;
+}
+.snlogin-btn:hover {
+    background: #059669 !important;
+    animation-play-state: paused;
+}

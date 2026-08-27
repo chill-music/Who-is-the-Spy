@@ -182,7 +182,7 @@
       React.createElement("button", { 
           className: "hero-btn-primary hover-lift", 
           style: { background: selectedGame?.theme?.color || 'var(--primary)', borderRadius: 'var(--radius-md)' },
-          onClick: () => setShowSetupModal(true, { gameId: selectedGameId }), 
+          onClick: () => { if (!isLoggedIn) { requireLogin(); return; } setShowSetupModal(true, { gameId: selectedGameId }); }, 
           disabled: !nickname.trim() 
       }, "+ ", t.create)
       ), /*#__PURE__*/
@@ -191,7 +191,7 @@
       React.createElement("button", { 
           className: "hero-btn-primary hover-lift", 
           style: { background: selectedGame?.theme?.color || 'var(--primary)', borderRadius: 'var(--radius-md)' },
-          onClick: () => handleJoinGame(inputCode, '', { gameId: selectedGameId }), 
+          onClick: () => { if (!isLoggedIn) { requireLogin(); return; } handleJoinGame(inputCode, '', { gameId: selectedGameId }); }, 
           disabled: loading || !inputCode.trim() || !nickname.trim() 
       }, loading ? '...' : t.join)
       ),

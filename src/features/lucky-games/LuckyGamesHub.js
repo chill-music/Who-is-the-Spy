@@ -336,6 +336,7 @@
     }, [show]);
 
     if (!show) return null;
+    if (!userData) return null;
 
     var coins = userData && typeof userData.coins === 'number' ? userData.coins : 0;
 

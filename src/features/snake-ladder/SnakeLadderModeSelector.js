@@ -6,7 +6,7 @@
      * SnakeLadderModeSelector
      * Premium modal for selecting Snake & Ladder game modes.
      */
-    window.SnakeLadderModeSelector = ({ user, nickname, lang, onClose, onSelectMode }) => {
+    window.SnakeLadderModeSelector = ({ user, nickname, lang, onClose, onSelectMode, isLoggedIn, isGuest, requireLogin }) => {
         const [showCreateRoom, setShowCreateRoom] = useState(false);
         const [requirePassword, setRequirePassword] = useState(true);
         const [showParty, setShowParty] = useState(false);
@@ -81,6 +81,20 @@
             }
         }[lang || 'ar'];
 
+        const guardAuth = function(callback) {
+            return function() {
+                if (!isLoggedIn && !isGuest) {
+                    if (typeof requireLogin === 'function') requireLogin();
+                    return;
+                }
+                return callback.apply(null, arguments);
+            };
+        };
+
+        const guardedSelectMode = guardAuth(function(mode, options) {
+            onSelectMode(mode, options);
+        });
+
         const handleJoinRoom = async () => {
             setJoinError('');
             if (!joinCode.trim()) {
@@ -117,7 +131,7 @@
                     setJoinLoading(false);
                     return;
                 }
-                onSelectMode('join', { roomCode: code, password: joinPassword.trim() || null });
+                guardedSelectMode('join', { roomCode: code, password: joinPassword.trim() || null });
             } catch (e) {
                 console.error('[SNL] Join validation error:', e);
                 setJoinError(t.joinError);
@@ -222,7 +236,7 @@
                     !(showCreateRoom || showParty || showBots || showJoinRoom) ? el('div', { className: 'animate-in slide-in-from-right duration-300' },
                         OptionButton({
                             icon: '🌐', label: t.online, desc: t.onlineDesc, color: '#10b981',
-                            onClick: () => onSelectMode('online', { isPrivate: false })
+                            onClick: () => guardedSelectMode('online', { isPrivate: false })
                         }),
                         OptionButton({
                             icon: '➕', label: lang === 'ar' ? 'إنشاء غرفة' : 'Create Room', desc: lang === 'ar' ? 'أنشئ غرفتك الخاصة' : 'Host your own room', color: '#a78bfa',
@@ -265,7 +279,7 @@
                                 }) : null,
                                 el('button', {
                                     disabled: requirePassword && !password.trim(),
-                                    onClick: () => onSelectMode('online', { isPrivate: requirePassword, isCustomRoom: true, password: requirePassword ? password : null }),
+                                    onClick: () => guardedSelectMode('online', { isPrivate: requirePassword, isCustomRoom: true, password: requirePassword ? password : null }),
                                     className: 'w-full mt-4 py-4 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-[0_10px_20px_rgba(168,85,247,0.3)] disabled:opacity-50 disabled:cursor-not-allowed'
                                 }, lang === 'ar' ? 'تأكيد' : 'Confirm')
                             ),
@@ -330,7 +344,7 @@
                                     })
                                 )),
                                 el('button', {
-                                    onClick: () => onSelectMode('offline', { isParty: true, partyNames: partyNames.slice(0, partyCount - 1) }),
+                                    onClick: () => guardedSelectMode('offline', { isParty: true, partyNames: partyNames.slice(0, partyCount - 1) }),
                                     className: 'w-full mt-2 py-4 bg-orange-500 hover:bg-orange-400 text-white font-black rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-[0_10px_20px_rgba(245,158,11,0.3)]'
                                 }, t.offline)
                             ),
@@ -351,7 +365,7 @@
                                     }, num + (lang === 'ar' ? ' بوت' : ' Bot(s)')))
                                 ),
                                 el('button', {
-                                    onClick: () => onSelectMode('offline', { vsBots: true, botCount: botCount }),
+                                    onClick: () => guardedSelectMode('offline', { vsBots: true, botCount: botCount }),
                                     className: 'w-full mt-2 py-4 bg-blue-500 hover:bg-blue-400 text-white font-black rounded-xl uppercase tracking-widest transition-all active:scale-95 shadow-[0_10px_20px_rgba(59,130,246,0.3)]'
                                 }, t.bots)
                             ),
