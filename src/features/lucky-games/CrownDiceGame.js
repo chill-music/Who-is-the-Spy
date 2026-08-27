@@ -10,6 +10,7 @@
   var _balance = 0;
   var _selectedBet = null;   // 'low','high','even','odd','triple'
   var _selectedChip = null;  // number
+  var _roundTag = 0;         // shared timestamp for bet/win idempotency keys
   var _isRolling = false;
   var _pendingWinAmount = 0;
   var _pendingWinReason = '';
@@ -69,6 +70,7 @@
   // SECTION: HELPERS
   // ═══════════════════════════════════════════════════════════════
   function fmtNum(n) {
+    if (typeof window.fmtNum === 'function') return window.fmtNum(n);
     if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     return String(Math.floor(n));
@@ -119,20 +121,48 @@
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // SECTION: MOCK CURRENCY
+  // SECTION: SECURITY SERVICE — REAL CURRENCY
+  // Bets are debited and wins credited through the hardened
+  // SecurityService.applyCurrencyTransaction (server-side balance read,
+  // idempotency keys, quarantine of suspicious credits).
   // ═══════════════════════════════════════════════════════════════
-  function mockBet(amount) {
-    _balance -= amount;
-    updateBalanceDisplay();
-    // ══ MOCK: wire to SecurityService.applyCurrencyTransaction(uid, -amount, 'Crown Dice Bet: ' + getBetLabel()) ══
-    // Real call will be: window.SecurityService.applyCurrencyTransaction(uid, -amount, 'Crown Dice Bet: ' + getBetLabel(), null, { idemKey: _user.uid + '_crownbet_' + Date.now() })
+  function currentUserData() {
+    return _user || (options && options.user) ||
+      (window.cdGameUserData || window.pwGameUserData || window.currentUserData || window.userData) ||
+      { uid: '', photoURL: '', currency: 0 };
   }
 
-  function mockWin(amount, multiplier) {
-    _balance += amount;
-    updateBalanceDisplay();
-    // ══ MOCK: wire to SecurityService.applyCurrencyTransaction(uid, amount, 'Crown Dice Win: x' + multiplier) ══
-    // Real call will be: window.SecurityService.applyCurrencyTransaction(uid, amount, 'Crown Dice Win: x' + multiplier, null, { idemKey: _user.uid + '_crownwin_' + Date.now() })
+  function getTxUid() {
+    var u = currentUserData();
+    if (u && u.uid) return u.uid;
+    if (window.firebase && window.firebase.auth && window.firebase.auth().currentUser) return window.firebase.auth().currentUser.uid;
+    return null;
+  }
+
+  function showGameMsg(msg) {
+    if (window.showToast) window.showToast(msg, 'error');
+    else console.warn('[CrownDice]', msg);
+  }
+
+  function deductBet(amount, betType) {
+    var uid = getTxUid();
+    if (!uid) return Promise.resolve({ success: false, error: 'Sign in required' });
+    _roundTag = Date.now();
+    return window.SecurityService.applyCurrencyTransaction(
+      uid, -amount, 'Crown Dice Bet: ' + betType,
+      { game: 'CrownDice', betType: betType },
+      { idemKey: uid + '_crownbet_' + _roundTag }
+    );
+  }
+
+  function creditWin(amount, multiplier) {
+    var uid = getTxUid();
+    if (!uid) return Promise.resolve({ success: false, error: 'Sign in required' });
+    return window.SecurityService.applyCurrencyTransaction(
+      uid, amount, 'Crown Dice Win: x' + multiplier,
+      { game: 'CrownDice', betType: _selectedBet, multiplier: multiplier, roundTag: _roundTag },
+      { idemKey: uid + '_crownwin_' + _roundTag }
+    );
   }
 
   function getBetLabel() {
@@ -205,18 +235,17 @@
       '  line-height: 1.2;',
       '}',
       '.cd-game .cd-avatar {',
-      '  width: 50px; height: 50px;',
+      '  width: 56px; height: 56px;',
       '  border-radius: 50%;',
-      '  border: 2px solid #ffd700;',
-      '  box-shadow: 0 0 12px rgba(255,215,0,0.3);',
       '  cursor: pointer;',
-      '  object-fit: cover;',
-      '  transition: transform 0.2s ease, box-shadow 0.2s ease;',
+      '  display: flex;',
+      '  align-items: center;',
+      '  justify-content: center;',
       '  flex-shrink: 0;',
+      '  transition: transform 0.2s ease;',
       '}',
       '.cd-game .cd-avatar:hover {',
       '  transform: scale(1.08);',
-      '  box-shadow: 0 0 20px rgba(255,215,0,0.5);',
       '}',
       '.cd-game .cd-divider {',
       '  height: 1px;',
@@ -712,6 +741,37 @@
   }
 
   // ═══════════════════════════════════════════════════════════════
+  // SECTION: AVATAR (real photo + equipped frame via AvatarWithFrameV11)
+  // ═══════════════════════════════════════════════════════════════
+  function mountAvatar(mountEl) {
+    if (!mountEl) return;
+    var user = currentUserData();
+    var photoURL = (user && (user.photoURL || user.photo)) || '';
+    if (window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+      window.ReactDOM.render(
+        window.React.createElement(window.AvatarWithFrameV11, {
+          photoURL: photoURL,
+          equipped: user ? user.equipped : null,
+          size: 'sm',
+          isOnline: user ? !!user.online : undefined,
+          banData: user ? user.banData : undefined,
+          lang: _lang
+        }),
+        mountEl
+      );
+    } else {
+      var img = document.createElement('img');
+      img.alt = 'avatar';
+      img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;';
+      img.src = photoURL || 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=96';
+      img.onerror = function() {
+        this.src = 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=96';
+      };
+      mountEl.appendChild(img);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // SECTION: BALANCE DISPLAY
   // ═══════════════════════════════════════════════════════════════
   function updateBalanceDisplay() {
@@ -773,7 +833,7 @@
     if (_isRolling) return;
     if (!_selectedBet) { updateBetInfo(); return; }
     if (!_selectedChip) return;
-    if (_balance < _selectedChip) return;
+    if (_balance < _selectedChip) { showGameMsg(t('tryAgain')); return; }
 
     _isRolling = true;
     setBettingEnabled(false);
@@ -784,18 +844,27 @@
     var collectEl = $('cd-collect-btn');
     if (collectEl) collectEl.style.display = 'none';
 
-    // Deduct bet
-    mockBet(_selectedChip);
+    // Real bet debit (rejects server-side if balance is insufficient)
+    deductBet(_selectedChip, getBetLabel()).then(function(res) {
+      if (!res || !res.success) {
+        _isRolling = false;
+        setBettingEnabled(true);
+        showGameMsg((res && res.error) ? (res.error === 'insufficient_funds' ? t('tryAgain') : res.error) : 'Bet failed');
+        return;
+      }
+      _balance -= _selectedChip;
+      updateBalanceDisplay();
 
-    // Generate final values
-    var d1 = Math.floor(Math.random() * 6) + 1;
-    var d2 = Math.floor(Math.random() * 6) + 1;
-    var d3 = Math.floor(Math.random() * 6) + 1;
-    var finalValues = [d1, d2, d3];
+      // Generate final values
+      var d1 = Math.floor(Math.random() * 6) + 1;
+      var d2 = Math.floor(Math.random() * 6) + 1;
+      var d3 = Math.floor(Math.random() * 6) + 1;
+      var finalValues = [d1, d2, d3];
 
-    // Animate dice
-    animateDiceRoll(finalValues, function() {
-      evaluateResult(finalValues);
+      // Animate dice
+      animateDiceRoll(finalValues, function() {
+        evaluateResult(finalValues);
+      });
     });
   }
 
@@ -943,11 +1012,20 @@
 
   function collectWinnings() {
     if (_pendingWinAmount <= 0) return;
-    mockWin(_pendingWinAmount, _pendingWinMultiplier);
-    var collectEl = $('cd-collect-btn');
-    if (collectEl) collectEl.style.display = 'none';
-    _pendingWinAmount = 0;
-    _pendingWinMultiplier = 0;
+    var winAmt = _pendingWinAmount;
+    var winMult = _pendingWinMultiplier;
+    creditWin(winAmt, winMult).then(function(res) {
+      if (!res || !res.success) {
+        showGameMsg((res && res.error) ? (res.error === 'insufficient_funds' ? t('tryAgain') : res.error) : 'Collect failed');
+        return; // keep pending so the user can retry
+      }
+      _balance += winAmt;
+      updateBalanceDisplay();
+      var collectEl = $('cd-collect-btn');
+      if (collectEl) collectEl.style.display = 'none';
+      _pendingWinAmount = 0;
+      _pendingWinMultiplier = 0;
+    });
   }
 
   function setBettingEnabled(enabled) {
@@ -995,20 +1073,17 @@
     titleEl.textContent = t('title');
     topBar.appendChild(titleEl);
 
-    var avatarImg = document.createElement('img');
-    avatarImg.className = 'cd-avatar';
-    avatarImg.src = (_user.photoURL) || 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=100';
-    avatarImg.alt = 'Avatar';
-    avatarImg.onerror = function() {
-      this.src = 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=100';
-    };
-    addListener(avatarImg, 'click', function() {
-      var uid = _user.uid;
+    var avatarMount = document.createElement('div');
+    avatarMount.className = 'cd-avatar';
+    addListener(avatarMount, 'click', function() {
+      var uid = getTxUid();
+      if (!uid) return;
       if (typeof window.openLuckyGamesMiniProfile === 'function') window.openLuckyGamesMiniProfile(uid);
       else if (typeof window.openMiniProfile === 'function') window.openMiniProfile(uid);
       else if (typeof window.setMiniProfileUID !== 'undefined') { window.setMiniProfileUID(uid); window.setShowMiniProfile(true); }
     });
-    topBar.appendChild(avatarImg);
+    mountAvatar(avatarMount);
+    topBar.appendChild(avatarMount);
     game.appendChild(topBar);
 
     // Divider
@@ -1171,10 +1246,13 @@
     if (!container) return;
     _container = container;
     _lang = (options && options.lang) || 'en';
-    _user = (options && options.user) || { uid: '', photoURL: '', currency: 0 };
+    _user = (options && options.user) ||
+      window.cdGameUserData || window.pwGameUserData || window.currentUserData || window.userData ||
+      { uid: '', photoURL: '', currency: 0 };
     _balance = (_user.currency != null) ? Number(_user.currency) : 0;
     _selectedBet = null;
     _selectedChip = null;
+    _roundTag = 0;
     _isRolling = false;
     _pendingWinAmount = 0;
     _pendingWinMultiplier = 0;

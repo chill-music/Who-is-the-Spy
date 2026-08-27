@@ -16,6 +16,7 @@
   var currentAngle = 0;
   var winAmount = 0;
   var winMultiplier = 0;
+  var activeRoundTag = 0;
   var rafId = null;
   var timers = [];
   var listeners = [];
@@ -68,6 +69,7 @@
 
   // ── Utilities ──────────────────────────────────────────────────────
   function fmtNum(n) {
+    if (typeof window.fmtNum === 'function') return window.fmtNum(n);
     if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     return String(n);
@@ -91,23 +93,44 @@
     return 0;
   }
 
-  // ── MOCK CURRENCY ──────────────────────────────────────────────────
-  function mockBet(amount) {
-    // ══ MOCK: wire to SecurityService.applyCurrencyTransaction(uid, -amount, 'Phoenix Wheel Bet: spin') ══
-    var uid = options && options.user ? options.user.uid : 'anon';
-    var idemKey = uid + '_pwspin_' + Date.now();
-    // Real call: window.SecurityService.applyCurrencyTransaction(uid, -amount, 'Phoenix Wheel Bet: spin', null, { idemKey: idemKey });
-    balance -= amount;
-    updateBalanceDisplay();
+  // ── REAL CURRENCY (SecurityService) ──────────────────────────────
+  function currentUser() {
+    return (options && options.user) ||
+      window.pwGameUserData || window.cdGameUserData || window.currentUserData || window.userData ||
+      null;
   }
 
-  function mockWin(amount) {
-    // ══ MOCK: wire to SecurityService.applyCurrencyTransaction(uid, amount, 'Phoenix Wheel Win: x...') ══
-    var uid = options && options.user ? options.user.uid : 'anon';
-    var idemKey = uid + '_pwwin_' + Date.now();
-    // Real call: window.SecurityService.applyCurrencyTransaction(uid, amount, 'Phoenix Wheel Win: x' + winMultiplier, null, { idemKey: idemKey });
-    balance += amount;
-    updateBalanceDisplay();
+  function uidOf() {
+    var u = currentUser();
+    if (u && u.uid) return u.uid;
+    if (window.firebase && window.firebase.auth && window.firebase.auth().currentUser) return window.firebase.auth().currentUser.uid;
+    return null;
+  }
+
+  function showMsg(msg) {
+    if (window.showToast) window.showToast(msg, 'error');
+    else console.warn('[PhoenixWheel]', msg);
+  }
+
+  function realBet(amount) {
+    var uid = uidOf();
+    if (!uid) return Promise.resolve({ success: false, error: 'Sign in required' });
+    activeRoundTag = Date.now();
+    return window.SecurityService.applyCurrencyTransaction(
+      uid, -amount, 'Phoenix Wheel Bet: spin',
+      { game: 'PhoenixWheel' },
+      { idemKey: uid + '_pwspin_' + activeRoundTag }
+    );
+  }
+
+  function realWin(amount) {
+    var uid = uidOf();
+    if (!uid) return Promise.resolve({ success: false, error: 'Sign in required' });
+    return window.SecurityService.applyCurrencyTransaction(
+      uid, amount, 'Phoenix Wheel Win: x' + winMultiplier,
+      { game: 'PhoenixWheel', multiplier: winMultiplier, roundTag: activeRoundTag },
+      { idemKey: uid + '_pwwin_' + activeRoundTag }
+    );
   }
 
   function el(id) { return container ? container.querySelector('#' + id) : null; }
@@ -178,19 +201,20 @@
       '}',
       '.pw-game .pw-avatar-wrap {',
       '  cursor: pointer;',
-      '  width: 50px;',
-      '  height: 50px;',
+      '  width: 56px;',
+      '  height: 56px;',
       '  border-radius: 50%;',
-      '  border: 2px solid #ee5a24;',
-      '  overflow: hidden;',
+      '  display: flex;',
+      '  align-items: center;',
+      '  justify-content: center;',
       '  flex-shrink: 0;',
-      '  box-shadow: 0 0 10px rgba(238,90,36,0.35);',
       '}',
       '.pw-game .pw-avatar-wrap img {',
       '  width: 100%;',
       '  height: 100%;',
       '  object-fit: cover;',
       '  display: block;',
+      '  border-radius: 50%;',
       '}',
       '.pw-game .pw-accent-line {',
       '  height: 2px;',
@@ -637,7 +661,7 @@
   // ── Spin Animation ─────────────────────────────────────────────────
   function spinWheel() {
     if (isSpinning) return;
-    if (balance < currentBet) return;
+    if (balance < currentBet) { showMsg(currentLang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient balance'); return; }
 
     isSpinning = true;
     setBettingEnabled(false);
@@ -648,63 +672,72 @@
     var collectEl = el('pw-collect-btn');
     if (collectEl) collectEl.style.display = 'none';
 
-    // Deduct bet
-    mockBet(currentBet);
+    // Real bet debit (rejects server-side if balance is insufficient)
+    realBet(currentBet).then(function(res) {
+      if (!res || !res.success) {
+        isSpinning = false;
+        setBettingEnabled(true);
+        showMsg((res && res.error) ? (res.error === 'insufficient_funds' ? (currentLang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient balance') : res.error) : 'Spin failed');
+        return;
+      }
+      balance -= currentBet;
+      updateBalanceDisplay();
 
-    // Pick target segment
-    var targetIdx = pickWeightedSegment();
-    var seg = segments[targetIdx];
-    winMultiplier = seg.mult;
-    winAmount = currentBet * seg.mult;
+      // Pick target segment
+      var targetIdx = pickWeightedSegment();
+      var seg = segments[targetIdx];
+      winMultiplier = seg.mult;
+      winAmount = currentBet * seg.mult;
 
-    // Calculate target angle so pointer lands on target segment
-    var segCenter = targetIdx * segmentAngle + segmentAngle / 2;
-    var randomOffset = (Math.random() - 0.5) * segmentAngle * 0.7;
-    var targetAngle = -(segCenter + randomOffset);
-    targetAngle = ((targetAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    // Add 5-7 full rotations
-    var fullSpins = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
-    var totalRotation = fullSpins + targetAngle - (currentAngle % (2 * Math.PI));
-    if (totalRotation < fullSpins) totalRotation += 2 * Math.PI;
+      // Calculate target angle so pointer lands on target segment
+      var segCenter = targetIdx * segmentAngle + segmentAngle / 2;
+      var randomOffset = (Math.random() - 0.5) * segmentAngle * 0.7;
+      var targetAngle = -(segCenter + randomOffset);
+      targetAngle = ((targetAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      // Add 5-7 full rotations
+      var fullSpins = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+      var totalRotation = fullSpins + targetAngle - (currentAngle % (2 * Math.PI));
+      if (totalRotation < fullSpins) totalRotation += 2 * Math.PI;
 
-    var startAngle = currentAngle;
-    var endAngle = startAngle + totalRotation;
-    var duration = 4500 + Math.random() * 1500;
-    var startTime = null;
-    var lastSegIdx = -1;
+      var startAngle = currentAngle;
+      var endAngle = startAngle + totalRotation;
+      var duration = 4500 + Math.random() * 1500;
+      var startTime = null;
+      var lastSegIdx = -1;
 
-    function animate(ts) {
-      if (!startTime) startTime = ts;
-      var elapsed = ts - startTime;
-      var progress = Math.min(elapsed / duration, 1);
+      function animate(ts) {
+        if (!startTime) startTime = ts;
+        var elapsed = ts - startTime;
+        var progress = Math.min(elapsed / duration, 1);
 
-      // Cubic ease-out
-      var eased = 1 - Math.pow(1 - progress, 3);
+        // Cubic ease-out
+        var eased = 1 - Math.pow(1 - progress, 3);
 
-      var angle = startAngle + totalRotation * eased;
-      currentAngle = angle;
-      drawWheel(angle);
+        var angle = startAngle + totalRotation * eased;
+        currentAngle = angle;
+        drawWheel(angle);
 
-      // Tick pulse when crossing segment boundaries
-      var normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-      var currentSegAtPointer = Math.floor(normAngle / segmentAngle) % 8;
-      if (currentSegAtPointer !== lastSegIdx && lastSegIdx !== -1) {
-        var wc = container.querySelector('.pw-wheel-container');
-        if (wc) {
-          wc.style.boxShadow = '0 0 50px rgba(255,215,0,0.6)';
-          setTimeout(function() { if (wc) wc.style.boxShadow = ''; }, 80);
+        // Tick pulse when crossing segment boundaries
+        var normAngle = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        var currentSegAtPointer = Math.floor(normAngle / segmentAngle) % 8;
+        if (currentSegAtPointer !== lastSegIdx && lastSegIdx !== -1) {
+          var wc = container.querySelector('.pw-wheel-container');
+          if (wc) {
+            wc.style.boxShadow = '0 0 50px rgba(255,215,0,0.6)';
+            setTimeout(function() { if (wc) wc.style.boxShadow = ''; }, 80);
+          }
+        }
+        lastSegIdx = currentSegAtPointer;
+
+        if (progress < 1) {
+          rafId = requestAnimationFrame(animate);
+        } else {
+          onSpinComplete(targetIdx);
         }
       }
-      lastSegIdx = currentSegAtPointer;
 
-      if (progress < 1) {
-        rafId = requestAnimationFrame(animate);
-      } else {
-        onSpinComplete(targetIdx);
-      }
-    }
-
-    rafId = requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(animate);
+    });
   }
 
   // ── On Spin Complete ───────────────────────────────────────────────
@@ -862,18 +895,27 @@
   // ── Collect Handler ────────────────────────────────────────────────
   function onCollect() {
     if (winAmount <= 0) return;
-    mockWin(winAmount);
-    winAmount = 0;
-    winMultiplier = 0;
-    var collectEl = el('pw-collect-btn');
-    if (collectEl) collectEl.style.display = 'none';
-    var resultEl = el('pw-result');
-    if (resultEl) resultEl.innerHTML = '';
+    var amt = winAmount;
+    var mult = winMultiplier;
+    realWin(amt).then(function(res) {
+      if (!res || !res.success) {
+        showMsg((res && res.error) ? (res.error === 'insufficient_funds' ? (currentLang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient balance') : res.error) : 'Collect failed');
+        return; // keep pending so the user can retry
+      }
+      balance += amt;
+      updateBalanceDisplay();
+      winAmount = 0;
+      winMultiplier = 0;
+      var collectEl = el('pw-collect-btn');
+      if (collectEl) collectEl.style.display = 'none';
+      var resultEl = el('pw-result');
+      if (resultEl) resultEl.innerHTML = '';
+    });
   }
 
   // ── Avatar Click (Mini Profile) ────────────────────────────────────
   function onAvatarClick() {
-    var uid = options && options.user ? options.user.uid : null;
+    var uid = uidOf();
     if (!uid) return;
     if (typeof window.openLuckyGamesMiniProfile === 'function') {
       window.openLuckyGamesMiniProfile(uid);
@@ -882,6 +924,34 @@
     } else if (typeof window.setMiniProfileUID !== 'undefined') {
       window.setMiniProfileUID(uid);
       window.setShowMiniProfile(true);
+    }
+  }
+
+  // ── Avatar Render (real photo + equipped frame) ───────────────────
+  function mountAvatar(mountEl) {
+    if (!mountEl) return;
+    var user = currentUser();
+    var photoURL = (user && (user.photoURL || user.photo)) || '';
+    if (window.ReactDOM && window.React && window.AvatarWithFrameV11) {
+      window.ReactDOM.render(
+        window.React.createElement(window.AvatarWithFrameV11, {
+          photoURL: photoURL,
+          equipped: user ? user.equipped : null,
+          size: 'sm',
+          isOnline: user ? !!user.online : undefined,
+          banData: user ? user.banData : undefined,
+          lang: currentLang
+        }),
+        mountEl
+      );
+    } else {
+      var img = document.createElement('img');
+      img.alt = 'avatar';
+      img.src = photoURL || 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=96';
+      img.onerror = function() {
+        this.src = 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=96';
+      };
+      mountEl.appendChild(img);
     }
   }
 
@@ -910,14 +980,7 @@
 
     var avatarWrap = document.createElement('div');
     avatarWrap.className = 'pw-avatar-wrap';
-    var avatarImg = document.createElement('img');
-    avatarImg.alt = 'avatar';
-    avatarImg.src = (options && options.user && options.user.photoURL) ||
-      'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=100';
-    avatarImg.onerror = function() {
-      this.src = 'https://ui-avatars.com/api/?name=User&background=1e293b&color=fff&size=100';
-    };
-    avatarWrap.appendChild(avatarImg);
+    mountAvatar(avatarWrap);
     avatarWrap.addEventListener('click', onAvatarClick);
     listeners.push({ el: avatarWrap, evt: 'click', fn: onAvatarClick });
     topbar.appendChild(avatarWrap);
@@ -1034,12 +1097,14 @@
     container = c;
     options = opts || {};
     currentLang = (opts && opts.lang) || 'en';
-    balance = (opts && opts.user && opts.user.currency) || 0;
+    var user = currentUser();
+    balance = (user && user.currency != null) ? Number(user.currency) : 0;
     currentBet = 100;
     currentAngle = 0;
     isSpinning = false;
     winAmount = 0;
     winMultiplier = 0;
+    activeRoundTag = 0;
     canvas = null;
     ctx = null;
     buildDOM();
