@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Crown Dice — Royal Dice Game
+   Crown Dice — Royal Dice Game (Vanilla DOM)
    - 6-face fair dice derived from Firestore server seed (T-S1)
    - Real-money-style betting via SecurityService (T-S9)
    - Idempotent debits per round using dedup keys
@@ -8,195 +8,263 @@
 (function () {
     'use strict';
 
-    var { useState, useEffect, useRef, useCallback } = React;
+    var rootEl = null;
+    var lang = 'ar';
+    var currentUser = null;
+    var balance = 0;
+    var selectedFace = null;
+    var betAmount = 0;
+    var isRolling = false;
+    var lastRoll = null;
 
-    /* ── Game state ── */
-    var CDGame = function (props) {
-        var user = props.user;
-        var lang = props.lang || 'ar';
-        var onClose = props.onClose;
+    var PIP_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+    var BET_OPTIONS = [100, 500, 1000, 5000];
 
-        var [balance, setBalance] = useState(0);
-        var [lastRoll, setLastRoll] = useState(null); // { roll, target, won }
-        var [isRolling, setIsRolling] = useState(false);
-        var [showBetModal, setShowBetModal] = useState(false);
-        var [selectedFace, setSelectedFace] = useState(null); // 1..6
-        var [betAmount, setBetAmount] = useState(0);
+    function $(id) { return document.getElementById(id); }
 
-        /* Load balance once */
-        useEffect(function () {
-            if (user && user.uid && window.usersCollection) {
-                window.usersCollection.doc(user.uid).get().then(function (doc) {
-                    var d = doc.data();
-                    setBalance(d && d.coins ? d.coins : 0);
-                }).catch(function () { setBalance(0); });
-            }
-        }, [user && user.uid]);
+    function loadBalance() {
+        if (currentUser && currentUser.uid && window.usersCollection) {
+            window.usersCollection.doc(currentUser.uid).get().then(function (doc) {
+                var d = doc.data();
+                balance = (d && d.coins) ? d.coins : 0;
+                updateBalanceDisplay();
+            }).catch(function () { balance = 0; updateBalanceDisplay(); });
+        }
+    }
 
-        /* Place bet — idempotent debit */
-        var placeBet = async function (face, amount) {
-            if (!user || !user.uid || !window.SecurityService) {
-                if (window.showToast) window.showToast('Service unavailable');
+    function updateBalanceDisplay() {
+        var el = $('cd-balance');
+        if (el) el.textContent = balance;
+    }
+
+    function buildHTML() {
+        if (!rootEl) return;
+        rootEl.innerHTML = '\
+        <div style="max-width:360px;margin:0 auto;font-family:var(--font-body),sans-serif;color:#fff">\
+            <div style="text-align:center;margin-bottom:12px">\
+                <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:600">' + (lang === 'ar' ? 'الرصيد' : 'Balance') + '</div>\
+                <div id="cd-balance" style="font-size:28px;font-weight:900;color:#10b981">' + balance + '</div>\
+            </div>\
+            <div style="text-align:center;margin-bottom:14px">\
+                <div id="cd-dice-box" style="width:80px;height:80px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);border-radius:14px;border:2px solid rgba(16,185,129,0.4);font-size:36px;transition:transform 0.3s cubic-bezier(0.2,1.5,0.45,1)">⚀</div>\
+                <div id="cd-result" style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.6);min-height:18px"></div>\
+            </div>\
+            <button id="cd-roll-btn" style="width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,#9b27b0,#e040fb);color:#fff;font-weight:900;font-size:13px;cursor:pointer;border:none;margin-bottom:14px">' + (lang === 'ar' ? 'رمي النرد' : 'Roll Dice') + '</button>\
+            <div style="margin-bottom:10px">\
+                <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px">' + (lang === 'ar' ? 'اختر الوجه' : 'Pick a face') + '</div>\
+                <div id="cd-faces" style="display:flex;gap:6px;justify-content:center"></div>\
+            </div>\
+            <div id="cd-bet-info" style="text-align:center;font-size:11px;color:rgba(255,255,255,0.6);min-height:18px;margin-bottom:6px"></div>\
+            <div id="cd-bet-btns" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap"></div>\
+            <button id="cd-spin-btn" style="display:none;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,#48dbfb,#06d6a0);color:#1a0a3b;font-weight:900;font-size:13px;cursor:pointer;border:none;margin-top:10px">' + (lang === 'ar' ? 'ارمى!' : 'Roll!') + '</button>\
+            <button id="cd-collect-btn" style="display:none;width:100%;padding:10px;border-radius:10px;background:linear-gradient(135deg,#48dbfb,#06d6a0);color:#1a0a3b;font-weight:900;font-size:13px;cursor:pointer;border:none;margin-top:10px">' + (lang === 'ar' ? 'جمع الأرباح' : 'Collect Win') + '</button>\
+        </div>';
+
+        buildFaces();
+        buildBetButtons();
+        initEvents();
+    }
+
+    function buildFaces() {
+        var container = $('cd-faces');
+        if (!container) return;
+        container.innerHTML = '';
+        [1,2,3,4,5,6].forEach(function (f) {
+            var btn = document.createElement('button');
+            btn.textContent = PIP_FACES[f - 1];
+            btn.style.cssText = 'width:38px;height:38px;border-radius:50%;font-size:18px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;transition:all 0.15s';
+            btn.onclick = function () {
+                selectedFace = f;
+                betAmount = 0;
+                lastRoll = null;
+                document.querySelectorAll('#cd-faces button').forEach(function (b, i) {
+                    b.style.borderColor = (i + 1 === f) ? '#10b981' : 'rgba(255,255,255,0.2)';
+                    b.style.background = (i + 1 === f) ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.08)';
+                });
+                updateBetInfo();
+                $('cd-spin-btn').style.display = 'none';
+                $('cd-collect-btn').style.display = 'none';
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function buildBetButtons() {
+        var container = $('cd-bet-btns');
+        if (!container) return;
+        container.innerHTML = '';
+        BET_OPTIONS.forEach(function (amt) {
+            var btn = document.createElement('button');
+            btn.textContent = amt;
+            btn.style.cssText = 'padding:6px 14px;border-radius:8px;font-size:12px;font-weight:800;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;transition:all 0.15s';
+            btn.onclick = function () { placeBet(amt); };
+            container.appendChild(btn);
+        });
+    }
+
+    function updateBetInfo() {
+        var el = $('cd-bet-info');
+        if (!el) return;
+        if (selectedFace && betAmount > 0) {
+            el.textContent = (lang === 'ar' ? 'رهان على وجه ' : 'Bet on face ') + selectedFace + ' — ' + betAmount;
+        } else if (selectedFace) {
+            el.textContent = (lang === 'ar' ? 'تم اختيار الوجه ' : 'Face selected: ') + selectedFace;
+        } else {
+            el.textContent = '';
+        }
+    }
+
+    async function placeBet(amount) {
+        if (!selectedFace) {
+            if (window.showToast) window.showToast(lang === 'ar' ? 'اختر وجه أولاً' : 'Pick a face first');
+            return;
+        }
+        if (!currentUser || !currentUser.uid || !window.SecurityService) {
+            if (window.showToast) window.showToast('Service unavailable');
+            return;
+        }
+        if (balance < amount) {
+            if (window.showToast) window.showToast(lang === 'ar' ? 'رصيد غير كافٍ' : 'Insufficient balance');
+            return;
+        }
+        var idemKey = currentUser.uid + '_crownbet_' + Date.now() + '_' + selectedFace;
+        try {
+            var res = await window.SecurityService.applyCurrencyTransaction(
+                currentUser.uid, -amount, 'Crown Dice Bet: ' + selectedFace, { face: selectedFace, round: Date.now() }, { idemKey }
+            );
+            if (res && res.success === false) {
+                if (window.showToast) window.showToast('Bet blocked: ' + (res.error || ''));
                 return;
             }
-            if (balance < amount) {
-                if (window.showToast) window.showToast('?? ??? ???'); // Insufficient balance
-                return;
-            }
-            var idemKey = `${user.uid}_crownbet_${Date.now()}_${face}`;
-            try {
-                var res = await window.SecurityService.applyCurrencyTransaction(
-                    user.uid, -amount, 'Crown Dice Bet: ' + face, { face: face, round: Date.now() }, { idemKey }
-                );
-                if (res && res.success === false) {
-                    if (window.showToast) window.showToast('Bet blocked: ' + (res.error || ''));
-                    return;
-                }
-                setBalance(prev => prev + amount); // debit already applied by service; adjust UI
-                setBetAmount(amount);
-                setSelectedFace(face);
-                setShowBetModal(false);
-            } catch (e) {
-                console.error('[CD] Bet error:', e);
-                if (window.showToast) window.showToast('?? ???!');
-            }
-        };
+            balance -= amount;
+            betAmount = amount;
+            updateBalanceDisplay();
+            updateBetInfo();
+            $('cd-spin-btn').style.display = 'block';
+            $('cd-collect-btn').style.display = 'none';
+        } catch (e) {
+            console.error('[CD] Bet error:', e);
+            if (window.showToast) window.showToast(lang === 'ar' ? 'خطأ في الرهان' : 'Bet error');
+        }
+    }
 
-        /* Roll dice — fair derive from server */
-        var rollDice = async function () {
-            if (isRolling || !selectedFace || !window.SnakeLadderFair) return;
-            setIsRolling(true);
+    async function rollDice() {
+        if (isRolling || !selectedFace || betAmount <= 0) return;
+        isRolling = true;
+        $('cd-roll-btn').style.display = 'none';
+        $('cd-spin-btn').style.display = 'none';
+        var diceEl = $('cd-dice-box');
+        if (diceEl) {
+            diceEl.style.transition = 'transform 0.15s';
+            diceEl.style.transform = 'rotateX(360deg) rotateY(360deg)';
+        }
 
-            /* T-S1: deriveRoll uses roomId + turnKey + revealMs.
-               For Crown Dice we use a simple per-round commit-reveal: */
-            if (window.SnakeLadderFair && window.db) {
-                try {
-                    var roomId = 'crown_dice_' + user.uid;
-                    var turnKey = 'cd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-                    var revealMs = await window.SnakeLadderService.commitRollReveal(turnKey);
-                    var roll = window.SnakeLadderFair.deriveRoll(roomId, turnKey, revealMs);
-                    setLastRoll({ roll: roll, target: selectedFace, won: roll === selectedFace });
-                    setTimeout(function () { setIsRolling(false); }, 1200);
-                } catch (e) {
-                    console.error('[CD] Roll error:', e);
-                    setIsRolling(false);
-                }
+        var roll = 0;
+        try {
+            if (window.SnakeLadderFair && window.SnakeLadderService) {
+                var roomId = 'crown_dice_' + currentUser.uid;
+                var turnKey = 'cd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                var revealMs = await window.SnakeLadderService.commitRollReveal(turnKey);
+                roll = window.SnakeLadderFair.deriveRoll(roomId, turnKey, revealMs);
             } else {
-                /* Offline fallback: fair Math.random */
-                var roll = Math.floor(Math.random() * 6) + 1;
-                setLastRoll({ roll: roll, target: selectedFace, won: roll === selectedFace });
-                setTimeout(function () { setIsRolling(false); }, 800);
+                roll = Math.floor(Math.random() * 6) + 1;
             }
-        };
+        } catch (e) {
+            console.error('[CD] Roll error:', e);
+            roll = Math.floor(Math.random() * 6) + 1;
+        }
 
-        /* Cash out win */
-        var collectWin = async function () {
-            if (!lastRoll || !lastRoll.won || !user || !window.SecurityService) return;
-            var winAmt = betAmount * lastRoll.roll; /* simple payout: bet * rolled value */
-            var idemKey = `${user.uid}_crownwin_${lastRoll.roll}_${Date.now()}`;
-            try {
-                await window.SecurityService.applyCurrencyTransaction(
-                    user.uid, winAmt, 'Crown Dice Win: ' + lastRoll.roll, { roll: lastRoll.roll, round: Date.now() }, { idemKey }
-                );
-                setBalance(prev => prev + winAmt);
-                if (window.showToast) window.showToast('?? ???? ' + winAmt);
-                setLastRoll(null);
-                setBetAmount(0);
-                setSelectedFace(null);
-            } catch (e) {
-                console.error('[CD] Collect error:', e);
+        setTimeout(function () {
+            if (diceEl) {
+                diceEl.style.transition = 'transform 0.4s cubic-bezier(0.2,1.5,0.45,1)';
+                diceEl.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                diceEl.textContent = PIP_FACES[roll - 1];
             }
-        };
-
-        /* ── JSX ───────────────────────────────────────────────────── */
-        var diceFaces = [
-            { pips: '⚀', value: 1, rotateX: 0, rotateY: 0 },
-            { pips: '⚁', value: 2, rotateX: 0, rotateY: -90 },
-            { pips: '⚂', value: 3, rotateX: -90, rotateY: 0 },
-            { pips: '⚃', value: 4, rotateX: 90, rotateY: 0 },
-            { pips: '⚄', value: 5, rotateX: 0, rotateY: 90 },
-            { pips: '⚅', value: 6, rotateX: 0, rotateY: 180 }
-        ];
-
-        var renderDice = function () {
-            if (!isRolling && lastRoll) {
-                var rollInfo = lastRoll;
-                var faceData = diceFaces[rollInfo.roll - 1];
-                var style = {
-                    transform: 'rotateX(' + faceData.rotateX + 'deg) rotateY(' + faceData.rotateY + 'deg)',
-                    transition: 'transform 0.3s cubic-bezier(0.2, 1.5, 0.45, 1)'
-                };
-                return React.createElement('div', { className: 'cd-dice-visual', style: style }, faceData.pips);
+            lastRoll = roll;
+            var won = roll === selectedFace;
+            var resEl = $('cd-result');
+            if (resEl) {
+                resEl.style.color = won ? '#10b981' : '#ef4444';
+                resEl.textContent = won
+                    ? (lang === 'ar' ? '🎉 فزت! الوجه ' : '🎉 You win! Face ') + roll
+                    : (lang === 'ar' ? 'الوجه ' + roll + ' — حظ أوفر!' : 'Rolled ' + roll + ' — try again!');
             }
-            /* While rolling: show animated cube (simplified – use CSS tumble later) */
-            return React.createElement('div', { className: 'cd-dice-visual' }, '⚀');
-        };
+            if (won) {
+                $('cd-collect-btn').style.display = 'block';
+                $('cd-collect-btn').textContent = (lang === 'ar' ? 'جمع الأرباح: ' : 'Collect: ') + (betAmount * roll);
+            } else {
+                $('cd-spin-btn').style.display = 'none';
+                $('cd-roll-btn').style.display = 'block';
+                betAmount = 0;
+                updateBetInfo();
+            }
+            isRolling = false;
+        }, 1200);
+    }
 
-        return React.createElement('div', null,
-            /* Balance display */
-            React.createElement('div', { style: { marginBottom: '12px', textAlign: 'center' } },
-                React.createElement('div', { style: { fontSize: '12px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 } }, lang === 'ar' ? 'الرصيد' : 'Balance'),
-                React.createElement('div', { style: { fontSize: '28px', fontWeight: 900, color: '#10b981' } }, balance)
-            ),
+    async function collectWin() {
+        if (!lastRoll || lastRoll !== selectedFace || !currentUser || !window.SecurityService) return;
+        var winAmt = betAmount * lastRoll;
+        var idemKey = currentUser.uid + '_crownwin_' + lastRoll + '_' + Date.now();
+        try {
+            await window.SecurityService.applyCurrencyTransaction(
+                currentUser.uid, winAmt, 'Crown Dice Win: ' + lastRoll, { roll: lastRoll, round: Date.now() }, { idemKey }
+            );
+            balance += winAmt;
+            updateBalanceDisplay();
+            if (window.showToast) window.showToast((lang === 'ar' ? '🏆 ربحت ' : '🏆 Won ') + winAmt);
+            resetRound();
+        } catch (e) {
+            console.error('[CD] Collect error:', e);
+        }
+    }
 
-            /* Dice display */
-            React.createElement('div', {
-                style: {
-                    width: '80px', height: '80px', margin: '0 auto 16px',
-                    background: 'rgba(255,255,255,0.08)', borderRadius: '12px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: '2px solid rgba(16,185,129,0.4)',
-                    transition: 'transform 0.3s'
-                }
-            }, renderDice()),
+    function resetRound() {
+        lastRoll = null;
+        betAmount = 0;
+        selectedFace = null;
+        var resEl = $('cd-result');
+        if (resEl) { resEl.textContent = ''; }
+        document.querySelectorAll('#cd-faces button').forEach(function (b) {
+            b.style.borderColor = 'rgba(255,255,255,0.2)';
+            b.style.background = 'rgba(255,255,255,0.08)';
+        });
+        updateBetInfo();
+        $('cd-spin-btn').style.display = 'none';
+        $('cd-collect-btn').style.display = 'none';
+        $('cd-roll-btn').style.display = 'block';
+        var diceEl = $('cd-dice-box');
+        if (diceEl) { diceEl.textContent = '⚀'; }
+    }
 
-            /* Roll button */
-            !isRolling && React.createElement('button', {
-                onClick: rollDice,
-                style: {
-                    width: '100%', padding: '8px', borderRadius: '8px',
-                    background: 'linear-gradient(135deg,#9b27b0,#e040fb)',
-                    color: '#fff', fontWeight: 900, fontSize: '12px',
-                    cursor: 'pointer', border: 'none', marginBottom: '12px'
-                }
-            }, lang === 'ar' ? 'رمي النرد' : 'Roll Dice'),
+    function initEvents() {
+        var rollBtn = $('cd-roll-btn');
+        if (rollBtn) rollBtn.onclick = rollDice;
+        var spinBtn = $('cd-spin-btn');
+        if (spinBtn) spinBtn.onclick = rollDice;
+        var collectBtn = $('cd-collect-btn');
+        if (collectBtn) collectBtn.onclick = collectWin;
+    }
 
-            /* Bet panel (show when a face is selected or always visible) */
-            React.createElement('div', { style: { marginTop: '12px' } },
-                React.createElement('div', { style: { fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' } },
-                    lang === 'ar' ? 'راهن علىface' : 'Bet on face'
-                ),
-                React.createElement('div', { style: { display: 'flex', gap: '6px', justifyContent: 'center' } },
-                    [1, 2, 3, 4, 5, 6].map(function (f) {
-                        var isSelected = selectedFace === f;
-                        return React.createElement('button', {
-                            key: f,
-                            onClick: function () { setSelectedFace(f); },
-                            style: {
-                                width: '32px', height: '32px', borderRadius: '50%',
-                                background: isSelected ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.08)',
-                                border: '2px solid ' + (isSelected ? '#10b981' : 'rgba(255,255,255,0.2)'),
-                                color: '#fff', fontWeight: 900, fontSize: '14px',
-                                cursor: 'pointer', transition: 'all 0.15s'
-                            }
-                        }, f);
-                    })
-                ),
-                selectedFace && React.createElement('div', {
-                    style: { marginTop: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.7)' },
-                    lang === 'ar' ? 'تم الرهان على الوجه ' + selectedFace : 'Bet placed on face ' + selectedFace
-                }),
-                selectedFace && betAmount && React.createElement('button', {
-                    onClick: function () { collectWin(); },
-                    style: {
-                        marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
-                        background: 'linear-gradient(135deg,#48dbfb,#06d6a0)', color: '#1a0a3b',
-                        fontWeight: 900, fontSize: '12px', cursor: 'pointer', border: 'none'
-                    }
-                }, lang === 'ar' ? 'جمع الأرباح' : 'Collect Win')
-            )
-        );
+    /* ═══  PUBLIC API  ═══ */
+    window.CrownDiceGame = {
+        start: function (container, opts) {
+            opts = opts || {};
+            rootEl = typeof container === 'string' ? document.getElementById(container) : container;
+            if (!rootEl) { console.error('[CrownDice] Container not found'); return; }
+            lang = opts.lang || 'ar';
+            currentUser = opts.user || window.cdGameUserData || window.currentUserData || window.userData || null;
+            balance = 0;
+            selectedFace = null;
+            betAmount = 0;
+            lastRoll = null;
+            isRolling = false;
+            loadBalance();
+            buildHTML();
+        },
+        stop: function () {
+            rootEl = null;
+            currentUser = null;
+        }
     };
-
-    window.CrownDiceGame = CDGame;
 })();

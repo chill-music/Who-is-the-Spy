@@ -330,6 +330,8 @@
         if (window.Super777Game) { try { window.Super777Game.stop(); } catch (e) { } }
         if (window.GreedyCatGame) { try { window.GreedyCatGame.stop(); } catch (e) { } }
         if (window.SoccerStarGame) { try { window.SoccerStarGame.stop(); } catch (e) { } }
+        if (window.CrownDiceGame) { try { window.CrownDiceGame.stop(); } catch (e) { } }
+        if (window.PhoenixWheelGame) { try { window.PhoenixWheelGame.stop(); } catch (e) { } }
         window.currentUserData = null;
         setActiveGame(null);
       }
@@ -386,6 +388,8 @@
                     if (window.Super777Game) { try { window.Super777Game.stop(); } catch (e) { } }
                     if (window.GreedyCatGame) { try { window.GreedyCatGame.stop(); } catch (e) { } }
                     if (window.SoccerStarGame) { try { window.SoccerStarGame.stop(); } catch (e) { } }
+                    if (window.CrownDiceGame) { try { window.CrownDiceGame.stop(); } catch (e) { } }
+                    if (window.PhoenixWheelGame) { try { window.PhoenixWheelGame.stop(); } catch (e) { } }
                   },
                   style: {
                     background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
