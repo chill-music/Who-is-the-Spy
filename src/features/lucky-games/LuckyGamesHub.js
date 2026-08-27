@@ -466,10 +466,10 @@
             ),
 
             activeGame === 'crown_dice' && window.CrownDiceGame &&
-            React.createElement('div', { id: 'cd-root-hub', style: { width: '100%', minHeight: '60vh', position: 'relative' } }),
+            React.createElement('div', { id: 'cd-root-hub', ref: gameContainerRef, style: { width: '100%', minHeight: '60vh', position: 'relative' } }),
 
             activeGame === 'phoenix_wheel' && window.PhoenixWheelGame &&
-            React.createElement('div', { id: 'pw-root-hub', style: { width: '100%', minHeight: '60vh', position: 'relative' } }),
+            React.createElement('div', { id: 'pw-root-hub', ref: gameContainerRef, style: { width: '100%', minHeight: '60vh', position: 'relative' } }),
 
             /* ── GAMES GRID (hub view) ── */
             !activeGame &&

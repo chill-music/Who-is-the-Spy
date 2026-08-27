@@ -713,12 +713,12 @@
 /* ── Login Button Pulse Animation ── */
 @keyframes loginPulse {
     0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 0 8px rgba(16,185,129,0.4), 0 0 20px rgba(16,185,129,0.1);
+        transform: translateY(0);
+        box-shadow: 0 2px 12px rgba(16,185,129,0.3);
     }
     50% {
-        transform: scale(1.06);
-        box-shadow: 0 0 16px rgba(16,185,129,0.6), 0 0 36px rgba(16,185,129,0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 20px rgba(16,185,129,0.5), 0 0 8px rgba(16,185,129,0.2);
     }
 }
 
@@ -727,9 +727,13 @@
     cursor: pointer;
     border: none;
     outline: none;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.15s;
 }
 .snlogin-btn:hover {
     background: #059669 !important;
     animation-play-state: paused;
+    transform: translateY(-1px) !important;
+}
+.snlogin-btn:active {
+    transform: translateY(0) scale(0.97) !important;
 }
