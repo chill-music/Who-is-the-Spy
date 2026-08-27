@@ -660,7 +660,23 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
               },
                 (isLoggedIn || isGuest) ? /*#__PURE__*/
                   React.createElement(window.AvatarWithFrame, { photoURL: currentUserData?.photoURL || currentUserData?.photo, equipped: currentUserData?.equipped, size: "xs", lang: lang }) : /*#__PURE__*/
-                  React.createElement("span", { style: { fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' } }, "\uD83D\uDE0E")
+                  React.createElement("button", {
+                    className: "snlogin-btn",
+                    onClick: function() { gameActions.handleGoogleLogin(); },
+                    style: {
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      color: 'white',
+                      fontWeight: '900',
+                      fontSize: '10px',
+                      letterSpacing: '0.5px',
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      lineHeight: '1'
+                    }
+                  }, lang === 'ar' ? '\u062F\u062E\u0648\u0644' : 'LOGIN')
 
               )
             )
@@ -1046,7 +1062,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                   gridColumn: 'span 2',
                   aspectRatio: '2 / 1.2'
                 },
-                onClick: () => { setShowFriendsMoments(true); setHasNewMoments(false); localStorage.setItem('last_moments_view', Date.now().toString()); }
+                onClick: () => { if (!isLoggedIn) { setShowLoginAlert(true); return; } setShowFriendsMoments(true); setHasNewMoments(false); localStorage.setItem('last_moments_view', Date.now().toString()); }
               },
 
                 hasNewMoments && /*#__PURE__*/React.createElement("div", { className: "dsq-dot", style: { background: '#ff4b4b', boxShadow: '0 0 10px #ff4b4b', width: '10px', height: '10px' } }), /*#__PURE__*/
@@ -1090,7 +1106,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
                   '--dsq-border': 'rgba(255,136,0,0.28)',
                   padding: '18px 12px'
                 },
-                onClick: () => setShowFamilyModal(true)
+                onClick: () => { if (!isLoggedIn) { setShowLoginAlert(true); return; } setShowFamilyModal(true) }
               },
 
                 userFamily && /*#__PURE__*/React.createElement("div", { className: "dsq-dot", style: { background: '#f97316' } }), /*#__PURE__*/

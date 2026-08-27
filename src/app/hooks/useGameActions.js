@@ -221,6 +221,7 @@
 
         // ── Room & Game Actions ──
         var handleCreateGame = useCallback(async (mode, options = {}) => {
+            if (!isLoggedIn) { if (typeof setShowLoginAlert === 'function') setShowLoginAlert(true); return; }
             const gid = options.gameId || 'spy';
             if (typeof setActiveGameId === 'function') {
                 setActiveGameId(gid);
@@ -240,6 +241,7 @@
         }, [nickname, isPrivate, password, currentUID, currentUserData, setupMode, t, lang, setAlertMessage, setLoading, setRoomId, setShowSetupModal, setActiveView, setCopied, playSound, setActiveGameId]);
 
         var handleJoinGame = useCallback(async (id, pwd, options = {}) => {
+            if (!isLoggedIn) { if (typeof setShowLoginAlert === 'function') setShowLoginAlert(true); return; }
             const gid = options.gameId || 'spy';
             if (typeof setActiveGameId === 'function') {
                 setActiveGameId(gid);
