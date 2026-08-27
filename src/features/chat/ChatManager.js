@@ -275,6 +275,8 @@
                 if (typeof hasVIP === 'function' && hasVIP(userData)) {
                     senderUpdate['vip.xp'] = firebase.firestore.FieldValue.increment((gift.vipXP || 0) * qty);
                 }
+                var __relGift = window.SecurityGuard && window.SecurityGuard.arm('gift,charisma');
+                try {
                 await usersCollection.doc(user.uid).update(senderUpdate);
 
                 // 💰 Gift Receiver bonus — R-9: the last raw currency writer.
@@ -302,6 +304,7 @@
                 } else {
                     await usersCollection.doc(targetUser.uid).update(receiverUpdates);
                 }
+                } finally { if (__relGift) __relGift(); }
 
                 // Step 3: Logs & Messages
                 var originContext = 'global';
@@ -585,7 +588,10 @@
                             updateData["inventory.expiry." + item.id] = expiresAt;
                         }
                     }
-                    await usersCollection.doc(user.uid).update(updateData);
+                    var __relInv = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+                    try {
+                        await usersCollection.doc(user.uid).update(updateData);
+                    } finally { if (__relInv) __relInv(); }
                     if (typeof playSound === 'function') playSound('success');
                     
                     var giftName = lang === 'ar' ? item.name_ar : item.name_en;
@@ -607,9 +613,12 @@
                     await usersCollection.doc(user.uid).update({ currency: firebase.firestore.FieldValue.increment(-actualCost) });
                 }
                 try {
-                    await usersCollection.doc(user.uid).update({
-                        'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(item.id),
-                    });
+var __relBffTok = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+        try {
+            await usersCollection.doc(user.uid).update({
+                'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(item.id),
+            });
+        } finally { if (__relBffTok) __relBffTok(); }
                     if (typeof playSound === 'function') playSound('success');
                     var tokenName = lang === 'ar' ? item.name_ar : item.name_en;
                     if (typeof setNotification === 'function') {
@@ -637,9 +646,11 @@
                         } else {
                             await usersCollection.doc(user.uid).update({ currency: firebase.firestore.FieldValue.increment(-actualCost) });
                         }
+                        var __relRen = window.SecurityGuard && window.SecurityGuard.arm('inventory');
                         await usersCollection.doc(user.uid).update({
                             ["inventory.expiry." + item.id]: newExpiry,
                         });
+                        if (__relRen) __relRen();
                         if (typeof playSound === 'function') playSound('success');
                         var itemName = lang === 'ar' ? item.name_ar : item.name_en;
                         if (typeof setNotification === 'function') {
@@ -668,8 +679,11 @@
                     updateData["inventory.expiry." + item.id] = Date.now() + item.durationDays * 86400000;
                 }
                 
-                await usersCollection.doc(user.uid).update(updateData);
-                if (typeof playSound === 'function') playSound('success');
+                var __relGen = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+                try {
+                    await usersCollection.doc(user.uid).update(updateData);
+                    if (typeof playSound === 'function') playSound('success');
+                } finally { if (__relGen) __relGen(); }
                 
                 var itemName = lang === 'ar' ? item.name_ar : item.name_en;
                 var timerMsg = item.durationDays ? (" (⏳ " + item.durationDays + " " + (lang === 'ar' ? 'يوم' : 'days') + ")") : '';
@@ -747,8 +761,11 @@
                     }
                 }
 
-                await usersCollection.doc(user.uid).update(updates);
-                if (typeof playSound === 'function') playSound('success');
+                var __relVip = window.SecurityGuard && window.SecurityGuard.arm('vip,inventory');
+                try {
+                    await usersCollection.doc(user.uid).update(updates);
+                    if (typeof playSound === 'function') playSound('success');
+                } finally { if (__relVip) __relVip(); }
                 
                 if (typeof setNotification === 'function') {
                     if (isFirstPurchase) {
@@ -843,12 +860,18 @@
                         if (typeof setNotification === 'function') setNotification(lang === 'ar' ? "الحد الأقصى " + MAX_BADGES + " شارات" : "Maximum " + MAX_BADGES + " badges"); 
                         return; 
                     }
-                    if (!currentBadges.includes(item.id)) currentBadges.push(item.id);
+if (!currentBadges.includes(item.id)) currentBadges.push(item.id);
+                var __relEqB = window.SecurityGuard && window.SecurityGuard.arm('equip');
+                try {
                     await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
+                } finally { if (__relEqB) __relEqB(); }
                 } else { 
                     var updateData = {};
                     updateData["equipped." + item.type] = item.id;
-                    await usersCollection.doc(user.uid).update(updateData); 
+                    var __relEq = window.SecurityGuard && window.SecurityGuard.arm('equip');
+                    try {
+                        await usersCollection.doc(user.uid).update(updateData); 
+                    } finally { if (__relEq) __relEq(); }
                 }
                 
                 if (typeof playSound === 'function') playSound('click');
@@ -877,11 +900,17 @@
                     var currentBadges = equipped.badges || []; 
                     if (!Array.isArray(currentBadges)) currentBadges = currentBadges ? [currentBadges] : [];
                     currentBadges = currentBadges.filter(function(id) { return id !== itemId; });
-                    await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
+                    var __relUqB = window.SecurityGuard && window.SecurityGuard.arm('equip');
+                    try {
+                        await usersCollection.doc(user.uid).update({ equipped: { ...equipped, badges: currentBadges } });
+                    } finally { if (__relUqB) __relUqB(); }
                 } else {
                     var newEquipped = { ...equipped }; 
                     delete newEquipped[type];
-                    await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+                    var __relUq = window.SecurityGuard && window.SecurityGuard.arm('equip');
+                    try {
+                        await usersCollection.doc(user.uid).update({ equipped: newEquipped });
+                    } finally { if (__relUq) __relUq(); }
                 }
                 
                 if (typeof playSound === 'function') playSound('click');

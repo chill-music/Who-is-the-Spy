@@ -1191,9 +1191,12 @@
         if (window.SecurityService) {
            await window.SecurityService.applyCurrencyTransaction(authUser.uid, amt, `LuckyFruitGame Wheel Win: ${targetIdx}`);
         }
-        await usersCollection.doc(authUser.uid).update({
-          lastWheelSpin: nowSrv
-        });
+        var __relWheel = window.SecurityGuard && window.SecurityGuard.arm('wheel');
+        try {
+          await usersCollection.doc(authUser.uid).update({
+            lastWheelSpin: nowSrv
+          });
+        } finally { if (__relWheel) __relWheel(); }
         
         // Synchronize local states
         var tsNow = Date.now();

@@ -791,9 +791,11 @@ input[type=number]{-moz-appearance:textfield;}
         const newProg = Math.round(atMult * 100) / 100;
         const roundTag = String(rRound.current || Date.now());
         const finishCredit = () => {
+          const releaseJp = window.SecurityGuard && window.SecurityGuard.arm('crash');
           window.usersCollection.doc(user.uid).update({
             crash_jackpot_prog: increment(newProg)
-          }).catch(err => console.error("[CrashGame] Jackpot progress error:", err));
+          }).catch(err => console.error("[CrashGame] Jackpot progress error:", err))
+            .then(function () { if (releaseJp) releaseJp(); }, function () { if (releaseJp) releaseJp(); });
         };
         if (window.SecurityService) {
           window.SecurityService.applyCurrencyTransaction(
@@ -829,9 +831,11 @@ input[type=number]{-moz-appearance:textfield;}
 
               // Add jackpot winnings via SecurityService (idempotent per round)
               const grantJackpot = () => {
+                const releaseJp2 = window.SecurityGuard && window.SecurityGuard.arm('crash');
                 window.usersCollection.doc(user.uid).update({
                   crash_jackpot_prog: 0 // Reset progress after win
-                }).catch(() => {});
+                }).catch(() => {})
+                  .then(function () { if (releaseJp2) releaseJp2(); }, function () { if (releaseJp2) releaseJp2(); });
               };
               if (window.SecurityService) {
                 window.SecurityService.applyCurrencyTransaction(

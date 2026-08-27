@@ -1085,7 +1085,10 @@ var claimDailyMilestoneChest = async ({ family, currentUID, msIdx, ms, lang, onN
                 familyUpdates.familyCoins = firebase.firestore.FieldValue.increment(r.amount || 0);
                 earnedParts.push(`+${r.amount} 🏅`);
             } else if (r.type === 'xp') {
-                await usersCollection.doc(currentUID).update({ xp: firebase.firestore.FieldValue.increment(r.amount || 0) });
+                var __relXp2 = window.SecurityGuard && window.SecurityGuard.arm('stats');
+                try {
+                    await usersCollection.doc(currentUID).update({ xp: firebase.firestore.FieldValue.increment(r.amount || 0) });
+                } finally { if (__relXp2) __relXp2(); }
                 earnedParts.push(`+${r.amount} XP`);
             }
         }
@@ -1134,7 +1137,10 @@ var claimTask = async ({ family, currentUID, task, lang, onNotification }) => {
         var userRef = usersCollection.doc(currentUID);
         var userUpdates = {};
         if (task.reward?.xp) userUpdates.xp = firebase.firestore.FieldValue.increment(task.reward.xp);
-        if (Object.keys(userUpdates).length > 0) await userRef.update(userUpdates);
+        if (Object.keys(userUpdates).length > 0) {
+            var __relXp = window.SecurityGuard && window.SecurityGuard.arm('stats');
+            try { await userRef.update(userUpdates); } finally { if (__relXp) __relXp(); }
+        }
 
         var earnedText = [];
         if (fcAdd) earnedText.push(`+${fcAdd} ${window.FAMILY_COINS_SYMBOL || FAMILY_COINS_SYMBOL || '🏅'}`);

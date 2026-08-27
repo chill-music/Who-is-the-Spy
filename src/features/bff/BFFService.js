@@ -120,7 +120,10 @@
       var newTokens = [...myBffTokens];
       var idx = newTokens.indexOf(tokenId);
       if (idx > -1) newTokens.splice(idx, 1);
-      await usersCollection.doc(fromUID).update({ 'inventory.bff_tokens': newTokens });
+      var __relTok = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+      try {
+        await usersCollection.doc(fromUID).update({ 'inventory.bff_tokens': newTokens });
+      } finally { if (__relTok) __relTok(); }
 
       // Create BFF doc
       var bffRef = await bffCollection.add({
@@ -202,9 +205,12 @@
       // Refund token
       var token = BFF_TOKEN_ITEMS.find((t) => t.id === tokenId);
       if (token && fromUID) {
-        await usersCollection.doc(fromUID).update({
-          'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(tokenId)
-        }).catch(() => {});
+        var __relRefund = window.SecurityGuard && window.SecurityGuard.arm('inventory');
+        try {
+          await usersCollection.doc(fromUID).update({
+            'inventory.bff_tokens': firebase.firestore.FieldValue.arrayUnion(tokenId)
+          }).catch(() => {});
+        } finally { if (__relRefund) __relRefund(); }
       }
       await bffCollection.doc(bffDocId).delete();
       if (declinerUID && requesterUID && declinerUID !== requesterUID) {
@@ -242,9 +248,12 @@
       } else {
         await usersCollection.doc(uid).update({ currency: firebase.firestore.FieldValue.increment(-cost) });
       }
-      await usersCollection.doc(uid).update({
-        bffExtraSlots: firebase.firestore.FieldValue.increment(1)
-      });
+      var __relSlots = window.SecurityGuard && window.SecurityGuard.arm('bff');
+      try {
+        await usersCollection.doc(uid).update({
+          bffExtraSlots: firebase.firestore.FieldValue.increment(1)
+        });
+      } finally { if (__relSlots) __relSlots(); }
       onNotification && onNotification(lang === 'ar' ? '✅ تم فتح خانة جديدة!' : '✅ New slot unlocked!');
       return { ok: true };
     } catch (e) {
