@@ -936,7 +936,7 @@ window.SecurityService = {
         //    legitimate single-round payout (~48M at max bet ×45); anything above
         //    is quarantined for owner review instead of being applied silently.
         if (amount > 0) {
-            var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777') || reason.includes('Soccer Star') || reason.includes('Crash'));
+            var isGameWin = reason && (reason.includes('GreedyCat') || reason.includes('Lucky Fruit') || reason.includes('Super 777') || reason.includes('Soccer Star') || reason.includes('Crash') || reason.includes('Crown Dice') || reason.includes('Phoenix Wheel'));
             var MAX_SINGLE_REWARD = isGameWin ? 100000000 : 100000;
             if (amount > MAX_SINGLE_REWARD) {
                 var transId = 'PEND-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -1420,6 +1420,7 @@ window.TamperGuard = (function () {
         'inventory': 'inventory', 'equipped': 'equip', 'badges': 'equip',
         'loginRewards': 'loginrewards', 'funPass': 'funpass',
         'crash_jackpot_prog': 'crash', 'lastWheelSpin': 'wheel',
+        'crown_jackpot_prog': 'crownjp', 'phoenix_jackpot_prog': 'phoenixjp',
         'bffExtraSlots': 'bff', 'familyCoins': 'familycoins',
         'partnerId': 'couple', 'isMarried': 'couple'
     };
