@@ -26,16 +26,31 @@
   var segmentAngle = (2 * Math.PI) / 8;
   var pointerAngle = -Math.PI / 2;
 
+  // ── Jackpot / Help modal state ────────────────────────────────────
+  var activeJackpot = 0;        // live pool amount (PhoenixWheel-only)
+  var jackpotProgress = 0;      // cumulative collected Intel toward auto-claim
+  var jackpotPending = false;
+  var jackpotWinInfo = null;
+  var topExplorers = [];
+  var lastSpinBet = 0;
+  var dbUnsubs = [];            // Firestore listeners to close on stop()
+  var seenBroadcastTs = 0;
+  var showJackpotModal = false;
+  var showHelpModal = false;
+
   // ── Segment Definitions (8 segments) ──────────────────────────────
+  // Weights (total 10,000) set genuinely rare high multipliers:
+  //   25x = 0.08% (1 in 1250), 50x = 0.02% (1 in 5000).
+  //   RTP = 9,620 / 10,000 = 96.2% (house edge 3.8%).
   var segments = [
-    { label: '0x',  mult: 0,    color: '#2d0a0a', weight: 30 },
-    { label: '1.5x', mult: 1.5, color: '#ee5a24', weight: 20 },
-    { label: '2x',   mult: 2,   color: '#ff6b6b', weight: 18 },
-    { label: '3x',   mult: 3,   color: '#e74c3c', weight: 12 },
-    { label: '5x',   mult: 5,   color: '#c0392b', weight: 8 },
-    { label: '10x',  mult: 10,  color: '#ff8c00', weight: 5 },
-    { label: '25x',  mult: 25,  color: '#ffd700', weight: 4 },
-    { label: '50x',  mult: 50,  color: '#fff8dc', weight: 3 }
+    { label: '0x',  mult: 0,    color: '#2d0a0a', weight: 4920 },
+    { label: '1.5x', mult: 1.5, color: '#ee5a24', weight: 3800 },
+    { label: '2x',   mult: 2,   color: '#ff6b6b', weight: 850 },
+    { label: '3x',   mult: 3,   color: '#e74c3c', weight: 240 },
+    { label: '5x',   mult: 5,   color: '#c0392b', weight: 120 },
+    { label: '10x',  mult: 10,  color: '#ff8c00', weight: 60 },
+    { label: '25x',  mult: 25,  color: '#ffd700', weight: 8 },
+    { label: '50x',  mult: 50,  color: '#fff8dc', weight: 2 }
   ];
 
   // ── Labels (EN / AR) ──────────────────────────────────────────────
@@ -49,7 +64,22 @@
       maxWin: 'Max Win',
       youWin: 'YOU WIN',
       burned: 'BURNED!',
-      betInfo: function(b, m) { return 'Bet: ' + b + ' \uD83E\uDDE0 | Max Win: ' + m + ' \uD83E\uDDE0'; }
+      betInfo: function(b, m) { return 'Bet: ' + b + ' \uD83E\uDDE0 | Max Win: ' + m + ' \uD83E\uDDE0'; },
+      howTo: 'HOW TO PLAY',
+      jackpot: 'JACKPOT',
+      helpTitle: 'PHOENIX WHEEL \u2014 HOW TO PLAY',
+      totalPool: 'Total Prize Pool',
+      topExplorers: 'Top Explorers',
+      noRecords: 'No records yet',
+      shares: 'Payout Shares (by round bet)',
+      rules1: '0.5% of every bet feeds the pool.',
+      rules2: 'Hits 1,000,000 Intel collected \u2192 auto-claims a tier.',
+      rules3: 'Your tier depends on that round\u2019s bet size.',
+      rtpNote: 'RTP {rtp} \u2014 every segment below is shown with its true probability.',
+      jpWinTitle: 'JACKPOT WIN!',
+      jpWinNote: 'Auto-credited to your balance',
+      ok: 'NICE!',
+      closeT: 'Close'
     },
     ar: {
       title: '\u0639\u062C\u0644\u0629 \u0627\u0644\u0641\u064A\u0646\u064A\u0642 \uD83D\uDD25',
@@ -60,7 +90,22 @@
       maxWin: '\u0623\u0642\u0635\u0649 \u0631\u0628\u062D',
       youWin: '\u0641\u0632\u062A',
       burned: '\u0627\u062D\u062A\u0631\u0642!',
-      betInfo: function(b, m) { return '\u0627\u0644\u0631\u0647\u0627\u0646: ' + b + ' \uD83E\uDDE0 | \u0623\u0642\u0635\u0649 \u0631\u0628\u062D: ' + m + ' \uD83E\uDDE0'; }
+      betInfo: function(b, m) { return '\u0627\u0644\u0631\u0647\u0627\u0646: ' + b + ' \uD83E\uDDE0 | \u0623\u0642\u0635\u0649 \u0631\u0628\u062D: ' + m + ' \uD83E\uDDE0'; },
+      howTo: '\u0643\u064A\u0641\u064A\u0629 \u0627\u0644\u0644\u0639\u0628',
+      jackpot: '\u0627\u0644\u062C\u0627\u0626\u0632\u0629 \u0627\u0644\u0643\u0628\u0631\u0649',
+      helpTitle: '\u0639\u062C\u0644\u0629 \u0627\u0644\u0641\u064A\u0646\u064A\u0642 \u2014 \u0643\u064A\u0641\u064A\u0629 \u0627\u0644\u0644\u0639\u0628',
+      totalPool: '\u0625\u062C\u0645\u0627\u0644\u064A \u0645\u062C\u0645\u0648\u0639 \u0627\u0644\u062C\u0648\u0627\u0626\u0632',
+      topExplorers: '\u0643\u0628\u0627\u0631 \u0627\u0644\u0645\u0633\u062A\u0643\u0634\u0641\u064A\u0646',
+      noRecords: '\u0644\u0627 \u062A\u0648\u062C\u062F \u0633\u062C\u0644\u0627\u062A \u0628\u0639\u062F',
+      shares: '\u062D\u0635\u0635 \u0627\u0644\u062F\u0641\u0639 (\u062D\u0633\u0628 \u0631\u0647\u0627\u0646 \u0627\u0644\u062C\u0648\u0644\u0629)',
+      rules1: '\u064A\u062A\u063A\u0630\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639 \u0645\u0646 \u0646\u0633\u0628\u0629 0.5% \u0645\u0646 \u0643\u0644 \u0631\u0647\u0627\u0646.',
+      rules2: '\u0627\u0644\u0648\u0635\u0648\u0644 \u0644\u0640 1,000,000 \u0625\u0646\u062A\u0644 \u0645\u062C\u0645\u0639 \u2192 \u0641\u0648\u0632 \u062A\u0644\u0642\u0627\u0626\u064A \u0628\u0641\u0626\u0629.',
+      rules3: '\u0641\u0626\u062A\u0643 \u062A\u0639\u062A\u0645\u062F \u0639\u0644\u0649 \u062D\u062C\u0645 \u0631\u0647\u0627\u0646 \u062A\u0644\u0643 \u0627\u0644\u062C\u0648\u0644\u0629.',
+      rtpNote: 'RTP {rtp} \u2014 \u0643\u0644 \u0642\u0637\u0627\u0639 \u0623\u062F\u0646\u0627\u0647 \u0645\u0639\u0631\u0648\u0636 \u0628\u0627\u062D\u062A\u0645\u0627\u0644\u064A\u062A\u0647 \u0627\u0644\u062D\u0642\u064A\u0642\u064A\u0629.',
+      jpWinTitle: '\u0641\u0648\u0632 \u0628\u0627\u0644\u062C\u0627\u0626\u0632\u0629 \u0627\u0644\u0643\u0628\u0631\u0649!',
+      jpWinNote: '\u0627\u0644\u062A\u0633\u0644\u064A\u0645 \u062A\u0644\u0642\u0627\u0626\u064A \u0644\u0631\u0635\u064A\u062F\u0643',
+      ok: '\u0631\u0627\u0626\u0639!',
+      closeT: '\u0625\u063A\u0644\u0627\u0642'
     }
   };
 
@@ -139,6 +184,331 @@
     var e = el('pw-balance');
     if (!e) return;
     e.innerHTML = '\uD83E\uDDE0 <span class="pw-balance-amt">' + fmtNum(balance) + '</span> ' + l().intel;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PHOENIX WHEEL JACKPOT (isolated: artifacts/.../phoenix_wheel/*)
+  // - Pool doc stores { amount }, seeded 500,000, grows by 0.5% of
+  //   every bet, decremented on a payout.
+  // - Per-user progress phoenix_jackpot_prog = cumulative collected
+  //   Intel (armed via SecurityGuard group 'phoenixjp', rules-bounded).
+  // - Crossing 1,000,000 Intel auto-claims the pool share matching
+  //   that round's bet: 100-1K -> 10%, 1K-10K -> 30%, >=10K -> 70%.
+  // - The payout is granted via SecurityService (idempotent per round);
+  //   no raw currency writes anywhere.
+  // ═══════════════════════════════════════════════════════════════════
+  var JP_SEED = 500000;
+  var JP_THRESHOLD = 1000000;
+  var JP_COL = 'phoenix_wheel';
+
+  function jpDB() {
+    return (window.db) || (window.firebase && window.firebase.firestore && window.firebase.firestore()) || null;
+  }
+
+  function jpInc() {
+    var f = window.firebase && window.firebase.firestore && window.firebase.firestore.FieldValue;
+    return (f && f.increment) ? f.increment : null;
+  }
+
+  function jpSrvTs() {
+    var f = window.firebase && window.firebase.firestore && window.firebase.firestore.FieldValue;
+    return (f && f.serverTimestamp) ? f.serverTimestamp() : Date.now();
+  }
+
+  function jpCol(name) {
+    var db = jpDB();
+    if (!db) return null;
+    return db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete')
+      .collection('public').doc('data').collection(JP_COL).doc(name);
+  }
+
+  function jpSub(name, sub) {
+    var col = jpCol(name);
+    return col ? col.collection(sub) : null;
+  }
+
+  function renderJackpotPill() {
+    var pill = el('pw-jp-pill');
+    if (!pill) return;
+    pill.innerHTML = '\uD83D\uDD25 ' + l().jackpot + '  ' + fmtNumFull(Math.round(activeJackpot));
+  }
+
+  function startJackpotListeners() {
+    if (!jpDB() || dbUnsubs.length) return;
+    var poolRef = jpCol('jackpot');
+    if (!poolRef) return;
+    dbUnsubs.push(poolRef.onSnapshot(function(doc) {
+      if (!doc.exists) {
+        poolRef.set({ amount: JP_SEED }).catch(function() {});
+        activeJackpot = JP_SEED;
+      } else {
+        activeJackpot = Number(doc.data().amount || 0);
+      }
+      renderJackpotPill();
+    }));
+
+    var topRef = jpSub('leaderboard', 'top_explorers');
+    if (topRef) {
+      dbUnsubs.push(topRef.orderBy('multiplier', 'desc').limit(3).onSnapshot(function(snap) {
+        topExplorers = [];
+        snap.forEach(function(d) { var x = d.data(); x.uid = d.id; topExplorers.push(x); });
+        if (showJackpotModal) renderExplorersList();
+      }, function() {}));
+    }
+
+    var bcCol = jpSub('broadcasts', 'list');
+    if (bcCol) {
+      dbUnsubs.push(bcCol.orderBy('timestamp', 'desc').limit(5).onSnapshot(function(snap) {
+        var list = [];
+        snap.forEach(function(d) { list.push(d.data()); });
+        for (var i = 0; i < list.length; i++) {
+          var ts = list[i] && list[i].timestamp;
+          var ms = ts && ts.toMillis ? ts.toMillis() : (typeof ts === 'number' ? ts : 0);
+          if (ms && ms > seenBroadcastTs && (Date.now() - ms) < 60000) {
+            seenBroadcastTs = ms;
+            if (window.showToast) {
+              window.showToast('\uD83D\uDD25 ' + (list[i].name || 'Player') +
+                (currentLang === 'ar' ? ' \u0641\u0627\u0632 \u0628\u0627\u0644\u062C\u0627\u0626\u0632\u0629 \u0627\u0644\u0643\u0628\u0631\u0649 +' : ' won the Phoenix Jackpot +') +
+                fmtNumFull(list[i].amount || 0) + ' \uD83E\uDDE0');
+            }
+          }
+        }
+      }, function() {}));
+    }
+    renderJackpotPill();
+  }
+
+  function contributeToJackpot(bet) {
+    var incF = jpInc();
+    if (!bet || bet <= 0) return;
+    var ref = jpCol('jackpot');
+    if (!ref || !incF) return;
+    ref.update({ amount: incF(Math.max(1, Math.round(bet * 0.005))) })
+      .then(function() {}, function() {});
+  }
+
+  function upsertExplorer(uid, mult) {
+    if (!uid || !mult || !jpDB()) return;
+    var meRef = jpSub('leaderboard', 'top_explorers');
+    if (!meRef) return;
+    meRef.doc(uid).get().then(function(doc) {
+      var best = doc.exists ? Number(doc.data().multiplier || 0) : 0;
+      if (mult > best) {
+        var u = currentUser() || {};
+        meRef.doc(uid).set({
+          multiplier: mult,
+          displayName: u.displayName || u.username || 'Player',
+          photoURL: u.photoURL || u.photo || '',
+          timestamp: Date.now()
+        }, { merge: true }).then(function() {}, function() {});
+      }
+    }).then(function() {}, function() {});
+  }
+
+  function triggerJackpot(uid, bet) {
+    var poolRef = jpCol('jackpot');
+    var roundTag = activeRoundTag || Date.now();
+    jackpotWinInfo = null;
+    if (!poolRef || !jpDB()) return;
+    poolRef.get().then(function(doc) {
+      if (!doc || !doc.exists) { jackpotPending = false; return; }
+      var totalJp = Number(doc.data().amount || 0);
+      if (totalJp <= 0) { jackpotPending = false; return; }
+      var share = 0.1;
+      if (bet >= 10000) share = 0.7;
+      else if (bet >= 1000) share = 0.3;
+      var winAmount2 = Math.round(totalJp * share);
+      jackpotWinInfo = { amount: winAmount2, share: share };
+
+      if (!window.SecurityService) { jackpotPending = false; return; }
+      window.SecurityService.applyCurrencyTransaction(
+        uid, winAmount2, 'Phoenix Wheel Jackpot Payout',
+        { game: 'PhoenixWheel', share: share, poolAtWin: totalJp, roundTag: roundTag },
+        { idemKey: uid + '_pwjp_' + roundTag }
+      ).then(function(res) {
+        if (!res || !res.success) {
+          var code = res && res.error;
+          showMsg((code && code === 'insufficient_funds') ? (currentLang === 'ar' ? '\u0631\u0635\u064A\u062F \u063A\u064A\u0631 \u0643\u0627\u0641' : 'Insufficient balance') : ((code || '') + ' (jackpot)'));
+          return; // keep jackpotPending; retried on the next collect
+        }
+        var release = window.SecurityGuard ? window.SecurityGuard.arm('phoenixjp') : null;
+        window.usersCollection.doc(uid).update({ phoenix_jackpot_prog: 0 })
+          .then(function() { if (release) release(); }, function() { if (release) release(); });
+        poolRef.update({ amount: jpInc() ? jpInc()(-winAmount2) : -winAmount2 })
+          .then(function() {}, function() {});
+        var bc = jpSub('broadcasts', 'list');
+        if (bc) {
+          bc.add({
+            uid: uid,
+            name: (currentUser() && (currentUser().displayName || currentUser().username)) || 'Player',
+            amount: winAmount2,
+            timestamp: jpSrvTs()
+          }).then(function() {}, function() {});
+        }
+        jackpotPending = false;
+        jackpotProgress = 0;
+        renderJackpotPill();
+        showJackpotWinOverlay();
+      }, function() {});
+    }, function() {});
+  }
+
+  // ── Top Explorers list (inside the open jackpot modal) ────────────
+  function renderExplorersList() {
+    var listEl = el('pw-jp-list');
+    if (!listEl) return;
+    if (!topExplorers.length) {
+      listEl.innerHTML = '<div class="pw-jp-name" style="color:rgba(255,255,255,0.4)">' + l().noRecords + '</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < topExplorers.length; i++) {
+      var lb = topExplorers[i];
+      html += '<div class="pw-jp-row" data-u="' + (lb.uid || '') + '">' +
+        '<span class="pw-jp-rank">' + (i + 1) + '</span>' +
+        (lb.photoURL
+          ? '<img class="pw-jp-avat" src="' + lb.photoURL + '" alt="" onerror="this.style.display=\'none\'">'
+          : '<span class="pw-jp-avat pw-jp-avat-ph"></span>') +
+        '<span class="pw-jp-name">' + (lb.displayName || 'Player') + '</span>' +
+        '<span class="pw-jp-mult">' + fmtNum(lb.multiplier || 0) + 'x</span>' +
+        '</div>';
+    }
+    listEl.innerHTML = html;
+    var rows = listEl.querySelectorAll('.pw-jp-row');
+    for (var j = 0; j < rows.length; j++) {
+      rows[j].addEventListener('click', function() {
+        var uid = this.getAttribute('data-u');
+        if (uid && window.openLuckyGamesMiniProfile) window.openLuckyGamesMiniProfile(uid);
+      });
+    }
+  }
+
+  function openJackpotModal() {
+    if (!container) return;
+    var overlay = document.createElement('div');
+    overlay.className = 'pw-game pw-jp-modal';
+    overlay.id = 'pw-jp-modal';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+    var card = document.createElement('div');
+    card.className = 'pw-jp-card';
+    card.innerHTML =
+      '<div class="pw-jp-head"><span>\uD83D\uDD25 ' + l().jackpot + '</span>' +
+      '<button class="pw-jp-close">\u2715</button></div>' +
+      '<div class="pw-jp-body">' +
+        '<div class="pw-jp-pool">' + fmtNumFull(Math.round(activeJackpot)) + '</div>' +
+        '<div class="pw-jp-pool-label">' + l().totalPool + '</div>' +
+        '<div class="pw-jp-section">' +
+          '<div class="pw-jp-sec-title">\uD83C\uDFC6 ' + l().topExplorers + '</div>' +
+          '<div id="pw-jp-list"></div>' +
+        '</div>' +
+        '<div class="pw-jp-sec-title">' + l().shares + '</div>' +
+        '<div class="pw-tier"><span>100 \u2013 1K</span><span class="pw-tier-share" style="color:#4ade80">10%</span></div>' +
+        '<div class="pw-tier"><span>1K \u2013 10K</span><span class="pw-tier-share" style="color:#38bdf8">30%</span></div>' +
+        '<div class="pw-tier"><span>\u2265 10K</span><span class="pw-tier-share" style="color:#a78bfa">70%</span></div>' +
+        '<ul class="pw-jp-rules">' +
+          '<li>\u2022 ' + l().rules1 + '</li>' +
+          '<li>\u2022 ' + l().rules2 + '</li>' +
+          '<li>\u2022 ' + l().rules3 + '</li>' +
+        '</ul>' +
+      '</div>';
+    overlay.appendChild(card);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target.className === 'pw-jp-close') closeJackpotModal();
+    });
+    container.appendChild(overlay);
+    setTimeout(function() {
+      overlay.style.animation = 'pw-jp-pop 0.25s ease-out';
+      card.style.animation = 'pw-jp-pop 0.25s ease-out';
+    }, 10);
+    renderExplorersList();
+  }
+
+  function closeJackpotModal() {
+    var m = el('pw-jp-modal');
+    if (m && m.parentNode) m.parentNode.removeChild(m);
+  }
+
+  function showJackpotWinOverlay() {
+    if (!container || !jackpotWinInfo) return;
+    var info = jackpotWinInfo;
+    var overlay = document.createElement('div');
+    overlay.className = 'pw-game pw-jp-win';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.8);z-index:320;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML =
+      '<div class="pw-jp-win-card">' +
+        '<div class="pw-jp-win-title">\uD83D\uDD25 ' + l().jpWinTitle + '</div>' +
+        '<div class="pw-jp-win-amt">+' + fmtNumFull(info.amount) + ' \uD83E\uDDE0</div>' +
+        '<div class="pw-jp-win-note">' + l().jpWinNote + ' (' + Math.round(info.share * 100) + '%)</div>' +
+        '<button class="pw-jp-win-ok">' + l().ok + '</button>' +
+      '</div>';
+    container.appendChild(overlay);
+    var ok = overlay.querySelector('.pw-jp-win-ok');
+    if (ok) ok.addEventListener('click', function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    });
+    spawnConfetti(45);
+    spawnPhoenixRise();
+    var t = setTimeout(function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 8000);
+    timers.push(t);
+  }
+
+  // ── HOW TO PLAY (payout table + jackpot rules) ─────────────────────
+  function payoutTable(rtp) {
+    var totalW = 0;
+    for (var i = 0; i < segments.length; i++) totalW += segments[i].weight;
+    var rows = '';
+    for (var j = 0; j < segments.length; j++) {
+      var seg = segments[j];
+      var pct = (seg.weight / totalW) * 100;
+      var prob = (pct % 1 === 0)
+        ? pct.toFixed(0) + '%'
+        : (pct < 0.1 ? pct.toFixed(2) : pct.toFixed(2)).replace(/0+$/, '').replace(/\.$/, '') + '%';
+      rows += '<div class="pw-help-row"><span>' + seg.label + '</span><span class="pw-help-prob">' + prob + '</span></div>';
+    }
+    return {
+      rows: rows,
+      rtp: rtp
+    };
+  }
+
+  function openHelpModal() {
+    if (!container) return;
+    var totalW = 0, contrib = 0;
+    for (var i = 0; i < segments.length; i++) { totalW += segments[i].weight; contrib += segments[i].weight * segments[i].mult; }
+    var rtpPct = ((contrib / totalW) * 100).toFixed(2) + '%';
+    var pt = payoutTable(rtpPct);
+    var overlay = document.createElement('div');
+    overlay.className = 'pw-game pw-help-modal';
+    overlay.id = 'pw-help-modal';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:310;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML =
+      '<div class="pw-help-card">' +
+        '<div class="pw-help-head"><span>' + l().helpTitle + '</span>' +
+        '<button class="pw-jp-close">\u2715</button></div>' +
+        '<div class="pw-help-body">' +
+          '<div class="pw-help-sub">' + (currentLang === 'ar' ? '\u062C\u062F\u0648\u0644 \u0627\u0644\u062F\u0641\u0639' : 'Payout Table') + '</div>' +
+          pt.rows +
+          '<div class="pw-help-note">' + l().rtpNote.replace('{rtp}', rtpPct) + '</div>' +
+          '<div class="pw-help-sub">\uD83D\uDD25 ' + l().jackpot + '</div>' +
+          '<div class="pw-help-text">' +
+            '\u2022 ' + l().rules1 + '<br>' +
+            '\u2022 ' + l().rules2 + '<br>' +
+            '\u2022 ' + l().rules3 +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target.className === 'pw-jp-close') {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }
+    });
+    container.appendChild(overlay);
+    setTimeout(function() {
+      var card = overlay.querySelector('.pw-help-card');
+      if (card) card.style.animation = 'pw-jp-pop 0.25s ease-out';
+    }, 10);
   }
 
   // ── CSS (scoped under .pw-game) ────────────────────────────────────
@@ -499,9 +869,127 @@
       '  background: radial-gradient(circle, rgba(255,215,0,0.35) 0%, rgba(238,90,36,0.15) 40%, transparent 70%);',
       '  z-index: 4;',
       '  pointer-events: none;',
-      '  animation: pw-flame-burst-anim 0.8s ease-out forwards;',
+'  animation: pw-flame-burst-anim 0.8s ease-out forwards;',
       '}',
-      '',
+
+      '/* Top-right helper buttons */',
+      '.pw-game .pw-top-right { display: flex; align-items: center; gap: 8px; }',
+      '.pw-game .pw-help-btn {',
+      '  width: 30px; height: 30px;',
+      '  border-radius: 50%;',
+      '  background: rgba(255,255,255,0.08);',
+      '  border: 1px solid rgba(255,255,255,0.18);',
+      '  color: #ffd700;',
+      '  font-weight: 900;',
+      '  font-size: 14px;',
+      '  cursor: pointer;',
+      '  font-family: "Outfit", sans-serif;',
+      '}',
+      '.pw-game .pw-jp-pill {',
+      '  margin: 0 16px 10px 16px;',
+      '  cursor: pointer;',
+      '  background: linear-gradient(90deg,#7c1d0e,#c2410c 40%,#ee5a24 50%,#c2410c 60%,#7c1d0e);',
+      '  border: 1px solid rgba(249,115,22,0.6);',
+      '  border-radius: 7px;',
+      '  padding: 5px 0;',
+      '  text-align: center;',
+      '  color: #fde047;',
+      '  font-weight: 700;',
+      '  font-size: 13px;',
+      '  letter-spacing: 1.5px;',
+      '  font-family: "Orbitron", monospace;',
+      '  text-shadow: 0 0 10px rgba(253,224,71,0.6);',
+      '  box-shadow: 0 0 14px rgba(249,115,22,0.3);',
+      '  position: relative;',
+      '  z-index: 10;',
+      '}',
+
+      '/* Jackpot modal */',
+      '.pw-game .pw-jp-card {',
+      '  width: 100%; max-width: 380px;',
+      '  background: linear-gradient(160deg,#2a0c1f,#120313);',
+      '  border-radius: 18px;',
+      '  border: 2px solid rgba(249,115,22,0.4);',
+      '  box-shadow: 0 0 40px rgba(238,90,36,0.25);',
+      '  max-height: 90%; overflow-y: auto;',
+      '}',
+      '.pw-game .pw-jp-head {',
+      '  background: linear-gradient(90deg,#ea580c,#c2410c);',
+      '  padding: 13px 16px;',
+      '  display: flex; justify-content: space-between; align-items: center;',
+      '  border-top-left-radius: 16px; border-top-right-radius: 16px;',
+      '  color: #fff; font-family: "Orbitron", monospace; font-weight: 700; font-size: 15px; letter-spacing: 1px;',
+      '}',
+      '.pw-game .pw-jp-close {',
+      '  background: rgba(255,255,255,0.18);',
+      '  border: 1.5px solid rgba(255,255,255,0.3);',
+      '  border-radius: 7px; color: #fff; cursor: pointer;',
+      '  padding: 2px 10px; font-size: 16px; font-weight: 700;',
+      '}',
+      '.pw-game .pw-jp-body { padding: 20px; color: #fff; }',
+      '.pw-game .pw-jp-pool {',
+      '  text-align: center; font-size: 32px; font-weight: 900; color: #fde047;',
+      '  font-family: "Orbitron", monospace; letter-spacing: 2px; margin-bottom: 5px;',
+      '  text-shadow: 0 0 16px rgba(253,224,71,0.5);',
+      '}',
+      '.pw-game .pw-jp-pool-label { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 20px; letter-spacing: 1px; }',
+      '.pw-game .pw-jp-section { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 20px; }',
+      '.pw-game .pw-jp-sec-title { color: #fde047; font-size: 13px; font-family: "Orbitron", monospace; margin-bottom: 10px; }',
+      '.pw-game .pw-jp-row {',
+      '  display: flex; align-items: center; gap: 8px;',
+      '  background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px;',
+      '  cursor: pointer; border: 1px solid rgba(255,255,255,0.03);',
+      '}',
+      '.pw-game .pw-jp-rank { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 900; width: 18px; }',
+      '.pw-game .pw-jp-avat { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }',
+      '.pw-game .pw-jp-avat-ph { background: rgba(255,255,255,0.1); }',
+      '.pw-game .pw-jp-name { font-size: 12px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }',
+      '.pw-game .pw-jp-mult { font-weight: 800; color: #4ade80; font-size: 13px; }',
+      '.pw-game .pw-tier {',
+      '  display: flex; align-items: center; justify-content: space-between;',
+      '  background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; font-size: 12px;',
+      '}',
+      '.pw-game .pw-tier .pw-tier-share { font-weight: 900; font-size: 14px; }',
+      '.pw-game .pw-jp-rules { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.7; padding: 8px 0 0 0; margin: 0; list-style: none; }',
+      '.pw-game .pw-jp-rules li { margin-bottom: 6px; }',
+
+      '/* Jackpot win overlay */',
+      '.pw-game .pw-jp-win-card {',
+      '  text-align: center;',
+      '  background: linear-gradient(160deg,#2a0c1f,#120313);',
+      '  max-width: 340px; width: 100%; border-radius: 18px; padding: 26px 20px;',
+      '  border: 2px solid rgba(255,215,0,0.5);',
+      '  box-shadow: 0 0 50px rgba(238,90,36,0.35);',
+      '  animation: pw-jp-pop 0.3s ease-out;',
+      '}',
+      '.pw-game .pw-jp-win-title { font-size: 20px; font-weight: 900; color: #fde047; font-family: "Orbitron", monospace; letter-spacing: 1px; }',
+      '.pw-game .pw-jp-win-amt { font-size: 34px; font-weight: 900; color: #ffd700; margin: 8px 0 4px; text-shadow: 0 0 18px rgba(255,215,0,0.6); }',
+      '.pw-game .pw-jp-win-note { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 18px; }',
+      '.pw-game .pw-jp-win-ok { background: linear-gradient(135deg,#ff6b6b,#ee5a24); color: #fff; border: none; border-radius: 20px; padding: 10px 34px; font-weight: 800; font-size: 14px; cursor: pointer; letter-spacing: 1px; font-family: "Outfit", sans-serif; }',
+
+      '/* Help modal */',
+      '.pw-game .pw-help-card {',
+      '  width: 100%; max-width: 380px;',
+      '  background: linear-gradient(160deg,#1a0a0a,#0d0505);',
+      '  border-radius: 18px;',
+      '  border: 2px solid rgba(238,90,36,0.35);',
+      '  box-shadow: 0 0 40px rgba(238,90,36,0.2);',
+      '  max-height: 90%; overflow-y: auto;',
+      '}',
+      '.pw-game .pw-help-head {',
+      '  background: linear-gradient(90deg,#ee5a24,#c2410c);',
+      '  padding: 13px 16px;',
+      '  display: flex; justify-content: space-between; align-items: center;',
+      '  border-top-left-radius: 16px; border-top-right-radius: 16px;',
+      '  color: #fff; font-family: "Orbitron", monospace; font-weight: 700; font-size: 14px; letter-spacing: 1px;',
+      '}',
+      '.pw-game .pw-help-body { padding: 20px; color: #fff; }',
+      '.pw-game .pw-help-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px; border-bottom: 1px dashed rgba(255,255,255,0.08); font-size: 13px; }',
+      '.pw-game .pw-help-row .pw-help-prob { color: #ffd700; font-weight: 700; }',
+      '.pw-game .pw-help-note { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 10px; line-height: 1.6; }',
+      '.pw-game .pw-help-sub { font-size: 13px; font-weight: 800; color: #ffd700; margin: 14px 0 6px; }',
+      '.pw-game .pw-help-text { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.7; }',
+
       '/* Keyframes */',
       '@keyframes pw-glow-pulse {',
       '  0%, 100% { box-shadow: 0 0 30px rgba(238,90,36,0.4); }',
@@ -544,6 +1032,10 @@
       '@keyframes pw-flame-burst-anim {',
       '  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }',
       '  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }',
+      '}',
+      '@keyframes pw-jp-pop {',
+      '  0% { transform: scale(0.85); opacity: 0; }',
+      '  100% { transform: scale(1); opacity: 1; }',
       '}'
     ].join('\n');
   }
@@ -682,6 +1174,8 @@
       }
       balance -= currentBet;
       updateBalanceDisplay();
+      lastSpinBet = currentBet;
+      contributeToJackpot(currentBet);
 
       // Pick target segment
       var targetIdx = pickWeightedSegment();
@@ -910,6 +1404,22 @@
       if (collectEl) collectEl.style.display = 'none';
       var resultEl = el('pw-result');
       if (resultEl) resultEl.innerHTML = '';
+
+      // Jackpot progress = cumulative collected Intel (armed, rules-bounded).
+      var uid = uidOf();
+      var incF = jpInc();
+      if (uid && jpDB() && incF && window.usersCollection) {
+        var release = window.SecurityGuard ? window.SecurityGuard.arm('phoenixjp') : null;
+        window.usersCollection.doc(uid).update({ phoenix_jackpot_prog: incF(Math.round(amt)) })
+          .then(function() { if (release) release(); }, function() { if (release) release(); });
+        upsertExplorer(uid, mult);
+        var prev = jackpotProgress;
+        jackpotProgress += Math.round(amt);
+        if (jackpotProgress >= JP_THRESHOLD) {
+          if (prev < JP_THRESHOLD) jackpotPending = true;
+          if (jackpotPending) triggerJackpot(uid, lastSpinBet || currentBet);
+        }
+      }
     });
   }
 
@@ -978,12 +1488,26 @@
     titleDiv.textContent = l().title;
     topbar.appendChild(titleDiv);
 
+    var topRight = document.createElement('div');
+    topRight.className = 'pw-top-right';
+
+    var helpBtn = document.createElement('button');
+    helpBtn.className = 'pw-help-btn';
+    helpBtn.type = 'button';
+    helpBtn.title = l().howTo;
+    helpBtn.textContent = '?';
+    helpBtn.addEventListener('click', openHelpModal);
+    listeners.push({ el: helpBtn, evt: 'click', fn: openHelpModal });
+    topRight.appendChild(helpBtn);
+
     var avatarWrap = document.createElement('div');
     avatarWrap.className = 'pw-avatar-wrap';
     mountAvatar(avatarWrap);
     avatarWrap.addEventListener('click', onAvatarClick);
     listeners.push({ el: avatarWrap, evt: 'click', fn: onAvatarClick });
-    topbar.appendChild(avatarWrap);
+    topRight.appendChild(avatarWrap);
+
+    topbar.appendChild(topRight);
 
     container.appendChild(topbar);
 
@@ -991,6 +1515,16 @@
     var accentLine = document.createElement('div');
     accentLine.className = 'pw-accent-line';
     container.appendChild(accentLine);
+
+    // Jackpot pill (Fire theme)
+    var jpPill = document.createElement('button');
+    jpPill.id = 'pw-jp-pill';
+    jpPill.className = 'pw-jp-pill';
+    jpPill.type = 'button';
+    jpPill.addEventListener('click', openJackpotModal);
+    listeners.push({ el: jpPill, evt: 'click', fn: openJackpotModal });
+    container.appendChild(jpPill);
+    renderJackpotPill();
 
     // Wheel area
     var wheelArea = document.createElement('div');
@@ -1105,6 +1639,22 @@
     winAmount = 0;
     winMultiplier = 0;
     activeRoundTag = 0;
+    jackpotProgress = Number((user && user.phoenix_jackpot_prog) || 0);
+    jackpotPending = false;
+    jackpotWinInfo = null;
+    lastSpinBet = 0;
+    showJackpotModal = false;
+    showHelpModal = false;
+    startJackpotListeners();
+    // Fresh read of the real Firestore progress (in case the cached user doc is stale)
+    var refreshUid = uidOf();
+    if (refreshUid && window.usersCollection) {
+      window.usersCollection.doc(refreshUid).get().then(function(d) {
+        if (d.exists && d.data().phoenix_jackpot_prog != null) {
+          jackpotProgress = Number(d.data().phoenix_jackpot_prog) || 0;
+        }
+      }).then(function() {}, function() {});
+    }
     canvas = null;
     ctx = null;
     buildDOM();
@@ -1118,6 +1668,8 @@
       listeners[j].el.removeEventListener(listeners[j].evt, listeners[j].fn);
     }
     listeners = [];
+    for (var k = 0; k < dbUnsubs.length; k++) { try { dbUnsubs[k](); } catch (e) {} }
+    dbUnsubs = [];
     if (container) container.innerHTML = '';
     container = null;
     options = null;

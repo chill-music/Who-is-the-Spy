@@ -21,6 +21,14 @@
   var _listeners = [];       // {el, evt, fn}
   var _diceEls = [];
   var _faceCycleInterval = null;
+  var _jpActive = 0;          // live pool amount (CrownDice-only)
+  var _jpProgress = 0;        // cumulative collected Intel toward auto-claim
+  var _jpPending = false;
+  var _jpWinInfo = null;
+  var _jpTop = [];            // top explorers
+  var _lastRollChip = 0;      // chip value of the round being collected
+  var _jpUnsubs = [];         // Firestore listeners to close on stop()
+  var _jpSeenTs = 0;
 
   var CHIP_VALUES = [100, 500, 1000, 5000, 10000, 50000];
   var CHIP_LABELS = ['100', '500', '1K', '5K', '10K', '50K'];
@@ -59,7 +67,20 @@
     infoOdd:      { en: 'Odd: Sum is odd', ar: 'فردي: المجموع فردي' },
     infoTriple:   { en: 'Triple: All same (30x)', ar: 'ثلاثي: كل النرد متساوي (30x)' },
     selectBet:    { en: 'Select your bet', ar: 'اختر رهانك' },
-    selectChip:   { en: 'Select bet amount', ar: 'اختر مقدار الرهان' }
+    selectChip:   { en: 'Select bet amount', ar: 'اختر مقدار الرهان' },
+    howTo:        { en: 'HOW TO PLAY', ar: 'كيفية اللعب' },
+    jackpot:      { en: 'JACKPOT', ar: 'الجائزة الكبرى' },
+    helpTitle:    { en: 'CROWN DICE — HOW TO PLAY', ar: 'نرد التاج — كيفية اللعب' },
+    totalPool:    { en: 'Total Prize Pool', ar: 'إجمالي مجموع الجوائز' },
+    topExplorers: { en: 'Top Explorers', ar: 'كبار المستكشفين' },
+    noRecords:    { en: 'No records yet', ar: 'لا توجد سجلات بعد' },
+    shares:       { en: 'Payout Shares (by round bet)', ar: 'حصص الدفع (حسب رهان الجولة)' },
+    rules1:       { en: '0.5% of every bet feeds the pool.', ar: 'يتغذى المجموع من نسبة 0.5% من كل رهان.' },
+    rules2:       { en: 'Hits 1,000,000 Intel collected → auto-claims a tier.', ar: 'الوصول لـ 1,000,000 إنتل مجمع → فوز تلقائي بفئة.' },
+    rules3:       { en: 'Your tier depends on that round’s bet size.', ar: 'فئتك تعتمد على حجم رهان تلك الجولة.' },
+    jpWinTitle:   { en: 'JACKPOT WIN!', ar: 'فوز بالجائزة الكبرى!' },
+    jpWinNote:    { en: 'Auto-credited to your balance', ar: 'التسليم تلقائي لرصيدك' },
+    ok:           { en: 'ROYAL!', ar: 'ملكي!' }
   };
 
   function t(key) {
@@ -168,6 +189,316 @@
   function getBetLabel() {
     var labels = { low: 'Low', high: 'High', even: 'Even', odd: 'Odd', triple: 'Triple' };
     return labels[_selectedBet] || 'Unknown';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION: CROWN DICE JACKPOT (isolated: artifacts/.../crown_dice/*)
+  // - Pool doc stores { amount }, seeded 500,000, grown by 0.5% of
+  //   every bet, decremented on a payout.
+  // - Per-user progress crown_jackpot_prog = cumulative collected Intel
+  //   (armed via SecurityGuard group 'crownjp', rules-bounded).
+  // - Crossing 1,000,000 Intel auto-claims the pool share matching
+  //   that round's bet: 100-1K -> 10%, 1K-10K -> 30%, >=10K -> 70%.
+  // - Payout granted via SecurityService (idempotent per round); no raw
+  //   currency writes anywhere.
+  // ═══════════════════════════════════════════════════════════════
+  var CD_JP_SEED = 500000;
+  var CD_JP_THRESHOLD = 1000000;
+  var CD_JP_COL = 'crown_dice';
+
+  function cdDB() {
+    return (window.db) || (window.firebase && window.firebase.firestore && window.firebase.firestore()) || null;
+  }
+
+  function cdInc() {
+    var f = window.firebase && window.firebase.firestore && window.firebase.firestore.FieldValue;
+    return (f && f.increment) ? f.increment : null;
+  }
+
+  function cdSrvTs() {
+    var f = window.firebase && window.firebase.firestore && window.firebase.firestore.FieldValue;
+    return (f && f.serverTimestamp) ? f.serverTimestamp() : Date.now();
+  }
+
+  function cdCol(name) {
+    var db = cdDB();
+    if (!db) return null;
+    return db.collection('artifacts').doc(window.appId || 'pro_spy_v25_final_fix_complete')
+      .collection('public').doc('data').collection(CD_JP_COL).doc(name);
+  }
+
+  function cdSub(name, sub) {
+    var col = cdCol(name);
+    return col ? col.collection(sub) : null;
+  }
+
+  function cdRenderPill() {
+    var pill = $('cd-jp-pill');
+    if (!pill) return;
+    pill.innerHTML = '\uD83D\uDC51 ' + t('jackpot') + '  ' + fmtNum(Math.round(_jpActive));
+  }
+
+  function cdStartListeners() {
+    if (!cdDB() || _jpUnsubs.length) return;
+    var poolRef = cdCol('jackpot');
+    if (!poolRef) return;
+    _jpUnsubs.push(poolRef.onSnapshot(function(doc) {
+      if (!doc.exists) {
+        poolRef.set({ amount: CD_JP_SEED }).then(function() {}, function() {});
+        _jpActive = CD_JP_SEED;
+      } else {
+        _jpActive = Number(doc.data().amount || 0);
+      }
+      cdRenderPill();
+    }));
+
+    var topRef = cdSub('leaderboard', 'top_explorers');
+    if (topRef) {
+      _jpUnsubs.push(topRef.orderBy('multiplier', 'desc').limit(3).onSnapshot(function(snap) {
+        _jpTop = [];
+        snap.forEach(function(d) { var x = d.data(); x.uid = d.id; _jpTop.push(x); });
+        var listEl = $('cd-jp-list');
+        if (listEl) cdRenderTop();
+      }, function() {}));
+    }
+
+    var bcCol = cdSub('broadcasts', 'list');
+    if (bcCol) {
+      _jpUnsubs.push(bcCol.orderBy('timestamp', 'desc').limit(5).onSnapshot(function(snap) {
+        var list = [];
+        snap.forEach(function(d) { list.push(d.data()); });
+        for (var i = 0; i < list.length; i++) {
+          var ts = list[i] && list[i].timestamp;
+          var ms = ts && ts.toMillis ? ts.toMillis() : (typeof ts === 'number' ? ts : 0);
+          if (ms && ms > _jpSeenTs && (Date.now() - ms) < 60000) {
+            _jpSeenTs = ms;
+            if (window.showToast) {
+              window.showToast('\uD83D\uDC51 ' + (list[i].name || 'Player') +
+                (_lang === 'ar' ? ' \u0641\u0627\u0632 \u0628\u0627\u0644\u062C\u0627\u0626\u0632\u0629 \u0627\u0644\u0643\u0628\u0631\u0649 +' : ' won the Crown Dice Jackpot +') +
+                fmtNum(list[i].amount || 0) + ' \uD83E\uDDE0');
+            }
+          }
+        }
+      }, function() {}));
+    }
+    cdRenderPill();
+  }
+
+  function cdContribute(bet) {
+    var incF = cdInc();
+    if (!bet || bet <= 0) return;
+    var ref = cdCol('jackpot');
+    if (!ref || !incF) return;
+    ref.update({ amount: incF(Math.max(1, Math.round(bet * 0.005))) })
+      .then(function() {}, function() {});
+  }
+
+  function cdUpsertExplorer(uid, mult) {
+    if (!uid || !mult || !cdDB()) return;
+    var meRef = cdSub('leaderboard', 'top_explorers');
+    if (!meRef) return;
+    meRef.doc(uid).get().then(function(doc) {
+      var best = doc.exists ? Number(doc.data().multiplier || 0) : 0;
+      if (mult > best) {
+        var u = currentUserData() || {};
+        meRef.doc(uid).set({
+          multiplier: mult,
+          displayName: u.displayName || u.username || 'Player',
+          photoURL: u.photoURL || u.photo || '',
+          timestamp: Date.now()
+        }, { merge: true }).then(function() {}, function() {});
+      }
+    }).then(function() {}, function() {});
+  }
+
+  function cdTriggerJackpot(uid, bet) {
+    var poolRef = cdCol('jackpot');
+    var roundTag = _roundTag || Date.now();
+    _jpWinInfo = null;
+    if (!poolRef || !cdDB()) return;
+    poolRef.get().then(function(doc) {
+      if (!doc || !doc.exists) { _jpPending = false; return; }
+      var totalJp = Number(doc.data().amount || 0);
+      if (totalJp <= 0) { _jpPending = false; return; }
+      var share = 0.1;
+      if (bet >= 10000) share = 0.7;
+      else if (bet >= 1000) share = 0.3;
+      var winAmount2 = Math.round(totalJp * share);
+      _jpWinInfo = { amount: winAmount2, share: share };
+
+      if (!window.SecurityService) { _jpPending = false; return; }
+      window.SecurityService.applyCurrencyTransaction(
+        uid, winAmount2, 'Crown Dice Jackpot Payout',
+        { game: 'CrownDice', share: share, poolAtWin: totalJp, roundTag: roundTag },
+        { idemKey: uid + '_crownjp_' + roundTag }
+      ).then(function(res) {
+        if (!res || !res.success) {
+          var code = res && res.error;
+          showGameMsg((code && code === 'insufficient_funds') ? t('tryAgain') : ((code || '') + ' (jackpot)'));
+          return; // keep _jpPending; retried on the next collect
+        }
+        var release = window.SecurityGuard ? window.SecurityGuard.arm('crownjp') : null;
+        window.usersCollection.doc(uid).update({ crown_jackpot_prog: 0 })
+          .then(function() { if (release) release(); }, function() { if (release) release(); });
+        poolRef.update({ amount: cdInc() ? cdInc()(-winAmount2) : -winAmount2 })
+          .then(function() {}, function() {});
+        var bc = cdSub('broadcasts', 'list');
+        if (bc) {
+          bc.add({
+            uid: uid,
+            name: (currentUserData() && (currentUserData().displayName || currentUserData().username)) || 'Player',
+            amount: winAmount2,
+            timestamp: cdSrvTs()
+          }).then(function() {}, function() {});
+        }
+        _jpPending = false;
+        _jpProgress = 0;
+        cdRenderPill();
+        cdShowWinOverlay();
+      }, function() {});
+    }, function() {});
+  }
+
+  function cdRenderTop() {
+    var listEl = $('cd-jp-list');
+    if (!listEl) return;
+    if (!_jpTop.length) {
+      listEl.innerHTML = '<div class="cd-jp-name" style="color:rgba(255,255,255,0.4)">' + t('noRecords') + '</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < _jpTop.length; i++) {
+      var lb = _jpTop[i];
+      html += '<div class="cd-jp-row" data-u="' + (lb.uid || '') + '">' +
+        '<span class="cd-jp-rank">' + (i + 1) + '</span>' +
+        (lb.photoURL
+          ? '<img class="cd-jp-avat" src="' + lb.photoURL + '" alt="" onerror="this.style.display=\'none\'">'
+          : '<span class="cd-jp-avat cd-jp-avat-ph"></span>') +
+        '<span class="cd-jp-name">' + (lb.displayName || 'Player') + '</span>' +
+        '<span class="cd-jp-mult">' + fmtNum(lb.multiplier || 0) + 'x</span>' +
+        '</div>';
+    }
+    listEl.innerHTML = html;
+    var rows = listEl.querySelectorAll('.cd-jp-row');
+    for (var j = 0; j < rows.length; j++) {
+      rows[j].addEventListener('click', function() {
+        var uid = this.getAttribute('data-u');
+        if (uid && window.openLuckyGamesMiniProfile) window.openLuckyGamesMiniProfile(uid);
+      });
+    }
+  }
+
+  function cdOpenJackpotModal() {
+    var game = _container ? _container.querySelector('.cd-game') : null;
+    if (!game) return;
+    var overlay = document.createElement('div');
+    overlay.className = 'cd-jp-modal';
+    overlay.id = 'cd-jp-modal';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+    var card = document.createElement('div');
+    card.className = 'cd-jp-card';
+    card.innerHTML =
+      '<div class="cd-jp-head"><span>\uD83D\uDC51 ' + t('jackpot') + '</span>' +
+      '<button class="cd-jp-close">\u2715</button></div>' +
+      '<div class="cd-jp-body">' +
+        '<div class="cd-jp-pool">' + fmtNum(Math.round(_jpActive)) + '</div>' +
+        '<div class="cd-jp-pool-label">' + t('totalPool') + '</div>' +
+        '<div class="cd-jp-section">' +
+          '<div class="cd-jp-sec-title">\uD83C\uDFC6 ' + t('topExplorers') + '</div>' +
+          '<div id="cd-jp-list"></div>' +
+        '</div>' +
+        '<div class="cd-jp-sec-title">' + t('shares') + '</div>' +
+        '<div class="cd-tier"><span>100 \u2013 1K</span><span class="cd-tier-share" style="color:#4ade80">10%</span></div>' +
+        '<div class="cd-tier"><span>1K \u2013 10K</span><span class="cd-tier-share" style="color:#38bdf8">30%</span></div>' +
+        '<div class="cd-tier"><span>\u2265 10K</span><span class="cd-tier-share" style="color:#a78bfa">70%</span></div>' +
+        '<ul class="cd-jp-rules">' +
+          '<li>\u2022 ' + t('rules1') + '</li>' +
+          '<li>\u2022 ' + t('rules2') + '</li>' +
+          '<li>\u2022 ' + t('rules3') + '</li>' +
+        '</ul>' +
+      '</div>';
+    overlay.appendChild(card);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target.className === 'cd-jp-close') cdCloseJackpotModal();
+    });
+    game.appendChild(overlay);
+    setTimeout(function() {
+      card.style.animation = 'cd-jp-pop 0.25s ease-out';
+    }, 10);
+    cdRenderTop();
+  }
+
+  function cdCloseJackpotModal() {
+    var m = $('cd-jp-modal');
+    if (m && m.parentNode) m.parentNode.removeChild(m);
+  }
+
+  function cdShowWinOverlay() {
+    var game = _container ? _container.querySelector('.cd-game') : null;
+    if (!game || !_jpWinInfo) return;
+    var info = _jpWinInfo;
+    var overlay = document.createElement('div');
+    overlay.className = 'cd-jp-win';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.8);z-index:320;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML =
+      '<div class="cd-jp-win-card">' +
+        '<div class="cd-jp-win-title">\uD83D\uDC51 ' + t('jpWinTitle') + '</div>' +
+        '<div class="cd-jp-win-amt">+' + fmtNum(info.amount) + ' \uD83E\uDDE0</div>' +
+        '<div class="cd-jp-win-note">' + t('jpWinNote') + ' (' + Math.round(info.share * 100) + '%)</div>' +
+        '<button class="cd-jp-win-ok">' + t('ok') + '</button>' +
+      '</div>';
+    game.appendChild(overlay);
+    var ok = overlay.querySelector('.cd-jp-win-ok');
+    if (ok) ok.addEventListener('click', function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    });
+    goldFlourish();
+    spawnConfetti(true);
+    safeTimeout(function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 8000);
+  }
+
+  function cdOpenHelp() {
+    var game = _container ? _container.querySelector('.cd-game') : null;
+    if (!game) return;
+    var pctLow = '50.00%';
+    var pctTriple = ((6 / 216) * 100).toFixed(2) + '%';
+    var overlay = document.createElement('div');
+    overlay.className = 'cd-help-modal';
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:310;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML =
+      '<div class="cd-help-card">' +
+        '<div class="cd-help-head"><span>' + t('helpTitle') + '</span>' +
+        '<button class="cd-jp-close">\u2715</button></div>' +
+        '<div class="cd-help-body">' +
+          '<div class="cd-help-sub">' + (_lang === 'ar' ? 'جدول الدفع' : 'Payout Table') + '</div>' +
+          '<div class="cd-help-row"><span>' + t('betLow') + ' (3-10)</span><span class="cd-help-prob">1.9x \u00B7 ' + pctLow + '</span></div>' +
+          '<div class="cd-help-row"><span>' + t('betHigh') + ' (11-18)</span><span class="cd-help-prob">1.9x \u00B7 ' + pctLow + '</span></div>' +
+          '<div class="cd-help-row"><span>' + t('betEven') + '</span><span class="cd-help-prob">1.9x \u00B7 ' + pctLow + '</span></div>' +
+          '<div class="cd-help-row"><span>' + t('betOdd') + '</span><span class="cd-help-prob">1.9x \u00B7 ' + pctLow + '</span></div>' +
+          '<div class="cd-help-row"><span>' + t('betTriple') + '</span><span class="cd-help-prob">30x \u00B7 ' + pctTriple + '</span></div>' +
+          '<div class="cd-help-note">' + (_lang === 'ar'
+            ? 'RTP 95% للرهانات 1.9x و 83.3% للثلاثي.'
+            : 'RTP 95% on the 1.9x bets; 83.3% on Triple.') + '</div>' +
+          '<div class="cd-help-sub">\uD83D\uDC51 ' + t('jackpot') + '</div>' +
+          '<div class="cd-help-text">' +
+            '\u2022 ' + t('rules1') + '<br>' +
+            '\u2022 ' + t('rules2') + '<br>' +
+            '\u2022 ' + t('rules3') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay || e.target.className === 'cd-jp-close') {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }
+    });
+    game.appendChild(overlay);
+    setTimeout(function() {
+      var card = overlay.querySelector('.cd-help-card');
+      if (card) card.style.animation = 'cd-jp-pop 0.25s ease-out';
+    }, 10);
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -587,6 +918,128 @@
       '  100% { opacity: 0; border-color: rgba(255,215,0,0); }',
       '}',
 
+      /* Top-right helper buttons */
+      '.cd-game .cd-top-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }',
+      '.cd-game .cd-help-btn {',
+      '  width: 30px; height: 30px;',
+      '  border-radius: 50%;',
+      '  background: rgba(255,255,255,0.08);',
+      '  border: 1px solid rgba(255,215,0,0.4);',
+      '  color: #ffd700;',
+      '  font-weight: 900;',
+      '  font-size: 14px;',
+      '  cursor: pointer;',
+      '  font-family: "Outfit", sans-serif;',
+      '}',
+      '.cd-game .cd-jp-pill {',
+      '  margin: 4px 0 12px 0;',
+      '  cursor: pointer;',
+      '  background: linear-gradient(90deg,#5b3a9e,#7b1fa2 35%,#ffd700 50%,#7b1fa2 65%,#5b3a9e);',
+      '  border: 1px solid rgba(255,215,0,0.55);',
+      '  border-radius: 7px;',
+      '  padding: 5px 0;',
+      '  text-align: center;',
+      '  color: #fff;',
+      '  font-weight: 700;',
+      '  font-size: 13px;',
+      '  letter-spacing: 1.5px;',
+      '  font-family: "Orbitron", monospace;',
+      '  text-shadow: 0 0 10px rgba(255,215,0,0.6);',
+      '  box-shadow: 0 0 14px rgba(255,215,0,0.25);',
+      '  position: relative;',
+      '  z-index: 10;',
+      '  display: block; width: 100%;',
+      '}',
+
+      /* Jackpot modal */
+      '.cd-game .cd-jp-card {',
+      '  width: 100%; max-width: 380px;',
+      '  background: linear-gradient(160deg,#2a0c4a,#12032a);',
+      '  border-radius: 18px;',
+      '  border: 2px solid rgba(255,215,0,0.45);',
+      '  box-shadow: 0 0 40px rgba(255,215,0,0.2);',
+      '  max-height: 90%; overflow-y: auto;',
+      '}',
+      '.cd-game .cd-jp-head {',
+      '  background: linear-gradient(90deg,#ffd700,#c2185b);',
+      '  padding: 13px 16px;',
+      '  display: flex; justify-content: space-between; align-items: center;',
+      '  border-top-left-radius: 16px; border-top-right-radius: 16px;',
+      '  color: #1a0533; font-family: "Orbitron", monospace; font-weight: 700; font-size: 15px; letter-spacing: 1px;',
+      '}',
+      '.cd-game .cd-jp-close {',
+      '  background: rgba(0,0,0,0.25);',
+      '  border: 1.5px solid rgba(0,0,0,0.4);',
+      '  border-radius: 7px; color: #1a0533; cursor: pointer;',
+      '  padding: 2px 10px; font-size: 16px; font-weight: 700;',
+      '}',
+      '.cd-game .cd-jp-body { padding: 20px; color: #fff; }',
+      '.cd-game .cd-jp-pool {',
+      '  text-align: center; font-size: 32px; font-weight: 900; color: #ffd700;',
+      '  font-family: "Orbitron", monospace; letter-spacing: 2px; margin-bottom: 5px;',
+      '  text-shadow: 0 0 16px rgba(255,215,0,0.5);',
+      '}',
+      '.cd-game .cd-jp-pool-label { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 20px; letter-spacing: 1px; }',
+      '.cd-game .cd-jp-section { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 20px; }',
+      '.cd-game .cd-jp-sec-title { color: #ffd700; font-size: 13px; font-family: "Orbitron", monospace; margin-bottom: 10px; }',
+      '.cd-game .cd-jp-row {',
+      '  display: flex; align-items: center; gap: 8px;',
+      '  background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px;',
+      '  cursor: pointer; border: 1px solid rgba(255,255,255,0.03);',
+      '}',
+      '.cd-game .cd-jp-rank { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 900; width: 18px; }',
+      '.cd-game .cd-jp-avat { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }',
+      '.cd-game .cd-jp-avat-ph { background: rgba(255,255,255,0.1); }',
+      '.cd-game .cd-jp-name { font-size: 12px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }',
+      '.cd-game .cd-jp-mult { font-weight: 800; color: #4ade80; font-size: 13px; }',
+      '.cd-game .cd-tier {',
+      '  display: flex; align-items: center; justify-content: space-between;',
+      '  background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; font-size: 12px;',
+      '}',
+      '.cd-game .cd-tier .cd-tier-share { font-weight: 900; font-size: 14px; }',
+      '.cd-game .cd-jp-rules { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.7; padding: 8px 0 0 0; margin: 0; list-style: none; }',
+      '.cd-game .cd-jp-rules li { margin-bottom: 6px; }',
+
+      /* Jackpot win overlay */
+      '.cd-game .cd-jp-win-card {',
+      '  text-align: center;',
+      '  background: linear-gradient(160deg,#2a0c4a,#12032a);',
+      '  max-width: 340px; width: 100%; border-radius: 18px; padding: 26px 20px;',
+      '  border: 2px solid rgba(255,215,0,0.5);',
+      '  box-shadow: 0 0 50px rgba(255,215,0,0.35);',
+      '}',
+      '.cd-game .cd-jp-win-title { font-size: 20px; font-weight: 900; color: #ffd700; font-family: "Orbitron", monospace; letter-spacing: 1px; }',
+      '.cd-game .cd-jp-win-amt { font-size: 34px; font-weight: 900; color: #ffd700; margin: 8px 0 4px; text-shadow: 0 0 18px rgba(255,215,0,0.6); }',
+      '.cd-game .cd-jp-win-note { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 18px; }',
+      '.cd-game .cd-jp-win-ok { background: linear-gradient(135deg,#ffd700,#c2185b); color: #1a0533; border: none; border-radius: 20px; padding: 10px 34px; font-weight: 800; font-size: 14px; cursor: pointer; letter-spacing: 1px; font-family: "Outfit", sans-serif; }',
+
+      /* Help modal */
+      '.cd-game .cd-help-card {',
+      '  width: 100%; max-width: 380px;',
+      '  background: linear-gradient(160deg,#2d0a3e,#12032a);',
+      '  border-radius: 18px;',
+      '  border: 2px solid rgba(199,81,250,0.35);',
+      '  box-shadow: 0 0 40px rgba(199,81,250,0.2);',
+      '  max-height: 90%; overflow-y: auto;',
+      '}',
+      '.cd-game .cd-help-head {',
+      '  background: linear-gradient(90deg,#a855f7,#c2185b);',
+      '  padding: 13px 16px;',
+      '  display: flex; justify-content: space-between; align-items: center;',
+      '  border-top-left-radius: 16px; border-top-right-radius: 16px;',
+      '  color: #fff; font-family: "Orbitron", monospace; font-weight: 700; font-size: 14px; letter-spacing: 1px;',
+      '}',
+      '.cd-game .cd-help-body { padding: 20px; color: #fff; }',
+      '.cd-game .cd-help-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px; border-bottom: 1px dashed rgba(255,255,255,0.08); font-size: 13px; }',
+      '.cd-game .cd-help-row .cd-help-prob { color: #ffd700; font-weight: 700; }',
+      '.cd-game .cd-help-note { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 10px; line-height: 1.6; }',
+      '.cd-game .cd-help-sub { font-size: 13px; font-weight: 800; color: #ffd700; margin: 14px 0 6px; }',
+      '.cd-game .cd-help-text { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.7; }',
+      '@keyframes cd-jp-pop {',
+      '  0% { transform: scale(0.85); opacity: 0; }',
+      '  100% { transform: scale(1); opacity: 1; }',
+      '}',
+
       /* RTL adjustments */
       '.cd-game[dir="rtl"] .cd-balance .cd-bal-label { margin-left: 0; margin-right: 4px; }'
     ].join('\n');
@@ -854,6 +1307,8 @@
       }
       _balance -= _selectedChip;
       updateBalanceDisplay();
+      _lastRollChip = _selectedChip;
+      cdContribute(_selectedChip);
 
       // Generate final values
       var d1 = Math.floor(Math.random() * 6) + 1;
@@ -921,19 +1376,19 @@
     switch (_selectedBet) {
       case 'low':
         won = (sum >= 3 && sum <= 10);
-        multiplier = 2;
+        multiplier = 1.9;
         break;
       case 'high':
         won = (sum >= 11 && sum <= 18);
-        multiplier = 2;
+        multiplier = 1.9;
         break;
       case 'even':
         won = (sum % 2 === 0);
-        multiplier = 2;
+        multiplier = 1.9;
         break;
       case 'odd':
         won = (sum % 2 === 1);
-        multiplier = 2;
+        multiplier = 1.9;
         break;
       case 'triple':
         won = isTriple;
@@ -1025,6 +1480,22 @@
       if (collectEl) collectEl.style.display = 'none';
       _pendingWinAmount = 0;
       _pendingWinMultiplier = 0;
+
+      // Jackpot progress = cumulative collected Intel (armed, rules-bounded).
+      var uid = getTxUid();
+      var incF = cdInc();
+      if (uid && cdDB() && incF && window.usersCollection) {
+        var release = window.SecurityGuard ? window.SecurityGuard.arm('crownjp') : null;
+        window.usersCollection.doc(uid).update({ crown_jackpot_prog: incF(Math.round(winAmt)) })
+          .then(function() { if (release) release(); }, function() { if (release) release(); });
+        cdUpsertExplorer(uid, winMult);
+        var prev = _jpProgress;
+        _jpProgress += Math.round(winAmt);
+        if (_jpProgress >= CD_JP_THRESHOLD) {
+          if (prev < CD_JP_THRESHOLD) _jpPending = true;
+          if (_jpPending) cdTriggerJackpot(uid, _lastRollChip || _selectedChip || 0);
+        }
+      }
     });
   }
 
@@ -1083,13 +1554,35 @@
       else if (typeof window.setMiniProfileUID !== 'undefined') { window.setMiniProfileUID(uid); window.setShowMiniProfile(true); }
     });
     mountAvatar(avatarMount);
-    topBar.appendChild(avatarMount);
+
+    var topRight = document.createElement('div');
+    topRight.className = 'cd-top-right';
+
+    var helpBtn = document.createElement('button');
+    helpBtn.className = 'cd-help-btn';
+    helpBtn.type = 'button';
+    helpBtn.title = t('howTo');
+    helpBtn.textContent = '?';
+    addListener(helpBtn, 'click', cdOpenHelp);
+    topRight.appendChild(helpBtn);
+
+    topRight.appendChild(avatarMount);
+    topBar.appendChild(topRight);
     game.appendChild(topBar);
 
     // Divider
     var divider = document.createElement('div');
     divider.className = 'cd-divider';
     game.appendChild(divider);
+
+    // Jackpot pill (Royal theme)
+    var jpPill = document.createElement('button');
+    jpPill.id = 'cd-jp-pill';
+    jpPill.className = 'cd-jp-pill';
+    jpPill.type = 'button';
+    addListener(jpPill, 'click', cdOpenJackpotModal);
+    game.appendChild(jpPill);
+    cdRenderPill();
 
     // ── Dice Area ──
     var diceArea = document.createElement('div');
@@ -1257,6 +1750,23 @@
     _pendingWinAmount = 0;
     _pendingWinMultiplier = 0;
     _diceEls = [];
+    _jpActive = 0;
+    _jpProgress = Number(_user.crown_jackpot_prog || 0);
+    _jpPending = false;
+    _jpWinInfo = null;
+    _jpTop = [];
+    _lastRollChip = 0;
+    _jpSeenTs = 0;
+    cdStartListeners();
+    // Fresh read of the real Firestore progress (in case the cached user doc is stale)
+    var refreshUid = getTxUid();
+    if (refreshUid && window.usersCollection) {
+      window.usersCollection.doc(refreshUid).get().then(function(d) {
+        if (d.exists && d.data().crown_jackpot_prog != null) {
+          _jpProgress = Number(d.data().crown_jackpot_prog) || 0;
+        }
+      }).then(function() {}, function() {});
+    }
 
     // Clear previous content
     _container.innerHTML = '';
@@ -1273,6 +1783,8 @@
     clearAllTimers();
     if (_faceCycleInterval) { clearInterval(_faceCycleInterval); _faceCycleInterval = null; }
     removeAllListeners();
+    for (var j = 0; j < _jpUnsubs.length; j++) { try { _jpUnsubs[j](); } catch (e) {} }
+    _jpUnsubs = [];
     if (_container) _container.innerHTML = '';
     _container = null;
     _user = null;
@@ -1281,6 +1793,11 @@
     _selectedChip = null;
     _isRolling = false;
     _pendingWinAmount = 0;
+    _jpActive = 0;
+    _jpProgress = 0;
+    _jpPending = false;
+    _jpWinInfo = null;
+    _jpTop = [];
   }
 
   /**
